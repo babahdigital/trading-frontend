@@ -3,7 +3,8 @@ import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import { GuestNav } from '@/components/layout/guest-nav';
 import { localizePricingTier } from '@/lib/i18n/localize-cms';
-import type { PricingTier } from '@prisma/client';
+
+type Tier = Parameters<typeof localizePricingTier>[0];
 
 export const dynamic = 'force-dynamic';
 
@@ -26,7 +27,7 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
   try {
     const { prisma } = await import('@/lib/db/prisma');
     const raw = await prisma.pricingTier.findMany({ where: { isVisible: true }, orderBy: { sortOrder: 'asc' } });
-    tiers = raw.map((r: PricingTier) => {
+    tiers = raw.map((r: Tier) => {
       const loc = localizePricingTier(r, locale);
       return {
         slug: loc.slug, name: loc.name, price: loc.price, subtitle: loc.subtitle,

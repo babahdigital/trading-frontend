@@ -4,7 +4,8 @@ import { getTranslations } from 'next-intl/server';
 import { GuestNav } from '@/components/layout/guest-nav';
 import { FaqClient } from './faq-client';
 import { localizeFaq } from '@/lib/i18n/localize-cms';
-import type { Faq } from '@prisma/client';
+
+type FaqRow = Parameters<typeof localizeFaq>[0];
 
 export const dynamic = 'force-dynamic';
 
@@ -23,7 +24,7 @@ export default async function FaqPage({ params }: { params: Promise<{ locale: st
 
   try {
     const raw = await prisma.faq.findMany({ where: { isVisible: true }, orderBy: [{ category: 'asc' }, { sortOrder: 'asc' }] });
-    faqs = raw.map((f: Faq) => localizeFaq(f, locale));
+    faqs = raw.map((f: FaqRow) => localizeFaq(f, locale));
   } catch {}
 
   return (

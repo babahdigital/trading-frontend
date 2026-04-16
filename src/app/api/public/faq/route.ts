@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { localizeFaq } from '@/lib/i18n/localize-cms';
-import type { Faq } from '@prisma/client';
+
+type FaqRow = Parameters<typeof localizeFaq>[0];
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 3600;
@@ -12,7 +13,7 @@ export async function GET(request: NextRequest) {
     where: { isVisible: true },
     orderBy: [{ category: 'asc' }, { sortOrder: 'asc' }],
   });
-  const localized = faqs.map((f: Faq) => localizeFaq(f, locale));
+  const localized = faqs.map((f: FaqRow) => localizeFaq(f, locale));
   return NextResponse.json(localized, {
     headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=600' },
   });

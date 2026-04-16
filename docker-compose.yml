@@ -10,6 +10,9 @@ services:
       - LICENSE_MW_MASTER_KEY=${LICENSE_MW_MASTER_KEY:?LICENSE_MW_MASTER_KEY must be set in .env}
       - VPS1_BACKEND_URL=${VPS1_BACKEND_URL:?VPS1_BACKEND_URL must be set in .env}
       - VPS1_ADMIN_TOKEN=${VPS1_ADMIN_TOKEN:-}
+      - GOOGLE_GENERATIVE_AI_API_KEY=${GOOGLE_GENERATIVE_AI_API_KEY:-}
+      - ADMIN_EMAIL=${ADMIN_EMAIL:-}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-}
       - NODE_ENV=production
       - NEXT_PUBLIC_APP_URL=${APP_URL:-https://babahalgo.com}
     extra_hosts:

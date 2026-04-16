@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard,
@@ -14,6 +14,8 @@ import {
   LogOut,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ResponsiveSidebar } from '@/components/layout/responsive-sidebar';
+import { AuthProvider, useAuth } from '@/lib/auth/auth-context';
 
 const navItems = [
   { href: '/portal', label: 'Dashboard', icon: LayoutDashboard },
@@ -26,23 +28,23 @@ const navItems = [
 ];
 
 export default function PortalLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const router = useRouter();
+  return (
+    <AuthProvider>
+      <PortalLayoutInner>{children}</PortalLayoutInner>
+    </AuthProvider>
+  );
+}
 
-  function handleLogout() {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('user');
-    document.cookie = 'access_token=; path=/; max-age=0';
-    router.push('/login');
-  }
+function PortalLayoutInner({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const { logout } = useAuth();
 
   return (
     <div className="min-h-screen flex">
       {/* Sidebar */}
-      <aside className="w-64 border-r bg-card flex flex-col">
+      <ResponsiveSidebar>
         <div className="p-6 border-b">
-          <h1 className="text-lg font-bold text-foreground">Trading Portal</h1>
+          <h1 className="text-lg font-bold text-foreground">BabahAlgo Portal</h1>
           <p className="text-xs text-muted-foreground">Client Dashboard</p>
         </div>
 
@@ -69,16 +71,16 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
         </nav>
 
         <div className="p-4 border-t">
-          <Button variant="ghost" className="w-full justify-start gap-3" onClick={handleLogout}>
+          <Button variant="ghost" className="w-full justify-start gap-3" onClick={logout}>
             <LogOut className="h-4 w-4" />
             Logout
           </Button>
         </div>
-      </aside>
+      </ResponsiveSidebar>
 
       {/* Main content */}
       <main className="flex-1 overflow-auto">
-        <div className="p-8">{children}</div>
+        <div className="p-4 lg:p-8">{children}</div>
       </main>
     </div>
   );

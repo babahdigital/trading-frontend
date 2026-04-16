@@ -1,9 +1,10 @@
-# Arsitektur Komersial Zero Trust — Vercel + VPS2 Bridge + VPS1 Backend
+# Arsitektur Komersial Zero Trust — BabahAlgo
 
-> Dokumen ini **menyempurnakan** `frontend.md` (plan v1) dengan topologi 3-node Zero Trust
-> yang sudah diputuskan Abdullah: Vercel (frontend SSR) + VPS2 Hostinger (bridge/DB) + VPS1 EPYC (backend trading).
+> **Brand: BabahAlgo** | Domain: `babahalgo.com` (frontend) + `api.babahalgo.com` (bridge API)
 >
-> Tanggal: 2026-04-16 | Status: KONSEP v2 | Repo: `D:\Data\Projek\trading-apifrontend`
+> Topologi 3-node Zero Trust: Vercel (frontend SSR) + VPS2 Hostinger (bridge/DB) + VPS1 EPYC (backend trading).
+>
+> Tanggal: 2026-04-17 | Status: KONSEP v2.1 FINAL | Repo: `D:\Data\Projek\trading-apifrontend`
 
 ---
 
@@ -31,7 +32,7 @@ VPS2 bridge TIDAK punya port publik terbuka. `cloudflared` (Cloudflare Tunnel da
                     |                              |
              Vercel Edge                    Cloudflare Edge
           (Frontend SSR)                   (Tunnel + Access)
-          babahdigital.net                 Service Token auth
+          babahalgo.com                    Service Token auth
                     |                              |
                     +----------- HTTPS ------------+
                     |     (Cf-Access-Client-Id      |
@@ -82,7 +83,7 @@ VPS2 bridge TIDAK punya port publik terbuka. `cloudflared` (Cloudflare Tunnel da
 
 ```
 Klien browser → Vercel (SSR render) → fetch('/api/client/status')
-  → Vercel serverless → POST https://tunnel.babahdigital.net/api/client/status
+  → Vercel serverless → POST https://tunnel.babahalgo.com/api/client/status
     → Cloudflare Tunnel → cloudflared di VPS2
       → Next.js API route: verify JWT + cek license ACTIVE
         → proxyToVpsBackend(): decrypt admin_token dari vps_instances
@@ -164,12 +165,12 @@ Klien browser → Vercel → fetch('/api/client/pamm/status')
 **Solusi arsitektur:**
 
 ```
-Vercel (babahdigital.net):
+Vercel (babahalgo.com):
   ├── Next.js pages (SSR, RSC) → render HTML
   ├── Server Components fetch data dari VPS2 API
   └── NO API routes di Vercel — redirect /api/* ke VPS2
 
-VPS2 (api.babahdigital.net via Cloudflare Tunnel):
+VPS2 (api.babahalgo.com via Cloudflare Tunnel):
   ├── Next.js standalone (atau Express/Fastify terpisah) → API only
   ├── Prisma → PostgreSQL localhost
   └── Cron worker (same process)
@@ -186,7 +187,7 @@ VPS2 (api.babahdigital.net via Cloudflare Tunnel):
 ```
 
 Ini berarti Vercel proxy SEMUA traffic ke VPS2 via Cloudflare Tunnel. Vercel tetap memberikan:
-- TLS otomatis di `babahdigital.net`
+- TLS otomatis di `babahalgo.com`
 - DDoS protection
 - Global CDN untuk static assets
 - Tidak ada cold start (VPS2 always-on)
@@ -213,17 +214,17 @@ cloudflared tunnel create trading-bridge
 tunnel: <TUNNEL_ID>
 credentials-file: /root/.cloudflared/<TUNNEL_ID>.json
 ingress:
-  - hostname: api.babahdigital.net
+  - hostname: api.babahalgo.com
     service: http://127.0.0.1:3000
     originRequest:
       noTLSVerify: true
-  - hostname: trading.babahdigital.net
+  - hostname: babahalgo.com
     service: http://127.0.0.1:3000
   - service: http_status:404
 
 # DNS route
-cloudflared tunnel route dns trading-bridge api.babahdigital.net
-cloudflared tunnel route dns trading-bridge trading.babahdigital.net
+cloudflared tunnel route dns trading-bridge api.babahalgo.com
+cloudflared tunnel route dns trading-bridge babahalgo.com
 
 # Run as service
 sudo cloudflared service install
@@ -234,8 +235,8 @@ sudo systemctl start cloudflared
 **Cloudflare Access Policy (Zero Trust dashboard):**
 
 ```
-Application: Trading API Bridge
-Domain: api.babahdigital.net
+Application: BabahAlgo API Bridge
+Domain: api.babahalgo.com
 Policy:
   - Name: "Vercel Serverless"
     Decision: Allow
@@ -244,7 +245,7 @@ Policy:
   - Name: "Admin Direct Access"  
     Decision: Allow
     Include:
-      - Email: abdullah@babahdigital.net
+      - Email: abdullah@babahalgo.com
       - IP: <Abdullah home IP>/32
 ```
 
@@ -253,7 +254,7 @@ Policy:
 ```
 CF_ACCESS_CLIENT_ID=<dari Cloudflare dashboard>
 CF_ACCESS_CLIENT_SECRET=<dari Cloudflare dashboard>
-NEXT_PUBLIC_API_URL=https://api.babahdigital.net
+NEXT_PUBLIC_API_URL=https://api.babahalgo.com
 ```
 
 ### 4.3 Firewall VPS1 (backend trading): hanya terima dari VPS2
@@ -363,7 +364,7 @@ Perlu ditambahkan di repo **trading** (backend Python) — bukan di repo ini:
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://api.babahdigital.net/api/:path*"
+      "destination": "https://api.babahalgo.com/api/:path*"
     }
   ],
   "headers": [
@@ -388,10 +389,10 @@ Perlu ditambahkan di repo **trading** (backend Python) — bukan di repo ini:
 DATABASE_URL=postgresql://trading_user:<pass>@<VPS2_INTERNAL>:5432/trading_commercial
 JWT_SECRET=<64 char random>
 LICENSE_MW_MASTER_KEY=<32 byte hex untuk AES-256>
-NEXT_PUBLIC_APP_URL=https://trading.babahdigital.net
+NEXT_PUBLIC_APP_URL=https://babahalgo.com
 CF_ACCESS_CLIENT_ID=<dari Cloudflare>
 CF_ACCESS_CLIENT_SECRET=<dari Cloudflare>
-ADMIN_SEED_EMAIL=abdullah@babahdigital.net
+ADMIN_SEED_EMAIL=abdullah@babahalgo.com
 ADMIN_SEED_PASSWORD=<bcrypt-hashed di seed, plaintext di env untuk seed saja>
 ```
 
@@ -532,16 +533,16 @@ Rate limit backend: 10 calls/60s untuk start, 5/60s untuk breaker reset.
 | SSH | `148.230.96.201:1983` | User: `abdullah` |
 | PostgreSQL | localhost:5432 | DB: `trading_commercial` |
 | Next.js app | localhost:3000 | Via Docker atau PM2 |
-| Cloudflare Tunnel | `cloudflared` daemon | Hostname: `api.babahdigital.net`, `trading.babahdigital.net` |
+| Cloudflare Tunnel | `cloudflared` daemon | Hostname: `api.babahalgo.com`, `babahalgo.com` |
 
 ### Vercel
 
 | Setting | Nilai |
 |---------|-------|
-| Domain | `babahdigital.net`, `www.babahdigital.net` |
+| Domain | `babahalgo.com`, `www.babahalgo.com` |
 | Framework | Next.js 14 |
 | Build | `npx prisma generate && next build` |
-| Rewrite | `/api/*` → `https://api.babahdigital.net/api/*` |
+| Rewrite | `/api/*` → `https://api.babahalgo.com/api/*` |
 
 ---
 
@@ -559,7 +560,7 @@ Paralel     : Sprint E (backend API extension di VPS1, bisa kapan saja)
 - Akhir Sprint A: proxy VPS1 jalan, kill-switch testable, middleware aman
 - Akhir Sprint B: admin bisa generate license + register VPS + trigger kill switch
 - Akhir Sprint C: klien bisa login + lihat dashboard real dari VPS1
-- Akhir Sprint D: live production di `babahdigital.net` dengan Zero Trust
+- Akhir Sprint D: live production di `babahalgo.com` dengan Zero Trust
 
 ---
 

@@ -3,7 +3,7 @@ import { jwtVerify } from 'jose';
 
 const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 
-const publicPaths = ['/login', '/api/auth/login', '/api/auth/refresh', '/api/health'];
+const publicPaths = ['/login', '/register', '/api/auth/login', '/api/auth/register', '/api/auth/refresh', '/api/health', '/api/public/', '/api/client/inquiries'];
 
 // In-memory rate limit store (per-process, resets on restart)
 const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
@@ -62,7 +62,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Allow static files and Next.js internals
-  if (pathname.startsWith('/_next') || pathname.startsWith('/favicon') || pathname.startsWith('/public') || pathname === '/') {
+  if (pathname.startsWith('/_next') || pathname.startsWith('/favicon') || pathname.startsWith('/public') || pathname === '/' || pathname.startsWith('/register') || pathname.startsWith('/pricing') || pathname.startsWith('/faq') || pathname.startsWith('/features') || pathname.startsWith('/about') || pathname.startsWith('/terms') || pathname.startsWith('/privacy') || pathname.startsWith('/risk-disclaimer')) {
     return NextResponse.next();
   }
 

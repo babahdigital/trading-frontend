@@ -27,7 +27,7 @@ Satu middleware, satu database user, satu Next.js app — melayani kedua model s
 
 ```
 ╔══════════════════════════════════════════════════════════════╗
-║  SERVER PUSAT ABDULLAH (babahdigital.net — IP publik baru)  ║
+║  SERVER PUSAT ABDULLAH (babahalgo.com — IP publik baru)  ║
 ║                                                              ║
 ║  ┌────────────────────────────────────────────────────────┐ ║
 ║  │  Nginx (TLS via Let's Encrypt, reverse proxy, HSTS)    │ ║
@@ -97,7 +97,7 @@ Satu middleware, satu database user, satu Next.js app — melayani kedua model s
 | Daftar MyFxBook, hubungkan akun produksi | URL publik track record | Belum |
 | Akumulasi 90+ hari live data | Equity curve, DD, PF, Sharpe | Sedang berlangsung v1.6.46+ |
 | Legal review (CV Babah Digital) | Kontrak SLA, risk disclaimer, terms of service | Belum |
-| Domain + DNS (babahdigital.net) | A record, MX record | Sudah aktif sebagian |
+| Domain + DNS (babahalgo.com) | A record, MX record | Sudah aktif sebagian |
 | Sertifikat TLS (Let's Encrypt wildcard) | Certbot deployment | Belum |
 
 ---
@@ -229,7 +229,7 @@ model VpsInstance {
   name                String   // contoh: "client-a-vps-sg"
   host                String   // IP atau hostname
   port                Int      @default(8000)
-  backendBaseUrl      String   // https://vps-clientA.babahdigital.net
+  backendBaseUrl      String   // https://vps-clientA.babahalgo.com
   adminTokenCiphertext String  // AES-256-GCM terenkripsi dengan LICENSE_MW_MASTER_KEY
   adminTokenIv        String   // IV untuk AES
   adminTokenTag       String   // auth tag GCM
@@ -517,7 +517,7 @@ CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
 ### Defense-in-depth (opsional, tidak mengubah logika scalper)
 
 `scripts/entrypoint-client.sh` — pra-boot:
-1. HTTP GET `https://license.babahdigital.net/api/vps/heartbeat?id=<VPS_ID>&fingerprint=<MACHINE_ID>` dengan `VPS_HEARTBEAT_TOKEN`
+1. HTTP GET `https://license.babahalgo.com/api/vps/heartbeat?id=<VPS_ID>&fingerprint=<MACHINE_ID>` dengan `VPS_HEARTBEAT_TOKEN`
 2. Response berisi `{license_status: "ACTIVE"|"EXPIRED", hard_kill: bool}`
 3. IF `hard_kill=true` → exit 1 (container tidak boot)
 4. Kalau middleware tidak bisa dijangkau selama >48 jam → fallback ke cached license file dengan expiry
@@ -625,10 +625,10 @@ Middleware `middleware.ts` cek:
 
 ```nginx
 server {
-    server_name babahdigital.net www.babahdigital.net;
+    server_name babahalgo.com www.babahalgo.com;
     listen 443 ssl http2;
-    ssl_certificate /etc/letsencrypt/live/babahdigital.net/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/babahdigital.net/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/babahalgo.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/babahalgo.com/privkey.pem;
     
     add_header Strict-Transport-Security "max-age=63072000" always;
     add_header X-Frame-Options DENY;
@@ -653,7 +653,7 @@ server {
 
 server {
     listen 80;
-    server_name babahdigital.net www.babahdigital.net;
+    server_name babahalgo.com www.babahalgo.com;
     return 301 https://$host$request_uri;
 }
 ```
@@ -662,7 +662,7 @@ server {
 
 ```nginx
 server {
-    server_name vps-<client_id>.babahdigital.net;
+    server_name vps-<client_id>.babahalgo.com;
     listen 443 ssl http2;
     
     # HANYA izinkan IP server pusat Abdullah (license middleware)

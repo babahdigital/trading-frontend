@@ -24,19 +24,23 @@ credentials-file: /home/abdullah/.cloudflared/${TUNNEL_ID}.json
 
 ingress:
   # PostgreSQL TCP tunnel - accessible only via cloudflared on Vercel side
-  - hostname: db-trading.babahdigital.net
+  - hostname: db.babahalgo.com
     service: tcp://127.0.0.1:5432
     originRequest:
       connectTimeout: 10s
+  # Next.js API (bridge middleware)
+  - hostname: api.babahalgo.com
+    service: http://127.0.0.1:3000
   # Health check endpoint
-  - hostname: health-trading.babahdigital.net
-    service: http://127.0.0.1:5432
+  - hostname: health.babahalgo.com
+    service: http://127.0.0.1:3000
   # Catch-all
   - service: http_status:404
 EOF
 
 echo "=== Creating DNS routes ==="
-cloudflared tunnel route dns "$TUNNEL_NAME" db-trading.babahdigital.net || true
+cloudflared tunnel route dns "$TUNNEL_NAME" db.babahalgo.com || true
+cloudflared tunnel route dns "$TUNNEL_NAME" api.babahalgo.com || true
 
 echo "=== Installing as systemd service ==="
 sudo cloudflared service install || true
@@ -48,14 +52,15 @@ sudo systemctl status cloudflared --no-pager
 
 echo ""
 echo "=== DONE ==="
-echo "Tunnel is running. PostgreSQL is accessible via:"
-echo "  Hostname: db-trading.babahdigital.net"
+echo "Tunnel is running. Services accessible via:"
+echo "  Database: db.babahalgo.com"
+echo "  API:      api.babahalgo.com"
 echo ""
 echo "For Vercel, set DATABASE_URL to:"
-echo "  postgresql://trading_user:PASSWORD@db-trading.babahdigital.net:5432/trading_commercial?sslmode=disable"
+echo "  postgresql://trading_user:PASSWORD@db.babahalgo.com:5432/trading_commercial?sslmode=disable"
 echo ""
 echo "IMPORTANT: Configure Cloudflare Zero Trust Access policy to restrict who can use this tunnel."
 echo "  - Go to: https://one.dash.cloudflare.com/"
 echo "  - Access > Applications > Add Application"
-echo "  - Self-hosted, domain: db-trading.babahdigital.net"
+echo "  - Self-hosted, domains: db.babahalgo.com, api.babahalgo.com"
 echo "  - Policy: Allow only Vercel IPs or service tokens"

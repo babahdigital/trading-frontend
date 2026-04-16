@@ -2,6 +2,12 @@
   "buildCommand": "npx prisma generate && next build",
   "framework": "nextjs",
   "installCommand": "npm install",
+  "rewrites": [
+    {
+      "source": "/api/proxy/:path*",
+      "destination": "https://api.babahalgo.com/api/:path*"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",

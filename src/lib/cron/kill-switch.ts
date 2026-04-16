@@ -1,11 +1,14 @@
 import { prisma } from '@/lib/db/prisma';
 import type { Prisma } from '@prisma/client';
 import { proxyToVpsBackend } from '@/lib/proxy/vps-client';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('kill-switch');
 
 // Kill-switch cron: scan expired licenses, stop backends, update status
 export async function runKillSwitchCron() {
   const now = new Date();
-  console.log(`[kill-switch] Running at ${now.toISOString()}`);
+  log.info(`Running at ${now.toISOString()}`);
 
   // Find active licenses that have expired
   const expiredLicenses = await prisma.license.findMany({
@@ -19,7 +22,7 @@ export async function runKillSwitchCron() {
     },
   });
 
-  console.log(`[kill-switch] Found ${expiredLicenses.length} expired licenses`);
+  log.info(`Found ${expiredLicenses.length} expired licenses`);
 
   for (const license of expiredLicenses) {
     try {
@@ -86,13 +89,11 @@ export async function runKillSwitchCron() {
         },
       });
 
-      console.log(
-        `[kill-switch] License ${license.licenseKey} expired → ${success ? 'stopped' : 'FAILED'}`
-      );
+      log.info(`License ${license.licenseKey} expired → ${success ? 'stopped' : 'FAILED'}`);
     } catch (err) {
-      console.error(`[kill-switch] Error processing license ${license.id}:`, err);
+      log.error(`Error processing license ${license.id}:`, err);
     }
   }
 
-  console.log(`[kill-switch] Done. Processed ${expiredLicenses.length} licenses.`);
+  log.info(`Done. Processed ${expiredLicenses.length} licenses.`);
 }

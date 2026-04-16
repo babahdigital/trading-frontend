@@ -65,8 +65,8 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Trading Commercial</CardTitle>
-          <CardDescription>Babah Digital — License Management Platform</CardDescription>
+          <CardTitle className="text-2xl font-bold">BabahAlgo</CardTitle>
+          <CardDescription>Autonomous Intelligence. Institutional Precision.</CardDescription>
         </CardHeader>
         <CardContent>
           {/* Mode toggle */}
@@ -96,7 +96,7 @@ export default function LoginPage() {
                   <label className="text-sm font-medium text-foreground mb-1 block">Email</label>
                   <Input
                     type="email"
-                    placeholder="admin@babahdigital.net"
+                    placeholder="admin@babahalgo.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required

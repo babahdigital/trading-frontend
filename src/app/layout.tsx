@@ -5,8 +5,8 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Trading Commercial - Babah Digital',
-  description: 'License Management & Trading Dashboard',
+  title: 'BabahAlgo — Autonomous Intelligence. Institutional Precision.',
+  description: 'AI-Powered Quantitative Trading Platform by BabahAlgo',
 };
 
 export default function RootLayout({

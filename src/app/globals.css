@@ -34,6 +34,12 @@
     --chart-area: 213 94% 68%;
     --chart-grid: 215 14% 85%;
     --chart-crosshair: 215 20% 50%;
+
+    /* Shadow system */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-glow: 0 0 20px -5px hsl(var(--primary) / 0.3);
   }
 
   .dark {
@@ -64,6 +70,12 @@
     --chart-area: 213 94% 68%;
     --chart-grid: 215 14% 20%;
     --chart-crosshair: 215 20% 50%;
+
+    /* Shadow system (dark) */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.4);
+    --shadow-glow: 0 0 30px -5px hsl(var(--primary) / 0.2);
   }
 }
 
@@ -101,4 +113,49 @@
   .text-loss {
     color: hsl(var(--loss));
   }
+}
+
+/* ─── Card hover lift ─── */
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ─── Glow effect untuk card penting (pricing popular, KPI highlight) ─── */
+.card-glow {
+  transition: box-shadow 0.3s ease;
+}
+.card-glow:hover {
+  box-shadow: var(--shadow-glow);
+}
+
+/* ─── Gradient border (pricing card popular) ─── */
+.gradient-border {
+  position: relative;
+  border: none;
+}
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.3));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+/* ─── Smooth scroll behavior ─── */
+html {
+  scroll-behavior: smooth;
+}
+
+/* ─── Selection color ─── */
+::selection {
+  background: hsl(var(--primary) / 0.3);
+  color: hsl(var(--primary-foreground));
 }

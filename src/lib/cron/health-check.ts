@@ -1,5 +1,8 @@
 import { prisma } from '@/lib/db/prisma';
 import type { Prisma } from '@prisma/client';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('health-check');
 
 // Health check cron: ping all ONLINE VPS instances every 5 minutes
 export async function runHealthCheckCron() {
@@ -7,7 +10,7 @@ export async function runHealthCheckCron() {
     where: { status: { in: ['ONLINE', 'PROVISIONING'] } },
   });
 
-  console.log(`[health-check] Checking ${vpsInstances.length} VPS instances`);
+  log.info(`Checking ${vpsInstances.length} VPS instances`);
 
   for (const vps of vpsInstances) {
     const startTime = Date.now();
@@ -62,8 +65,6 @@ export async function runHealthCheckCron() {
       },
     });
 
-    console.log(
-      `[health-check] ${vps.name}: ${healthStatus} (${responseTimeMs}ms)`
-    );
+    log.info(`${vps.name}: ${healthStatus} (${responseTimeMs}ms)`);
   }
 }

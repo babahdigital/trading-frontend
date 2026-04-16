@@ -17,17 +17,6 @@ interface HourlyHeatmapProps {
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 
-function getCellColor(pnl: number, maxAbs: number): string {
-  if (pnl === 0) return 'bg-slate-800/50';
-  const intensity = Math.min(Math.abs(pnl) / maxAbs, 1);
-  if (pnl > 0) {
-    const alpha = 0.2 + intensity * 0.6;
-    return `bg-green-500/${Math.round(alpha * 100)}`;
-  }
-  const alpha = 0.2 + intensity * 0.6;
-  return `bg-red-500/${Math.round(alpha * 100)}`;
-}
-
 export function HourlyHeatmap({ data, className = '' }: HourlyHeatmapProps) {
   const [tooltip, setTooltip] = useState<{ x: number; y: number; cell: HeatmapCell } | null>(null);
 

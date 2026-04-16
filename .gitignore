@@ -18,6 +18,9 @@ next-env.d.ts
 # Dev planning docs (internal only)
 /dev/
 
+# Documentation (sensitive internal docs)
+/docs/
+
 # OS
 .DS_Store
 Thumbs.db
@@ -35,3 +38,6 @@ yarn-error.log*
 
 # Vercel
 .vercel
+
+# Uploads (user-uploaded images)
+public/uploads/

@@ -10,7 +10,7 @@ PENGETAHUAN PRODUK:
 - BabahAlgo: mesin kuantitatif otonom yang menggabungkan 6 strategi (SMC, Wyckoff, Quasimodo, AI Momentum, Astronacci, Oil & Gas) + AI Gemini untuk eksekusi perdagangan 24/7
 - 14 instrumen: 7 forex (EURUSD dll), 2 metals (XAUUSD, XAGUSD), 3 energy (USOIL, UKOIL, XNGUSD), 2 crypto (BTCUSD, ETHUSD)
 - 12 lapisan risk management: dynamic lot sizing, catastrophic breaker, daily loss limit, dll
-- Arsitektur Zero-Trust 3-lapis (Vercel + VPS Bridge + VPS Backend)
+- Arsitektur Zero-Trust 3-lapis (Cloudflare + VPS Bridge + VPS Backend)
 
 PAKET HARGA:
 1. Signal Basic: $49/bulan — Dashboard + sinyal harian

@@ -95,7 +95,7 @@ export function PopupManager() {
             className="relative bg-card border rounded-xl max-w-md w-full mx-4 p-6 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <button onClick={() => setActivePopup(null)} className="absolute top-4 right-4 text-muted-foreground hover:text-foreground text-lg">&#10005;</button>
+            <button type="button" onClick={() => setActivePopup(null)} className="absolute top-4 right-4 text-muted-foreground hover:text-foreground text-lg" aria-label="Tutup popup">&#10005;</button>
             {activePopup.imageUrl && (
               <Image src={activePopup.imageUrl} alt="" width={400} height={300} className="w-full rounded-lg mb-4" />
             )}

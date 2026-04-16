@@ -16,6 +16,7 @@ export function LanguageSwitcher() {
 
   return (
     <button
+      type="button"
       onClick={toggleLocale}
       className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg
                  border text-sm hover:bg-accent transition-colors"

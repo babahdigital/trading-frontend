@@ -71,7 +71,7 @@ export default function CmsBannersPage() {
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="text-sm font-medium mb-1 block">Position</label>
-                <select className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm" value={editing.position} onChange={(e) => setEditing({ ...editing, position: e.target.value })}>
+                <select className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm" value={editing.position} onChange={(e) => setEditing({ ...editing, position: e.target.value })} aria-label="Position">
                   <option value="TOP">Top</option>
                   <option value="BOTTOM">Bottom</option>
                   <option value="FLOATING">Floating</option>
@@ -104,7 +104,7 @@ export default function CmsBannersPage() {
             <Card key={b.id}>
               <CardContent className="p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-4 h-4 rounded" style={{ backgroundColor: b.bgColor || '#0ea5e9' }} />
+                  <div className="w-4 h-4 rounded border" style={{ backgroundColor: b.bgColor || '#0ea5e9' }} />
                   <div>
                     <span className="font-semibold">{b.title}</span>
                     <span className="text-xs text-muted-foreground ml-2">{b.position} {b.isActive ? '' : '(inactive)'}</span>

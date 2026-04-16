@@ -66,7 +66,7 @@ export default function CmsFaqPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium mb-1 block">Kategori</label>
-                <select className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm" value={editing.category} onChange={(e) => setEditing({ ...editing, category: e.target.value })}>
+                <select className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm" value={editing.category} onChange={(e) => setEditing({ ...editing, category: e.target.value })} aria-label="Kategori">
                   <option value="GENERAL">General</option>
                   <option value="PRICING">Pricing</option>
                   <option value="TECHNICAL">Technical</option>

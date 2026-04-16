@@ -137,8 +137,10 @@ export function ChatWidget() {
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => setIsOpen(false)}
                 className="p-1.5 rounded-lg hover:bg-accent transition-colors"
+                aria-label="Tutup chat"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -207,6 +209,7 @@ export function ChatWidget() {
               <div className="px-4 pb-2 flex gap-2 overflow-x-auto">
                 {QUICK_REPLIES.map((qr) => (
                   <button
+                    type="button"
                     key={qr.label}
                     onClick={() => handleQuickReply(qr.message)}
                     className="flex-shrink-0 px-3 py-1.5 rounded-full border
@@ -239,6 +242,7 @@ export function ChatWidget() {
                            hover:bg-primary/90 transition-colors
                            disabled:opacity-50 disabled:cursor-not-allowed
                            active:scale-[0.98]"
+                aria-label="Kirim pesan"
               >
                 <Send className="w-4 h-4" />
               </button>

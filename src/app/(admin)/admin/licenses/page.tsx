@@ -170,6 +170,7 @@ export default function LicensesPage() {
                   value={form.userId}
                   onChange={(e) => updateForm('userId', e.target.value)}
                   required
+                  aria-label="User"
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                   <option value="">Select user...</option>
@@ -184,6 +185,7 @@ export default function LicensesPage() {
                   value={form.type}
                   onChange={(e) => updateForm('type', e.target.value)}
                   required
+                  aria-label="License type"
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                   {LICENSE_TYPES.map((t) => (
@@ -204,6 +206,7 @@ export default function LicensesPage() {
                 <select
                   value={form.vpsInstanceId}
                   onChange={(e) => updateForm('vpsInstanceId', e.target.value)}
+                  aria-label="VPS Instance"
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                   <option value="">None</option>

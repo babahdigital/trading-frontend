@@ -51,7 +51,7 @@ export function BannerBar() {
               {b.linkUrl && (
                 <Link href={b.linkUrl} className="underline ml-2 font-semibold">{b.linkLabel || 'Learn more'}</Link>
               )}
-              <button onClick={() => dismiss(b.id)} className="absolute right-3 top-1/2 -translate-y-1/2 opacity-70 hover:opacity-100">&#10005;</button>
+              <button type="button" onClick={() => dismiss(b.id)} className="absolute right-3 top-1/2 -translate-y-1/2 opacity-70 hover:opacity-100" aria-label="Tutup banner">&#10005;</button>
             </div>
           </motion.div>
         ))}
@@ -70,7 +70,7 @@ export function BannerBar() {
           >
             <span>{b.content}</span>
             {b.linkUrl && <Link href={b.linkUrl} className="underline ml-2 font-semibold">{b.linkLabel || 'Learn more'}</Link>}
-            <button onClick={() => dismiss(b.id)} className="absolute right-3 top-1/2 -translate-y-1/2 opacity-70 hover:opacity-100">&#10005;</button>
+            <button type="button" onClick={() => dismiss(b.id)} className="absolute right-3 top-1/2 -translate-y-1/2 opacity-70 hover:opacity-100" aria-label="Tutup banner">&#10005;</button>
           </motion.div>
         ))}
       </AnimatePresence>
@@ -86,7 +86,7 @@ export function BannerBar() {
             className="fixed bottom-6 right-6 z-50 max-w-sm rounded-lg shadow-xl p-4 text-sm"
             style={{ backgroundColor: b.bgColor || '#0ea5e9', color: b.textColor || '#fff' }}
           >
-            <button onClick={() => dismiss(b.id)} className="absolute right-2 top-2 opacity-70 hover:opacity-100">&#10005;</button>
+            <button type="button" onClick={() => dismiss(b.id)} className="absolute right-2 top-2 opacity-70 hover:opacity-100" aria-label="Tutup banner">&#10005;</button>
             <div className="font-semibold mb-1">{b.title}</div>
             <div>{b.content}</div>
             {b.linkUrl && <Link href={b.linkUrl} className="underline mt-2 block font-semibold">{b.linkLabel || 'Learn more'}</Link>}

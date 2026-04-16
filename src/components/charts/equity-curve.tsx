@@ -90,6 +90,7 @@ export function EquityCurve({
         <div className="flex gap-1 mb-3">
           {periods.map((p) => (
             <button
+              type="button"
               key={p}
               onClick={() => handlePeriodChange(p)}
               className={`px-3 py-1 text-xs rounded-md transition-colors ${

@@ -70,6 +70,7 @@ export function ImageUpload({ value, onChange, label = 'Image URL' }: ImageUploa
         type="file"
         accept="image/*"
         className="hidden"
+        aria-label="Upload gambar"
         onChange={(e) => {
           const file = e.target.files?.[0];
           if (file) handleUpload(file);

@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { proxyToMasterBackend } from '@/lib/proxy/vps-client';
 
-export async function GET(request: NextRequest) {
-  const vpsInstanceId = request.headers.get('x-vps-instance-id');
+export async function GET(_request: NextRequest) {
 
   try {
     // Use VPS-specific or master backend

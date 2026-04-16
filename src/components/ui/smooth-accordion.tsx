@@ -26,6 +26,7 @@ export function SmoothAccordion({ items, className }: SmoothAccordionProps) {
         return (
           <div key={item.id} className="rounded-lg border bg-card">
             <button
+              type="button"
               onClick={() => setOpenId(isOpen ? null : item.id)}
               className="flex w-full items-center justify-between p-4 text-left font-medium hover:bg-accent/50 transition-colors rounded-lg"
             >

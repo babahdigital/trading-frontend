@@ -31,6 +31,7 @@ export function ResponsiveSidebar({ children }: ResponsiveSidebarProps) {
     <>
       {/* Hamburger button — hanya muncul di mobile/tablet */}
       <button
+        type="button"
         onClick={() => setOpen(true)}
         className="fixed top-4 left-4 z-50 lg:hidden p-2.5 rounded-xl
                    bg-background/80 backdrop-blur-md border shadow-lg
@@ -71,6 +72,7 @@ export function ResponsiveSidebar({ children }: ResponsiveSidebarProps) {
             >
               {/* Tombol tutup */}
               <button
+                type="button"
                 onClick={() => setOpen(false)}
                 className="absolute top-4 right-4 p-1.5 rounded-lg
                            hover:bg-accent transition-colors"

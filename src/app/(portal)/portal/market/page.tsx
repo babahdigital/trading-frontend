@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { ScannerHeatmap } from '@/components/charts/scanner-heatmap';
+import { useAuth } from '@/lib/auth/auth-context';
 
 interface ScannerItem {
   pair: string;
@@ -22,14 +23,6 @@ interface NewsEvent {
   affected_pairs?: string[];
 }
 
-function getAuthHeaders(): HeadersInit {
-  return {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-  };
-}
-
-// Determine current session
 function getCurrentSessions(): { name: string; status: 'active' | 'opening' | 'closed' }[] {
   const utcHour = new Date().getUTCHours();
   return [
@@ -46,6 +39,7 @@ function sessionDot(status: string) {
 }
 
 export default function MarketPage() {
+  const { getAuthHeaders } = useAuth();
   const [items, setItems] = useState<ScannerItem[]>([]);
   const [news, setNews] = useState<NewsEvent[]>([]);
   const [loading, setLoading] = useState(true);

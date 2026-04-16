@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { proxyToVpsBackend, proxyToMasterBackend } from '@/lib/proxy/vps-client';
 import { filterScannerStatus } from '@/lib/proxy/filters';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('api/client/scanner');
 
 async function checkLicense(licenseId: string | null) {
   if (!licenseId) return null;
@@ -47,7 +50,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(filtered);
   } catch (error) {
-    console.error('Client scanner error:', error);
+    log.error('Client scanner error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

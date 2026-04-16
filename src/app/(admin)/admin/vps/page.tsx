@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Plus, RefreshCw, Server, X } from 'lucide-react';
+import { useAuth } from '@/lib/auth/auth-context';
 
 interface VpsInstance {
   id: string;
@@ -25,14 +26,6 @@ const statusBadge: Record<string, string> = {
   SUSPENDED: 'bg-orange-500/20 text-orange-400',
 };
 
-function authHeaders(json = false) {
-  const h: Record<string, string> = {
-    Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-  };
-  if (json) h['Content-Type'] = 'application/json';
-  return h;
-}
-
 const defaultForm = {
   name: '',
   host: '',
@@ -45,6 +38,7 @@ const defaultForm = {
 };
 
 export default function VpsPage() {
+  const { getAuthHeaders } = useAuth();
   const [instances, setInstances] = useState<VpsInstance[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -55,7 +49,7 @@ export default function VpsPage() {
   async function fetchVps() {
     setLoading(true);
     try {
-      const res = await fetch('/api/admin/vps', { headers: authHeaders() });
+      const res = await fetch('/api/admin/vps', { headers: getAuthHeaders() });
       if (res.ok) {
         const data = await res.json();
         setInstances(data.instances ?? data ?? []);
@@ -80,7 +74,7 @@ export default function VpsPage() {
     try {
       const res = await fetch('/api/admin/vps', {
         method: 'POST',
-        headers: authHeaders(true),
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           name: form.name,
           host: form.host,

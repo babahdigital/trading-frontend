@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/lib/auth/auth-context';
 
 interface UserData {
   name?: string;
@@ -17,14 +18,8 @@ interface StatusData {
   license_key?: string;
 }
 
-function getAuthHeaders(): HeadersInit {
-  return {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-  };
-}
-
 export default function AccountPage() {
+  const { getAuthHeaders } = useAuth();
   const [user, setUser] = useState<UserData | null>(null);
   const [status, setStatus] = useState<StatusData | null>(null);
   const [loading, setLoading] = useState(true);

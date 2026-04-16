@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { proxyToVpsBackend, proxyToMasterBackend } from '@/lib/proxy/vps-client';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('api/client/equity');
 
 async function checkLicense(licenseId: string | null) {
   if (!licenseId) return null;
@@ -44,7 +47,7 @@ export async function GET(request: NextRequest) {
     const data = await response.json();
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Client equity error:', error);
+    log.error('Client equity error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

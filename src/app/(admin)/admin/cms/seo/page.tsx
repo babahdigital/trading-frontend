@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CmsPageHeader } from '@/components/cms/page-header';
+import { useAuth } from '@/lib/auth/auth-context';
 
 interface PageMetaItem {
   id: string;
@@ -17,34 +18,31 @@ interface PageMetaItem {
   ogImage: string | null;
 }
 
-function authHeaders() {
-  return { Authorization: `Bearer ${localStorage.getItem('access_token')}`, 'Content-Type': 'application/json' };
-}
-
 export default function CmsSeoPage() {
+  const { getAuthHeaders } = useAuth();
   const [pages, setPages] = useState<PageMetaItem[]>([]);
   const [editing, setEditing] = useState<PageMetaItem | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchPages = useCallback(async () => {
-    const res = await fetch('/api/admin/cms/seo', { headers: authHeaders() });
+    const res = await fetch('/api/admin/cms/seo', { headers: getAuthHeaders() });
     if (res.ok) setPages(await res.json());
     setLoading(false);
-  }, []);
+  }, [getAuthHeaders]);
 
   useEffect(() => { fetchPages(); }, [fetchPages]);
 
   async function handleSave() {
     if (!editing) return;
     const method = editing.id ? 'PUT' : 'POST';
-    await fetch('/api/admin/cms/seo', { method, headers: authHeaders(), body: JSON.stringify(editing) });
+    await fetch('/api/admin/cms/seo', { method, headers: getAuthHeaders(), body: JSON.stringify(editing) });
     setEditing(null);
     fetchPages();
   }
 
   async function handleDelete(id: string) {
     if (!confirm('Hapus page meta ini?')) return;
-    await fetch(`/api/admin/cms/seo?id=${id}`, { method: 'DELETE', headers: authHeaders() });
+    await fetch(`/api/admin/cms/seo?id=${id}`, { method: 'DELETE', headers: getAuthHeaders() });
     fetchPages();
   }
 

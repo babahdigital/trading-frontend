@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { hashPassword } from '@/lib/auth/password';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('api/admin/users');
 
 export async function GET(request: NextRequest) {
   try {
@@ -29,7 +32,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ users, total, page, limit });
   } catch (error) {
-    console.error('List users error:', error);
+    log.error('List users error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -70,7 +73,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(user, { status: 201 });
   } catch (error) {
-    console.error('Create user error:', error);
+    log.error('Create user error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -1,0 +1,144 @@
+{
+  "nav": {
+    "features": "Features",
+    "performance": "Performance",
+    "pricing": "Pricing",
+    "faq": "FAQ",
+    "about": "About",
+    "login": "Login",
+    "register": "Sign Up",
+    "portal": "Portal"
+  },
+  "hero": {
+    "title": "Autonomous Intelligence for Financial Markets",
+    "subtitle": "A quantitative engine uniting 6 analysis strategies and generative AI for 24/7 precision trade execution",
+    "cta_primary": "View Performance",
+    "cta_secondary": "Get Started"
+  },
+  "metrics": {
+    "pairs": "Instruments",
+    "strategies": "AI Strategies",
+    "latency": "Execution Latency",
+    "uptime": "AI Monitoring"
+  },
+  "performance": {
+    "title": "Trading Performance",
+    "subtitle": "Real-time performance from our quantitative engine",
+    "win_rate": "Win Rate",
+    "profit_factor": "Profit Factor",
+    "max_dd": "Max Drawdown",
+    "total_trades": "Total Trades",
+    "sharpe": "Sharpe Ratio",
+    "avg_hold": "Avg Hold Time",
+    "equity_curve": "Equity Curve",
+    "period_90d": "90 Days",
+    "period_30d": "30 Days",
+    "period_7d": "7 Days"
+  },
+  "features": {
+    "title": "Key Features",
+    "subtitle": "Cutting-edge trading technology designed for maximum precision"
+  },
+  "strategies": {
+    "title": "6 AI Strategies",
+    "subtitle": "Strategy distribution and individual win rates",
+    "distribution": "Strategy Distribution",
+    "win_rates": "Win Rate per Strategy"
+  },
+  "pairs": {
+    "title": "14 Trading Instruments",
+    "subtitle": "Full diversification: Forex, Metals, Energy, and Crypto"
+  },
+  "risk": {
+    "title": "12 Layers of Risk Management",
+    "subtitle": "Multi-layered protection for every market scenario"
+  },
+  "how_it_works": {
+    "title": "How It Works",
+    "subtitle": "4 simple steps to get started"
+  },
+  "pricing": {
+    "title": "Choose Your Plan",
+    "subtitle": "Solutions for every trader level",
+    "per_month": "/month",
+    "profit_share": "profit share",
+    "setup_fee": "setup fee",
+    "most_popular": "MOST POPULAR",
+    "cta": "Sign Up Now",
+    "contact": "Contact Us"
+  },
+  "testimonials": {
+    "title": "What They Say",
+    "subtitle": "Testimonials from BabahAlgo users"
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "subtitle": "Answers to common questions about BabahAlgo"
+  },
+  "cta": {
+    "title": "Ready to Start?",
+    "subtitle": "Join traders who have experienced the BabahAlgo advantage",
+    "button": "Sign Up Now"
+  },
+  "footer": {
+    "disclaimer": "Trading financial instruments involves significant risk of loss and may not be suitable for all investors. Past performance does not guarantee future results.",
+    "terms": "Terms & Conditions",
+    "privacy": "Privacy Policy",
+    "risk": "Risk Disclaimer",
+    "copyright": "© {year} BabahAlgo. All rights reserved."
+  },
+  "about": {
+    "title": "About BabahAlgo",
+    "subtitle": "Autonomous quantitative trading platform by CV Babah Digital"
+  },
+  "register": {
+    "title": "Register",
+    "subtitle": "Join BabahAlgo",
+    "name": "Full Name",
+    "email": "Email",
+    "phone": "Phone Number",
+    "company": "Company (optional)",
+    "message": "Message",
+    "submit": "Submit",
+    "package_label": "Choose Package",
+    "success": "Registration successful! Our team will contact you.",
+    "signal": "Signal",
+    "pamm": "PAMM",
+    "vps": "VPS License"
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "last_updated": "Last updated"
+  },
+  "terms": {
+    "title": "Terms & Conditions",
+    "last_updated": "Last updated"
+  },
+  "risk_disclaimer": {
+    "title": "Risk Disclaimer",
+    "last_updated": "Last updated"
+  },
+  "chat": {
+    "title": "Babah AI Assistant",
+    "placeholder": "Type your question...",
+    "greeting": "Hello! I'm Babah, BabahAlgo's AI assistant. How can I help you with our services?",
+    "offline": "Babah is resting. Please leave a message.",
+    "online": "Online",
+    "powered_by": "Powered by BabahAlgo AI · Responses are not investment advice",
+    "quick_pricing": "Pricing",
+    "quick_pricing_msg": "What are the available pricing plans?",
+    "quick_features": "Key Features",
+    "quick_features_msg": "What are BabahAlgo's main features?",
+    "quick_register": "How to Register",
+    "quick_register_msg": "How do I sign up?",
+    "quick_risk": "Risk Management",
+    "quick_risk_msg": "How does the risk management system work?"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "try_again": "Try Again",
+    "back": "Back",
+    "language": "Language"
+  }
+}

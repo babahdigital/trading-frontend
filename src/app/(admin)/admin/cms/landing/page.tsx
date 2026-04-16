@@ -7,6 +7,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CmsPageHeader } from '@/components/cms/page-header';
 import { ReorderButtons } from '@/components/cms/reorder-buttons';
+import { GenerateEnglishButton } from '@/components/cms/generate-english-button';
+import { useAuth } from '@/lib/auth/auth-context';
 
 interface LandingSection {
   id: string;
@@ -18,20 +20,17 @@ interface LandingSection {
   isVisible: boolean;
 }
 
-function authHeaders() {
-  return { Authorization: `Bearer ${localStorage.getItem('access_token')}`, 'Content-Type': 'application/json' };
-}
-
 export default function CmsLandingPage() {
+  const { getAuthHeaders } = useAuth();
   const [sections, setSections] = useState<LandingSection[]>([]);
   const [editing, setEditing] = useState<LandingSection | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchSections = useCallback(async () => {
-    const res = await fetch('/api/admin/cms/landing-sections', { headers: authHeaders() });
+    const res = await fetch('/api/admin/cms/landing-sections', { headers: getAuthHeaders() });
     if (res.ok) setSections(await res.json());
     setLoading(false);
-  }, []);
+  }, [getAuthHeaders]);
 
   useEffect(() => { fetchSections(); }, [fetchSections]);
 
@@ -40,7 +39,7 @@ export default function CmsLandingPage() {
     const method = editing.id ? 'PUT' : 'POST';
     await fetch('/api/admin/cms/landing-sections', {
       method,
-      headers: authHeaders(),
+      headers: getAuthHeaders(),
       body: JSON.stringify(editing),
     });
     setEditing(null);
@@ -49,7 +48,7 @@ export default function CmsLandingPage() {
 
   async function handleDelete(id: string) {
     if (!confirm('Hapus section ini?')) return;
-    await fetch(`/api/admin/cms/landing-sections?id=${id}`, { method: 'DELETE', headers: authHeaders() });
+    await fetch(`/api/admin/cms/landing-sections?id=${id}`, { method: 'DELETE', headers: getAuthHeaders() });
     fetchSections();
   }
 
@@ -59,8 +58,8 @@ export default function CmsLandingPage() {
     const a = sections[index];
     const b = sections[swapIndex];
     await Promise.all([
-      fetch('/api/admin/cms/landing-sections', { method: 'PUT', headers: authHeaders(), body: JSON.stringify({ id: a.id, sortOrder: b.sortOrder }) }),
-      fetch('/api/admin/cms/landing-sections', { method: 'PUT', headers: authHeaders(), body: JSON.stringify({ id: b.id, sortOrder: a.sortOrder }) }),
+      fetch('/api/admin/cms/landing-sections', { method: 'PUT', headers: getAuthHeaders(), body: JSON.stringify({ id: a.id, sortOrder: b.sortOrder }) }),
+      fetch('/api/admin/cms/landing-sections', { method: 'PUT', headers: getAuthHeaders(), body: JSON.stringify({ id: b.id, sortOrder: a.sortOrder }) }),
     ]);
     fetchSections();
   }
@@ -76,6 +75,7 @@ export default function CmsLandingPage() {
           + Tambah Section
         </Button>
       </div>
+      <GenerateEnglishButton type="all-landing" onSuccess={fetchSections} />
 
       {editing && (
         <Card>

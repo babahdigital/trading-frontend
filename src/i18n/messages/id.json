@@ -1,0 +1,144 @@
+{
+  "nav": {
+    "features": "Fitur",
+    "performance": "Performa",
+    "pricing": "Harga",
+    "faq": "FAQ",
+    "about": "Tentang",
+    "login": "Masuk",
+    "register": "Daftar",
+    "portal": "Portal"
+  },
+  "hero": {
+    "title": "Kecerdasan Otonom untuk Pasar Finansial",
+    "subtitle": "Mesin kuantitatif yang menyatukan 6 strategi analisa dan AI generatif untuk eksekusi perdagangan presisi 24/7",
+    "cta_primary": "Lihat Performa",
+    "cta_secondary": "Mulai Sekarang"
+  },
+  "metrics": {
+    "pairs": "Instrumen",
+    "strategies": "Strategi AI",
+    "latency": "Latensi Eksekusi",
+    "uptime": "Pemantauan AI"
+  },
+  "performance": {
+    "title": "Performa Trading",
+    "subtitle": "Performa real-time dari mesin kuantitatif kami",
+    "win_rate": "Win Rate",
+    "profit_factor": "Profit Factor",
+    "max_dd": "Max Drawdown",
+    "total_trades": "Total Trades",
+    "sharpe": "Sharpe Ratio",
+    "avg_hold": "Avg Hold Time",
+    "equity_curve": "Equity Curve",
+    "period_90d": "90 Hari",
+    "period_30d": "30 Hari",
+    "period_7d": "7 Hari"
+  },
+  "features": {
+    "title": "Fitur Unggulan",
+    "subtitle": "Teknologi trading terdepan yang dirancang untuk presisi maksimal"
+  },
+  "strategies": {
+    "title": "6 Strategi AI",
+    "subtitle": "Distribusi strategi dan win rate masing-masing",
+    "distribution": "Distribusi Strategi",
+    "win_rates": "Win Rate per Strategi"
+  },
+  "pairs": {
+    "title": "14 Instrumen Trading",
+    "subtitle": "Diversifikasi penuh: Forex, Metals, Energy, dan Crypto"
+  },
+  "risk": {
+    "title": "12 Lapisan Risk Management",
+    "subtitle": "Perlindungan berlapis untuk setiap skenario pasar"
+  },
+  "how_it_works": {
+    "title": "Cara Kerja",
+    "subtitle": "4 langkah mudah untuk memulai"
+  },
+  "pricing": {
+    "title": "Pilih Paket yang Sesuai",
+    "subtitle": "Solusi untuk setiap level trader",
+    "per_month": "/bulan",
+    "profit_share": "bagi hasil",
+    "setup_fee": "biaya setup",
+    "most_popular": "PALING POPULER",
+    "cta": "Daftar Sekarang",
+    "contact": "Hubungi Kami"
+  },
+  "testimonials": {
+    "title": "Apa Kata Mereka",
+    "subtitle": "Testimoni dari pengguna BabahAlgo"
+  },
+  "faq": {
+    "title": "Pertanyaan yang Sering Ditanyakan",
+    "subtitle": "Jawaban untuk pertanyaan umum seputar BabahAlgo"
+  },
+  "cta": {
+    "title": "Siap Memulai?",
+    "subtitle": "Bergabung dengan trader yang sudah merasakan keunggulan BabahAlgo",
+    "button": "Daftar Sekarang"
+  },
+  "footer": {
+    "disclaimer": "Perdagangan instrumen finansial mengandung risiko kerugian yang signifikan dan mungkin tidak sesuai untuk semua investor. Performa masa lalu tidak menjamin hasil di masa depan.",
+    "terms": "Syarat & Ketentuan",
+    "privacy": "Kebijakan Privasi",
+    "risk": "Disclaimer Risiko",
+    "copyright": "© {year} BabahAlgo. Hak cipta dilindungi."
+  },
+  "about": {
+    "title": "Tentang BabahAlgo",
+    "subtitle": "Platform perdagangan kuantitatif otonom milik CV Babah Digital"
+  },
+  "register": {
+    "title": "Daftar",
+    "subtitle": "Bergabung dengan BabahAlgo",
+    "name": "Nama Lengkap",
+    "email": "Email",
+    "phone": "Nomor Telepon",
+    "company": "Perusahaan (opsional)",
+    "message": "Pesan",
+    "submit": "Kirim",
+    "package_label": "Pilih Paket",
+    "success": "Pendaftaran berhasil! Tim kami akan menghubungi Anda.",
+    "signal": "Signal",
+    "pamm": "PAMM",
+    "vps": "VPS License"
+  },
+  "privacy": {
+    "title": "Kebijakan Privasi",
+    "last_updated": "Terakhir diperbarui"
+  },
+  "terms": {
+    "title": "Syarat & Ketentuan",
+    "last_updated": "Terakhir diperbarui"
+  },
+  "risk_disclaimer": {
+    "title": "Disclaimer Risiko",
+    "last_updated": "Terakhir diperbarui"
+  },
+  "chat": {
+    "title": "Babah AI Assistant",
+    "placeholder": "Ketik pertanyaan Anda...",
+    "greeting": "Halo! Saya Babah, asisten AI BabahAlgo. Ada yang bisa saya bantu tentang layanan kami?",
+    "offline": "Babah sedang istirahat. Silakan tinggalkan pesan.",
+    "online": "Online",
+    "powered_by": "Powered by BabahAlgo AI · Respons bukan saran investasi",
+    "quick_pricing": "Harga Paket",
+    "quick_pricing_msg": "Berapa harga paket yang tersedia?",
+    "quick_features": "Fitur Utama",
+    "quick_features_msg": "Apa saja fitur utama BabahAlgo?",
+    "quick_register": "Cara Daftar",
+    "quick_register_msg": "Bagaimana cara mendaftar?",
+    "quick_risk": "Risk Management",
+    "quick_risk_msg": "Bagaimana sistem risk management-nya?"
+  },
+  "common": {
+    "loading": "Memuat...",
+    "error": "Terjadi kesalahan",
+    "try_again": "Coba Lagi",
+    "back": "Kembali",
+    "language": "Bahasa"
+  }
+}

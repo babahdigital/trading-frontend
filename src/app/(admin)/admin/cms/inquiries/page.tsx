@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CmsPageHeader } from '@/components/cms/page-header';
+import { useAuth } from '@/lib/auth/auth-context';
 
 interface InquiryItem {
   id: string;
@@ -20,10 +21,6 @@ interface InquiryItem {
   createdAt: string;
 }
 
-function authHeaders() {
-  return { Authorization: `Bearer ${localStorage.getItem('access_token')}`, 'Content-Type': 'application/json' };
-}
-
 const STATUS_COLORS: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
   NEW: 'default',
   CONTACTED: 'secondary',
@@ -33,6 +30,7 @@ const STATUS_COLORS: Record<string, 'default' | 'secondary' | 'destructive' | 'o
 };
 
 export default function CmsInquiriesPage() {
+  const { getAuthHeaders } = useAuth();
   const [inquiries, setInquiries] = useState<InquiryItem[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -40,21 +38,21 @@ export default function CmsInquiriesPage() {
   const [notes, setNotes] = useState('');
 
   const fetchInquiries = useCallback(async () => {
-    const res = await fetch('/api/admin/cms/inquiries', { headers: authHeaders() });
+    const res = await fetch('/api/admin/cms/inquiries', { headers: getAuthHeaders() });
     if (res.ok) {
       const data = await res.json();
       setInquiries(data.inquiries);
       setTotal(data.total);
     }
     setLoading(false);
-  }, []);
+  }, [getAuthHeaders]);
 
   useEffect(() => { fetchInquiries(); }, [fetchInquiries]);
 
   async function updateStatus(id: string, status: string) {
     await fetch('/api/admin/cms/inquiries', {
       method: 'PUT',
-      headers: authHeaders(),
+      headers: getAuthHeaders(),
       body: JSON.stringify({ id, status, notes }),
     });
     setSelected(null);

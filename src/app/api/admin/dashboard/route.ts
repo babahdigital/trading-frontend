@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('api/admin/dashboard');
 
 export async function GET(request: NextRequest) {
   try {
@@ -40,7 +43,7 @@ export async function GET(request: NextRequest) {
       expiringIn7Days,
     });
   } catch (error) {
-    console.error('Dashboard error:', error);
+    log.error('Dashboard error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

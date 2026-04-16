@@ -3,6 +3,9 @@ import { prisma } from '@/lib/db/prisma';
 import { verifyPassword } from '@/lib/auth/password';
 import { signJwt, signRefreshToken, type JwtPayload } from '@/lib/auth/jwt';
 import { randomUUID } from 'crypto';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('api/auth/login');
 
 export async function POST(request: NextRequest) {
   try {
@@ -144,7 +147,7 @@ export async function POST(request: NextRequest) {
       user: { id: user.id, email: user.email, role: user.role, name: user.name },
     });
   } catch (error) {
-    console.error('Login error:', error);
+    log.error('Login error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

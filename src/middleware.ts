@@ -1,18 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
+import createIntlMiddleware from 'next-intl/middleware';
+import { locales, defaultLocale } from '@/i18n/config';
 
 const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 
-const publicPaths = ['/login', '/register', '/api/auth/login', '/api/auth/register', '/api/auth/refresh', '/api/health', '/api/public/', '/api/client/inquiries'];
+const publicPaths = ['/login', '/register', '/api/auth/login', '/api/auth/register', '/api/auth/refresh', '/api/health', '/api/public/', '/api/client/inquiries', '/api/chat'];
 
 // In-memory rate limit store (per-process, resets on restart)
 const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
 
-function isRateLimited(ip: string, limit: number, windowMs: number): boolean {
+function isRateLimited(key: string, limit: number, windowMs: number): boolean {
   const now = Date.now();
-  const entry = rateLimitStore.get(ip);
+  const entry = rateLimitStore.get(key);
   if (!entry || now > entry.resetAt) {
-    rateLimitStore.set(ip, { count: 1, resetAt: now + windowMs });
+    rateLimitStore.set(key, { count: 1, resetAt: now + windowMs });
     return false;
   }
   entry.count++;
@@ -28,6 +30,26 @@ if (typeof globalThis !== 'undefined') {
     }
   };
   setInterval(cleanup, 5 * 60 * 1000);
+}
+
+// next-intl middleware for locale detection on guest pages
+const intlMiddleware = createIntlMiddleware({
+  locales,
+  defaultLocale,
+  localePrefix: 'as-needed',
+});
+
+// Paths that are handled by the app (not guest pages)
+function isNonGuestPath(pathname: string): boolean {
+  return (
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/portal') ||
+    pathname.startsWith('/login') ||
+    pathname.startsWith('/api/') ||
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/favicon') ||
+    pathname.startsWith('/public')
+  );
 }
 
 export async function middleware(request: NextRequest) {
@@ -46,6 +68,16 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // Rate limit chat: 20 messages per minute per IP
+  if (pathname === '/api/chat' && request.method === 'POST') {
+    if (isRateLimited(`chat:${clientIp}`, 20, 60_000)) {
+      return NextResponse.json(
+        { error: 'Too many messages. Please wait.' },
+        { status: 429 }
+      );
+    }
+  }
+
   // Global rate limit: 100 requests per minute per IP
   if (pathname.startsWith('/api/')) {
     if (isRateLimited(`global:${clientIp}`, 100, 60_000)) {
@@ -56,15 +88,22 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Allow public paths
+  // Allow public API paths
   if (publicPaths.some((p) => pathname.startsWith(p))) {
     return NextResponse.next();
   }
 
   // Allow static files and Next.js internals
-  if (pathname.startsWith('/_next') || pathname.startsWith('/favicon') || pathname.startsWith('/public') || pathname === '/' || pathname.startsWith('/register') || pathname.startsWith('/pricing') || pathname.startsWith('/faq') || pathname.startsWith('/features') || pathname.startsWith('/about') || pathname.startsWith('/terms') || pathname.startsWith('/privacy') || pathname.startsWith('/risk-disclaimer')) {
+  if (pathname.startsWith('/_next') || pathname.startsWith('/favicon') || pathname.startsWith('/public')) {
     return NextResponse.next();
   }
+
+  // For guest pages (not admin/portal/auth/api), run i18n middleware
+  if (!isNonGuestPath(pathname)) {
+    return intlMiddleware(request);
+  }
+
+  // --- Auth-protected paths below (admin, portal) ---
 
   // Extract token from Authorization header or cookie
   const authHeader = request.headers.get('authorization');
@@ -102,8 +141,6 @@ export async function middleware(request: NextRequest) {
       }
 
       // For CLIENT role, verify license is still valid via licenseId in JWT
-      // The actual DB check happens in the API route handler for performance,
-      // but we ensure the JWT contains the required claims
       if (payload.role === 'CLIENT') {
         if (!payload.licenseId && !payload.subscriptionId) {
           if (pathname.startsWith('/api/')) {

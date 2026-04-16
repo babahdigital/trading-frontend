@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CmsPageHeader } from '@/components/cms/page-header';
+import { GenerateEnglishButton } from '@/components/cms/generate-english-button';
+import { useAuth } from '@/lib/auth/auth-context';
 
 interface PricingTier {
   id: string;
@@ -22,34 +24,31 @@ interface PricingTier {
   isVisible: boolean;
 }
 
-function authHeaders() {
-  return { Authorization: `Bearer ${localStorage.getItem('access_token')}`, 'Content-Type': 'application/json' };
-}
-
 export default function CmsPricingPage() {
+  const { getAuthHeaders } = useAuth();
   const [tiers, setTiers] = useState<PricingTier[]>([]);
   const [editing, setEditing] = useState<PricingTier | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchTiers = useCallback(async () => {
-    const res = await fetch('/api/admin/cms/pricing', { headers: authHeaders() });
+    const res = await fetch('/api/admin/cms/pricing', { headers: getAuthHeaders() });
     if (res.ok) setTiers(await res.json());
     setLoading(false);
-  }, []);
+  }, [getAuthHeaders]);
 
   useEffect(() => { fetchTiers(); }, [fetchTiers]);
 
   async function handleSave() {
     if (!editing) return;
     const method = editing.id ? 'PUT' : 'POST';
-    await fetch('/api/admin/cms/pricing', { method, headers: authHeaders(), body: JSON.stringify(editing) });
+    await fetch('/api/admin/cms/pricing', { method, headers: getAuthHeaders(), body: JSON.stringify(editing) });
     setEditing(null);
     fetchTiers();
   }
 
   async function handleDelete(id: string) {
     if (!confirm('Hapus tier ini?')) return;
-    await fetch(`/api/admin/cms/pricing?id=${id}`, { method: 'DELETE', headers: authHeaders() });
+    await fetch(`/api/admin/cms/pricing?id=${id}`, { method: 'DELETE', headers: getAuthHeaders() });
     fetchTiers();
   }
 
@@ -63,6 +62,7 @@ export default function CmsPricingPage() {
         </div>
         <Button onClick={() => setEditing(emptyTier)}>+ Tambah Tier</Button>
       </div>
+      <GenerateEnglishButton type="all-pricing" />
 
       {editing && (
         <Card>

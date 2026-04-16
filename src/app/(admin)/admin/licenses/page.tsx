@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Plus, X } from 'lucide-react';
+import { useAuth } from '@/lib/auth/auth-context';
 
 interface License {
   id: string;
@@ -42,15 +43,8 @@ const LICENSE_TYPES = ['VPS_INSTALLATION', 'PAMM_SUBSCRIBER', 'SIGNAL_SUBSCRIBER
 
 type FilterType = 'ALL' | 'ACTIVE' | 'EXPIRED' | 'PENDING';
 
-function authHeaders(json = false) {
-  const h: Record<string, string> = {
-    Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-  };
-  if (json) h['Content-Type'] = 'application/json';
-  return h;
-}
-
 export default function LicensesPage() {
+  const { getAuthHeaders } = useAuth();
   const [licenses, setLicenses] = useState<License[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -72,7 +66,7 @@ export default function LicensesPage() {
   async function fetchLicenses() {
     setLoading(true);
     try {
-      const res = await fetch('/api/admin/licenses', { headers: authHeaders() });
+      const res = await fetch('/api/admin/licenses', { headers: getAuthHeaders() });
       if (res.ok) {
         const data = await res.json();
         setLicenses(data.licenses ?? []);
@@ -88,8 +82,8 @@ export default function LicensesPage() {
   async function fetchFormOptions() {
     try {
       const [usersRes, vpsRes] = await Promise.all([
-        fetch('/api/admin/users', { headers: authHeaders() }),
-        fetch('/api/admin/vps', { headers: authHeaders() }),
+        fetch('/api/admin/users', { headers: getAuthHeaders() }),
+        fetch('/api/admin/vps', { headers: getAuthHeaders() }),
       ]);
       if (usersRes.ok) {
         const data = await usersRes.json();
@@ -122,7 +116,7 @@ export default function LicensesPage() {
     try {
       const res = await fetch('/api/admin/licenses', {
         method: 'POST',
-        headers: authHeaders(true),
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           userId: form.userId,
           type: form.type,

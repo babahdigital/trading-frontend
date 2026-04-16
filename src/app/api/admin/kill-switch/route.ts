@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import type { Prisma } from '@prisma/client';
 import { proxyToVpsBackend } from '@/lib/proxy/vps-client';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('api/admin/kill-switch');
 
 export async function GET(request: NextRequest) {
   try {
@@ -31,7 +34,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ events, total, page, limit });
   } catch (error) {
-    console.error('List kill switch events error:', error);
+    log.error('List kill switch events error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -111,7 +114,7 @@ export async function POST(request: NextRequest) {
         : 'Kill switch recorded but proxy request failed',
     });
   } catch (error) {
-    console.error('Kill switch error:', error);
+    log.error('Kill switch error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

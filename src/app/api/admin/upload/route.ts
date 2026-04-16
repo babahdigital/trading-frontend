@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 import { requireAdmin } from '@/lib/auth/require-admin';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('api/admin/upload');
 
 const UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads');
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
@@ -43,7 +46,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ url, filename }, { status: 201 });
   } catch (error) {
-    console.error('Upload error:', error);
+    log.error('Upload error:', error);
     return NextResponse.json({ error: 'Gagal mengupload file' }, { status: 500 });
   }
 }

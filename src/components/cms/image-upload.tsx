@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Upload } from 'lucide-react';
 import Image from 'next/image';
+import { useAuth } from '@/lib/auth/auth-context';
 
 interface ImageUploadProps {
   value: string;
@@ -13,6 +14,7 @@ interface ImageUploadProps {
 }
 
 export function ImageUpload({ value, onChange, label = 'Image URL' }: ImageUploadProps) {
+  const { getAuthToken } = useAuth();
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -24,7 +26,7 @@ export function ImageUpload({ value, onChange, label = 'Image URL' }: ImageUploa
 
       const res = await fetch('/api/admin/upload', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` },
+        headers: getAuthToken(),
         body: formData,
       });
 

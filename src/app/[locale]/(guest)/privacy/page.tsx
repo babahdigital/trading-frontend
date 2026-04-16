@@ -1,31 +1,26 @@
 import { getPageMetadata } from '@/lib/seo';
-import Link from 'next/link';
+import { getTranslations } from 'next-intl/server';
+import { GuestNav } from '@/components/layout/guest-nav';
 
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata() {
+  const t = await getTranslations('privacy');
   return getPageMetadata('/privacy', {
-    title: 'Privacy Policy — BabahAlgo',
+    title: `${t('title')} — BabahAlgo`,
     description: 'BabahAlgo Privacy Policy — how we collect, use, and protect your data',
   });
 }
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const t = await getTranslations('privacy');
+
   return (
     <div className="min-h-screen bg-background">
-      <nav className="border-b border-border/40 bg-background/95 backdrop-blur">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold text-primary">BabahAlgo</Link>
-          <div className="flex items-center gap-4">
-            <Link href="/" className="text-sm text-muted-foreground hover:text-foreground">Home</Link>
-            <Link href="/login" className="text-sm px-4 py-2 rounded-lg bg-primary text-primary-foreground">Login</Link>
-          </div>
-        </div>
-      </nav>
-
+      <GuestNav />
       <main className="max-w-4xl mx-auto px-6 py-20">
-        <h1 className="text-4xl font-bold mb-8">Privacy Policy</h1>
-        <p className="text-sm text-muted-foreground mb-8">Last updated: April 17, 2026</p>
+        <h1 className="text-4xl font-bold mb-8">{t('title')}</h1>
+        <p className="text-sm text-muted-foreground mb-8">{t('last_updated')}: April 17, 2026</p>
 
         <div className="prose prose-invert max-w-none space-y-6 text-muted-foreground">
           <h2 className="text-xl font-semibold text-foreground">1. Information We Collect</h2>

@@ -3,6 +3,7 @@ import { getPageMetadataWithStructuredData } from '@/lib/seo';
 import { LandingClient } from '@/components/landing-client';
 import { BannerBar } from '@/components/cms/banner-bar';
 import { PopupManager } from '@/components/cms/popup-manager';
+import { localizeLandingSection, localizePricingTier, localizeFaq } from '@/lib/i18n/localize-cms';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,7 +17,8 @@ export async function generateMetadata() {
   return metadata;
 }
 
-export default async function GuestLandingPage() {
+export default async function GuestLandingPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
   // Fetch CMS data + structured data
   const { structuredData } = await getPageMetadataWithStructuredData('/', FALLBACK);
 
@@ -35,16 +37,20 @@ export default async function GuestLandingPage() {
     ]);
 
     for (const s of sectionsRaw) {
-      sections[s.slug] = { title: s.title, subtitle: s.subtitle, content: s.content as Record<string, unknown> };
+      const localized = localizeLandingSection(s, locale);
+      sections[s.slug] = localized;
     }
-    pricingTiers = tiers.map((t: { id: string; slug: string; name: string; price: string; subtitle: string | null; features: unknown; excluded: unknown; note: string | null; ctaLabel: string; ctaLink: string }) => ({
-      id: t.id, slug: t.slug, name: t.name, price: t.price, subtitle: t.subtitle,
-      features: t.features, excluded: t.excluded, note: t.note, ctaLabel: t.ctaLabel, ctaLink: t.ctaLink,
-    }));
+    pricingTiers = tiers.map((t) => {
+      const loc = localizePricingTier(t, locale);
+      return {
+        id: loc.id, slug: loc.slug, name: loc.name, price: loc.price, subtitle: loc.subtitle,
+        features: loc.features, excluded: loc.excluded, note: loc.note, ctaLabel: loc.ctaLabel, ctaLink: loc.ctaLink,
+      };
+    });
     testimonials = testimonialsRaw.map((t: { id: string; name: string; role: string | null; content: string; rating: number; avatarUrl: string | null }) => ({
       id: t.id, name: t.name, role: t.role, content: t.content, rating: t.rating, avatarUrl: t.avatarUrl,
     }));
-    faqs = faqsRaw.map((f: { id: string; question: string; answer: string; category: string }) => ({ id: f.id, question: f.question, answer: f.answer, category: f.category }));
+    faqs = faqsRaw.map((f) => localizeFaq(f, locale));
   } catch {
     // DB not available — use fallback
   }

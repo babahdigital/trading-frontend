@@ -7,6 +7,7 @@ import { KeyRound, Server, Users, Zap, DollarSign, TrendingUp } from 'lucide-rea
 import { EquityCurve } from '@/components/charts/equity-curve';
 import { PnlBarChart } from '@/components/charts/pnl-bar-chart';
 import { ScannerHeatmap } from '@/components/charts/scanner-heatmap';
+import { useAuth } from '@/lib/auth/auth-context';
 
 interface DashboardStats {
   totalLicenses: number;
@@ -52,10 +53,6 @@ interface VpsStatus {
   lastHealthCheckAt: string | null;
 }
 
-function authHeaders() {
-  return { Authorization: `Bearer ${localStorage.getItem('access_token')}` };
-}
-
 function formatDuration(seconds: number) {
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
@@ -72,6 +69,7 @@ const SETUP_COLORS: Record<string, string> = {
 };
 
 export default function AdminDashboard() {
+  const { getAuthHeaders } = useAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [auditEntries, setAuditEntries] = useState<AuditEntry[]>([]);
   const [equityData, setEquityData] = useState<{ time: string; value: number }[]>([]);
@@ -84,7 +82,7 @@ export default function AdminDashboard() {
   const [equityPeriod, setEquityPeriod] = useState('30D');
 
   const fetchAll = useCallback(async () => {
-    const headers = authHeaders();
+    const headers = getAuthHeaders();
 
     // Dashboard stats
     try {
@@ -194,7 +192,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     const timer = setInterval(async () => {
       try {
-        const res = await fetch('/api/client/status', { headers: authHeaders() });
+        const res = await fetch('/api/client/status', { headers: getAuthHeaders() });
         if (res.ok) {
           const data = await res.json();
           if (data.open_positions) setPositions(data.open_positions as Position[]);

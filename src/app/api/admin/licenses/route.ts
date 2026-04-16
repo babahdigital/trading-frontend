@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { randomBytes } from 'crypto';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('api/admin/licenses');
 
 export async function GET(request: NextRequest) {
   try {
@@ -27,7 +30,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ licenses, total, page, limit });
   } catch (error) {
-    console.error('List licenses error:', error);
+    log.error('List licenses error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -74,7 +77,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(license, { status: 201 });
   } catch (error) {
-    console.error('Create license error:', error);
+    log.error('Create license error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/lib/auth/auth-context';
 
 interface Position {
   symbol: string;
@@ -24,14 +25,8 @@ function genericSetup(setup?: string): string {
   return map[setup.toLowerCase()] || setup;
 }
 
-function getAuthHeaders(): HeadersInit {
-  return {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-  };
-}
-
 export default function PositionsPage() {
+  const { getAuthHeaders } = useAuth();
   const [positions, setPositions] = useState<Position[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');

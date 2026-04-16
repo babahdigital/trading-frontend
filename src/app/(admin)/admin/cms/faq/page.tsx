@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CmsPageHeader } from '@/components/cms/page-header';
+import { GenerateEnglishButton } from '@/components/cms/generate-english-button';
+import { useAuth } from '@/lib/auth/auth-context';
 
 interface FaqItem {
   id: string;
@@ -16,34 +18,31 @@ interface FaqItem {
   isVisible: boolean;
 }
 
-function authHeaders() {
-  return { Authorization: `Bearer ${localStorage.getItem('access_token')}`, 'Content-Type': 'application/json' };
-}
-
 export default function CmsFaqPage() {
+  const { getAuthHeaders } = useAuth();
   const [faqs, setFaqs] = useState<FaqItem[]>([]);
   const [editing, setEditing] = useState<FaqItem | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchFaqs = useCallback(async () => {
-    const res = await fetch('/api/admin/cms/faq', { headers: authHeaders() });
+    const res = await fetch('/api/admin/cms/faq', { headers: getAuthHeaders() });
     if (res.ok) setFaqs(await res.json());
     setLoading(false);
-  }, []);
+  }, [getAuthHeaders]);
 
   useEffect(() => { fetchFaqs(); }, [fetchFaqs]);
 
   async function handleSave() {
     if (!editing) return;
     const method = editing.id ? 'PUT' : 'POST';
-    await fetch('/api/admin/cms/faq', { method, headers: authHeaders(), body: JSON.stringify(editing) });
+    await fetch('/api/admin/cms/faq', { method, headers: getAuthHeaders(), body: JSON.stringify(editing) });
     setEditing(null);
     fetchFaqs();
   }
 
   async function handleDelete(id: string) {
     if (!confirm('Hapus FAQ ini?')) return;
-    await fetch(`/api/admin/cms/faq?id=${id}`, { method: 'DELETE', headers: authHeaders() });
+    await fetch(`/api/admin/cms/faq?id=${id}`, { method: 'DELETE', headers: getAuthHeaders() });
     fetchFaqs();
   }
 
@@ -58,6 +57,7 @@ export default function CmsFaqPage() {
           + Tambah FAQ
         </Button>
       </div>
+      <GenerateEnglishButton type="all-faq" />
 
       {editing && (
         <Card>

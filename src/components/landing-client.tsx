@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/navigation';
 import { motion } from 'framer-motion';
 import { EquityCurve } from '@/components/charts/equity-curve';
 import { StrategyDonut } from '@/components/charts/strategy-donut';
@@ -10,6 +11,7 @@ import { DynamicSection } from '@/components/cms/dynamic-section';
 import { AnimatedSection } from '@/components/ui/animated-section';
 import { StaggerContainer, StaggerItem } from '@/components/ui/stagger-container';
 import { SmoothAccordion } from '@/components/ui/smooth-accordion';
+import { LanguageSwitcher } from '@/components/ui/language-switcher';
 
 // --- Fallback data (used when CMS has no content) ---
 const FALLBACK_HERO_KPIS = [
@@ -127,6 +129,7 @@ interface LandingClientProps {
 }
 
 export function LandingClient({ sections, pricingTiers, testimonials, faqs }: LandingClientProps) {
+  const t = useTranslations();
   const [equityData] = useState(generateDemoEquity);
   const [equityPeriod, setEquityPeriod] = useState('90D');
 
@@ -173,14 +176,17 @@ export function LandingClient({ sections, pricingTiers, testimonials, faqs }: La
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="text-lg font-bold text-primary">BabahAlgo</Link>
           <div className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
-            <a href="#performance" className="hover:text-foreground transition-colors">Performance</a>
-            <a href="#features" className="hover:text-foreground transition-colors">Features</a>
-            <a href="#pricing" className="hover:text-foreground transition-colors">Pricing</a>
-            <a href="#faq" className="hover:text-foreground transition-colors">FAQ</a>
+            <a href="#performance" className="hover:text-foreground transition-colors">{t('nav.performance')}</a>
+            <a href="#features" className="hover:text-foreground transition-colors">{t('nav.features')}</a>
+            <a href="#pricing" className="hover:text-foreground transition-colors">{t('nav.pricing')}</a>
+            <a href="#faq" className="hover:text-foreground transition-colors">{t('nav.faq')}</a>
           </div>
-          <Link href="/login" className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors">
-            Login
-          </Link>
+          <div className="flex items-center gap-3">
+            <LanguageSwitcher />
+            <Link href="/login" className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors">
+              {t('nav.login')}
+            </Link>
+          </div>
         </div>
       </nav>
 
@@ -522,7 +528,7 @@ export function LandingClient({ sections, pricingTiers, testimonials, faqs }: La
           </div>
           <div className="border-t pt-6 text-center text-xs text-muted-foreground">
             <p className="mb-2">{footerDisclaimer}</p>
-            <p>&copy; {new Date().getFullYear()} BabahAlgo. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} BabahAlgo. {t('footer.copyright', { year: new Date().getFullYear() }).replace(`© ${new Date().getFullYear()} BabahAlgo. `, '')}</p>
           </div>
         </div>
       </footer>

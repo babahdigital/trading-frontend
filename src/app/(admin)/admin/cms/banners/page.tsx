@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CmsPageHeader } from '@/components/cms/page-header';
+import { useAuth } from '@/lib/auth/auth-context';
 
 interface BannerItem {
   id: string;
@@ -21,34 +22,31 @@ interface BannerItem {
   endsAt: string | null;
 }
 
-function authHeaders() {
-  return { Authorization: `Bearer ${localStorage.getItem('access_token')}`, 'Content-Type': 'application/json' };
-}
-
 export default function CmsBannersPage() {
+  const { getAuthHeaders } = useAuth();
   const [banners, setBanners] = useState<BannerItem[]>([]);
   const [editing, setEditing] = useState<BannerItem | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchBanners = useCallback(async () => {
-    const res = await fetch('/api/admin/cms/banners', { headers: authHeaders() });
+    const res = await fetch('/api/admin/cms/banners', { headers: getAuthHeaders() });
     if (res.ok) setBanners(await res.json());
     setLoading(false);
-  }, []);
+  }, [getAuthHeaders]);
 
   useEffect(() => { fetchBanners(); }, [fetchBanners]);
 
   async function handleSave() {
     if (!editing) return;
     const method = editing.id ? 'PUT' : 'POST';
-    await fetch('/api/admin/cms/banners', { method, headers: authHeaders(), body: JSON.stringify(editing) });
+    await fetch('/api/admin/cms/banners', { method, headers: getAuthHeaders(), body: JSON.stringify(editing) });
     setEditing(null);
     fetchBanners();
   }
 
   async function handleDelete(id: string) {
     if (!confirm('Hapus banner ini?')) return;
-    await fetch(`/api/admin/cms/banners?id=${id}`, { method: 'DELETE', headers: authHeaders() });
+    await fetch(`/api/admin/cms/banners?id=${id}`, { method: 'DELETE', headers: getAuthHeaders() });
     fetchBanners();
   }
 

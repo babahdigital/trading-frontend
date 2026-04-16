@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { verifyRefreshToken, signJwt, signRefreshToken, type JwtPayload } from '@/lib/auth/jwt';
 import { randomUUID } from 'crypto';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('api/auth/refresh');
 
 export async function POST(request: NextRequest) {
   try {
@@ -64,7 +67,7 @@ export async function POST(request: NextRequest) {
       refreshToken: newRefreshToken,
     });
   } catch (error) {
-    console.error('Refresh error:', error);
+    log.error('Refresh error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

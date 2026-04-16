@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useAuth } from '@/lib/auth/auth-context';
 
 interface AuditEntry {
   id: string;
@@ -15,13 +16,10 @@ interface AuditEntry {
   ipAddress: string | null;
 }
 
-function authHeaders() {
-  return { Authorization: `Bearer ${localStorage.getItem('access_token')}` };
-}
-
 const PAGE_SIZE = 50;
 
 export default function AuditPage() {
+  const { getAuthHeaders } = useAuth();
   const [entries, setEntries] = useState<AuditEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -39,7 +37,7 @@ export default function AuditPage() {
       if (actionFilter.trim()) params.set('action', actionFilter.trim());
       if (userIdFilter.trim()) params.set('userId', userIdFilter.trim());
 
-      const res = await fetch(`/api/admin/audit?${params}`, { headers: authHeaders() });
+      const res = await fetch(`/api/admin/audit?${params}`, { headers: getAuthHeaders() });
       if (res.ok) {
         const data = await res.json();
         const list = data.entries ?? data.logs ?? [];

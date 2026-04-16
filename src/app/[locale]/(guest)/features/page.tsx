@@ -1,11 +1,14 @@
 import { getPageMetadata } from '@/lib/seo';
-import Link from 'next/link';
+import { getTranslations } from 'next-intl/server';
+import { GuestNav } from '@/components/layout/guest-nav';
+import { Link } from '@/i18n/navigation';
 
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata() {
+  const t = await getTranslations('features');
   return getPageMetadata('/features', {
-    title: 'Features — BabahAlgo',
+    title: `${t('title')} — BabahAlgo`,
     description: 'Explore the powerful features of BabahAlgo AI trading platform',
   });
 }
@@ -21,27 +24,17 @@ const features = [
   { title: 'White-Glove Support', desc: 'Dedicated account manager, custom EA deployment, strategy consultation, and priority technical support for enterprise clients.', icon: '🤝' },
 ];
 
-export default function FeaturesPage() {
+export default async function FeaturesPage() {
+  const t = await getTranslations('features');
+  const tPricing = await getTranslations('pricing');
+
   return (
     <div className="min-h-screen bg-background">
-      <nav className="border-b border-border/40 bg-background/95 backdrop-blur">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold text-primary">BabahAlgo</Link>
-          <div className="flex items-center gap-4">
-            <Link href="/features" className="text-sm text-foreground font-medium">Features</Link>
-            <Link href="/pricing" className="text-sm text-muted-foreground hover:text-foreground">Pricing</Link>
-            <Link href="/faq" className="text-sm text-muted-foreground hover:text-foreground">FAQ</Link>
-            <Link href="/login" className="text-sm px-4 py-2 rounded-lg bg-primary text-primary-foreground">Login</Link>
-          </div>
-        </div>
-      </nav>
-
+      <GuestNav activePath="/features" />
       <main className="max-w-7xl mx-auto px-6 py-20">
         <div className="text-center mb-16">
-          <h1 className="text-4xl font-bold mb-4">Platform Features</h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Enterprise-grade AI trading infrastructure built for serious traders
-          </p>
+          <h1 className="text-4xl font-bold mb-4">{t('title')}</h1>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">{t('subtitle')}</p>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -56,7 +49,7 @@ export default function FeaturesPage() {
 
         <div className="text-center mt-16">
           <Link href="/pricing" className="inline-block px-8 py-3 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors">
-            View Pricing
+            {tPricing('title')}
           </Link>
         </div>
       </main>

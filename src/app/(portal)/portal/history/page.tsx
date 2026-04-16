@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { CumulativePnl } from '@/components/charts/cumulative-pnl';
+import { useAuth } from '@/lib/auth/auth-context';
 
 interface Trade {
   date: string;
@@ -15,13 +16,6 @@ interface Trade {
   duration?: string;
   setup?: string;
   close_reason?: string;
-}
-
-function getAuthHeaders(): HeadersInit {
-  return {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-  };
 }
 
 // Map technical strategy names to generic labels for client
@@ -45,6 +39,7 @@ function closeReasonBadge(reason?: string) {
 }
 
 export default function HistoryPage() {
+  const { getAuthHeaders } = useAuth();
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');

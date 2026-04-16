@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Plus, X } from 'lucide-react';
+import { useAuth } from '@/lib/auth/auth-context';
 
 interface User {
   id: string;
@@ -17,15 +18,8 @@ interface User {
   _count: { licenses: number; subscriptions: number };
 }
 
-function authHeaders(json = false) {
-  const h: Record<string, string> = {
-    Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-  };
-  if (json) h['Content-Type'] = 'application/json';
-  return h;
-}
-
 export default function UsersPage() {
+  const { getAuthHeaders } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -44,7 +38,7 @@ export default function UsersPage() {
   async function fetchUsers() {
     setLoading(true);
     try {
-      const res = await fetch('/api/admin/users', { headers: authHeaders() });
+      const res = await fetch('/api/admin/users', { headers: getAuthHeaders() });
       if (res.ok) {
         const data = await res.json();
         setUsers(data.users ?? []);
@@ -70,7 +64,7 @@ export default function UsersPage() {
     try {
       const res = await fetch('/api/admin/users', {
         method: 'POST',
-        headers: authHeaders(true),
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           email: form.email,
           password: form.password,

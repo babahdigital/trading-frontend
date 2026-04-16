@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CmsPageHeader } from '@/components/cms/page-header';
+import { useAuth } from '@/lib/auth/auth-context';
 
 interface TestimonialItem {
   id: string;
@@ -18,34 +19,31 @@ interface TestimonialItem {
   sortOrder: number;
 }
 
-function authHeaders() {
-  return { Authorization: `Bearer ${localStorage.getItem('access_token')}`, 'Content-Type': 'application/json' };
-}
-
 export default function CmsTestimonialsPage() {
+  const { getAuthHeaders } = useAuth();
   const [items, setItems] = useState<TestimonialItem[]>([]);
   const [editing, setEditing] = useState<TestimonialItem | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchItems = useCallback(async () => {
-    const res = await fetch('/api/admin/cms/testimonials', { headers: authHeaders() });
+    const res = await fetch('/api/admin/cms/testimonials', { headers: getAuthHeaders() });
     if (res.ok) setItems(await res.json());
     setLoading(false);
-  }, []);
+  }, [getAuthHeaders]);
 
   useEffect(() => { fetchItems(); }, [fetchItems]);
 
   async function handleSave() {
     if (!editing) return;
     const method = editing.id ? 'PUT' : 'POST';
-    await fetch('/api/admin/cms/testimonials', { method, headers: authHeaders(), body: JSON.stringify(editing) });
+    await fetch('/api/admin/cms/testimonials', { method, headers: getAuthHeaders(), body: JSON.stringify(editing) });
     setEditing(null);
     fetchItems();
   }
 
   async function handleDelete(id: string) {
     if (!confirm('Hapus testimonial ini?')) return;
-    await fetch(`/api/admin/cms/testimonials?id=${id}`, { method: 'DELETE', headers: authHeaders() });
+    await fetch(`/api/admin/cms/testimonials?id=${id}`, { method: 'DELETE', headers: getAuthHeaders() });
     fetchItems();
   }
 

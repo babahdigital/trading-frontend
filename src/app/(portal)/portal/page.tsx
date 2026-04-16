@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { EquityCurve } from '@/components/charts/equity-curve';
 import { PnlBarChart } from '@/components/charts/pnl-bar-chart';
 import { SkeletonCard, SkeletonChart, SkeletonTable } from '@/components/ui/skeleton';
+import { useAuth } from '@/lib/auth/auth-context';
 
 interface StatusData {
   bot_status?: string;
@@ -33,14 +34,8 @@ interface StatusData {
   }[];
 }
 
-function getAuthHeaders(): HeadersInit {
-  return {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-  };
-}
-
 export default function PortalDashboard() {
+  const { getAuthHeaders } = useAuth();
   const [status, setStatus] = useState<StatusData | null>(null);
   const [equityData, setEquityData] = useState<{ time: string; value: number }[]>([]);
   const [weeklyPnl, setWeeklyPnl] = useState<{ date: string; pnl: number }[]>([]);

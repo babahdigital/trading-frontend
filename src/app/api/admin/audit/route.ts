@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('api/admin/audit');
 
 export async function GET(request: NextRequest) {
   try {
@@ -36,7 +39,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ logs, total, page, limit });
   } catch (error) {
-    console.error('List audit logs error:', error);
+    log.error('List audit logs error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { AlertTriangle, Zap } from 'lucide-react';
+import { useAuth } from '@/lib/auth/auth-context';
 
 interface KillSwitchEvent {
   id: string;
@@ -17,15 +18,8 @@ interface KillSwitchEvent {
   error: string | null;
 }
 
-function authHeaders(json = false) {
-  const h: Record<string, string> = {
-    Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-  };
-  if (json) h['Content-Type'] = 'application/json';
-  return h;
-}
-
 export default function KillSwitchPage() {
+  const { getAuthHeaders } = useAuth();
   const [events, setEvents] = useState<KillSwitchEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [licenseId, setLicenseId] = useState('');
@@ -37,7 +31,7 @@ export default function KillSwitchPage() {
   async function fetchEvents() {
     setLoading(true);
     try {
-      const res = await fetch('/api/admin/kill-switch', { headers: authHeaders() });
+      const res = await fetch('/api/admin/kill-switch', { headers: getAuthHeaders() });
       if (res.ok) {
         const data = await res.json();
         setEvents(data.events ?? data ?? []);
@@ -62,7 +56,7 @@ export default function KillSwitchPage() {
     try {
       const res = await fetch('/api/admin/kill-switch', {
         method: 'POST',
-        headers: authHeaders(true),
+        headers: getAuthHeaders(),
         body: JSON.stringify({ licenseId }),
       });
       if (res.ok) {

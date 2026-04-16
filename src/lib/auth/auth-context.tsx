@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 
 interface AuthContextValue {
   getAuthHeaders: () => HeadersInit;
+  getAuthToken: () => HeadersInit;
   logout: () => void;
 }
 
@@ -20,6 +21,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
+  const getAuthToken = useCallback((): HeadersInit => {
+    return {
+      Authorization: `Bearer ${typeof window !== 'undefined' ? localStorage.getItem('access_token') ?? '' : ''}`,
+    };
+  }, []);
+
   const logout = useCallback(() => {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
@@ -28,7 +35,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     router.push('/login');
   }, [router]);
 
-  const value = useMemo(() => ({ getAuthHeaders, logout }), [getAuthHeaders, logout]);
+  const value = useMemo(() => ({ getAuthHeaders, getAuthToken, logout }), [getAuthHeaders, getAuthToken, logout]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

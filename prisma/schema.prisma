@@ -190,8 +190,11 @@ model LandingSection {
   id          String   @id @default(cuid())
   slug        String   @unique // hero, performance, features, strategies, pricing, pairs, risk, how-it-works, testimonials, faq, cta, footer
   title       String
+  title_en    String?
   subtitle    String?
+  subtitle_en String?
   content     Json     @default("{}")
+  content_en  Json?
   sortOrder   Int      @default(0)
   isVisible   Boolean  @default(true)
   updatedAt   DateTime @updatedAt
@@ -204,12 +207,16 @@ model PricingTier {
   id          String   @id @default(cuid())
   slug        String   @unique // signal-basic, signal-vip, pamm-basic, pamm-pro, vps-license
   name        String
+  name_en     String?
   price       String
   subtitle    String?
+  subtitle_en String?
   features    Json     @default("[]") // string[]
+  features_en Json?
   excluded    Json     @default("[]") // string[]
   note        String?
   ctaLabel    String   @default("Daftar")
+  ctaLabel_en String?
   ctaLink     String   @default("/register")
   sortOrder   Int      @default(0)
   isVisible   Boolean  @default(true)
@@ -269,14 +276,16 @@ enum PopupTrigger {
 }
 
 model Faq {
-  id        String   @id @default(cuid())
-  question  String
-  answer    String   @db.Text
-  category  FaqCategory @default(GENERAL)
-  sortOrder Int      @default(0)
-  isVisible Boolean  @default(true)
-  updatedAt DateTime @updatedAt
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  question    String
+  question_en String?
+  answer      String   @db.Text
+  answer_en   String?  @db.Text
+  category    FaqCategory @default(GENERAL)
+  sortOrder   Int      @default(0)
+  isVisible   Boolean  @default(true)
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
 
   @@index([category, sortOrder])
 }

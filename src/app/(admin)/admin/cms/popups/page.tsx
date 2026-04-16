@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CmsPageHeader } from '@/components/cms/page-header';
+import { useAuth } from '@/lib/auth/auth-context';
 
 interface PopupItem {
   id: string;
@@ -19,34 +20,31 @@ interface PopupItem {
   isActive: boolean;
 }
 
-function authHeaders() {
-  return { Authorization: `Bearer ${localStorage.getItem('access_token')}`, 'Content-Type': 'application/json' };
-}
-
 export default function CmsPopupsPage() {
+  const { getAuthHeaders } = useAuth();
   const [popups, setPopups] = useState<PopupItem[]>([]);
   const [editing, setEditing] = useState<PopupItem | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchPopups = useCallback(async () => {
-    const res = await fetch('/api/admin/cms/popups', { headers: authHeaders() });
+    const res = await fetch('/api/admin/cms/popups', { headers: getAuthHeaders() });
     if (res.ok) setPopups(await res.json());
     setLoading(false);
-  }, []);
+  }, [getAuthHeaders]);
 
   useEffect(() => { fetchPopups(); }, [fetchPopups]);
 
   async function handleSave() {
     if (!editing) return;
     const method = editing.id ? 'PUT' : 'POST';
-    await fetch('/api/admin/cms/popups', { method, headers: authHeaders(), body: JSON.stringify(editing) });
+    await fetch('/api/admin/cms/popups', { method, headers: getAuthHeaders(), body: JSON.stringify(editing) });
     setEditing(null);
     fetchPopups();
   }
 
   async function handleDelete(id: string) {
     if (!confirm('Hapus popup ini?')) return;
-    await fetch(`/api/admin/cms/popups?id=${id}`, { method: 'DELETE', headers: authHeaders() });
+    await fetch(`/api/admin/cms/popups?id=${id}`, { method: 'DELETE', headers: getAuthHeaders() });
     fetchPopups();
   }
 

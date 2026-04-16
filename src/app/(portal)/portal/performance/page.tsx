@@ -8,6 +8,7 @@ import { StrategyDonut } from '@/components/charts/strategy-donut';
 import { WinRateBar } from '@/components/charts/win-rate-bar';
 import { HourlyHeatmap } from '@/components/charts/hourly-heatmap';
 import { MonthlyCalendar } from '@/components/charts/monthly-calendar';
+import { useAuth } from '@/lib/auth/auth-context';
 
 interface PairBreakdown {
   pair: string;
@@ -50,14 +51,8 @@ function genericSetup(setup: string): string {
   return map[setup.toLowerCase()] || setup;
 }
 
-function getAuthHeaders(): HeadersInit {
-  return {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-  };
-}
-
 export default function PerformancePage() {
+  const { getAuthHeaders } = useAuth();
   const [data, setData] = useState<PerformanceData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');

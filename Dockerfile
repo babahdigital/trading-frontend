@@ -7,6 +7,7 @@ RUN npm ci 2>/dev/null || npm install
 # Stage 2: Builder
 FROM node:20-alpine AS builder
 WORKDIR /app
+RUN apk add --no-cache openssl
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npx prisma generate

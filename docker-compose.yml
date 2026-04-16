@@ -1,0 +1,22 @@
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://trading_user:${DB_PASSWORD}@host.docker.internal:5432/trading_commercial?schema=public
+      - JWT_SECRET=${JWT_SECRET}
+      - LICENSE_MW_MASTER_KEY=${LICENSE_MW_MASTER_KEY:-0000000000000000000000000000000000000000000000000000000000000000}
+      - VPS1_BACKEND_URL=${VPS1_BACKEND_URL:-http://147.93.156.218:8000}
+      - VPS1_ADMIN_TOKEN=${VPS1_ADMIN_TOKEN:-}
+      - NODE_ENV=production
+      - NEXT_PUBLIC_APP_URL=${APP_URL:-https://trading.babahdigital.net}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s

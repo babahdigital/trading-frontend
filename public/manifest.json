@@ -1,0 +1,9 @@
+{
+  "name": "trading-commercial",
+  "short_name": "Trading",
+  "description": "Trading Commercial - Babah Digital",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#030711",
+  "theme_color": "#030711"
+}

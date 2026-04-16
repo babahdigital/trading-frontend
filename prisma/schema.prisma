@@ -1,0 +1,175 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  role          Role      @default(CLIENT)
+  name          String?
+  mt5Account    String?   @unique
+  twoFaSecret   String?
+  createdAt     DateTime  @default(now())
+  lastLoginAt   DateTime?
+  licenses      License[]
+  subscriptions Subscription[]
+  sessions      Session[]
+}
+
+enum Role {
+  ADMIN
+  CLIENT
+}
+
+model License {
+  id              String        @id @default(cuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id])
+  licenseKey      String        @unique
+  type            LicenseType
+  vpsInstanceId   String?
+  vpsInstance     VpsInstance?  @relation(fields: [vpsInstanceId], references: [id])
+  status          LicenseStatus @default(PENDING)
+  startsAt        DateTime
+  expiresAt       DateTime
+  autoRenew       Boolean       @default(false)
+  metadata        Json          @default("{}")
+  createdAt       DateTime      @default(now())
+  revokedAt       DateTime?
+  killSwitchEvents KillSwitchEvent[]
+  auditLogs       AuditLog[]
+
+  @@index([status, expiresAt])
+  @@index([userId])
+}
+
+enum LicenseType {
+  VPS_INSTALLATION
+  PAMM_SUBSCRIBER
+  SIGNAL_SUBSCRIBER
+}
+
+enum LicenseStatus {
+  PENDING
+  ACTIVE
+  EXPIRED
+  REVOKED
+  SUSPENDED
+}
+
+model VpsInstance {
+  id                    String      @id @default(cuid())
+  name                  String
+  host                  String
+  port                  Int         @default(8000)
+  backendBaseUrl        String
+  adminTokenCiphertext  String
+  adminTokenIv          String
+  adminTokenTag         String
+  sshHost               String?
+  sshPort               Int?        @default(1983)
+  sshUser               String?
+  status                VpsStatus   @default(PROVISIONING)
+  lastHealthCheckAt     DateTime?
+  lastHealthStatus      String?
+  notes                 String?
+  licenses              License[]
+  healthChecks          HealthCheck[]
+  createdAt             DateTime    @default(now())
+}
+
+enum VpsStatus {
+  PROVISIONING
+  ONLINE
+  OFFLINE
+  SUSPENDED
+}
+
+model Subscription {
+  id              String           @id @default(cuid())
+  userId          String
+  user            User             @relation(fields: [userId], references: [id])
+  tier            SubscriptionTier
+  status          LicenseStatus
+  startsAt        DateTime
+  expiresAt       DateTime
+  profitSharePct  Decimal?         @db.Decimal(5, 2)
+  monthlyFeeUsd   Decimal?         @db.Decimal(10, 2)
+  brokerAccountId String?
+  metadata        Json             @default("{}")
+  createdAt       DateTime         @default(now())
+
+  @@index([userId])
+}
+
+enum SubscriptionTier {
+  PAMM_BASIC
+  PAMM_PRO
+  SIGNAL_BASIC
+  SIGNAL_VIP
+}
+
+model KillSwitchEvent {
+  id           String   @id @default(cuid())
+  licenseId    String
+  license      License  @relation(fields: [licenseId], references: [id])
+  triggeredBy  String
+  triggeredAt  DateTime @default(now())
+  apiResponse  Json     @default("{}")
+  success      Boolean
+  errorMessage String?
+
+  @@index([licenseId])
+}
+
+model HealthCheck {
+  id             String      @id @default(cuid())
+  vpsInstanceId  String
+  vpsInstance    VpsInstance @relation(fields: [vpsInstanceId], references: [id])
+  checkedAt      DateTime    @default(now())
+  httpStatus     Int?
+  responseTimeMs Int?
+  zmqConnected   Boolean?
+  dbOk           Boolean?
+  lastTickAge    Float?
+  raw            Json?
+
+  @@index([vpsInstanceId, checkedAt])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  licenseId  String?
+  license    License? @relation(fields: [licenseId], references: [id])
+  action     String
+  ipAddress  String?
+  userAgent  String?
+  metadata   Json     @default("{}")
+  createdAt  DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([licenseId, createdAt])
+}
+
+model Session {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id])
+  jwtId        String    @unique
+  refreshToken String    @unique
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime  @default(now())
+  expiresAt    DateTime
+  revokedAt    DateTime?
+
+  @@index([userId])
+}

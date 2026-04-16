@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db/prisma';
+import type { Prisma } from '@prisma/client';
 
 // Health check cron: ping all ONLINE VPS instances every 5 minutes
 export async function runHealthCheckCron() {
@@ -46,7 +47,7 @@ export async function runHealthCheckCron() {
         zmqConnected,
         dbOk,
         lastTickAge,
-        raw: raw ?? undefined,
+        raw: raw as Prisma.InputJsonValue ?? undefined,
       },
     });
 

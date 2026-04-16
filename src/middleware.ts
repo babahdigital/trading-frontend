@@ -23,7 +23,7 @@ function isRateLimited(ip: string, limit: number, windowMs: number): boolean {
 if (typeof globalThis !== 'undefined') {
   const cleanup = () => {
     const now = Date.now();
-    for (const [key, val] of rateLimitStore) {
+    for (const [key, val] of Array.from(rateLimitStore.entries())) {
       if (now > val.resetAt) rateLimitStore.delete(key);
     }
   };

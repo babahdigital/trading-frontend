@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
+import type { Prisma } from '@prisma/client';
 import { proxyToVpsBackend } from '@/lib/proxy/vps-client';
 
 export async function GET(request: NextRequest) {
@@ -82,7 +83,7 @@ export async function POST(request: NextRequest) {
       data: {
         licenseId,
         triggeredBy: userId || 'system',
-        apiResponse,
+        apiResponse: apiResponse as Prisma.InputJsonValue,
         success,
         errorMessage,
       },
@@ -98,7 +99,7 @@ export async function POST(request: NextRequest) {
         userId,
         licenseId,
         action: 'kill_switch_triggered',
-        metadata: { success, eventId: event.id },
+        metadata: { success, eventId: event.id } as Prisma.InputJsonValue,
       },
     });
 

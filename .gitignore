@@ -1,7 +1,37 @@
+# Dependencies
 node_modules/
+
+# Next.js
 .next/
+out/
+
+# Environment
 .env
 .env.local
 .env.production
+.env.*.local
+
+# TypeScript
 *.tsbuildinfo
 next-env.d.ts
+
+# Dev planning docs (internal only)
+/dev/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Vercel
+.vercel

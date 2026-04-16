@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db/prisma';
+import type { Prisma } from '@prisma/client';
 import { proxyToVpsBackend } from '@/lib/proxy/vps-client';
 
 // Kill-switch cron: scan expired licenses, stop backends, update status
@@ -66,7 +67,7 @@ export async function runKillSwitchCron() {
         data: {
           licenseId: license.id,
           triggeredBy: 'cron_expiry',
-          apiResponse: apiResponse as Record<string, unknown>,
+          apiResponse: apiResponse as Prisma.InputJsonValue,
           success,
         },
       });

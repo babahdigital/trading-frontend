@@ -108,7 +108,8 @@ export default function SignalPage() {
             </p>
 
             {/* Comparison table */}
-            <div className="table-enterprise-wrapper max-w-4xl">
+            <div className="overflow-x-auto max-w-4xl">
+              <div className="table-enterprise-wrapper min-w-[600px]">
               <table className="table-enterprise w-full">
                 <thead>
                   <tr className="border-b border-white/8">
@@ -117,8 +118,8 @@ export default function SignalPage() {
                       <span className="block text-foreground/80">Standard</span>
                       <span className="block font-display text-2xl font-medium mt-1">$49<span className="text-sm text-foreground/40 font-normal">/mo</span></span>
                     </th>
-                    <th className="text-center px-6 py-4 relative">
-                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-500 text-black text-xs font-medium px-3 py-0.5 rounded-full">Most popular</span>
+                    <th className="text-center px-6 py-4">
+                      <span className="inline-block bg-amber-500 text-black text-xs font-medium px-3 py-0.5 rounded-full mb-2">Most popular</span>
                       <span className="block text-foreground/80">Pro</span>
                       <span className="block font-display text-2xl font-medium mt-1">$149<span className="text-sm text-foreground/40 font-normal">/mo</span></span>
                     </th>
@@ -154,6 +155,7 @@ export default function SignalPage() {
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
 
             {/* CTA buttons under table */}

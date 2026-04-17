@@ -132,7 +132,8 @@ export default async function LicensePage() {
             <p className="t-body text-foreground/60 mb-10 max-w-xl">
               Every VPS license includes enterprise-grade hardware with guaranteed resources.
             </p>
-            <div className="table-enterprise-wrapper max-w-4xl">
+            <div className="overflow-x-auto max-w-4xl">
+              <div className="table-enterprise-wrapper min-w-[500px]">
               <table className="table-enterprise w-full">
                 <thead>
                   <tr className="border-b border-white/8">
@@ -151,6 +152,7 @@ export default async function LicensePage() {
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           </div>
         </section>
@@ -248,7 +250,7 @@ export default async function LicensePage() {
           <div className="container-default px-6">
             <p className="t-eyebrow mb-4">Process</p>
             <h2 className="t-display-sub mb-12">Onboarding process</h2>
-            <div className="grid md:grid-cols-5 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
               {STEPS.map((step, i) => (
                 <div key={step.step} className="relative">
                   <p className="font-mono text-5xl text-amber-500/20 mb-3">{step.step}</p>

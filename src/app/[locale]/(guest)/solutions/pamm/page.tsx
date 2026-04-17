@@ -186,9 +186,9 @@ export default function PAMMPage() {
             <h2 className="t-display-sub mb-12">Choose your tier</h2>
             <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
               {PRICING.map((plan) => (
-                <div key={plan.tier} className={`card-enterprise relative ${plan.popular ? 'border-amber-500/40' : ''}`}>
+                <div key={plan.tier} className={`card-enterprise ${plan.popular ? 'border-amber-500/40' : ''}`}>
                   {plan.popular && (
-                    <span className="absolute -top-3 left-6 bg-amber-500 text-black text-xs font-medium px-3 py-1 rounded-full">
+                    <span className="inline-block bg-amber-500 text-black text-xs font-medium px-3 py-1 rounded-full mb-4">
                       Recommended
                     </span>
                   )}

@@ -100,7 +100,8 @@ export default function InstrumentsPage() {
             <h2 className="t-display-sub mb-8">Browse instruments</h2>
 
             {/* Tab bar */}
-            <div className="tab-bar mb-10" role="tablist">
+            <div className="overflow-x-auto mb-10">
+            <div className="tab-bar" role="tablist">
               {ASSET_CLASSES.map((assetClass) => (
                 <button
                   key={assetClass}
@@ -114,6 +115,7 @@ export default function InstrumentsPage() {
                 </button>
               ))}
             </div>
+            </div>
 
             {/* Active tab content */}
             <div>
@@ -121,7 +123,8 @@ export default function InstrumentsPage() {
                 {ASSET_CLASS_DESCRIPTIONS[activeTab]}
               </p>
 
-              <div className="table-enterprise-wrapper">
+              <div className="overflow-x-auto">
+                <div className="table-enterprise-wrapper min-w-[600px]">
                 <table className="table-enterprise">
                   <thead>
                     <tr className="border-b border-white/8">
@@ -144,6 +147,7 @@ export default function InstrumentsPage() {
                     ))}
                   </tbody>
                 </table>
+                </div>
               </div>
             </div>
           </div>

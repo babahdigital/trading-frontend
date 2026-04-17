@@ -1,0 +1,238 @@
+import { Link } from '@/i18n/navigation';
+import { EnterpriseNav } from '@/components/layout/enterprise-nav';
+import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
+import { ArrowRight } from 'lucide-react';
+
+export const dynamic = 'force-dynamic';
+
+const FEATURES = [
+  {
+    title: 'Dedicated VPS instance',
+    description:
+      'Your own isolated virtual private server running our trading bot with guaranteed CPU, RAM, and network resources. No shared infrastructure.',
+  },
+  {
+    title: 'Custom strategy configuration',
+    description:
+      'Work with our quant team to configure the bot for your specific instruments, timeframes, risk parameters, and trading schedule.',
+  },
+  {
+    title: 'Direct MT5 integration',
+    description:
+      'The bot connects directly to your MT5 broker account with sub-millisecond execution latency. Supports multiple broker connections.',
+  },
+  {
+    title: '99.9% uptime SLA',
+    description:
+      'Enterprise-grade infrastructure with automated failover, health monitoring, and proactive alerting. Backed by a contractual uptime guarantee.',
+  },
+  {
+    title: 'Full audit trail',
+    description:
+      'Every trade decision, risk check, and execution event is logged and available through your dashboard and API. Complete operational transparency.',
+  },
+  {
+    title: 'Ongoing maintenance',
+    description:
+      'Monthly maintenance includes system updates, security patches, performance optimization, and strategy parameter reviews.',
+  },
+];
+
+const STEPS = [
+  {
+    step: '01',
+    title: 'Schedule a call',
+    description:
+      'Book a 30-minute consultation with our team. We will discuss your trading objectives, capital allocation, and infrastructure requirements.',
+  },
+  {
+    step: '02',
+    title: 'Discovery',
+    description:
+      'Our quant team conducts a detailed assessment of your requirements: instrument universe, risk tolerance, broker preferences, and operational needs.',
+  },
+  {
+    step: '03',
+    title: 'Proposal',
+    description:
+      'We deliver a technical proposal covering system architecture, strategy configuration, risk parameters, pricing, and timeline.',
+  },
+  {
+    step: '04',
+    title: 'Setup',
+    description:
+      'Upon agreement, we provision your dedicated VPS, configure the trading bot, connect to your broker, and run a controlled paper-trading validation phase.',
+  },
+  {
+    step: '05',
+    title: 'Training & go-live',
+    description:
+      'We walk you through the dashboard, alerting system, and operational procedures. Once confirmed, we switch to live trading with your capital.',
+  },
+];
+
+const FAQ = [
+  {
+    q: 'What hardware specifications are included?',
+    a: 'Each VPS instance includes a minimum of 4 vCPUs, 8GB RAM, 100GB NVMe SSD, and a dedicated 1Gbps network connection. We can scale these resources based on the number of instruments and strategies deployed.',
+  },
+  {
+    q: 'Can I use my own broker?',
+    a: 'Yes. The bot supports any MT5-compatible broker. We have pre-tested integrations with several brokers and can validate connectivity with your preferred broker during the discovery phase.',
+  },
+  {
+    q: 'What happens if the server goes down?',
+    a: 'Our monitoring system detects failures within 30 seconds and initiates automatic recovery. If a hardware failure occurs, the bot is migrated to backup infrastructure. All open positions have server-side stop-losses as an additional safety layer.',
+  },
+  {
+    q: 'Can I modify the strategy after deployment?',
+    a: 'Yes. Strategy parameters can be adjusted at any time through a structured change request process. Material changes go through our validation pipeline before deployment to ensure they do not compromise the risk framework.',
+  },
+  {
+    q: 'Is the setup fee refundable?',
+    a: 'The setup fee covers infrastructure provisioning, strategy configuration, and training. It is non-refundable after the discovery phase begins. You may cancel the monthly maintenance at any time with 30 days notice.',
+  },
+];
+
+export default async function LicensePage() {
+  return (
+    <div className="min-h-screen bg-background text-foreground">
+      <EnterpriseNav />
+      <main>
+        {/* Hero */}
+        <section className="border-b border-border">
+          <div className="max-w-5xl mx-auto px-6 py-24">
+            <p className="text-sm font-mono text-muted-foreground mb-4">VPS LICENSE</p>
+            <h1 className="font-display text-4xl md:text-5xl font-semibold tracking-tight mb-6">
+              Dedicated bot infrastructure for professional traders.
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-2xl">
+              Your own isolated server running our trading algorithms, configured to your specifications.
+              Full control, full transparency, enterprise-grade reliability.
+            </p>
+          </div>
+        </section>
+
+        {/* Who it's for */}
+        <section className="border-b border-border">
+          <div className="max-w-5xl mx-auto px-6 py-20">
+            <h2 className="font-display text-2xl font-semibold mb-8">Who it is for</h2>
+            <ul className="space-y-4 text-muted-foreground max-w-2xl">
+              <li className="flex items-start gap-3">
+                <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-foreground shrink-0" />
+                <span>Professional traders managing $50,000 or more who want dedicated infrastructure without sharing resources.</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-foreground shrink-0" />
+                <span>Trading firms and prop desks looking for turnkey algorithmic trading infrastructure with custom configuration.</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-foreground shrink-0" />
+                <span>Traders who want full operational control and the ability to customize every aspect of the system.</span>
+              </li>
+            </ul>
+          </div>
+        </section>
+
+        {/* What you get */}
+        <section className="border-b border-border">
+          <div className="max-w-5xl mx-auto px-6 py-20">
+            <h2 className="font-display text-2xl font-semibold mb-12">What you get</h2>
+            <div className="grid md:grid-cols-2 gap-8">
+              {FEATURES.map((feature) => (
+                <div key={feature.title} className="border border-border rounded-lg p-8 bg-card">
+                  <h3 className="font-semibold mb-3">{feature.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{feature.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Pricing */}
+        <section className="border-b border-border">
+          <div className="max-w-5xl mx-auto px-6 py-20">
+            <h2 className="font-display text-2xl font-semibold mb-12">Pricing</h2>
+            <div className="border border-border rounded-lg p-8 bg-card max-w-xl">
+              <div className="space-y-6">
+                <div>
+                  <p className="text-sm font-mono text-muted-foreground mb-1">Setup fee</p>
+                  <p className="font-display text-3xl font-semibold">
+                    $3,000
+                    <span className="text-base text-muted-foreground font-normal ml-2">one-time</span>
+                  </p>
+                </div>
+                <div className="border-t border-border pt-6">
+                  <p className="text-sm font-mono text-muted-foreground mb-1">Maintenance</p>
+                  <p className="font-display text-3xl font-semibold">
+                    $150
+                    <span className="text-base text-muted-foreground font-normal">/mo</span>
+                  </p>
+                </div>
+                <div className="border-t border-border pt-6">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Setup fee covers infrastructure provisioning, strategy configuration, paper-trading validation,
+                    and training. Monthly maintenance covers hosting, monitoring, updates, and support.
+                    Custom configurations may incur additional fees based on scope.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Onboarding */}
+        <section className="border-b border-border">
+          <div className="max-w-5xl mx-auto px-6 py-20">
+            <h2 className="font-display text-2xl font-semibold mb-12">Onboarding process</h2>
+            <div className="grid md:grid-cols-5 gap-6">
+              {STEPS.map((step, i) => (
+                <div key={step.step} className="relative">
+                  <p className="font-mono text-3xl text-muted-foreground/30 mb-3">{step.step}</p>
+                  <h3 className="font-semibold text-sm mb-2">{step.title}</h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{step.description}</p>
+                  {i < STEPS.length - 1 && (
+                    <ArrowRight className="hidden md:block absolute top-4 -right-4 w-4 h-4 text-muted-foreground/30" />
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section className="border-b border-border">
+          <div className="max-w-5xl mx-auto px-6 py-20">
+            <h2 className="font-display text-2xl font-semibold mb-12">Frequently asked questions</h2>
+            <div className="space-y-8 max-w-3xl">
+              {FAQ.map((item) => (
+                <div key={item.q}>
+                  <h3 className="font-semibold mb-2">{item.q}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{item.a}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* CTA */}
+        <section>
+          <div className="max-w-5xl mx-auto px-6 py-20 text-center">
+            <h2 className="font-display text-2xl font-semibold mb-4">Ready to discuss your setup?</h2>
+            <p className="text-muted-foreground mb-8 max-w-lg mx-auto">
+              Schedule a 30-minute call with our team to scope your infrastructure requirements and get a detailed proposal.
+            </p>
+            <Link
+              href="/contact"
+              className="inline-flex items-center gap-2 bg-accent text-accent-foreground rounded-md px-6 py-3 text-sm font-medium hover:opacity-90 transition-opacity"
+            >
+              Schedule call
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </section>
+      </main>
+      <EnterpriseFooter />
+    </div>
+  );
+}

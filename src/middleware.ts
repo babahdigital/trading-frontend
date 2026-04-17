@@ -5,7 +5,7 @@ import { locales, defaultLocale } from '@/i18n/config';
 
 const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 
-const publicPaths = ['/login', '/register', '/api/auth/login', '/api/auth/register', '/api/auth/refresh', '/api/health', '/api/public/', '/api/client/inquiries', '/api/chat'];
+const publicPaths = ['/login', '/register', '/api/auth/login', '/api/auth/register', '/api/auth/refresh', '/api/health', '/api/public/', '/api/client/inquiries', '/api/chat', '/manifest.json'];
 
 // In-memory rate limit store (per-process, resets on restart)
 const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
@@ -39,6 +39,43 @@ const intlMiddleware = createIntlMiddleware({
   localePrefix: 'as-needed',
 });
 
+/**
+ * Detect preferred locale from Cloudflare CF-IPCountry header.
+ * Indonesian IPs → 'id', all others → 'en'.
+ * Only redirects on first visit (no locale cookie yet, no explicit locale prefix).
+ */
+function detectGeoLocale(request: NextRequest): NextResponse | null {
+  const { pathname } = request.nextUrl;
+
+  // Skip if user already has a locale prefix in URL (explicit choice)
+  const hasLocalePrefix = locales.some(
+    (l) => pathname === `/${l}` || pathname.startsWith(`/${l}/`)
+  );
+  if (hasLocalePrefix) return null;
+
+  // Skip if user already has NEXT_LOCALE cookie (returning visitor with preference)
+  if (request.cookies.get('NEXT_LOCALE')) return null;
+
+  // Read Cloudflare country header
+  const country = request.headers.get('cf-ipcountry')?.toUpperCase();
+
+  // If from Indonesia (or unknown/localhost), serve default locale (id) — no redirect needed
+  if (!country || country === 'ID' || country === 'XX' || country === 'T1') {
+    return null;
+  }
+
+  // Non-Indonesian IP without locale prefix → redirect to /en
+  const url = request.nextUrl.clone();
+  url.pathname = `/en${pathname}`;
+  const response = NextResponse.redirect(url);
+  response.cookies.set('NEXT_LOCALE', 'en', {
+    maxAge: 365 * 24 * 60 * 60,
+    path: '/',
+    sameSite: 'lax',
+  });
+  return response;
+}
+
 // Paths that are handled by the app (not guest pages)
 function isNonGuestPath(pathname: string): boolean {
   return (
@@ -48,7 +85,9 @@ function isNonGuestPath(pathname: string): boolean {
     pathname.startsWith('/api/') ||
     pathname.startsWith('/_next') ||
     pathname.startsWith('/favicon') ||
-    pathname.startsWith('/public')
+    pathname.startsWith('/public') ||
+    pathname.startsWith('/logo') ||
+    pathname.startsWith('/manifest')
   );
 }
 
@@ -94,12 +133,16 @@ export async function middleware(request: NextRequest) {
   }
 
   // Allow static files and Next.js internals
-  if (pathname.startsWith('/_next') || pathname.startsWith('/favicon') || pathname.startsWith('/public')) {
+  if (pathname.startsWith('/_next') || pathname.startsWith('/favicon') || pathname.startsWith('/public') || pathname.startsWith('/logo')) {
     return NextResponse.next();
   }
 
-  // For guest pages (not admin/portal/auth/api), run i18n middleware
+  // For guest pages (not admin/portal/auth/api), run GeoIP detection + i18n middleware
   if (!isNonGuestPath(pathname)) {
+    // GeoIP redirect: non-Indonesian IPs → /en on first visit
+    const geoRedirect = detectGeoLocale(request);
+    if (geoRedirect) return geoRedirect;
+
     return intlMiddleware(request);
   }
 

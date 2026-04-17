@@ -99,10 +99,12 @@ export default function LicensesPage() {
     }
   }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { fetchLicenses(); }, []);
 
   useEffect(() => {
     if (showForm) fetchFormOptions();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showForm]);
 
   function updateForm(field: string, value: string) {

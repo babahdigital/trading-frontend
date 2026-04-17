@@ -1,61 +1,141 @@
-import { getPageMetadata } from '@/lib/seo';
-import { getTranslations } from 'next-intl/server';
-import { GuestNav } from '@/components/layout/guest-nav';
+import { Link } from '@/i18n/navigation';
+import { EnterpriseNav } from '@/components/layout/enterprise-nav';
+import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
+import { ArrowRight } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
-export async function generateMetadata() {
-  const t = await getTranslations('about');
-  return getPageMetadata('/about', {
-    title: `${t('title')} — BabahAlgo`,
-    description: 'Learn about BabahAlgo and our mission to democratize institutional-grade trading',
-  });
-}
+const MILESTONES = [
+  { year: '2023', title: 'Research', description: 'Initial strategy research, backtesting, and validation across 5 years of tick data.' },
+  { year: '2024', title: 'Platform launch', description: 'Production deployment with live trading on 14 instruments. Infrastructure buildout.' },
+  { year: '2024', title: 'Signal service', description: 'Launch of retail signal service with Telegram and MT5 trade copier integration.' },
+  { year: '2025', title: 'PAMM accounts', description: 'Introduction of managed accounts with profit sharing for passive investors.' },
+  { year: '2026', title: 'Institutional', description: 'Custom mandate service for family offices, small funds, and high-net-worth individuals.' },
+];
 
 export default async function AboutPage() {
-  const t = await getTranslations('about');
-
   return (
-    <div className="min-h-screen bg-background">
-      <GuestNav activePath="/about" />
-      <main className="max-w-4xl mx-auto px-6 py-20">
-        <h1 className="text-4xl font-bold mb-8">{t('title')}</h1>
+    <div className="min-h-screen bg-background text-foreground">
+      <EnterpriseNav />
+      <main>
+        {/* Hero */}
+        <section className="border-b border-border">
+          <div className="max-w-5xl mx-auto px-6 py-24">
+            <h1 className="font-display text-4xl md:text-5xl font-semibold tracking-tight mb-6">
+              About BabahAlgo
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-2xl">
+              Quantitative trading infrastructure for serious market participants.
+            </p>
+          </div>
+        </section>
 
-        <div className="prose prose-invert max-w-none space-y-6 text-muted-foreground">
-          <p className="text-lg">
-            BabahAlgo is an AI-powered quantitative trading platform that brings institutional-grade algorithmic trading
-            to individual traders and small funds. Founded with the mission of democratizing access to sophisticated
-            trading technology, we combine cutting-edge machine learning with robust risk management.
-          </p>
+        {/* Philosophy */}
+        <section className="border-b border-border">
+          <div className="max-w-5xl mx-auto px-6 py-20">
+            <h2 className="font-display text-2xl font-semibold mb-8">Philosophy</h2>
+            <div className="max-w-3xl space-y-6 text-muted-foreground leading-relaxed">
+              <p>
+                BabahAlgo exists because we believe the tools of institutional trading should not be locked behind
+                seven-figure minimums and prime brokerage relationships. The mathematics of market microstructure,
+                the discipline of systematic risk management, and the infrastructure to execute both reliably --
+                these are engineering problems, not privilege problems.
+              </p>
+              <p>
+                Our approach is deliberately narrow. We trade 14 instruments, not 50. We use three timeframes,
+                not twelve. We run a single strategy architecture with proven edge, not a marketplace of untested
+                ideas. This focus allows us to understand every parameter, every correlation, and every failure
+                mode in our system at a depth that broader platforms cannot match.
+              </p>
+              <p>
+                We are builders first. Every component of the BabahAlgo platform -- from the signal generation
+                engine to the risk framework to the client dashboard -- was designed and built in-house. We do
+                not resell third-party signals or white-label someone else&apos;s infrastructure. When something
+                breaks at 3am Tokyo time, we know exactly which line of code to look at because we wrote it.
+              </p>
+              <p>
+                Transparency is non-negotiable. Our production track record is independently verified on
+                MyFxBook. Our risk framework is documented publicly. Our fee structures have no hidden charges.
+                We believe that in an industry plagued by opacity and misaligned incentives, the competitive
+                advantage belongs to those who have nothing to hide.
+              </p>
+            </div>
+          </div>
+        </section>
 
-          <h2 className="text-2xl font-semibold text-foreground mt-12">Our Mission</h2>
-          <p>
-            We believe that access to intelligent trading systems should not be limited to hedge funds and large
-            institutions. BabahAlgo levels the playing field by providing AI-driven signals, managed accounts,
-            and dedicated infrastructure at accessible price points.
-          </p>
+        {/* Timeline */}
+        <section className="border-b border-border">
+          <div className="max-w-5xl mx-auto px-6 py-20">
+            <h2 className="font-display text-2xl font-semibold mb-12">Milestones</h2>
+            <div className="hidden md:flex items-start justify-between gap-4">
+              {MILESTONES.map((milestone, i) => (
+                <div key={`${milestone.year}-${milestone.title}`} className="flex-1 relative">
+                  <div className="flex items-center mb-4">
+                    <div className="w-3 h-3 rounded-full bg-foreground shrink-0" />
+                    {i < MILESTONES.length - 1 && (
+                      <div className="h-px bg-border flex-1" />
+                    )}
+                  </div>
+                  <p className="font-mono text-sm text-muted-foreground mb-1">{milestone.year}</p>
+                  <h3 className="font-semibold text-sm mb-2">{milestone.title}</h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed pr-4">{milestone.description}</p>
+                </div>
+              ))}
+            </div>
+            {/* Mobile: vertical layout */}
+            <div className="md:hidden space-y-8">
+              {MILESTONES.map((milestone) => (
+                <div key={`${milestone.year}-${milestone.title}`} className="flex gap-4">
+                  <div className="flex flex-col items-center">
+                    <div className="w-3 h-3 rounded-full bg-foreground shrink-0" />
+                    <div className="w-px bg-border flex-1 mt-2" />
+                  </div>
+                  <div className="pb-4">
+                    <p className="font-mono text-sm text-muted-foreground mb-1">{milestone.year}</p>
+                    <h3 className="font-semibold text-sm mb-2">{milestone.title}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{milestone.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
 
-          <h2 className="text-2xl font-semibold text-foreground mt-12">Technology</h2>
-          <p>
-            Our platform leverages an ensemble of machine learning models — including LSTM networks, Transformer
-            architectures, and gradient-boosted decision trees — trained on years of tick-level market data. The
-            system operates 24/5 with sub-millisecond execution through direct MT5 integration.
-          </p>
-
-          <h2 className="text-2xl font-semibold text-foreground mt-12">Infrastructure</h2>
-          <p>
-            Built on a zero-trust architecture with Cloudflare Tunnel protection, our infrastructure ensures
-            99.9% uptime with hardware-level isolation, automated failover, and comprehensive monitoring.
-            Every trade execution is logged, audited, and available for review.
-          </p>
-
-          <h2 className="text-2xl font-semibold text-foreground mt-12">Contact</h2>
-          <p>
-            For enterprise inquiries, partnerships, or support, reach us at{' '}
-            <a href="mailto:hello@babahalgo.com" className="text-primary hover:underline">hello@babahalgo.com</a>
-          </p>
-        </div>
+        {/* Links */}
+        <section>
+          <div className="max-w-5xl mx-auto px-6 py-20">
+            <div className="grid md:grid-cols-2 gap-8 max-w-2xl">
+              <Link
+                href="/about/team"
+                className="border border-border rounded-lg p-8 bg-card hover:border-foreground/20 transition-colors group"
+              >
+                <h3 className="font-semibold mb-2">Our team</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Meet the people behind BabahAlgo.
+                </p>
+                <span className="inline-flex items-center gap-2 text-sm group-hover:gap-3 transition-all">
+                  View team
+                  <ArrowRight className="w-4 h-4" />
+                </span>
+              </Link>
+              <Link
+                href="/about/governance"
+                className="border border-border rounded-lg p-8 bg-card hover:border-foreground/20 transition-colors group"
+              >
+                <h3 className="font-semibold mb-2">Governance</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Legal structure, compliance, and disclosures.
+                </p>
+                <span className="inline-flex items-center gap-2 text-sm group-hover:gap-3 transition-all">
+                  View governance
+                  <ArrowRight className="w-4 h-4" />
+                </span>
+              </Link>
+            </div>
+          </div>
+        </section>
       </main>
+      <EnterpriseFooter />
     </div>
   );
 }

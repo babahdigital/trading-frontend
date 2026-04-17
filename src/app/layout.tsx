@@ -1,14 +1,15 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
 import { getLocale } from 'next-intl/server';
 import { ChatWidget } from '@/components/chat/chat-widget';
 import './globals.css';
 
-const inter = Inter({ subsets: ['latin'] });
-
 export const metadata: Metadata = {
-  title: 'BabahAlgo — Autonomous Intelligence. Institutional Precision.',
-  description: 'AI-Powered Quantitative Trading Platform by BabahAlgo',
+  title: 'BabahAlgo — Quantitative Trading Infrastructure',
+  description: 'Institutional-grade quantitative trading infrastructure. AI-powered strategies, systematic execution, institutional risk management.',
+  icons: {
+    icon: '/logo/babahalgo-B-darkbg-clean.png',
+    apple: '/logo/babahalgo-B-darkbg-clean.png',
+  },
 };
 
 export default async function RootLayout({
@@ -19,7 +20,7 @@ export default async function RootLayout({
   const locale = await getLocale();
   return (
     <html lang={locale} className="dark">
-      <body className={inter.className}>
+      <body className="font-body">
         {children}
         <ChatWidget />
       </body>

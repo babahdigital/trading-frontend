@@ -1,19 +1,23 @@
 {
   "nav": {
-    "features": "Features",
+    "platform": "Platform",
+    "solutions": "Solutions",
     "performance": "Performance",
+    "research": "Research",
     "pricing": "Pricing",
-    "faq": "FAQ",
     "about": "About",
     "login": "Login",
     "register": "Sign Up",
-    "portal": "Portal"
+    "portal": "Portal",
+    "features": "Features",
+    "faq": "FAQ",
+    "contact": "Contact"
   },
   "hero": {
-    "title": "Autonomous Intelligence for Financial Markets",
-    "subtitle": "A quantitative engine uniting 6 analysis strategies and generative AI for 24/7 precision trade execution",
+    "title": "Quantitative trading, systematized.",
+    "subtitle": "AI infrastructure that executes market decisions 24 hours with institutional precision.",
     "cta_primary": "View Performance",
-    "cta_secondary": "Get Started"
+    "cta_secondary": "Schedule Briefing"
   },
   "metrics": {
     "pairs": "Instruments",
@@ -22,8 +26,8 @@
     "uptime": "AI Monitoring"
   },
   "performance": {
-    "title": "Trading Performance",
-    "subtitle": "Real-time performance from our quantitative engine",
+    "title": "Verified Performance",
+    "subtitle": "Live data from production account. Updated every 4 hours.",
     "win_rate": "Win Rate",
     "profit_factor": "Profit Factor",
     "max_dd": "Max Drawdown",
@@ -34,6 +38,27 @@
     "period_90d": "90 Days",
     "period_30d": "30 Days",
     "period_7d": "7 Days"
+  },
+  "platform": {
+    "title": "The infrastructure behind every decision.",
+    "subtitle": "Systematic strategies, AI-powered analysis, and institutional risk management.",
+    "overview": "Platform Overview",
+    "technology": "Technology",
+    "risk_framework": "Risk Framework",
+    "execution": "Execution",
+    "instruments": "Instruments",
+    "strategies": "Strategies"
+  },
+  "solutions": {
+    "title": "Choose the model that fits your capital and involvement.",
+    "signal_title": "Signal Service",
+    "signal_desc": "Daily trading signals for retail traders.",
+    "pamm_title": "PAMM Account",
+    "pamm_desc": "Managed trading with profit sharing.",
+    "license_title": "VPS License",
+    "license_desc": "Dedicated bot infrastructure for professional traders.",
+    "institutional_title": "Institutional",
+    "institutional_desc": "Custom mandate for family offices and funds."
   },
   "features": {
     "title": "Key Features",
@@ -58,14 +83,33 @@
     "subtitle": "4 simple steps to get started"
   },
   "pricing": {
-    "title": "Choose Your Plan",
-    "subtitle": "Solutions for every trader level",
+    "title": "Choose the model that fits your capital and involvement.",
+    "subtitle": "Three audience segments. Each with a dedicated engagement model.",
     "per_month": "/month",
     "profit_share": "profit share",
     "setup_fee": "setup fee",
     "most_popular": "MOST POPULAR",
-    "cta": "Sign Up Now",
-    "contact": "Contact Us"
+    "cta": "Open Account",
+    "contact": "Schedule Briefing"
+  },
+  "research": {
+    "title": "Research & Insights",
+    "subtitle": "Notes from the desk on markets, models, and execution."
+  },
+  "about": {
+    "title": "About BabahAlgo",
+    "subtitle": "Quantitative trading infrastructure by CV Babah Digital."
+  },
+  "contact": {
+    "title": "Talk to us.",
+    "subtitle": "General inquiries, partnership opportunities, or technical support.",
+    "name": "Name",
+    "email": "Email",
+    "topic": "Topic",
+    "message": "Message",
+    "submit": "Send Message",
+    "general_email": "hello@babahalgo.com",
+    "compliance_email": "compliance@babahalgo.com"
   },
   "testimonials": {
     "title": "What They Say",
@@ -76,20 +120,18 @@
     "subtitle": "Answers to common questions about BabahAlgo"
   },
   "cta": {
-    "title": "Ready to Start?",
-    "subtitle": "Join traders who have experienced the BabahAlgo advantage",
-    "button": "Sign Up Now"
+    "title": "Schedule a 30-minute briefing with our quant team.",
+    "subtitle": "Discuss your objectives, risk parameters, and preferred engagement model.",
+    "button": "Book on Cal.com"
   },
   "footer": {
-    "disclaimer": "Trading financial instruments involves significant risk of loss and may not be suitable for all investors. Past performance does not guarantee future results.",
-    "terms": "Terms & Conditions",
+    "disclaimer": "Trading financial instruments involves significant risk of loss and may not be suitable for all investors. Past performance does not guarantee future results. BabahAlgo is a technology provider, not a financial advisor.",
+    "terms": "Terms of Service",
     "privacy": "Privacy Policy",
-    "risk": "Risk Disclaimer",
-    "copyright": "© {year} BabahAlgo. All rights reserved."
-  },
-  "about": {
-    "title": "About BabahAlgo",
-    "subtitle": "Autonomous quantitative trading platform by CV Babah Digital"
+    "risk": "Risk Disclosure",
+    "regulatory": "Regulatory",
+    "cookies": "Cookies",
+    "copyright": "© {year} CV Babah Digital. All rights reserved."
   },
   "register": {
     "title": "Register",
@@ -111,11 +153,11 @@
     "last_updated": "Last updated"
   },
   "terms": {
-    "title": "Terms & Conditions",
+    "title": "Terms of Service",
     "last_updated": "Last updated"
   },
   "risk_disclaimer": {
-    "title": "Risk Disclaimer",
+    "title": "Risk Disclosure",
     "last_updated": "Last updated"
   },
   "chat": {
@@ -124,7 +166,7 @@
     "greeting": "Hello! I'm Babah, BabahAlgo's AI assistant. How can I help you with our services?",
     "offline": "Babah is resting. Please leave a message.",
     "online": "Online",
-    "powered_by": "Powered by BabahAlgo AI · Responses are not investment advice",
+    "powered_by": "Powered by BabahAlgo AI. Responses are not investment advice.",
     "quick_pricing": "Pricing",
     "quick_pricing_msg": "What are the available pricing plans?",
     "quick_features": "Key Features",

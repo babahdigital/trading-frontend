@@ -70,6 +70,7 @@ export default function MarketPage() {
     fetchScanner();
     const interval = setInterval(fetchScanner, 30000);
     return () => { active = false; clearInterval(interval); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Fetch calendar/news events
@@ -84,6 +85,7 @@ export default function MarketPage() {
       } catch { /* handled */ }
     }
     fetchNews();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Map scanner items to heatmap format

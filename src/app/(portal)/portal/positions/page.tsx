@@ -55,6 +55,7 @@ export default function PositionsPage() {
     fetchPositions();
     const interval = setInterval(fetchPositions, 3000);
     return () => { active = false; clearInterval(interval); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const totalPnl = positions.reduce((sum, p) => sum + (p.pnl_usd || 0), 0);

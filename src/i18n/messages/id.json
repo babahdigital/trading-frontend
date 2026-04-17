@@ -1,19 +1,23 @@
 {
   "nav": {
-    "features": "Fitur",
+    "platform": "Platform",
+    "solutions": "Solusi",
     "performance": "Performa",
+    "research": "Riset",
     "pricing": "Harga",
-    "faq": "FAQ",
     "about": "Tentang",
     "login": "Masuk",
     "register": "Daftar",
-    "portal": "Portal"
+    "portal": "Portal",
+    "features": "Fitur",
+    "faq": "FAQ",
+    "contact": "Kontak"
   },
   "hero": {
-    "title": "Kecerdasan Otonom untuk Pasar Finansial",
-    "subtitle": "Mesin kuantitatif yang menyatukan 6 strategi analisa dan AI generatif untuk eksekusi perdagangan presisi 24/7",
+    "title": "Perdagangan kuantitatif, tersistemasi.",
+    "subtitle": "Infrastruktur AI yang mengeksekusi keputusan pasar 24 jam dengan presisi institusional.",
     "cta_primary": "Lihat Performa",
-    "cta_secondary": "Mulai Sekarang"
+    "cta_secondary": "Jadwalkan Briefing"
   },
   "metrics": {
     "pairs": "Instrumen",
@@ -22,8 +26,8 @@
     "uptime": "Pemantauan AI"
   },
   "performance": {
-    "title": "Performa Trading",
-    "subtitle": "Performa real-time dari mesin kuantitatif kami",
+    "title": "Performa Terverifikasi",
+    "subtitle": "Data live dari akun produksi. Diperbarui setiap 4 jam.",
     "win_rate": "Win Rate",
     "profit_factor": "Profit Factor",
     "max_dd": "Max Drawdown",
@@ -34,6 +38,27 @@
     "period_90d": "90 Hari",
     "period_30d": "30 Hari",
     "period_7d": "7 Hari"
+  },
+  "platform": {
+    "title": "Infrastruktur di balik setiap keputusan.",
+    "subtitle": "Strategi sistematis, analisis berbasis AI, dan manajemen risiko institusional.",
+    "overview": "Ringkasan Platform",
+    "technology": "Teknologi",
+    "risk_framework": "Kerangka Risiko",
+    "execution": "Eksekusi",
+    "instruments": "Instrumen",
+    "strategies": "Strategi"
+  },
+  "solutions": {
+    "title": "Pilih model yang sesuai dengan modal dan keterlibatan Anda.",
+    "signal_title": "Layanan Signal",
+    "signal_desc": "Sinyal trading harian untuk trader retail.",
+    "pamm_title": "Akun PAMM",
+    "pamm_desc": "Trading terkelola dengan bagi hasil.",
+    "license_title": "Lisensi VPS",
+    "license_desc": "Infrastruktur bot dedicated untuk trader profesional.",
+    "institutional_title": "Institusional",
+    "institutional_desc": "Mandat khusus untuk family office dan fund."
   },
   "features": {
     "title": "Fitur Unggulan",
@@ -58,14 +83,33 @@
     "subtitle": "4 langkah mudah untuk memulai"
   },
   "pricing": {
-    "title": "Pilih Paket yang Sesuai",
-    "subtitle": "Solusi untuk setiap level trader",
+    "title": "Pilih model yang sesuai dengan modal dan keterlibatan Anda.",
+    "subtitle": "Tiga segmen audiens. Masing-masing dengan model keterlibatan khusus.",
     "per_month": "/bulan",
     "profit_share": "bagi hasil",
     "setup_fee": "biaya setup",
     "most_popular": "PALING POPULER",
-    "cta": "Daftar Sekarang",
-    "contact": "Hubungi Kami"
+    "cta": "Buka Akun",
+    "contact": "Jadwalkan Briefing"
+  },
+  "research": {
+    "title": "Riset & Wawasan",
+    "subtitle": "Catatan dari meja kerja tentang pasar, model, dan eksekusi."
+  },
+  "about": {
+    "title": "Tentang BabahAlgo",
+    "subtitle": "Infrastruktur perdagangan kuantitatif oleh CV Babah Digital."
+  },
+  "contact": {
+    "title": "Hubungi kami.",
+    "subtitle": "Pertanyaan umum, peluang kemitraan, atau dukungan teknis.",
+    "name": "Nama",
+    "email": "Email",
+    "topic": "Topik",
+    "message": "Pesan",
+    "submit": "Kirim Pesan",
+    "general_email": "hello@babahalgo.com",
+    "compliance_email": "compliance@babahalgo.com"
   },
   "testimonials": {
     "title": "Apa Kata Mereka",
@@ -76,20 +120,18 @@
     "subtitle": "Jawaban untuk pertanyaan umum seputar BabahAlgo"
   },
   "cta": {
-    "title": "Siap Memulai?",
-    "subtitle": "Bergabung dengan trader yang sudah merasakan keunggulan BabahAlgo",
-    "button": "Daftar Sekarang"
+    "title": "Jadwalkan briefing 30 menit dengan tim quant kami.",
+    "subtitle": "Diskusikan tujuan, parameter risiko, dan model keterlibatan yang Anda inginkan.",
+    "button": "Booking di Cal.com"
   },
   "footer": {
-    "disclaimer": "Perdagangan instrumen finansial mengandung risiko kerugian yang signifikan dan mungkin tidak sesuai untuk semua investor. Performa masa lalu tidak menjamin hasil di masa depan.",
-    "terms": "Syarat & Ketentuan",
+    "disclaimer": "Perdagangan instrumen finansial mengandung risiko kerugian yang signifikan dan mungkin tidak sesuai untuk semua investor. Performa masa lalu tidak menjamin hasil di masa depan. BabahAlgo adalah penyedia teknologi, bukan penasihat keuangan.",
+    "terms": "Syarat Layanan",
     "privacy": "Kebijakan Privasi",
-    "risk": "Disclaimer Risiko",
-    "copyright": "© {year} BabahAlgo. Hak cipta dilindungi."
-  },
-  "about": {
-    "title": "Tentang BabahAlgo",
-    "subtitle": "Platform perdagangan kuantitatif otonom milik CV Babah Digital"
+    "risk": "Pengungkapan Risiko",
+    "regulatory": "Regulasi",
+    "cookies": "Cookies",
+    "copyright": "© {year} CV Babah Digital. Hak cipta dilindungi."
   },
   "register": {
     "title": "Daftar",
@@ -111,11 +153,11 @@
     "last_updated": "Terakhir diperbarui"
   },
   "terms": {
-    "title": "Syarat & Ketentuan",
+    "title": "Syarat Layanan",
     "last_updated": "Terakhir diperbarui"
   },
   "risk_disclaimer": {
-    "title": "Disclaimer Risiko",
+    "title": "Pengungkapan Risiko",
     "last_updated": "Terakhir diperbarui"
   },
   "chat": {
@@ -124,7 +166,7 @@
     "greeting": "Halo! Saya Babah, asisten AI BabahAlgo. Ada yang bisa saya bantu tentang layanan kami?",
     "offline": "Babah sedang istirahat. Silakan tinggalkan pesan.",
     "online": "Online",
-    "powered_by": "Powered by BabahAlgo AI · Respons bukan saran investasi",
+    "powered_by": "Powered by BabahAlgo AI. Respons bukan saran investasi.",
     "quick_pricing": "Harga Paket",
     "quick_pricing_msg": "Berapa harga paket yang tersedia?",
     "quick_features": "Fitur Utama",

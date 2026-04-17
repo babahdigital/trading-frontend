@@ -70,6 +70,7 @@ export default function PerformancePage() {
     } finally {
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => { fetchPerformance(days); }, [days, fetchPerformance]);

@@ -34,6 +34,7 @@ export default function ReportsPage() {
     }
 
     fetchReport();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function renderValue(value: unknown): string {

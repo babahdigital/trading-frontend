@@ -2,80 +2,69 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=Inter+Tight:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 222 47% 5%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
+    --card-foreground: 222 47% 5%;
+    --primary: 38 55% 58%;
+    --primary-foreground: 222 47% 5%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 220 10% 40%;
+    --accent: 38 55% 58%;
+    --accent-foreground: 222 47% 5%;
+    --destructive: 0 70% 65%;
     --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-    --radius: 0.5rem;
+    --border: 220 15% 88%;
+    --input: 220 15% 88%;
+    --ring: 38 55% 58%;
+    --radius: 0.375rem;
 
-    /* Trading chart colors */
-    --profit: 142 76% 50%;
-    --loss: 0 84% 60%;
-    --neutral: 213 94% 68%;
+    /* Trading colors */
+    --profit: 142 60% 55%;
+    --loss: 0 70% 65%;
+    --neutral: 220 10% 60%;
     --warning: 45 93% 58%;
-    --chart-line: 213 94% 68%;
-    --chart-area: 213 94% 68%;
-    --chart-grid: 215 14% 85%;
-    --chart-crosshair: 215 20% 50%;
-
-    /* Shadow system */
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    --shadow-glow: 0 0 20px -5px hsl(var(--primary) / 0.3);
+    --chart-line: 38 55% 58%;
+    --chart-area: 38 55% 58%;
+    --chart-grid: 220 15% 88%;
+    --chart-crosshair: 220 10% 50%;
   }
 
   .dark {
-    --background: 222 47% 7%;
-    --foreground: 210 40% 98%;
-    --card: 222 47% 11%;
-    --card-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+    /* Institutional Navy + Warm Gold (Option A) */
+    --background: 222 47% 5%;
+    --foreground: 40 30% 96%;
+    --card: 222 30% 9%;
+    --card-foreground: 40 30% 96%;
+    --primary: 38 55% 58%;
+    --primary-foreground: 222 47% 5%;
+    --secondary: 222 25% 13%;
+    --secondary-foreground: 40 30% 96%;
+    --muted: 222 25% 13%;
+    --muted-foreground: 220 10% 60%;
+    --accent: 38 55% 58%;
+    --accent-foreground: 222 47% 5%;
+    --destructive: 0 70% 45%;
+    --destructive-foreground: 40 30% 96%;
+    --border: 222 20% 18%;
+    --input: 222 20% 18%;
+    --ring: 38 55% 58%;
 
     /* Trading chart colors (dark) */
-    --profit: 142 76% 50%;
-    --loss: 0 84% 60%;
-    --neutral: 213 94% 68%;
+    --profit: 142 60% 55%;
+    --loss: 0 70% 65%;
+    --neutral: 220 10% 60%;
     --warning: 45 93% 58%;
-    --chart-line: 213 94% 68%;
-    --chart-area: 213 94% 68%;
-    --chart-grid: 215 14% 20%;
-    --chart-crosshair: 215 20% 50%;
-
-    /* Shadow system (dark) */
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.4);
-    --shadow-glow: 0 0 30px -5px hsl(var(--primary) / 0.2);
+    --chart-line: 38 55% 58%;
+    --chart-area: 38 55% 58%;
+    --chart-grid: 222 20% 18%;
+    --chart-crosshair: 220 10% 50%;
   }
 }
 
@@ -84,79 +73,106 @@
     @apply border-border;
   }
   body {
-    font-family: 'Inter', sans-serif;
-    @apply bg-background text-foreground;
+    font-family: 'Inter Tight', 'Inter', system-ui, sans-serif;
+    @apply bg-background text-foreground antialiased;
   }
-  .font-mono, [data-number] {
-    font-family: 'JetBrains Mono', monospace;
+
+  /* Display / Heading — serif editorial */
+  h1, h2, h3, .font-display {
+    font-family: 'Fraunces', 'Georgia', serif;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+  }
+
+  /* Data / Mono */
+  .font-mono, [data-number], code, pre {
+    font-family: 'JetBrains Mono', 'IBM Plex Mono', monospace;
   }
 }
 
 @layer utilities {
+  /* KPI display numbers */
   .text-kpi {
-    font-size: 2rem;
-    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 2.5rem;
+    font-weight: 600;
     font-variant-numeric: tabular-nums;
+    line-height: 1.15;
   }
+
+  /* Stat labels */
+  .text-stat-label {
+    font-family: 'Inter Tight', sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
+  }
+
   .text-chart-label {
     font-size: 0.75rem;
     font-weight: 500;
     letter-spacing: 0.05em;
   }
+
   .text-table-cell {
+    font-family: 'JetBrains Mono', monospace;
     font-size: 0.875rem;
     font-variant-numeric: tabular-nums;
   }
+
   .text-profit {
     color: hsl(var(--profit));
   }
+
   .text-loss {
     color: hsl(var(--loss));
   }
+
+  /* Body paragraph */
+  .text-body {
+    font-family: 'Inter Tight', sans-serif;
+    line-height: 1.6;
+  }
+
+  /* Legal / long-form text */
+  .prose-legal {
+    max-width: 720px;
+    line-height: 1.7;
+  }
 }
 
-/* ─── Card hover lift ─── */
+/* ─── Card hover (subtle) ─── */
 .card-hover {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.2s ease;
 }
 .card-hover:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
+  border-color: hsl(var(--accent) / 0.4);
 }
 
-/* ─── Glow effect untuk card penting (pricing popular, KPI highlight) ─── */
-.card-glow {
-  transition: box-shadow 0.3s ease;
-}
-.card-glow:hover {
-  box-shadow: var(--shadow-glow);
-}
-
-/* ─── Gradient border (pricing card popular) ─── */
-.gradient-border {
-  position: relative;
-  border: none;
-}
-.gradient-border::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.3));
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-}
-
-/* ─── Smooth scroll behavior ─── */
+/* ─── Smooth scroll ─── */
 html {
   scroll-behavior: smooth;
 }
 
 /* ─── Selection color ─── */
 ::selection {
-  background: hsl(var(--primary) / 0.3);
-  color: hsl(var(--primary-foreground));
+  background: hsl(var(--accent) / 0.3);
+  color: hsl(var(--foreground));
+}
+
+/* ─── Scrollbar (webkit) ─── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground));
 }

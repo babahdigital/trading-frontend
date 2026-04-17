@@ -61,6 +61,7 @@ export default function VpsPage() {
     }
   }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { fetchVps(); }, []);
 
   function updateForm(field: string, value: string) {

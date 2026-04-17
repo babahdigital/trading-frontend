@@ -69,6 +69,7 @@ export default function PortalDashboard() {
     fetchStatus();
     const interval = setInterval(fetchStatus, 5000);
     return () => { active = false; clearInterval(interval); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Fetch equity data
@@ -89,6 +90,7 @@ export default function PortalDashboard() {
       } catch { /* handled */ }
     }
     fetchEquity();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [equityPeriod]);
 
   // Fetch weekly PnL
@@ -105,6 +107,7 @@ export default function PortalDashboard() {
       } catch { /* handled */ }
     }
     fetchWeeklyPnl();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function botStatusColor(s?: string) {

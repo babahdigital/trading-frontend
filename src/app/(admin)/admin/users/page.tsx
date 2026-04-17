@@ -51,6 +51,7 @@ export default function UsersPage() {
     }
   }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { fetchUsers(); }, []);
 
   function updateForm(field: string, value: string) {

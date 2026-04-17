@@ -49,6 +49,7 @@ export default function AuditPage() {
     } finally {
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, actionFilter, userIdFilter]);
 
   useEffect(() => { fetchAudit(); }, [fetchAudit]);

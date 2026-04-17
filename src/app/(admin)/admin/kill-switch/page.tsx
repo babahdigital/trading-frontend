@@ -43,6 +43,7 @@ export default function KillSwitchPage() {
     }
   }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { fetchEvents(); }, []);
 
   async function handleTrigger() {

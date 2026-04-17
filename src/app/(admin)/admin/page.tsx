@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { KeyRound, Server, Users, Zap, DollarSign, TrendingUp } from 'lucide-react';
+import { KeyRound, Server, Users, TrendingUp } from 'lucide-react';
 import { EquityCurve } from '@/components/charts/equity-curve';
 import { PnlBarChart } from '@/components/charts/pnl-bar-chart';
 import { ScannerHeatmap } from '@/components/charts/scanner-heatmap';
@@ -184,6 +184,7 @@ export default function AdminDashboard() {
     } catch { /* handled */ }
 
     setLoading(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [equityPeriod]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
@@ -214,6 +215,7 @@ export default function AdminDashboard() {
       } catch { /* handled */ }
     }, 5000);
     return () => clearInterval(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const kpiCards = [

@@ -96,52 +96,58 @@ export default async function RiskFrameworkPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <EnterpriseNav />
-      <main className="max-w-4xl mx-auto px-6 py-20">
-        {/* Back */}
-        <Link
-          href="/platform"
-          className="inline-flex items-center gap-1.5 text-sm text-accent hover:text-accent/80 transition-colors mb-8"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" /> Platform overview
-        </Link>
+      <main id="main-content">
 
         {/* Hero */}
-        <section className="mb-20">
-          <h1 className="font-display text-display-lg md:text-display-xl text-foreground mb-6">
-            12 layers of capital protection.
-          </h1>
-          <p className="text-muted-foreground leading-relaxed mb-8 max-w-2xl">
-            Risk management is not a module bolted onto the trading engine -- it is the
-            architecture. Twelve independent layers operate simultaneously, each designed
-            to catch a specific class of risk that the others may miss. No single layer
-            failure can result in uncontrolled loss. Every layer logs its decisions for
-            full auditability.
-          </p>
+        <section className="section-padding border-b border-white/8">
+          <div className="container-default px-6">
+            <Link
+              href="/platform"
+              className="inline-flex items-center gap-1.5 text-sm text-amber-400 hover:text-amber-400/80 transition-colors mb-8"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" /> Platform overview
+            </Link>
+            <p className="t-eyebrow mb-4">Risk Management</p>
+            <h1 className="t-display-page mb-6">
+              12 layers of capital protection.
+            </h1>
+            <p className="text-foreground/60 leading-relaxed mb-8 max-w-2xl">
+              Risk management is not a module bolted onto the trading engine -- it is the
+              architecture. Twelve independent layers operate simultaneously, each designed
+              to catch a specific class of risk that the others may miss. No single layer
+              failure can result in uncontrolled loss. Every layer logs its decisions for
+              full auditability.
+            </p>
+          </div>
         </section>
 
         {/* Layers */}
-        <section>
-          <div className="space-y-6">
-            {RISK_LAYERS.map((layer) => (
-              <div key={layer.number} className="border border-border rounded-lg p-8 bg-card">
-                <div className="flex items-start gap-4">
-                  <span className="font-mono text-accent text-sm font-semibold shrink-0 mt-0.5">
-                    {String(layer.number).padStart(2, '0')}
-                  </span>
-                  <div>
-                    <h3 className="font-display text-lg text-foreground mb-1">
-                      {layer.name}
-                    </h3>
-                    <p className="text-sm text-accent mb-3">{layer.subtitle}</p>
-                    <p className="text-muted-foreground leading-relaxed text-sm">
-                      {layer.description}
-                    </p>
+        <section className="section-padding">
+          <div className="container-default px-6">
+            <p className="t-eyebrow mb-4">Protection Layers</p>
+            <div className="space-y-6">
+              {RISK_LAYERS.map((layer) => (
+                <div key={layer.number} className="card-enterprise">
+                  <div className="flex items-start gap-4">
+                    <span className="font-mono text-amber-400 text-sm font-semibold shrink-0 mt-0.5">
+                      {String(layer.number).padStart(2, '0')}
+                    </span>
+                    <div>
+                      <h3 className="font-display text-lg text-foreground mb-1">
+                        {layer.name}
+                      </h3>
+                      <p className="t-body-sm text-amber-400 mb-3">{layer.subtitle}</p>
+                      <p className="text-foreground/60 leading-relaxed text-sm">
+                        {layer.description}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </section>
+
       </main>
       <EnterpriseFooter />
     </div>

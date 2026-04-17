@@ -8,30 +8,32 @@ export default async function GovernancePage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <EnterpriseNav />
-      <main>
+      <main id="main-content">
         {/* Hero */}
-        <section className="border-b border-border">
-          <div className="max-w-5xl mx-auto px-6 py-24">
+        <section className="section-padding border-b border-white/8">
+          <div className="container-default px-6">
             <Link
               href="/about"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors mb-4 inline-block"
+              className="t-body-sm text-foreground/60 hover:text-foreground transition-colors mb-4 inline-block"
             >
               About
             </Link>
-            <h1 className="font-display text-4xl md:text-5xl font-semibold tracking-tight mb-6">
+            <p className="t-eyebrow mb-4">Corporate Governance</p>
+            <h1 className="t-display-page mb-6">
               Governance
             </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl">
+            <p className="t-lead text-foreground/60 max-w-2xl">
               Legal structure, compliance framework, and disclosures.
             </p>
           </div>
         </section>
 
         {/* Legal Entity */}
-        <section className="border-b border-border">
-          <div className="max-w-5xl mx-auto px-6 py-20">
-            <h2 className="font-display text-2xl font-semibold mb-8">Legal entity</h2>
-            <div className="max-w-3xl space-y-4 text-muted-foreground leading-relaxed">
+        <section className="section-padding border-b border-white/8">
+          <div className="container-default px-6">
+            <p className="t-eyebrow mb-4">Legal Structure</p>
+            <h2 className="t-display-sub mb-8">Legal entity</h2>
+            <div className="max-w-3xl space-y-4 text-foreground/60 leading-relaxed">
               <p>
                 BabahAlgo is operated by <strong className="text-foreground">CV Babah Digital</strong>,
                 a commercial partnership (Commanditaire Vennootschap) registered under Indonesian commercial law.
@@ -47,11 +49,12 @@ export default async function GovernancePage() {
           </div>
         </section>
 
-        {/* Regulator Status */}
-        <section className="border-b border-border">
-          <div className="max-w-5xl mx-auto px-6 py-20">
-            <h2 className="font-display text-2xl font-semibold mb-8">Regulatory status</h2>
-            <div className="max-w-3xl space-y-4 text-muted-foreground leading-relaxed">
+        {/* Regulatory Status */}
+        <section className="section-padding border-b border-white/8">
+          <div className="container-default px-6">
+            <p className="t-eyebrow mb-4">Compliance</p>
+            <h2 className="t-display-sub mb-8">Regulatory status</h2>
+            <div className="max-w-3xl space-y-4 text-foreground/60 leading-relaxed">
               <p>
                 BabahAlgo operates as a <strong className="text-foreground">technology provider</strong>,
                 not a futures broker, asset manager, or investment advisor in the regulatory sense.
@@ -73,16 +76,17 @@ export default async function GovernancePage() {
         </section>
 
         {/* Partner Brokers */}
-        <section className="border-b border-border">
-          <div className="max-w-5xl mx-auto px-6 py-20">
-            <h2 className="font-display text-2xl font-semibold mb-8">Partner brokers</h2>
-            <div className="max-w-3xl space-y-4 text-muted-foreground leading-relaxed">
+        <section className="section-padding border-b border-white/8">
+          <div className="container-default px-6">
+            <p className="t-eyebrow mb-4">Broker Relations</p>
+            <h2 className="t-display-sub mb-8">Partner brokers</h2>
+            <div className="max-w-3xl space-y-4 text-foreground/60 leading-relaxed">
               <p>
                 BabahAlgo works with selected broker partners who meet our criteria for execution quality,
                 regulatory status, fund segregation, and API reliability. Our broker partners are regulated
                 by their respective financial authorities and maintain segregated client fund accounts.
               </p>
-              <p className="text-sm border-l-2 border-border pl-4">
+              <p className="t-body-sm border-l-2 border-white/8 pl-4">
                 <strong className="text-foreground">Disclosure:</strong> BabahAlgo may receive introducing
                 broker (IB) commissions or rebates from partner brokers for client referrals. These
                 arrangements are disclosed to clients during onboarding and do not affect the execution
@@ -94,10 +98,11 @@ export default async function GovernancePage() {
         </section>
 
         {/* Audit */}
-        <section className="border-b border-border">
-          <div className="max-w-5xl mx-auto px-6 py-20">
-            <h2 className="font-display text-2xl font-semibold mb-8">Audit cadence</h2>
-            <div className="max-w-3xl space-y-4 text-muted-foreground leading-relaxed">
+        <section className="section-padding border-b border-white/8">
+          <div className="container-default px-6">
+            <p className="t-eyebrow mb-4">Oversight</p>
+            <h2 className="t-display-sub mb-8">Audit cadence</h2>
+            <div className="max-w-3xl space-y-4 text-foreground/60 leading-relaxed">
               <p>
                 BabahAlgo conducts <strong className="text-foreground">quarterly internal audits</strong> covering:
               </p>
@@ -132,10 +137,11 @@ export default async function GovernancePage() {
         </section>
 
         {/* Conflict of Interest */}
-        <section className="border-b border-border">
-          <div className="max-w-5xl mx-auto px-6 py-20">
-            <h2 className="font-display text-2xl font-semibold mb-8">Conflict of interest disclosure</h2>
-            <div className="max-w-3xl space-y-4 text-muted-foreground leading-relaxed">
+        <section className="section-padding border-b border-white/8">
+          <div className="container-default px-6">
+            <p className="t-eyebrow mb-4">Transparency</p>
+            <h2 className="t-display-sub mb-8">Conflict of interest disclosure</h2>
+            <div className="max-w-3xl space-y-4 text-foreground/60 leading-relaxed">
               <p>
                 BabahAlgo is committed to identifying, managing, and disclosing conflicts of interest.
                 The following potential conflicts are acknowledged:
@@ -172,10 +178,11 @@ export default async function GovernancePage() {
         </section>
 
         {/* Data Privacy */}
-        <section className="border-b border-border">
-          <div className="max-w-5xl mx-auto px-6 py-20">
-            <h2 className="font-display text-2xl font-semibold mb-8">Data privacy framework</h2>
-            <div className="max-w-3xl space-y-4 text-muted-foreground leading-relaxed">
+        <section className="section-padding border-b border-white/8">
+          <div className="container-default px-6">
+            <p className="t-eyebrow mb-4">Data Protection</p>
+            <h2 className="t-display-sub mb-8">Data privacy framework</h2>
+            <div className="max-w-3xl space-y-4 text-foreground/60 leading-relaxed">
               <p>
                 BabahAlgo takes data privacy seriously. Our framework is designed around the principles
                 of data minimization, purpose limitation, and security by default:
@@ -200,7 +207,7 @@ export default async function GovernancePage() {
               </ul>
               <p>
                 For full details, see our{' '}
-                <Link href="/legal/privacy" className="text-foreground underline underline-offset-4 hover:text-accent">
+                <Link href="/legal/privacy" className="text-foreground underline underline-offset-4 hover:text-amber-400">
                   Privacy Policy
                 </Link>.
               </p>
@@ -209,20 +216,21 @@ export default async function GovernancePage() {
         </section>
 
         {/* Compliance Contact */}
-        <section>
-          <div className="max-w-5xl mx-auto px-6 py-20">
-            <h2 className="font-display text-2xl font-semibold mb-8">Compliance contact</h2>
-            <div className="border border-border rounded-lg p-8 bg-card max-w-md">
-              <p className="text-sm text-muted-foreground mb-4">
+        <section className="section-padding">
+          <div className="container-default px-6">
+            <p className="t-eyebrow mb-4">Contact</p>
+            <h2 className="t-display-sub mb-8">Compliance contact</h2>
+            <div className="card-enterprise max-w-md">
+              <p className="t-body-sm text-foreground/60 mb-4">
                 For compliance inquiries, regulatory questions, or to report concerns:
               </p>
               <a
                 href="mailto:compliance@babahalgo.com"
-                className="font-mono text-sm text-foreground hover:text-accent transition-colors"
+                className="font-mono text-sm text-foreground hover:text-amber-400 transition-colors"
               >
                 compliance@babahalgo.com
               </a>
-              <p className="text-xs text-muted-foreground mt-4">
+              <p className="t-body-sm text-foreground/50 mt-4">
                 We aim to respond to all compliance inquiries within 2 business days.
               </p>
             </div>

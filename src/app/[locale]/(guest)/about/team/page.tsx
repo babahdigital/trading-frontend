@@ -22,39 +22,41 @@ export default async function TeamPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <EnterpriseNav />
-      <main>
+      <main id="main-content">
         {/* Hero */}
-        <section className="border-b border-border">
-          <div className="max-w-5xl mx-auto px-6 py-24">
+        <section className="section-padding border-b border-white/8">
+          <div className="container-default px-6">
             <Link
               href="/about"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors mb-4 inline-block"
+              className="t-body-sm text-foreground/60 hover:text-foreground transition-colors mb-4 inline-block"
             >
               About
             </Link>
-            <h1 className="font-display text-4xl md:text-5xl font-semibold tracking-tight mb-6">
+            <p className="t-eyebrow mb-4">Who We Are</p>
+            <h1 className="t-display-page mb-6">
               Our Team
             </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl">
+            <p className="t-lead text-foreground/60 max-w-2xl">
               A small team focused on execution quality over headcount.
             </p>
           </div>
         </section>
 
         {/* Team Grid */}
-        <section className="border-b border-border">
-          <div className="max-w-5xl mx-auto px-6 py-20">
+        <section className="section-padding border-b border-white/8">
+          <div className="container-default px-6">
+            <p className="t-eyebrow mb-4">The People</p>
             <div className="grid md:grid-cols-2 gap-8">
               {TEAM.map((member) => (
-                <div key={member.name} className="border border-border rounded-lg p-8 bg-card">
-                  <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-6">
-                    <span className="font-mono text-lg text-muted-foreground">
+                <div key={member.name} className="card-enterprise">
+                  <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-6">
+                    <span className="font-mono text-lg text-foreground/50">
                       {member.name.charAt(0)}
                     </span>
                   </div>
-                  <h2 className="font-display text-xl font-semibold mb-1">{member.name}</h2>
-                  <p className="text-sm font-mono text-muted-foreground mb-4">{member.role}</p>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{member.bio}</p>
+                  <h2 className="text-xl font-medium mb-1">{member.name}</h2>
+                  <p className="t-body-sm font-mono text-foreground/60 mb-4">{member.role}</p>
+                  <p className="t-body-sm text-foreground/60 leading-relaxed">{member.bio}</p>
                 </div>
               ))}
             </div>
@@ -62,10 +64,10 @@ export default async function TeamPage() {
         </section>
 
         {/* Note */}
-        <section>
-          <div className="max-w-5xl mx-auto px-6 py-20">
+        <section className="section-padding">
+          <div className="container-default px-6">
             <div className="max-w-2xl">
-              <p className="text-muted-foreground leading-relaxed">
+              <p className="text-foreground/60 leading-relaxed">
                 We are a small team by design. In quantitative trading, the quality of decisions matters
                 far more than the number of people making them. Every member of the team has direct
                 operational responsibility and deep context on every aspect of the system. This structure
@@ -75,7 +77,7 @@ export default async function TeamPage() {
               <div className="mt-8">
                 <Link
                   href="/contact"
-                  className="inline-flex items-center gap-2 border border-border rounded-md px-6 py-3 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
+                  className="btn-secondary inline-flex items-center gap-2"
                 >
                   Get in touch
                   <ArrowRight className="w-4 h-4" />

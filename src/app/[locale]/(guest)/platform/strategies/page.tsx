@@ -60,46 +60,55 @@ export default async function StrategiesPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <EnterpriseNav />
-      <main className="max-w-4xl mx-auto px-6 py-20">
-        <section className="mb-12">
-          <h1 className="font-display text-display-lg md:text-display-xl text-foreground mb-6">
-            Strategy framework
-          </h1>
-          <p className="text-muted-foreground leading-relaxed mb-8 max-w-2xl">
-            Six independently validated strategies, each operating on a strict
-            multi-timeframe confluence model. Every strategy is backtested across a
-            minimum of 24 months of historical data and validated through walk-forward
-            analysis before deployment.
-          </p>
+      <main id="main-content">
+
+        {/* Hero */}
+        <section className="section-padding border-b border-white/8">
+          <div className="container-default px-6">
+            <p className="t-eyebrow mb-4">Strategy Framework</p>
+            <h1 className="t-display-page mb-6">
+              Strategy framework
+            </h1>
+            <p className="text-foreground/60 leading-relaxed mb-8 max-w-2xl">
+              Six independently validated strategies, each operating on a strict
+              multi-timeframe confluence model. Every strategy is backtested across a
+              minimum of 24 months of historical data and validated through walk-forward
+              analysis before deployment.
+            </p>
+          </div>
         </section>
 
-        <div className="space-y-6">
-          {STRATEGIES.map((strategy) => (
-            <div
-              key={strategy.slug}
-              className="border border-border rounded-lg p-8 bg-card"
-            >
-              <div className="flex items-start justify-between mb-3">
-                <h2 className="font-display text-xl text-foreground">
-                  {strategy.name}
-                </h2>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  <span className="font-mono">{strategy.timeframe}</span>
-                  <span className="font-mono text-accent">{strategy.winRate} WR</span>
+        {/* Strategies list */}
+        <section className="section-padding border-b border-white/8">
+          <div className="container-default px-6">
+            <p className="t-eyebrow mb-4">Active Strategies</p>
+            <div className="space-y-6">
+              {STRATEGIES.map((strategy) => (
+                <div key={strategy.slug} className="card-enterprise group">
+                  <div className="flex items-start justify-between mb-3">
+                    <h2 className="t-display-sub group-hover:text-amber-400">
+                      {strategy.name}
+                    </h2>
+                    <div className="flex items-center gap-4 t-body-sm text-foreground/60">
+                      <span className="font-mono">{strategy.timeframe}</span>
+                      <span className="font-mono text-amber-400">{strategy.winRate} WR</span>
+                    </div>
+                  </div>
+                  <p className="text-foreground/60 leading-relaxed mb-4">
+                    {strategy.description}
+                  </p>
+                  <Link
+                    href={`/platform/strategies/${strategy.slug}`}
+                    className="btn-tertiary text-sm"
+                  >
+                    View full methodology <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
                 </div>
-              </div>
-              <p className="text-muted-foreground leading-relaxed mb-4">
-                {strategy.description}
-              </p>
-              <Link
-                href={`/platform/strategies/${strategy.slug}`}
-                className="inline-flex items-center gap-1.5 text-sm text-accent hover:text-accent/80 transition-colors"
-              >
-                View full methodology <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
+              ))}
             </div>
-          ))}
-        </div>
+          </div>
+        </section>
+
       </main>
       <EnterpriseFooter />
     </div>

@@ -94,8 +94,15 @@ export default function PerformancePage() {
             </div>
             <div className="card-enterprise p-6" style={{ minHeight: 480 }}>
               {loading ? (
-                <div className="h-[420px] flex items-center justify-center text-foreground/40 text-sm">
-                  Loading performance data...
+                <div className="h-[420px] flex flex-col">
+                  <div className="tab-bar mb-4">
+                    {['7D', '30D', '90D', 'YTD', '1Y', 'ALL'].map((p) => (
+                      <span key={p} className="tab-btn opacity-40">{p}</span>
+                    ))}
+                  </div>
+                  <div className="flex-1 relative overflow-hidden rounded-md bg-white/[0.02]">
+                    <div className="absolute inset-0 shimmer" />
+                  </div>
                 </div>
               ) : (
                 <EquityCurve

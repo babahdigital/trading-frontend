@@ -54,128 +54,115 @@ export default async function InstrumentsPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <EnterpriseNav />
-      <main className="max-w-4xl mx-auto px-6 py-20">
-        {/* Back */}
-        <Link
-          href="/platform"
-          className="inline-flex items-center gap-1.5 text-sm text-accent hover:text-accent/80 transition-colors mb-8"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" /> Platform overview
-        </Link>
+      <main id="main-content">
 
         {/* Hero */}
-        <section className="mb-20">
-          <h1 className="font-display text-display-lg md:text-display-xl text-foreground mb-6">
-            14 instruments across 4 asset classes.
-          </h1>
-          <p className="text-muted-foreground leading-relaxed mb-8 max-w-2xl">
-            Each instrument is selected based on liquidity depth, spread efficiency,
-            strategy compatibility, and historical performance characteristics. The
-            platform does not trade thinly-traded or exotic instruments.
-          </p>
+        <section className="section-padding border-b border-white/8">
+          <div className="container-default px-6">
+            <Link
+              href="/platform"
+              className="inline-flex items-center gap-1.5 text-sm text-amber-400 hover:text-amber-400/80 transition-colors mb-8"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" /> Platform overview
+            </Link>
+            <p className="t-eyebrow mb-4">Tradeable Universe</p>
+            <h1 className="t-display-page mb-6">
+              14 instruments across 4 asset classes.
+            </h1>
+            <p className="text-foreground/60 leading-relaxed mb-8 max-w-2xl">
+              Each instrument is selected based on liquidity depth, spread efficiency,
+              strategy compatibility, and historical performance characteristics. The
+              platform does not trade thinly-traded or exotic instruments.
+            </p>
 
-          {/* Summary stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {Object.entries(INSTRUMENTS).map(([assetClass, items]) => (
-              <div key={assetClass} className="border border-border rounded-lg p-8 bg-card text-center">
-                <p className="font-mono text-xl text-accent mb-1">{items.length}</p>
-                <p className="text-xs text-muted-foreground">{assetClass}</p>
-              </div>
-            ))}
+            {/* Summary stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {Object.entries(INSTRUMENTS).map(([assetClass, items]) => (
+                <div key={assetClass} className="card-enterprise text-center">
+                  <p className="font-mono text-xl text-amber-400 mb-1">{items.length}</p>
+                  <p className="t-body-sm text-foreground/60">{assetClass}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
         {/* Instrument tables by asset class */}
         {Object.entries(INSTRUMENTS).map(([assetClass, items]) => (
-          <section key={assetClass} className="mb-16">
-            <h2 className="font-display text-display-sm text-foreground mb-4">
-              {assetClass}
-            </h2>
-            <p className="text-muted-foreground leading-relaxed mb-6">
-              {ASSET_CLASS_DESCRIPTIONS[assetClass]}
-            </p>
-            <div className="border border-border rounded-lg bg-card overflow-hidden">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="text-left text-sm font-semibold text-foreground px-6 py-3">
-                      Ticker
-                    </th>
-                    <th className="text-left text-sm font-semibold text-foreground px-6 py-3">
-                      Instrument
-                    </th>
-                    <th className="text-right text-sm font-semibold text-foreground px-6 py-3">
-                      Avg Spread
-                    </th>
-                    <th className="text-left text-sm font-semibold text-foreground px-6 py-3 hidden md:table-cell">
-                      Trading Hours
-                    </th>
-                    <th className="text-right text-sm font-semibold text-foreground px-6 py-3">
-                      Status
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.map((inst) => (
-                    <tr key={inst.ticker} className="border-b border-border last:border-0">
-                      <td className="font-mono text-sm px-6 py-3">{inst.ticker}</td>
-                      <td className="text-sm text-muted-foreground px-6 py-3">
-                        {inst.name}
-                      </td>
-                      <td className="font-mono text-sm text-right px-6 py-3">
-                        {inst.avgSpread}
-                      </td>
-                      <td className="text-sm text-muted-foreground px-6 py-3 hidden md:table-cell">
-                        {inst.tradingHours}
-                      </td>
-                      <td className="font-mono text-sm text-right px-6 py-3 text-accent">
-                        {inst.status}
-                      </td>
+          <section key={assetClass} className="section-padding border-b border-white/8">
+            <div className="container-default px-6">
+              <p className="t-eyebrow mb-4">Asset Class</p>
+              <h2 className="t-display-sub mb-4">{assetClass}</h2>
+              <p className="text-foreground/60 leading-relaxed mb-6">
+                {ASSET_CLASS_DESCRIPTIONS[assetClass]}
+              </p>
+              <div className="table-enterprise-wrapper">
+                <table className="table-enterprise">
+                  <thead>
+                    <tr className="border-b border-white/8">
+                      <th className="text-left px-6 py-3">Ticker</th>
+                      <th className="text-left px-6 py-3">Instrument</th>
+                      <th className="text-right px-6 py-3">Avg Spread</th>
+                      <th className="text-left px-6 py-3 hidden md:table-cell">Trading Hours</th>
+                      <th className="text-right px-6 py-3">Status</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {items.map((inst) => (
+                      <tr key={inst.ticker} className="border-b border-white/8 last:border-0">
+                        <td className="font-mono px-6 py-3">{inst.ticker}</td>
+                        <td className="px-6 py-3 text-foreground/60">{inst.name}</td>
+                        <td className="font-mono text-right px-6 py-3">{inst.avgSpread}</td>
+                        <td className="px-6 py-3 text-foreground/60 hidden md:table-cell">{inst.tradingHours}</td>
+                        <td className="font-mono text-right px-6 py-3 text-amber-400">{inst.status}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </section>
         ))}
 
-        {/* Notes */}
-        <section className="mb-16">
-          <h2 className="font-display text-display-sm text-foreground mb-4">
-            Selection criteria
-          </h2>
-          <div className="border border-border rounded-lg p-8 bg-card">
-            <p className="text-muted-foreground leading-relaxed mb-4">
-              Instruments are evaluated quarterly against four criteria before inclusion or
-              removal from the active universe:
-            </p>
-            <ol className="list-decimal list-inside space-y-2 text-muted-foreground text-sm">
-              <li>
-                <span className="font-semibold text-foreground">Liquidity depth:</span>{' '}
-                Average daily volume must exceed minimum thresholds to ensure consistent
-                fill quality and manageable slippage.
-              </li>
-              <li>
-                <span className="font-semibold text-foreground">Spread efficiency:</span>{' '}
-                Average spread during active trading hours must remain below the
-                strategy-specific threshold to maintain positive expected value after
-                transaction costs.
-              </li>
-              <li>
-                <span className="font-semibold text-foreground">Strategy compatibility:</span>{' '}
-                The instrument must demonstrate technical characteristics (trending
-                behavior, mean-reversion, or event-driven patterns) compatible with at
-                least one active strategy.
-              </li>
-              <li>
-                <span className="font-semibold text-foreground">Historical performance:</span>{' '}
-                Backtested and walk-forward results for the instrument must meet minimum
-                performance thresholds (win rate, risk-reward ratio, drawdown limits) before
-                live deployment.
-              </li>
-            </ol>
+        {/* Selection criteria */}
+        <section className="section-padding">
+          <div className="container-default px-6">
+            <p className="t-eyebrow mb-4">Inclusion Standards</p>
+            <h2 className="t-display-sub mb-4">Selection criteria</h2>
+            <div className="card-enterprise">
+              <p className="text-foreground/60 leading-relaxed mb-4">
+                Instruments are evaluated quarterly against four criteria before inclusion or
+                removal from the active universe:
+              </p>
+              <ol className="list-decimal list-inside space-y-2 text-foreground/60 text-sm">
+                <li>
+                  <span className="font-semibold text-foreground">Liquidity depth:</span>{' '}
+                  Average daily volume must exceed minimum thresholds to ensure consistent
+                  fill quality and manageable slippage.
+                </li>
+                <li>
+                  <span className="font-semibold text-foreground">Spread efficiency:</span>{' '}
+                  Average spread during active trading hours must remain below the
+                  strategy-specific threshold to maintain positive expected value after
+                  transaction costs.
+                </li>
+                <li>
+                  <span className="font-semibold text-foreground">Strategy compatibility:</span>{' '}
+                  The instrument must demonstrate technical characteristics (trending
+                  behavior, mean-reversion, or event-driven patterns) compatible with at
+                  least one active strategy.
+                </li>
+                <li>
+                  <span className="font-semibold text-foreground">Historical performance:</span>{' '}
+                  Backtested and walk-forward results for the instrument must meet minimum
+                  performance thresholds (win rate, risk-reward ratio, drawdown limits) before
+                  live deployment.
+                </li>
+              </ol>
+            </div>
           </div>
         </section>
+
       </main>
       <EnterpriseFooter />
     </div>

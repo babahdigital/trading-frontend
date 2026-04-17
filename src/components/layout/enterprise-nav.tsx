@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';
-import { Menu, X, ChevronDown, ArrowRight } from 'lucide-react';
+import { Menu, X, ChevronDown, ArrowRight, BookOpen, Users, FileCheck, ShieldCheck, Scale, Library, FileText } from 'lucide-react';
 import Image from 'next/image';
 
 // ─── Mega Menu Data ───
@@ -52,19 +52,19 @@ const SOLUTIONS_MENU = {
 
 const COMPANY_MENU = {
   about: [
-    { href: '/about', label: 'Our Story' },
-    { href: '/about', label: 'Mission & Approach' },
-    { href: '/about', label: 'Why BabahAlgo' },
+    { href: '/about', label: 'Our Story', icon: BookOpen },
+    { href: '/about', label: 'Mission & Approach', icon: BookOpen },
+    { href: '/about', label: 'Why BabahAlgo', icon: BookOpen },
   ],
   governance: [
-    { href: '/about/team', label: 'Team' },
-    { href: '/about/governance', label: 'Audit Reports' },
-    { href: '/legal/risk-disclosure', label: 'Risk Disclosure' },
-    { href: '/legal/regulatory', label: 'Regulatory Posture' },
+    { href: '/about/team', label: 'Team', icon: Users },
+    { href: '/about/governance', label: 'Audit Reports', icon: FileCheck },
+    { href: '/legal/risk-disclosure', label: 'Risk Disclosure', icon: ShieldCheck },
+    { href: '/legal/regulatory', label: 'Regulatory Posture', icon: Scale },
   ],
   resources: [
-    { href: '/research', label: 'Research Library' },
-    { href: '/research', label: 'Case Studies' },
+    { href: '/research', label: 'Research Library', icon: Library },
+    { href: '/research', label: 'Case Studies', icon: FileText },
   ],
 };
 
@@ -281,7 +281,7 @@ export function EnterpriseNav() {
               <MegaMenuHeading>About</MegaMenuHeading>
               <div className="space-y-0.5">
                 {COMPANY_MENU.about.map((item, i) => (
-                  <MegaMenuLink key={item.href + i} href={item.href} label={item.label} onClick={() => setActiveMenu(null)} />
+                  <MegaMenuIconLink key={item.href + i} href={item.href} label={item.label} icon={item.icon} onClick={() => setActiveMenu(null)} />
                 ))}
               </div>
             </div>
@@ -289,7 +289,7 @@ export function EnterpriseNav() {
               <MegaMenuHeading>Governance</MegaMenuHeading>
               <div className="space-y-0.5">
                 {COMPANY_MENU.governance.map((item) => (
-                  <MegaMenuLink key={item.href + item.label} href={item.href} label={item.label} onClick={() => setActiveMenu(null)} />
+                  <MegaMenuIconLink key={item.href + item.label} href={item.href} label={item.label} icon={item.icon} onClick={() => setActiveMenu(null)} />
                 ))}
               </div>
             </div>
@@ -297,7 +297,7 @@ export function EnterpriseNav() {
               <MegaMenuHeading>Resources</MegaMenuHeading>
               <div className="space-y-0.5">
                 {COMPANY_MENU.resources.map((item) => (
-                  <MegaMenuLink key={item.href + item.label} href={item.href} label={item.label} onClick={() => setActiveMenu(null)} />
+                  <MegaMenuIconLink key={item.href + item.label} href={item.href} label={item.label} icon={item.icon} onClick={() => setActiveMenu(null)} />
                 ))}
               </div>
             </div>
@@ -449,6 +449,21 @@ function MegaMenuLink({ href, label, desc, onClick }: { href: string; label: str
     >
       <div className="text-sm text-foreground group-hover:text-amber-400 transition-colors">{label}</div>
       {desc && <div className="text-xs text-foreground/40 mt-0.5">{desc}</div>}
+    </Link>
+  );
+}
+
+function MegaMenuIconLink({ href, label, icon: Icon, onClick }: { href: string; label: string; icon: React.ComponentType<{ className?: string }>; onClick: () => void }) {
+  return (
+    <Link
+      href={href}
+      className="flex items-center gap-3 py-2.5 px-3 -mx-3 rounded-md hover:bg-white/[0.04] transition-colors group"
+      onClick={onClick}
+    >
+      <span className="w-8 h-8 rounded-md bg-white/[0.04] border border-white/8 flex items-center justify-center shrink-0 group-hover:border-amber-500/30 group-hover:bg-amber-500/[0.08] transition-all">
+        <Icon className="w-4 h-4 text-foreground/50 group-hover:text-amber-400 transition-colors" />
+      </span>
+      <span className="text-sm text-foreground group-hover:text-amber-400 transition-colors">{label}</span>
     </Link>
   );
 }

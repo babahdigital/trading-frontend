@@ -40,14 +40,16 @@ export default async function SolutionsPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <EnterpriseNav />
-      <main>
+      <main id="main-content">
+
         {/* Hero */}
-        <section className="border-b border-border">
-          <div className="max-w-5xl mx-auto px-6 py-24 text-center">
-            <h1 className="font-display text-4xl md:text-5xl font-semibold tracking-tight mb-6">
+        <section className="section-padding border-b border-white/8">
+          <div className="container-default px-6 text-center">
+            <p className="t-eyebrow mb-4">Solutions</p>
+            <h1 className="t-display-page mb-6">
               Choose the model that fits your capital and involvement.
             </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            <p className="t-lead text-foreground/60 max-w-2xl mx-auto">
               Four distinct product tiers designed to serve traders and investors at every scale --
               from self-directed retail accounts to fully managed institutional mandates.
             </p>
@@ -55,55 +57,58 @@ export default async function SolutionsPage() {
         </section>
 
         {/* Solution Cards */}
-        <section className="max-w-5xl mx-auto px-6 py-20">
-          <div className="grid md:grid-cols-2 gap-8">
-            {SOLUTIONS.map((solution) => (
-              <div
-                key={solution.slug}
-                className="border border-border rounded-lg p-8 bg-card flex flex-col justify-between"
-              >
-                <div>
-                  <p className="text-sm font-mono text-muted-foreground mb-2">
-                    {solution.price}
-                  </p>
-                  <h2 className="font-display text-2xl font-semibold mb-4">
-                    {solution.name}
-                  </h2>
-                  <p className="text-muted-foreground leading-relaxed mb-8">
-                    {solution.audience}
-                  </p>
-                </div>
-                <Link
-                  href={solution.slug}
-                  className="inline-flex items-center gap-2 border border-border rounded-md px-6 py-3 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors w-fit"
+        <section className="section-padding border-b border-white/8">
+          <div className="container-default px-6">
+            <div className="grid md:grid-cols-2 gap-8">
+              {SOLUTIONS.map((solution) => (
+                <div
+                  key={solution.slug}
+                  className="card-enterprise group flex flex-col justify-between"
                 >
-                  {solution.cta}
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-              </div>
-            ))}
+                  <div>
+                    <p className="t-body-sm text-foreground/60 font-mono mb-2">
+                      {solution.price}
+                    </p>
+                    <h2 className="t-display-sub mb-4 group-hover:text-amber-400">
+                      {solution.name}
+                    </h2>
+                    <p className="text-foreground/60 leading-relaxed mb-8">
+                      {solution.audience}
+                    </p>
+                  </div>
+                  <Link
+                    href={solution.slug}
+                    className="btn-tertiary text-sm"
+                  >
+                    {solution.cta}
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
         {/* Bottom CTA */}
-        <section className="border-t border-border">
-          <div className="max-w-5xl mx-auto px-6 py-20 text-center">
-            <h2 className="font-display text-2xl font-semibold mb-4">
+        <section className="section-padding">
+          <div className="container-default px-6 text-center">
+            <h2 className="t-display-sub mb-4">
               Not sure which model fits?
             </h2>
-            <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
+            <p className="text-foreground/60 mb-8 max-w-xl mx-auto">
               Schedule a 15-minute call and we will walk you through the options based on your capital,
               risk appetite, and level of involvement.
             </p>
             <Link
               href="/contact"
-              className="inline-flex items-center gap-2 bg-accent text-accent-foreground rounded-md px-6 py-3 text-sm font-medium hover:opacity-90 transition-opacity"
+              className="btn-tertiary text-sm"
             >
               Schedule a call
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         </section>
+
       </main>
       <EnterpriseFooter />
     </div>

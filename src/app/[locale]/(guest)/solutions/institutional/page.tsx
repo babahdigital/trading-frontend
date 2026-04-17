@@ -98,15 +98,15 @@ export default async function InstitutionalPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <EnterpriseNav />
-      <main>
+      <main id="main-content">
         {/* Hero */}
-        <section className="border-b border-border">
-          <div className="max-w-5xl mx-auto px-6 py-24">
-            <p className="text-sm font-mono text-muted-foreground mb-4">INSTITUTIONAL</p>
-            <h1 className="font-display text-4xl md:text-5xl font-semibold tracking-tight mb-6">
+        <section className="section-padding border-b border-white/8">
+          <div className="container-default px-6">
+            <p className="t-eyebrow mb-4">Institutional</p>
+            <h1 className="t-display-page mb-6">
               Custom mandate for family offices and funds.
             </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl">
+            <p className="t-lead text-foreground/60 max-w-2xl">
               Bespoke trading mandates with dedicated infrastructure, custom risk parameters,
               and institutional-grade reporting. Built for allocators who demand full control and transparency.
             </p>
@@ -114,20 +114,21 @@ export default async function InstitutionalPage() {
         </section>
 
         {/* Who it's for */}
-        <section className="border-b border-border">
-          <div className="max-w-5xl mx-auto px-6 py-20">
-            <h2 className="font-display text-2xl font-semibold mb-8">Who it is for</h2>
-            <ul className="space-y-4 text-muted-foreground max-w-2xl">
+        <section className="section-padding border-b border-white/8">
+          <div className="container-default px-6">
+            <p className="t-eyebrow mb-4">Eligibility</p>
+            <h2 className="t-display-sub mb-8">Who it is for</h2>
+            <ul className="space-y-4 text-foreground/60 max-w-2xl">
               <li className="flex items-start gap-3">
-                <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-foreground shrink-0" />
+                <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
                 <span>Family offices seeking systematic, uncorrelated return streams with institutional-grade risk management and reporting.</span>
               </li>
               <li className="flex items-start gap-3">
-                <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-foreground shrink-0" />
+                <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
                 <span>Small hedge funds and CTA programs looking for turnkey quantitative trading infrastructure with custom mandate design.</span>
               </li>
               <li className="flex items-start gap-3">
-                <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-foreground shrink-0" />
+                <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
                 <span>High-net-worth individuals with $250,000 or more in liquid assets who want professionally managed, algorithm-driven exposure to FX and commodities markets.</span>
               </li>
             </ul>
@@ -135,14 +136,15 @@ export default async function InstitutionalPage() {
         </section>
 
         {/* What you get */}
-        <section className="border-b border-border">
-          <div className="max-w-5xl mx-auto px-6 py-20">
-            <h2 className="font-display text-2xl font-semibold mb-12">What you get</h2>
+        <section className="section-padding border-b border-white/8">
+          <div className="container-default px-6">
+            <p className="t-eyebrow mb-4">Capabilities</p>
+            <h2 className="t-display-sub mb-12">What you get</h2>
             <div className="grid md:grid-cols-2 gap-8">
               {FEATURES.map((feature) => (
-                <div key={feature.title} className="border border-border rounded-lg p-8 bg-card">
+                <div key={feature.title} className="card-enterprise">
                   <h3 className="font-semibold mb-3">{feature.title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{feature.description}</p>
+                  <p className="t-body-sm text-foreground/60 leading-relaxed">{feature.description}</p>
                 </div>
               ))}
             </div>
@@ -150,17 +152,18 @@ export default async function InstitutionalPage() {
         </section>
 
         {/* Pricing */}
-        <section className="border-b border-border">
-          <div className="max-w-5xl mx-auto px-6 py-20">
-            <h2 className="font-display text-2xl font-semibold mb-12">Pricing</h2>
-            <div className="border border-border rounded-lg p-8 bg-card max-w-xl">
-              <p className="text-sm font-mono text-muted-foreground mb-4">MANDATE-BASED</p>
-              <p className="font-display text-2xl font-semibold mb-2">Starting AUM: $250,000</p>
-              <p className="text-muted-foreground leading-relaxed mb-6">
+        <section className="section-padding border-b border-white/8">
+          <div className="container-default px-6">
+            <p className="t-eyebrow mb-4">Pricing</p>
+            <h2 className="t-display-sub mb-12">Pricing</h2>
+            <div className="card-enterprise max-w-xl">
+              <p className="t-eyebrow mb-4">Mandate-Based</p>
+              <p className="font-display text-4xl font-medium mb-2">Starting AUM: $250,000</p>
+              <p className="text-foreground/60 leading-relaxed mb-6">
                 Fee structures are negotiated on a per-mandate basis. Typical arrangements include a management fee
                 and performance fee with high-water mark protection. All terms are documented in the Investment Management Agreement.
               </p>
-              <p className="text-sm text-muted-foreground">
+              <p className="t-body-sm text-foreground/60">
                 Schedule a briefing to discuss your specific requirements and receive a tailored proposal.
               </p>
             </div>
@@ -168,17 +171,18 @@ export default async function InstitutionalPage() {
         </section>
 
         {/* Onboarding */}
-        <section className="border-b border-border">
-          <div className="max-w-5xl mx-auto px-6 py-20">
-            <h2 className="font-display text-2xl font-semibold mb-12">Onboarding process</h2>
+        <section className="section-padding border-b border-white/8">
+          <div className="container-default px-6">
+            <p className="t-eyebrow mb-4">Process</p>
+            <h2 className="t-display-sub mb-12">Onboarding process</h2>
             <div className="grid md:grid-cols-5 gap-6">
               {STEPS.map((step, i) => (
                 <div key={step.step} className="relative">
-                  <p className="font-mono text-3xl text-muted-foreground/30 mb-3">{step.step}</p>
+                  <p className="font-mono text-5xl text-amber-500/20 mb-3">{step.step}</p>
                   <h3 className="font-semibold text-sm mb-2">{step.title}</h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{step.description}</p>
+                  <p className="text-xs text-foreground/60 leading-relaxed">{step.description}</p>
                   {i < STEPS.length - 1 && (
-                    <ArrowRight className="hidden md:block absolute top-4 -right-4 w-4 h-4 text-muted-foreground/30" />
+                    <ArrowRight className="hidden md:block absolute top-4 -right-4 w-4 h-4 text-foreground/30" />
                   )}
                 </div>
               ))}
@@ -187,31 +191,37 @@ export default async function InstitutionalPage() {
         </section>
 
         {/* FAQ */}
-        <section className="border-b border-border">
-          <div className="max-w-5xl mx-auto px-6 py-20">
-            <h2 className="font-display text-2xl font-semibold mb-12">Frequently asked questions</h2>
-            <div className="space-y-8 max-w-3xl">
-              {FAQ.map((item) => (
-                <div key={item.q}>
-                  <h3 className="font-semibold mb-2">{item.q}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{item.a}</p>
-                </div>
-              ))}
+        <section className="section-padding border-b border-white/8">
+          <div className="container-default px-6">
+            <div className="grid lg:grid-cols-5 gap-12">
+              <div className="lg:col-span-2">
+                <p className="t-eyebrow mb-4">FAQ</p>
+                <h2 className="t-display-sub">Frequently asked questions</h2>
+              </div>
+              <div className="lg:col-span-3 space-y-8">
+                {FAQ.map((item) => (
+                  <div key={item.q}>
+                    <h3 className="font-semibold mb-2">{item.q}</h3>
+                    <p className="t-body-sm text-foreground/60 leading-relaxed">{item.a}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>
 
         {/* CTA */}
-        <section>
-          <div className="max-w-5xl mx-auto px-6 py-20 text-center">
-            <h2 className="font-display text-2xl font-semibold mb-4">Let us discuss your mandate</h2>
-            <p className="text-muted-foreground mb-8 max-w-lg mx-auto">
+        <section className="section-padding">
+          <div className="container-default px-6 text-center">
+            <p className="t-eyebrow mb-4">Get Started</p>
+            <h2 className="t-display-sub mb-4">Let us discuss your mandate</h2>
+            <p className="text-foreground/60 mb-8 max-w-lg mx-auto">
               Schedule an introductory briefing with our institutional team. No commitment, no pressure --
               just a conversation about whether our capabilities align with your objectives.
             </p>
             <Link
               href="/contact"
-              className="inline-flex items-center gap-2 bg-accent text-accent-foreground rounded-md px-6 py-3 text-sm font-medium hover:opacity-90 transition-opacity"
+              className="btn-primary inline-flex items-center gap-2"
             >
               Request introduction
               <ArrowRight className="w-4 h-4" />

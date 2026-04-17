@@ -98,15 +98,15 @@ export default async function LicensePage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <EnterpriseNav />
-      <main>
+      <main id="main-content">
         {/* Hero */}
-        <section className="border-b border-border">
-          <div className="max-w-5xl mx-auto px-6 py-24">
-            <p className="text-sm font-mono text-muted-foreground mb-4">VPS LICENSE</p>
-            <h1 className="font-display text-4xl md:text-5xl font-semibold tracking-tight mb-6">
+        <section className="section-padding border-b border-white/8">
+          <div className="container-default px-6">
+            <p className="t-eyebrow mb-4">VPS License</p>
+            <h1 className="t-display-page mb-6">
               Dedicated bot infrastructure for professional traders.
             </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl">
+            <p className="t-lead text-foreground/60 max-w-2xl">
               Your own isolated server running our trading algorithms, configured to your specifications.
               Full control, full transparency, enterprise-grade reliability.
             </p>
@@ -114,20 +114,21 @@ export default async function LicensePage() {
         </section>
 
         {/* Who it's for */}
-        <section className="border-b border-border">
-          <div className="max-w-5xl mx-auto px-6 py-20">
-            <h2 className="font-display text-2xl font-semibold mb-8">Who it is for</h2>
-            <ul className="space-y-4 text-muted-foreground max-w-2xl">
+        <section className="section-padding border-b border-white/8">
+          <div className="container-default px-6">
+            <p className="t-eyebrow mb-4">Eligibility</p>
+            <h2 className="t-display-sub mb-8">Who it is for</h2>
+            <ul className="space-y-4 text-foreground/60 max-w-2xl">
               <li className="flex items-start gap-3">
-                <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-foreground shrink-0" />
+                <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
                 <span>Professional traders managing $50,000 or more who want dedicated infrastructure without sharing resources.</span>
               </li>
               <li className="flex items-start gap-3">
-                <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-foreground shrink-0" />
+                <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
                 <span>Trading firms and prop desks looking for turnkey algorithmic trading infrastructure with custom configuration.</span>
               </li>
               <li className="flex items-start gap-3">
-                <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-foreground shrink-0" />
+                <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
                 <span>Traders who want full operational control and the ability to customize every aspect of the system.</span>
               </li>
             </ul>
@@ -135,14 +136,15 @@ export default async function LicensePage() {
         </section>
 
         {/* What you get */}
-        <section className="border-b border-border">
-          <div className="max-w-5xl mx-auto px-6 py-20">
-            <h2 className="font-display text-2xl font-semibold mb-12">What you get</h2>
+        <section className="section-padding border-b border-white/8">
+          <div className="container-default px-6">
+            <p className="t-eyebrow mb-4">Capabilities</p>
+            <h2 className="t-display-sub mb-12">What you get</h2>
             <div className="grid md:grid-cols-2 gap-8">
               {FEATURES.map((feature) => (
-                <div key={feature.title} className="border border-border rounded-lg p-8 bg-card">
+                <div key={feature.title} className="card-enterprise">
                   <h3 className="font-semibold mb-3">{feature.title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{feature.description}</p>
+                  <p className="t-body-sm text-foreground/60 leading-relaxed">{feature.description}</p>
                 </div>
               ))}
             </div>
@@ -150,27 +152,28 @@ export default async function LicensePage() {
         </section>
 
         {/* Pricing */}
-        <section className="border-b border-border">
-          <div className="max-w-5xl mx-auto px-6 py-20">
-            <h2 className="font-display text-2xl font-semibold mb-12">Pricing</h2>
-            <div className="border border-border rounded-lg p-8 bg-card max-w-xl">
+        <section className="section-padding border-b border-white/8">
+          <div className="container-default px-6">
+            <p className="t-eyebrow mb-4">Pricing</p>
+            <h2 className="t-display-sub mb-12">Pricing</h2>
+            <div className="card-enterprise max-w-xl">
               <div className="space-y-6">
                 <div>
-                  <p className="text-sm font-mono text-muted-foreground mb-1">Setup fee</p>
-                  <p className="font-display text-3xl font-semibold">
+                  <p className="t-eyebrow mb-1">Setup fee</p>
+                  <p className="font-display text-4xl font-medium">
                     $3,000
-                    <span className="text-base text-muted-foreground font-normal ml-2">one-time</span>
+                    <span className="text-base text-foreground/60 font-normal ml-2">one-time</span>
                   </p>
                 </div>
-                <div className="border-t border-border pt-6">
-                  <p className="text-sm font-mono text-muted-foreground mb-1">Maintenance</p>
-                  <p className="font-display text-3xl font-semibold">
+                <div className="border-t border-white/8 pt-6">
+                  <p className="t-eyebrow mb-1">Maintenance</p>
+                  <p className="font-display text-4xl font-medium">
                     $150
-                    <span className="text-base text-muted-foreground font-normal">/mo</span>
+                    <span className="text-base text-foreground/60 font-normal">/mo</span>
                   </p>
                 </div>
-                <div className="border-t border-border pt-6">
-                  <p className="text-sm text-muted-foreground leading-relaxed">
+                <div className="border-t border-white/8 pt-6">
+                  <p className="t-body-sm text-foreground/60 leading-relaxed">
                     Setup fee covers infrastructure provisioning, strategy configuration, paper-trading validation,
                     and training. Monthly maintenance covers hosting, monitoring, updates, and support.
                     Custom configurations may incur additional fees based on scope.
@@ -182,17 +185,18 @@ export default async function LicensePage() {
         </section>
 
         {/* Onboarding */}
-        <section className="border-b border-border">
-          <div className="max-w-5xl mx-auto px-6 py-20">
-            <h2 className="font-display text-2xl font-semibold mb-12">Onboarding process</h2>
+        <section className="section-padding border-b border-white/8">
+          <div className="container-default px-6">
+            <p className="t-eyebrow mb-4">Process</p>
+            <h2 className="t-display-sub mb-12">Onboarding process</h2>
             <div className="grid md:grid-cols-5 gap-6">
               {STEPS.map((step, i) => (
                 <div key={step.step} className="relative">
-                  <p className="font-mono text-3xl text-muted-foreground/30 mb-3">{step.step}</p>
+                  <p className="font-mono text-5xl text-amber-500/20 mb-3">{step.step}</p>
                   <h3 className="font-semibold text-sm mb-2">{step.title}</h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{step.description}</p>
+                  <p className="text-xs text-foreground/60 leading-relaxed">{step.description}</p>
                   {i < STEPS.length - 1 && (
-                    <ArrowRight className="hidden md:block absolute top-4 -right-4 w-4 h-4 text-muted-foreground/30" />
+                    <ArrowRight className="hidden md:block absolute top-4 -right-4 w-4 h-4 text-foreground/30" />
                   )}
                 </div>
               ))}
@@ -201,30 +205,36 @@ export default async function LicensePage() {
         </section>
 
         {/* FAQ */}
-        <section className="border-b border-border">
-          <div className="max-w-5xl mx-auto px-6 py-20">
-            <h2 className="font-display text-2xl font-semibold mb-12">Frequently asked questions</h2>
-            <div className="space-y-8 max-w-3xl">
-              {FAQ.map((item) => (
-                <div key={item.q}>
-                  <h3 className="font-semibold mb-2">{item.q}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{item.a}</p>
-                </div>
-              ))}
+        <section className="section-padding border-b border-white/8">
+          <div className="container-default px-6">
+            <div className="grid lg:grid-cols-5 gap-12">
+              <div className="lg:col-span-2">
+                <p className="t-eyebrow mb-4">FAQ</p>
+                <h2 className="t-display-sub">Frequently asked questions</h2>
+              </div>
+              <div className="lg:col-span-3 space-y-8">
+                {FAQ.map((item) => (
+                  <div key={item.q}>
+                    <h3 className="font-semibold mb-2">{item.q}</h3>
+                    <p className="t-body-sm text-foreground/60 leading-relaxed">{item.a}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>
 
         {/* CTA */}
-        <section>
-          <div className="max-w-5xl mx-auto px-6 py-20 text-center">
-            <h2 className="font-display text-2xl font-semibold mb-4">Ready to discuss your setup?</h2>
-            <p className="text-muted-foreground mb-8 max-w-lg mx-auto">
+        <section className="section-padding">
+          <div className="container-default px-6 text-center">
+            <p className="t-eyebrow mb-4">Get Started</p>
+            <h2 className="t-display-sub mb-4">Ready to discuss your setup?</h2>
+            <p className="text-foreground/60 mb-8 max-w-lg mx-auto">
               Schedule a 30-minute call with our team to scope your infrastructure requirements and get a detailed proposal.
             </p>
             <Link
               href="/contact"
-              className="inline-flex items-center gap-2 bg-accent text-accent-foreground rounded-md px-6 py-3 text-sm font-medium hover:opacity-90 transition-opacity"
+              className="btn-primary inline-flex items-center gap-2"
             >
               Schedule call
               <ArrowRight className="w-4 h-4" />

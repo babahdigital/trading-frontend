@@ -16,9 +16,11 @@ const FOOTER_LINKS = {
     { href: '/solutions/institutional', label: 'Institutional' },
     { href: '/pricing', label: 'Pricing' },
   ],
-  research: [
-    { href: '/research', label: 'Insights' },
-    { href: '/research', label: 'Whitepapers' },
+  getStarted: [
+    { href: '/register/signal', label: 'Register Signal' },
+    { href: '/register/pamm', label: 'Register PAMM' },
+    { href: '/register/institutional', label: 'Institutional Inquiry' },
+    { href: '/contact', label: 'Schedule Briefing' },
   ],
   company: [
     { href: '/about', label: 'About' },
@@ -40,22 +42,22 @@ export function EnterpriseFooter() {
     <footer className="border-t border-border bg-background">
       <div className="max-w-7xl mx-auto px-6 py-16">
         {/* Top section */}
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-8 mb-16">
+        <div className="grid grid-cols-2 md:grid-cols-7 gap-8 mb-16">
           {/* Brand column */}
-          <div className="col-span-2 md:col-span-1">
+          <div className="col-span-2">
             <Image
-              src="/logo/babahalgo-horizontal-darkbg.svg"
+              src="/logo/babahalgo-horizontal-inverse.png"
               alt="BabahAlgo"
-              width={120}
-              height={24}
-              className="h-6 w-auto mb-4 hidden dark:block"
+              width={160}
+              height={32}
+              className="h-8 w-auto mb-4 hidden dark:block"
             />
             <Image
-              src="/logo/babahalgo-horizontal-lightbg.svg"
+              src="/logo/babahalgo-horizontal-dual.png"
               alt="BabahAlgo"
-              width={120}
-              height={24}
-              className="h-6 w-auto mb-4 dark:hidden"
+              width={160}
+              height={32}
+              className="h-8 w-auto mb-4 dark:hidden"
             />
             <p className="text-sm text-muted-foreground leading-relaxed">
               Quantitative trading infrastructure.
@@ -67,7 +69,7 @@ export function EnterpriseFooter() {
           {/* Links */}
           <FooterColumn title="Platform" links={FOOTER_LINKS.platform} />
           <FooterColumn title="Solutions" links={FOOTER_LINKS.solutions} />
-          <FooterColumn title="Research" links={FOOTER_LINKS.research} />
+          <FooterColumn title="Get Started" links={FOOTER_LINKS.getStarted} />
           <FooterColumn title="Company" links={FOOTER_LINKS.company} />
           <FooterColumn title="Legal" links={FOOTER_LINKS.legal} />
         </div>

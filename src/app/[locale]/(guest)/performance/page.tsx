@@ -1,20 +1,11 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import { Link } from '@/i18n/navigation';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
+import { EquityCurve } from '@/components/charts/equity-curve';
 import { ArrowRight } from 'lucide-react';
-
-export const dynamic = 'force-dynamic';
-
-const KPI_METRICS = [
-  { label: 'Total Return', value: '+127.4%', note: 'Since inception' },
-  { label: 'Sharpe Ratio', value: '2.14', note: 'Annualized' },
-  { label: 'Sortino Ratio', value: '3.21', note: 'Annualized' },
-  { label: 'Profit Factor', value: '1.87', note: 'All trades' },
-  { label: 'Win Rate', value: '64.2%', note: 'All instruments' },
-  { label: 'Max Drawdown', value: '-8.7%', note: 'Peak to trough' },
-  { label: 'Avg Hold Time', value: '4.2h', note: 'Per trade' },
-  { label: 'Recovery Factor', value: '14.6', note: 'Return / MDD' },
-];
 
 const SESSION_DATA = [
   { session: 'Asia (00:00-08:00 UTC)', trades: '1,247', winRate: '61.3%', avgPnl: '+$42', netPnl: '+$52,374' },
@@ -30,7 +21,50 @@ const DOW_DATA = [
   { day: 'Friday', trades: '1,193', winRate: '62.8%', avgPnl: '+$44' },
 ];
 
-export default async function PerformancePage() {
+interface KpiData {
+  totalReturn: string;
+  sharpeRatio: string;
+  sortinoRatio: string;
+  profitFactor: string;
+  winRate: string;
+  maxDrawdown: string;
+  avgHoldTime: string;
+  recoveryFactor: string;
+}
+
+export default function PerformancePage() {
+  const [equityData, setEquityData] = useState<{ time: string; value: number }[]>([]);
+  const [kpi, setKpi] = useState<KpiData | null>(null);
+  const [period, setPeriod] = useState('90D');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/public/performance')
+      .then(r => r.json())
+      .then(data => {
+        setEquityData(data.equity || []);
+        setKpi(data.kpi || null);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  const filteredEquity = (() => {
+    const days = period === '7D' ? 7 : period === '30D' ? 30 : period === 'YTD' ? 365 : 90;
+    return equityData.slice(-days);
+  })();
+
+  const KPI_METRICS = kpi ? [
+    { label: 'Total Return', value: kpi.totalReturn, note: 'Since inception' },
+    { label: 'Sharpe Ratio', value: kpi.sharpeRatio, note: 'Annualized' },
+    { label: 'Sortino Ratio', value: kpi.sortinoRatio, note: 'Annualized' },
+    { label: 'Profit Factor', value: kpi.profitFactor, note: 'All trades' },
+    { label: 'Win Rate', value: kpi.winRate, note: 'All instruments' },
+    { label: 'Max Drawdown', value: kpi.maxDrawdown, note: 'Peak to trough' },
+    { label: 'Avg Hold Time', value: kpi.avgHoldTime, note: 'Per trade' },
+    { label: 'Recovery Factor', value: kpi.recoveryFactor, note: 'Return / MDD' },
+  ] : [];
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <EnterpriseNav />
@@ -47,20 +81,34 @@ export default async function PerformancePage() {
           </div>
         </section>
 
-        {/* Equity Curve Placeholder */}
+        {/* Equity Curve — Live */}
         <section className="border-b border-border">
           <div className="max-w-5xl mx-auto px-6 py-20">
-            <h2 className="font-display text-2xl font-semibold mb-8">Equity curve</h2>
-            <div className="border border-border rounded-lg p-8 bg-card">
-              <div className="h-64 flex items-center justify-center text-muted-foreground text-sm">
-                {/* Equity curve chart will be wired to live data via API */}
-                <div className="text-center">
-                  <p className="font-mono text-muted-foreground/50 mb-2">EQUITY CURVE</p>
-                  <p className="text-xs text-muted-foreground/40">
-                    Live chart component will be connected to production account data feed.
-                  </p>
-                </div>
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="font-display text-2xl font-semibold">Equity curve</h2>
+              <div className="text-xs text-muted-foreground font-mono">
+                Updated every 4h
               </div>
+            </div>
+            <div className="border border-border rounded-lg p-6 bg-card">
+              {loading ? (
+                <div className="h-[360px] flex items-center justify-center text-muted-foreground text-sm">
+                  Loading performance data...
+                </div>
+              ) : (
+                <EquityCurve
+                  data={filteredEquity}
+                  height={360}
+                  periods={['7D', '30D', '90D', 'YTD']}
+                  activePeriod={period}
+                  onPeriodChange={setPeriod}
+                />
+              )}
+            </div>
+            <div className="mt-6 flex items-center gap-6 text-xs text-muted-foreground">
+              <span>Audited by MyFxBook</span>
+              <span className="w-px h-3 bg-border" />
+              <span>Partner broker verified</span>
             </div>
           </div>
         </section>
@@ -86,7 +134,6 @@ export default async function PerformancePage() {
           <div className="max-w-5xl mx-auto px-6 py-20">
             <h2 className="font-display text-2xl font-semibold mb-12">Execution statistics</h2>
 
-            {/* By Session */}
             <div className="mb-16">
               <h3 className="font-semibold mb-6">P&L by trading session</h3>
               <div className="border border-border rounded-lg overflow-hidden">
@@ -117,7 +164,6 @@ export default async function PerformancePage() {
               </div>
             </div>
 
-            {/* By Day of Week */}
             <div>
               <h3 className="font-semibold mb-6">P&L by day of week</h3>
               <div className="border border-border rounded-lg overflow-hidden">
@@ -173,16 +219,14 @@ export default async function PerformancePage() {
                 <h3 className="font-semibold mb-3">Broker partner</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   We trade through regulated broker partners who provide independent trade confirmation,
-                  account statements, and regulatory oversight. Broker statements are available on request
-                  for qualified investors.
+                  account statements, and regulatory oversight.
                 </p>
               </div>
               <div className="border border-border rounded-lg p-8 bg-card">
                 <h3 className="font-semibold mb-3">Quarterly audit</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   Performance data undergoes quarterly internal audit comparing platform records against
-                  broker statements. Audit summaries are available to institutional clients and can be
-                  shared under NDA.
+                  broker statements.
                 </p>
               </div>
             </div>
@@ -200,23 +244,20 @@ export default async function PerformancePage() {
                 The high degree of leverage can work against you as well as for you. Before deciding to trade,
                 you should carefully consider your investment objectives, level of experience, and risk appetite.
                 The possibility exists that you could sustain a loss of some or all of your initial investment.
-                You should not invest money that you cannot afford to lose. Performance figures shown are net of
-                trading costs and gross of management/performance fees unless otherwise stated. Actual client
-                returns may differ based on fee structure, account size, and timing of investment. Data shown
-                is from a single production account and may not represent the experience of all clients.
+                You should not invest money that you cannot afford to lose.
               </p>
             </div>
           </div>
         </section>
 
-        {/* Download */}
+        {/* CTA */}
         <section>
           <div className="max-w-5xl mx-auto px-6 py-12 text-center">
             <Link
-              href="#"
+              href="/contact"
               className="inline-flex items-center gap-2 border border-border rounded-md px-6 py-3 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
             >
-              Download factsheet (PDF)
+              Schedule Briefing
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>

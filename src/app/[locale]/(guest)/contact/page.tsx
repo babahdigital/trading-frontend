@@ -1,7 +1,7 @@
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import ContactForm from '@/components/forms/contact-form';
-import { ArrowRight } from 'lucide-react';
+import { CalEmbed } from '@/components/ui/cal-embed';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,7 +23,20 @@ export default async function ContactPage() {
           </div>
         </section>
 
-        {/* Two Columns */}
+        {/* Schedule a Call — Cal.com Embed */}
+        <section className="border-b border-border">
+          <div className="max-w-5xl mx-auto px-6 py-20">
+            <h2 className="font-display text-2xl font-semibold mb-2">Schedule a briefing</h2>
+            <p className="text-sm text-muted-foreground mb-8">
+              Book a 15 or 30-minute call with our quant team. We use Google Meet for all sessions.
+            </p>
+            <div className="border border-border rounded-lg overflow-hidden bg-card">
+              <CalEmbed calLink="babahalgo/briefing" />
+            </div>
+          </div>
+        </section>
+
+        {/* Two Columns: Form + Direct Channels */}
         <section>
           <div className="max-w-5xl mx-auto px-6 py-20">
             <div className="grid md:grid-cols-2 gap-16">
@@ -64,22 +77,6 @@ export default async function ContactPage() {
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
                       Available Monday - Friday, 09:00 - 17:00 WIB
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-medium mb-1">Schedule a call</p>
-                    <a
-                      href="https://cal.com/babahalgo"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      Book on Cal.com
-                      <ArrowRight className="w-4 h-4" />
-                    </a>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      15 or 30 minute slots available
                     </p>
                   </div>
 

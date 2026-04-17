@@ -1,13 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { EnterpriseNav } from '@/components/layout/enterprise-nav';
+import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-const STEPS = ['Informasi Akun', 'Detail Broker', 'Konfirmasi'];
+const STEPS = ['Account Information', 'Broker Details', 'Confirmation'];
 
 export default function RegisterPammPage() {
   const router = useRouter();
@@ -35,32 +36,30 @@ export default function RegisterPammPage() {
       const data = await res.json();
       if (res.ok) {
         setError('');
-        alert(data.message || 'Registrasi berhasil! Akun Anda akan diaktivasi oleh admin.');
+        alert(data.message || 'Registration successful! Your account will be activated by admin.');
         router.push('/login');
       } else {
-        setError(typeof data.error === 'string' ? data.error : 'Registrasi gagal. Silakan coba lagi.');
+        setError(typeof data.error === 'string' ? data.error : 'Registration failed. Please try again.');
       }
     } catch {
-      setError('Terjadi kesalahan. Silakan coba lagi.');
+      setError('An error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <nav className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="text-lg font-bold text-primary">BabahAlgo</Link>
-          <Link href="/register" className="text-sm text-muted-foreground hover:text-foreground">Kembali</Link>
-        </div>
-      </nav>
+    <div className="min-h-screen bg-background text-foreground">
+      <EnterpriseNav />
 
-      <div className="max-w-lg mx-auto px-4 py-16">
+      <div className="max-w-lg mx-auto px-6 py-20">
+        <h1 className="font-display text-display-sm text-foreground mb-2">PAMM Account Registration</h1>
+        <p className="text-muted-foreground mb-10">Professional managed account with profit sharing.</p>
+
         <div className="flex items-center justify-center gap-2 mb-8">
           {STEPS.map((s, i) => (
             <div key={s} className="flex items-center gap-2">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${i <= step ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${i <= step ? 'bg-accent text-accent-foreground' : 'bg-muted text-muted-foreground'}`}>
                 {i + 1}
               </div>
               <span className={`text-xs hidden sm:block ${i <= step ? 'text-foreground' : 'text-muted-foreground'}`}>{s}</span>
@@ -71,11 +70,12 @@ export default function RegisterPammPage() {
 
         <Card>
           <CardHeader><CardTitle>{STEPS[step]}</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent>
+            <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
             {step === 0 && (
               <>
                 <div>
-                  <label className="text-sm font-medium mb-1 block">Nama Lengkap</label>
+                  <label className="text-sm font-medium mb-1 block">Full Name</label>
                   <Input value={form.name} onChange={(e) => set('name', e.target.value)} placeholder="John Doe" />
                 </div>
                 <div>
@@ -84,10 +84,10 @@ export default function RegisterPammPage() {
                 </div>
                 <div>
                   <label className="text-sm font-medium mb-1 block">Password</label>
-                  <Input type="password" value={form.password} onChange={(e) => set('password', e.target.value)} placeholder="Min 8 karakter" />
+                  <Input type="password" value={form.password} onChange={(e) => set('password', e.target.value)} placeholder="Min 8 characters" />
                 </div>
-                <Button className="w-full" onClick={() => setStep(1)} disabled={!form.name || !form.email || !form.password}>
-                  Lanjut
+                <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90" onClick={() => setStep(1)} disabled={!form.name || !form.email || !form.password}>
+                  Continue
                 </Button>
               </>
             )}
@@ -96,58 +96,65 @@ export default function RegisterPammPage() {
               <>
                 <div className="space-y-3 mb-4">
                   {[
-                    { value: 'PAMM_BASIC', label: 'PAMM Basic', share: '20% profit share', desc: 'Minimum deposit $1,000' },
+                    { value: 'PAMM_BASIC', label: 'PAMM Basic', share: '20% profit share', desc: 'Minimum deposit $500' },
                     { value: 'PAMM_PRO', label: 'PAMM Pro', share: '30% profit share', desc: 'Minimum deposit $5,000, priority support' },
                   ].map((tier) => (
                     <div
                       key={tier.value}
-                      className={`border rounded-lg p-4 cursor-pointer transition-colors ${form.tier === tier.value ? 'border-primary bg-primary/5' : 'hover:border-primary/50'}`}
+                      className={`border rounded-lg p-4 cursor-pointer transition-colors ${form.tier === tier.value ? 'border-accent bg-accent/5' : 'border-border hover:border-accent/50'}`}
                       onClick={() => set('tier', tier.value)}
                     >
                       <div className="flex justify-between items-center">
                         <span className="font-semibold">{tier.label}</span>
-                        <span className="text-primary font-bold">{tier.share}</span>
+                        <span className="text-accent font-mono font-bold">{tier.share}</span>
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">{tier.desc}</p>
                     </div>
                   ))}
                 </div>
                 <div>
-                  <label className="text-sm font-medium mb-1 block">Nama Broker</label>
-                  <Input value={form.broker} onChange={(e) => set('broker', e.target.value)} placeholder="Contoh: ICMarkets, Exness" />
+                  <label className="text-sm font-medium mb-1 block">Broker Name</label>
+                  <Input value={form.broker} onChange={(e) => set('broker', e.target.value)} placeholder="e.g. ICMarkets, Exness" />
                 </div>
                 <div>
                   <label className="text-sm font-medium mb-1 block">MT5 Account Number</label>
                   <Input value={form.mt5Account} onChange={(e) => set('mt5Account', e.target.value)} placeholder="12345678" />
                 </div>
                 <div className="flex gap-3">
-                  <Button variant="outline" className="flex-1" onClick={() => setStep(0)}>Kembali</Button>
-                  <Button className="flex-1" onClick={() => setStep(2)} disabled={!form.broker || !form.mt5Account}>Lanjut</Button>
+                  <Button variant="outline" className="flex-1" onClick={() => setStep(0)}>Back</Button>
+                  <Button className="flex-1 bg-accent text-accent-foreground hover:bg-accent/90" onClick={() => setStep(2)} disabled={!form.broker || !form.mt5Account}>Continue</Button>
                 </div>
               </>
             )}
 
             {step === 2 && (
               <>
-                <div className="bg-muted rounded-lg p-4 space-y-2 text-sm">
-                  <div className="flex justify-between"><span className="text-muted-foreground">Nama</span><span>{form.name}</span></div>
+                <div className="border border-border rounded-lg p-4 space-y-2 text-sm">
+                  <div className="flex justify-between"><span className="text-muted-foreground">Name</span><span>{form.name}</span></div>
                   <div className="flex justify-between"><span className="text-muted-foreground">Email</span><span>{form.email}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Paket</span><span className="font-semibold text-primary">{form.tier === 'PAMM_BASIC' ? 'PAMM Basic (20%)' : 'PAMM Pro (30%)'}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Plan</span><span className="font-semibold text-accent">{form.tier === 'PAMM_BASIC' ? 'PAMM Basic (20%)' : 'PAMM Pro (30%)'}</span></div>
                   <div className="flex justify-between"><span className="text-muted-foreground">Broker</span><span>{form.broker}</span></div>
                   <div className="flex justify-between"><span className="text-muted-foreground">MT5 Account</span><span className="font-mono">{form.mt5Account}</span></div>
                 </div>
-                {error && <div className="text-sm text-yellow-400 bg-yellow-500/10 p-3 rounded-md">{error}</div>}
+                {error && <div className="text-sm text-red-400 bg-red-500/10 p-3 rounded-md">{error}</div>}
                 <div className="flex gap-3">
-                  <Button variant="outline" className="flex-1" onClick={() => setStep(1)}>Kembali</Button>
-                  <Button className="flex-1" onClick={handleSubmit} disabled={loading}>
-                    {loading ? 'Memproses...' : 'Konfirmasi Pendaftaran'}
+                  <Button variant="outline" className="flex-1" onClick={() => setStep(1)}>Back</Button>
+                  <Button className="flex-1 bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleSubmit} disabled={loading}>
+                    {loading ? 'Processing...' : 'Confirm Registration'}
                   </Button>
                 </div>
               </>
             )}
+            </form>
           </CardContent>
         </Card>
+
+        <p className="text-xs text-muted-foreground text-center mt-8">
+          Trading involves significant risk of loss. Past performance does not guarantee future results.
+        </p>
       </div>
+
+      <EnterpriseFooter />
     </div>
   );
 }

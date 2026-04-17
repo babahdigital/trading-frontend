@@ -7,6 +7,7 @@ import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { EquityCurve } from '@/components/charts/equity-curve';
 import { AnimatedSection } from '@/components/ui/animated-section';
 import { ArrowRight } from 'lucide-react';
+import { StrategyIcon, TechnologyIcon, RiskIcon } from '@/components/icons/enterprise-icons';
 
 // ─── Demo equity data generator ───
 function generateDemoEquity(): { time: string; value: number }[] {
@@ -161,18 +162,21 @@ export function LandingClient({ sections }: LandingClientProps) {
 
           <div className="grid md:grid-cols-3 gap-8">
             <PillarCard
+              icon={<StrategyIcon className="w-8 h-8 text-accent" />}
               title="Strategy Framework"
               description="6 strategi konfluensi multi-timeframe: SMC, Wyckoff, Astronacci, AI Momentum, Oil & Gas, dan SMC Swing. Setiap keputusan divalidasi melintasi H4, H1, M15, dan M5."
               href="/platform/strategies/smc"
               linkLabel="Explore strategies"
             />
             <PillarCard
+              icon={<TechnologyIcon className="w-8 h-8 text-accent" />}
               title="Technology Stack"
               description="AI Advisor (Gemini 2.5) menganalisa setiap pair secara real-time. ZeroMQ execution bridge mengeksekusi di bawah 2ms. Infrastruktur zero-trust dengan monitoring 24/7."
               href="/platform/technology"
               linkLabel="View architecture"
             />
             <PillarCard
+              icon={<RiskIcon className="w-8 h-8 text-accent" />}
               title="Risk Discipline"
               description="12-layer protection system: dynamic lot sizing, catastrophic breaker, daily loss limit, news blackout, spread guard, session drawdown guard, dan 6 lapisan lainnya."
               href="/platform/risk-framework"
@@ -260,7 +264,8 @@ export function LandingClient({ sections }: LandingClientProps) {
 
 // ─── Sub-components ───
 
-function PillarCard({ title, description, href, linkLabel }: {
+function PillarCard({ icon, title, description, href, linkLabel }: {
+  icon: React.ReactNode;
   title: string;
   description: string;
   href: string;
@@ -269,6 +274,7 @@ function PillarCard({ title, description, href, linkLabel }: {
   return (
     <AnimatedSection delay={0.1}>
       <div className="border border-border rounded-lg p-8 bg-card h-full flex flex-col card-hover">
+        <div className="mb-5">{icon}</div>
         <h3 className="font-display text-xl font-semibold text-foreground mb-4">{title}</h3>
         <p className="text-sm text-muted-foreground leading-relaxed flex-1 mb-6">{description}</p>
         <Link

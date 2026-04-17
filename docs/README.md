@@ -1,8 +1,8 @@
-# Trading API Frontend — Project Documentation
+# BabahAlgo — Project Documentation
 
-**CV Babah Digital** | Owner: Abdullah | Platform Version: 1.0
+**CV Babah Digital** | Owner: Abdullah | Platform Version: 2.0
 
-This directory contains the complete technical documentation for the Trading API Frontend — a commercial license management and client dashboard platform for AI-powered Forex trading bots.
+This directory contains the complete technical documentation for BabahAlgo — an institutional quantitative trading platform providing AI-powered trading infrastructure, signal services, PAMM accounts, and VPS license management.
 
 ---
 
@@ -10,6 +10,7 @@ This directory contains the complete technical documentation for the Trading API
 
 | Document | Description |
 |---|---|
+| [CHANGELOG.md](./CHANGELOG.md) | Complete changelog of enterprise transformation (v2.0) |
 | [architecture.md](./architecture.md) | 3-node architecture, data flow, Zero Trust topology |
 | [api-reference.md](./api-reference.md) | Complete API endpoint reference with request/response schemas |
 | [database.md](./database.md) | Database schema, models, enums, relationships, seed data |
@@ -22,24 +23,29 @@ This directory contains the complete technical documentation for the Trading API
 
 ## Project Overview
 
-The Trading API Frontend is a **Next.js 14 App Router** application that serves as the license management middleware and client-facing dashboard for CV Babah Digital's AI trading bot commercialization business.
+BabahAlgo is a **Next.js 14 App Router** application that serves as the enterprise platform for CV Babah Digital's quantitative trading business. It provides:
 
-It sits between the Python trading bot backends (VPS1) and end-user browsers, providing:
-
+- **Public-facing website** with enterprise design, i18n (ID/EN), performance data, and research content
+- **Self-serve registration** for Signal, PAMM, and Institutional engagement flows
+- **CMS-powered content** with admin management for pages, articles, FAQ, pricing, testimonials, and more
 - **License issuance and lifecycle management** (CRUD, expiry, kill-switch)
 - **Client portal** with filtered, real-time data proxied from VPS backends
-- **Admin dashboard** for operators to manage users, VPS instances, and audit logs
+- **Admin dashboard** for operators to manage users, VPS instances, CMS content, and audit logs
 - **Zero Trust deployment** via Cloudflare Tunnel — no exposed inbound ports
+- **Cal.com scheduling integration** for client briefings via Google Meet
 
 ---
 
 ## Business Models
 
-| Model | Audience | Price Range | License Type |
+| Model | Audience | Price Range | License/Tier |
 |---|---|---|---|
-| VPS Installation | HNWI / proprietary traders | $3,000 – $7,500 one-time | `VPS_INSTALLATION` |
-| PAMM Subscription | Retail investors | $49 – $149/month | `PAMM_SUBSCRIBER` |
-| Signal Subscription | Retail traders | $49 – $99/month | `SIGNAL_SUBSCRIBER` |
+| Signal Basic | Retail traders | $49/month | `SIGNAL_BASIC` |
+| Signal VIP | Active traders | $149/month | `SIGNAL_VIP` |
+| PAMM Basic | Retail investors | 20% profit share | `PAMM_BASIC` |
+| PAMM Pro | Professional investors | 30% profit share | `PAMM_PRO` |
+| VPS License | HNWI / prop traders | $3,000 – $7,500 one-time | `VPS_INSTALLATION` |
+| Institutional | Funds / family offices | Custom | Custom mandate |
 
 ---
 
@@ -53,54 +59,71 @@ It sits between the Python trading bot backends (VPS1) and end-user browsers, pr
 | ORM | Prisma | 5.22 |
 | Database | PostgreSQL | 16 |
 | Auth | jose (HS256 JWT) | latest |
-| Password hashing | bcryptjs | latest |
+| i18n | next-intl | latest |
+| Scheduling | @calcom/embed-react | 1.5.3 |
 | Charts (time-series) | Lightweight Charts | latest |
 | Charts (analytics) | Recharts | latest |
 | Styling | Tailwind CSS + Shadcn/UI + Radix UI | 3.4 |
+| Fonts | Fraunces (display), Inter Tight (body), JetBrains Mono (data) |
 | Runtime | Node.js | 20 (Alpine) |
 | Container | Docker multi-stage | — |
 | Network | Cloudflare Tunnel (Zero Trust) | — |
 
 ---
 
-## Architecture Overview (ASCII)
+## Design System
+
+### Typography
+- **Display**: Fraunces (serif) — headlines, section titles
+- **Body**: Inter Tight — paragraph text, UI labels
+- **Mono**: JetBrains Mono — data, prices, code, account numbers
+
+### Brand Colors
+| Token | Hex | Usage |
+|---|---|---|
+| Midnight | `#0B1220` | Background, dark surfaces |
+| Signal Amber | `#F5B547` | CTAs, accent, highlights |
+| Paper White | `#FAFAF7` | Light mode background, text on dark |
+
+---
+
+## Architecture Overview
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                        CLIENT BROWSER                           │
-│              https://trading.babahdigital.net                   │
+│                    https://babahalgo.com                         │
 └──────────────────────────┬──────────────────────────────────────┘
                            │ HTTPS (Zero Trust)
                            ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│              CLOUDFLARE TUNNEL (babahdigital.net)               │
+│              CLOUDFLARE TUNNEL (babahalgo.com)                   │
 │         No inbound ports — outbound tunnel only                 │
 └──────────────────────────┬──────────────────────────────────────┘
                            │
                            ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                VPS2  148.230.96.201:1983                        │
+│                VPS2  148.230.96.201:1983                         │
 │         Ubuntu 24.04 — Docker — Next.js :3000 (localhost)       │
 │                                                                 │
 │  ┌──────────────┐   ┌──────────────┐   ┌──────────────────┐    │
 │  │  Middleware  │   │  API Routes  │   │  Cron Workers    │    │
 │  │  (Edge JWT)  │   │  /api/*      │   │  kill-switch 60s │    │
-│  └──────────────┘   └──────┬───────┘   │  health-check 5m │    │
-│                            │           └──────────────────┘    │
+│  │  (i18n)      │   │  /api/admin  │   │  health-check 5m │    │
+│  │  (geo-det.)  │   │  /api/public │   └──────────────────┘    │
+│  └──────────────┘   └──────┬───────┘                            │
+│                            │                                     │
 │  ┌─────────────────────────▼──────────────────────────────┐    │
 │  │               PostgreSQL 16 (host network)              │    │
+│  │    Users, Licenses, Subscriptions, Sessions, CMS        │    │
+│  │    PageContent, Articles, Testimonials, FAQ, Banners    │    │
 │  └─────────────────────────────────────────────────────────┘    │
 └──────────────────────────┬──────────────────────────────────────┘
-                           │ HTTP + X-API-Token (AES-256-GCM decrypted)
-                           │ 15s timeout
+                           │ HTTP + X-API-Token (AES-256-GCM)
                            ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                VPS1  147.93.156.218:8000                        │
+│                VPS1  147.93.156.218:8000                         │
 │       Python FastAPI — AI Scalping Bot — MetaTrader 5           │
-│                                                                 │
-│  /api/scalping/status    /api/positions    /api/equity/history  │
-│  /api/trades/history     /api/performance/summary               │
-│  /api/scanner/status     /api/report/today  /api/calendar       │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -166,35 +189,52 @@ See [deployment.md](./deployment.md) for the full production deployment guide in
 
 ```
 trading-apifrontend/
-├── docs/                          # This documentation
+├── docs/                              # This documentation
 ├── prisma/
-│   ├── schema.prisma              # Database schema (9 models, 6 enums)
-│   ├── seed.ts                    # Seed script
-│   └── migrations/                # SQL migration history
+│   ├── schema.prisma                  # Database schema (11 models, 8 enums)
+│   ├── seed.ts                        # Seed script
+│   └── migrations/                    # SQL migration history
 ├── scripts/
-│   ├── setup-server.sh            # Ubuntu server bootstrap
-│   └── setup-tunnel.sh            # Cloudflare Tunnel configuration
+│   ├── setup-server.sh                # Ubuntu server bootstrap
+│   └── setup-tunnel.sh                # Cloudflare Tunnel configuration
 ├── src/
 │   ├── app/
-│   │   ├── (admin)/admin/         # Admin panel pages
-│   │   ├── (auth)/login/          # Login page
-│   │   ├── (portal)/portal/       # Client portal pages
-│   │   ├── api/
-│   │   │   ├── admin/             # Admin API routes
-│   │   │   ├── auth/              # Auth API routes
-│   │   │   └── client/            # Client proxy API routes
-│   │   ├── globals.css
-│   │   ├── layout.tsx
-│   │   └── page.tsx               # Landing page
+│   │   ├── [locale]/(guest)/          # Public guest pages (i18n routed)
+│   │   │   ├── platform/             # Platform pages (overview, technology, etc.)
+│   │   │   ├── solutions/            # Solutions info pages
+│   │   │   ├── register/             # Self-serve registration flows
+│   │   │   ├── performance/          # Live performance data
+│   │   │   ├── research/             # Research articles
+│   │   │   ├── contact/              # Cal.com scheduling + contact form
+│   │   │   ├── about/                # Company info pages
+│   │   │   ├── legal/                # Terms, privacy, risk disclosure
+│   │   │   └── pricing/              # Pricing comparison
+│   │   ├── (admin)/admin/             # Admin panel pages
+│   │   │   └── cms/                   # CMS management (articles, pages, FAQ, etc.)
+│   │   ├── (auth)/login/              # Login page
+│   │   ├── (portal)/portal/           # Client portal pages
+│   │   └── api/
+│   │       ├── admin/                 # Admin API routes
+│   │       │   └── cms/               # CMS CRUD APIs
+│   │       ├── auth/                  # Auth API routes (login, register, refresh)
+│   │       ├── client/                # Client proxy API routes
+│   │       └── public/                # Public API routes (performance, articles)
 │   ├── components/
-│   │   ├── charts/                # 8 chart components
-│   │   └── ui/                    # Shadcn/UI primitives
+│   │   ├── charts/                    # 8 chart components
+│   │   ├── diagrams/                  # Architecture SVG diagram
+│   │   ├── forms/                     # Contact form
+│   │   ├── icons/                     # Custom enterprise SVG icons
+│   │   ├── layout/                    # EnterpriseNav, EnterpriseFooter, ResponsiveSidebar
+│   │   └── ui/                        # Shadcn/UI primitives + CalEmbed
+│   ├── i18n/                          # next-intl config, navigation, translations
 │   ├── lib/
-│   │   ├── auth/                  # JWT + password utilities
-│   │   ├── cron/                  # Background workers
-│   │   ├── db/                    # Prisma client singleton
-│   │   └── proxy/                 # VPS proxy + response filters
-│   └── middleware.ts               # Edge middleware (auth + rate limit)
+│   │   ├── auth/                      # JWT + password utilities
+│   │   ├── cron/                      # Background workers
+│   │   ├── db/                        # Prisma client singleton
+│   │   └── proxy/                     # VPS proxy + response filters
+│   └── middleware.ts                   # Edge middleware (auth + rate limit + i18n + geo + legacy redirects)
+├── public/
+│   └── logo/                          # Brand logo assets (PNG variants)
 ├── docker-compose.yml
 ├── Dockerfile
 ├── next.config.js
@@ -208,8 +248,9 @@ trading-apifrontend/
 
 | Component | Location | Role |
 |---|---|---|
-| VPS2 (this app) | 148.230.96.201 | License middleware + client dashboard |
+| VPS2 (this app) | 148.230.96.201 | BabahAlgo platform + client dashboard |
 | VPS1 (Python bot) | 147.93.156.218:8000 | AI trading bot + MT5 bridge |
 | PostgreSQL | VPS2 host network | Persistent storage |
 | Cloudflare Tunnel | cloudflared service | HTTPS ingress without open ports |
-| Domain | trading.babahdigital.net | Public-facing URL |
+| Domain | babahalgo.com | Public-facing URL |
+| Cal.com | app.cal.com | Scheduling widget embedded on contact page |

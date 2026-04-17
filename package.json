@@ -16,6 +16,7 @@
   "dependencies": {
     "@ai-sdk/google": "^3.0.64",
     "@ai-sdk/react": "^3.0.169",
+    "@calcom/embed-react": "^1.5.3",
     "@prisma/client": "^5.22.0",
     "@radix-ui/react-avatar": "^1.1.2",
     "@radix-ui/react-dialog": "^1.1.4",

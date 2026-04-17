@@ -41,6 +41,11 @@ const SOLUTIONS_MENU = {
   institutions: [
     { href: '/solutions/institutional', label: 'Managed Account', desc: 'Custom mandate' },
   ],
+  register: [
+    { href: '/register/signal', label: 'Register Signal', desc: 'Self-serve signup' },
+    { href: '/register/pamm', label: 'Register PAMM', desc: 'Open managed account' },
+    { href: '/register/institutional', label: 'Institutional Inquiry', desc: 'Schedule a briefing' },
+  ],
 };
 
 export function EnterpriseNav() {
@@ -92,19 +97,19 @@ export function EnterpriseNav() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 shrink-0" onClick={() => setActiveMenu(null)}>
           <Image
-            src="/logo/babahalgo-horizontal-darkbg.svg"
+            src="/logo/babahalgo-horizontal-inverse.png"
             alt="BabahAlgo"
-            width={140}
-            height={28}
-            className="h-7 w-auto hidden dark:block"
+            width={180}
+            height={36}
+            className="h-9 w-auto hidden dark:block"
             priority
           />
           <Image
-            src="/logo/babahalgo-horizontal-lightbg.svg"
+            src="/logo/babahalgo-horizontal-dual.png"
             alt="BabahAlgo"
-            width={140}
-            height={28}
-            className="h-7 w-auto dark:hidden"
+            width={180}
+            height={36}
+            className="h-9 w-auto dark:hidden"
             priority
           />
         </Link>
@@ -237,7 +242,7 @@ export function EnterpriseNav() {
       {/* ─── Mega Menu: Solutions ─── */}
       {activeMenu === 'solutions' && (
         <div className="hidden lg:block absolute top-16 left-0 right-0 bg-background border-b border-border animate-slide-down">
-          <div className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-3 gap-12">
+          <div className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-4 gap-12">
             <div>
               <h4 className="text-label-sm font-medium text-muted-foreground mb-4 uppercase tracking-wider">For Individuals</h4>
               <div className="space-y-3">
@@ -281,6 +286,22 @@ export function EnterpriseNav() {
               <h4 className="text-label-sm font-medium text-muted-foreground mb-4 uppercase tracking-wider">For Institutions</h4>
               <div className="space-y-3">
                 {SOLUTIONS_MENU.institutions.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="block group"
+                    onClick={() => setActiveMenu(null)}
+                  >
+                    <div className="text-sm text-foreground group-hover:text-accent transition-colors">{item.label}</div>
+                    <div className="text-xs text-muted-foreground">{item.desc}</div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+            <div>
+              <h4 className="text-label-sm font-medium text-muted-foreground mb-4 uppercase tracking-wider">Get Started</h4>
+              <div className="space-y-3">
+                {SOLUTIONS_MENU.register.map((item) => (
                   <Link
                     key={item.href}
                     href={item.href}
@@ -340,6 +361,21 @@ export function EnterpriseNav() {
               <Link href="/research" className="block py-2 text-sm" onClick={() => setMobileOpen(false)}>{t('research')}</Link>
               <Link href="/pricing" className="block py-2 text-sm" onClick={() => setMobileOpen(false)}>{t('pricing')}</Link>
               <Link href="/about" className="block py-2 text-sm" onClick={() => setMobileOpen(false)}>{t('about')}</Link>
+            </div>
+
+            <div className="border-t border-border" />
+
+            {/* Get Started */}
+            <div>
+              <h4 className="text-label-sm font-medium text-muted-foreground mb-3 uppercase tracking-wider">Get Started</h4>
+              <div className="space-y-2 pl-2">
+                {SOLUTIONS_MENU.register.map((item) => (
+                  <Link key={item.href} href={item.href} className="block py-1.5" onClick={() => setMobileOpen(false)}>
+                    <div className="text-sm">{item.label}</div>
+                    <div className="text-xs text-muted-foreground">{item.desc}</div>
+                  </Link>
+                ))}
+              </div>
             </div>
 
             <div className="border-t border-border" />

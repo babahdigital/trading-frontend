@@ -20,6 +20,8 @@ import {
   Star,
   Globe,
   Inbox,
+  BookOpen,
+  Layers,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ResponsiveSidebar } from '@/components/layout/responsive-sidebar';
@@ -43,6 +45,8 @@ const cmsNavItems = [
   { href: '/admin/cms/popups', label: 'Popups', icon: MessageSquare },
   { href: '/admin/cms/testimonials', label: 'Testimonials', icon: Star },
   { href: '/admin/cms/seo', label: 'SEO / Meta', icon: Globe },
+  { href: '/admin/cms/pages', label: 'Page Content', icon: Layers },
+  { href: '/admin/cms/articles', label: 'Articles', icon: BookOpen },
   { href: '/admin/cms/inquiries', label: 'Inquiries', icon: Inbox },
 ];
 

@@ -355,3 +355,50 @@ enum InquiryStatus {
   CLOSED
   REJECTED
 }
+
+model PageContent {
+  id          String   @id @default(cuid())
+  slug        String   @unique // platform, platform-technology, solutions-signal, etc.
+  title       String
+  title_en    String?
+  subtitle    String?
+  subtitle_en String?
+  body        String   @db.Text
+  body_en     String?  @db.Text
+  sections    Json     @default("[]") // Array of {heading, content} blocks
+  sections_en Json?
+  isVisible   Boolean  @default(true)
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+}
+
+model Article {
+  id          String        @id @default(cuid())
+  slug        String        @unique
+  title       String
+  title_en    String?
+  excerpt     String        @db.Text
+  excerpt_en  String?       @db.Text
+  body        String        @db.Text
+  body_en     String?       @db.Text
+  category    ArticleCategory @default(RESEARCH)
+  author      String        @default("Abdullah")
+  readTime    Int           @default(5) // minutes
+  imageUrl    String?
+  isPublished Boolean       @default(false)
+  publishedAt DateTime?
+  updatedAt   DateTime      @updatedAt
+  createdAt   DateTime      @default(now())
+
+  @@index([isPublished, publishedAt])
+  @@index([category])
+}
+
+enum ArticleCategory {
+  RESEARCH
+  STRATEGY
+  EXECUTION
+  RISK
+  OPERATIONS
+  MARKET_ANALYSIS
+}

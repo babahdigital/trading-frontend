@@ -1,6 +1,6 @@
 # Database Reference
 
-**Trading API Frontend — CV Babah Digital**
+**BabahAlgo — CV Babah Digital**
 
 ORM: Prisma 5.22 | Database: PostgreSQL 16 | Schema: `public`
 
@@ -187,6 +187,21 @@ Granularity within PAMM/Signal subscription products.
 | `PAMM_PRO` | PAMM fund professional tier | $149/month |
 | `SIGNAL_BASIC` | Signal subscription basic | $49/month |
 | `SIGNAL_VIP` | Signal subscription VIP | $99/month |
+
+---
+
+### ArticleCategory
+
+Content categorization for research articles.
+
+| Value | Description |
+|---|---|
+| `RESEARCH` | General research and analysis |
+| `STRATEGY` | Trading strategy deep-dives |
+| `EXECUTION` | Execution and infrastructure |
+| `RISK` | Risk management topics |
+| `OPERATIONS` | Operational procedures |
+| `MARKET_ANALYSIS` | Market analysis and commentary |
 
 ---
 
@@ -462,6 +477,68 @@ model Session {
 
 ---
 
+### PageContent (CMS)
+
+CMS-managed page content with bilingual support.
+
+```prisma
+model PageContent {
+  id         String   @id @default(cuid())
+  slug       String   @unique
+  title      String
+  title_en   String?
+  subtitle   String?
+  subtitle_en String?
+  body       String?  @db.Text
+  body_en    String?  @db.Text
+  sections   Json     @default("{}")
+  isVisible  Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `slug` | String (unique) | URL-friendly identifier (e.g., `platform-overview`) |
+| `title` / `title_en` | String | Page title in Indonesian / English |
+| `body` / `body_en` | Text? | Markdown page body content (bilingual) |
+| `sections` | JSON | Flexible structured content (key-value sections) |
+| `isVisible` | Boolean | Toggle page visibility without deleting |
+
+---
+
+### Article (CMS)
+
+Research articles and insights published on the research page.
+
+```prisma
+model Article {
+  id          String          @id @default(cuid())
+  slug        String          @unique
+  title       String
+  excerpt     String?
+  body        String          @db.Text
+  category    ArticleCategory
+  author      String?
+  readTime    String?
+  imageUrl    String?
+  isPublished Boolean         @default(false)
+  publishedAt DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `slug` | String (unique) | URL-friendly identifier |
+| `category` | ArticleCategory | Content categorization |
+| `isPublished` | Boolean | Only published articles appear on public `/api/public/articles` |
+| `publishedAt` | DateTime? | Publication date (set manually or on publish toggle) |
+
+---
+
 ## 4. Indexes
 
 | Model | Index Fields | Purpose |
@@ -474,6 +551,8 @@ model Session {
 | `AuditLog` | `[userId, createdAt]` | User activity timeline |
 | `AuditLog` | `[licenseId, createdAt]` | License activity timeline |
 | `Session` | `[userId]` | Active sessions per user |
+| `PageContent` | `slug` (unique) | CMS page lookup |
+| `Article` | `slug` (unique) | Article lookup by slug |
 
 ---
 
@@ -555,7 +634,7 @@ The seed script (`prisma/seed.ts`) creates initial data for development and prod
 
 File: `prisma/migrations/20260416_init/migration.sql`
 
-The initial migration creates all 9 tables with:
+The initial migration creates all 11 tables with:
 - UUID/CUID primary keys
 - All enum types
 - Foreign key constraints

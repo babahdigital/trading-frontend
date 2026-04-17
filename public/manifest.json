@@ -1,9 +1,16 @@
 {
-  "name": "trading-commercial",
-  "short_name": "Trading",
-  "description": "Trading Commercial - Babah Digital",
+  "name": "BabahAlgo — Quantitative Trading Infrastructure",
+  "short_name": "BabahAlgo",
+  "description": "Institutional-grade quantitative trading infrastructure by CV Babah Digital",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#030711",
-  "theme_color": "#030711"
+  "background_color": "#FAFAF7",
+  "theme_color": "#0B1220",
+  "icons": [
+    { "src": "/logo/babahalgo-icon-64.png", "sizes": "64x64", "type": "image/png" },
+    { "src": "/logo/babahalgo-icon-128.png", "sizes": "128x128", "type": "image/png" },
+    { "src": "/logo/babahalgo-icon-256.png", "sizes": "256x256", "type": "image/png" },
+    { "src": "/logo/babahalgo-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/logo/babahalgo-icon-1024.png", "sizes": "1024x1024", "type": "image/png" }
+  ]
 }

@@ -1,5 +1,6 @@
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
+import { ArchitectureDiagram } from '@/components/diagrams/architecture-diagram';
 import { Link } from '@/i18n/navigation';
 import { ArrowLeft } from 'lucide-react';
 
@@ -29,6 +30,11 @@ export default async function TechnologyPage() {
             hosting, and no third-party signal dependencies. The system owns the full
             pipeline from analysis to execution.
           </p>
+
+          {/* Architecture Diagram */}
+          <div className="border border-border rounded-lg p-6 bg-card">
+            <ArchitectureDiagram />
+          </div>
         </section>
 
         {/* AI Advisor */}

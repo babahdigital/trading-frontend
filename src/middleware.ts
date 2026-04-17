@@ -5,7 +5,7 @@ import { locales, defaultLocale } from '@/i18n/config';
 
 const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 
-const publicPaths = ['/login', '/register', '/api/auth/login', '/api/auth/register', '/api/auth/refresh', '/api/health', '/api/public/', '/api/client/inquiries', '/api/chat', '/manifest.json'];
+const publicPaths = ['/login', '/api/auth/login', '/api/auth/register', '/api/auth/refresh', '/api/health', '/api/public/', '/api/client/inquiries', '/api/chat', '/manifest.json'];
 
 // In-memory rate limit store (per-process, resets on restart)
 const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
@@ -76,6 +76,21 @@ function detectGeoLocale(request: NextRequest): NextResponse | null {
   return response;
 }
 
+// Legacy path redirects — old pages → new enterprise pages
+const LEGACY_REDIRECTS: Record<string, string> = {
+  '/features': '/platform',
+  '/faq': '/contact',
+  '/terms': '/legal/terms',
+  '/privacy': '/legal/privacy',
+  '/risk-disclaimer': '/legal/risk-disclosure',
+};
+
+function getLegacyRedirect(pathname: string): string | null {
+  // Strip locale prefix if present
+  const stripped = pathname.replace(/^\/(id|en)/, '') || '/';
+  return LEGACY_REDIRECTS[stripped] || null;
+}
+
 // Paths that are handled by the app (not guest pages)
 function isNonGuestPath(pathname: string): boolean {
   return (
@@ -93,6 +108,15 @@ function isNonGuestPath(pathname: string): boolean {
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Legacy redirects (old pages → new enterprise pages)
+  const redirectTarget = getLegacyRedirect(pathname);
+  if (redirectTarget) {
+    const url = request.nextUrl.clone();
+    url.pathname = redirectTarget;
+    return NextResponse.redirect(url, 301);
+  }
+
   const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
     || request.headers.get('x-real-ip')
     || 'unknown';

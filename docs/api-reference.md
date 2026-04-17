@@ -1,8 +1,8 @@
 # API Reference
 
-**Trading API Frontend — CV Babah Digital**
+**BabahAlgo — CV Babah Digital**
 
-Base URL: `https://trading.babahdigital.net`
+Base URL: `https://babahalgo.com`
 
 ---
 
@@ -11,11 +11,13 @@ Base URL: `https://trading.babahdigital.net`
 1. [Authentication](#1-authentication)
 2. [Auth Endpoints](#2-auth-endpoints)
 3. [Admin Endpoints](#3-admin-endpoints)
-4. [Client Endpoints](#4-client-endpoints)
-5. [Health Endpoint](#5-health-endpoint)
-6. [Error Responses](#6-error-responses)
-7. [Rate Limits](#7-rate-limits)
-8. [JWT Token Structure](#8-jwt-token-structure)
+4. [Admin CMS Endpoints](#4-admin-cms-endpoints)
+5. [Client Endpoints](#5-client-endpoints)
+6. [Public Endpoints](#6-public-endpoints)
+7. [Health Endpoint](#7-health-endpoint)
+8. [Error Responses](#8-error-responses)
+9. [Rate Limits](#9-rate-limits)
+10. [JWT Token Structure](#10-jwt-token-structure)
 
 ---
 
@@ -485,7 +487,66 @@ Manually trigger a kill-switch for a specific license.
 
 ---
 
-## 4. Client Endpoints
+## 4. Admin CMS Endpoints
+
+All CMS endpoints require `ADMIN` role.
+
+### GET/POST/PUT/DELETE /api/admin/cms/pages
+
+CRUD for CMS `PageContent` model.
+
+**GET** — List all page content entries, ordered by updatedAt desc.
+
+**POST** — Create new page content:
+```json
+{
+  "slug": "platform-overview",
+  "title": "Platform Overview",
+  "title_en": "Platform Overview",
+  "subtitle": "Subtitle text",
+  "body": "Markdown body content",
+  "body_en": "English markdown body",
+  "sections": {},
+  "isVisible": true
+}
+```
+
+**PUT** — Update existing page content (requires `id` in body).
+
+**DELETE** — Delete page content (requires `id` query param).
+
+---
+
+### GET/POST/PUT/DELETE /api/admin/cms/articles
+
+CRUD for `Article` model.
+
+**GET** — List all articles, ordered by publishedAt desc.
+
+**POST** — Create new article:
+```json
+{
+  "slug": "market-structure-analysis",
+  "title": "Market Structure Analysis",
+  "excerpt": "Short description...",
+  "body": "Full markdown content",
+  "category": "RESEARCH",
+  "author": "BabahAlgo Research",
+  "readTime": "5 min read",
+  "imageUrl": "/images/article-cover.jpg",
+  "isPublished": true
+}
+```
+
+**PUT** — Update existing article (requires `id` in body).
+
+**DELETE** — Delete article (requires `id` query param).
+
+**ArticleCategory enum values:** `RESEARCH`, `STRATEGY`, `EXECUTION`, `RISK`, `OPERATIONS`, `MARKET_ANALYSIS`
+
+---
+
+## 5. Client Endpoints
 
 All client endpoints require `CLIENT` or `ADMIN` role. CLIENT role additionally requires `licenseId` or `subscriptionId` in the JWT payload. All responses are filtered — sensitive fields are stripped before delivery.
 
@@ -745,7 +806,122 @@ Monthly calendar data. Proxies to `/api/calendar` on VPS1 (pass-through).
 
 ---
 
-## 5. Health Endpoint
+## 6. Public Endpoints
+
+Public endpoints require no authentication.
+
+### GET /api/public/performance
+
+Returns equity curve data and KPI metrics for the public performance page. Data is server-side cached for 4 hours.
+
+**Response 200 OK:**
+```json
+{
+  "equity": [
+    { "time": "2025-04-01", "value": 10000.00 },
+    { "time": "2025-04-02", "value": 10045.23 }
+  ],
+  "kpi": {
+    "totalReturn": "+32.4%",
+    "sharpeRatio": "2.14",
+    "sortinoRatio": "3.21",
+    "profitFactor": "1.87",
+    "winRate": "64.2%",
+    "maxDrawdown": "-8.7%",
+    "avgHoldTime": "4.2h",
+    "recoveryFactor": "14.6"
+  }
+}
+```
+
+Note: Currently generates demo data. Will proxy to master backend when available.
+
+---
+
+### GET /api/public/articles
+
+Returns published articles.
+
+**Query Parameters:**
+
+| Parameter | Type | Description |
+|---|---|---|
+| `slug` | `string` | Fetch single article by slug |
+
+**Response 200 OK (list):**
+```json
+[
+  {
+    "id": "clxxx...",
+    "slug": "market-structure-analysis",
+    "title": "Market Structure Analysis",
+    "excerpt": "Short description...",
+    "category": "RESEARCH",
+    "author": "BabahAlgo Research",
+    "readTime": "5 min read",
+    "imageUrl": "/images/cover.jpg",
+    "publishedAt": "2026-04-16T00:00:00.000Z"
+  }
+]
+```
+
+**Response 200 OK (single, with `?slug=`):**
+```json
+{
+  "id": "clxxx...",
+  "slug": "market-structure-analysis",
+  "title": "Market Structure Analysis",
+  "body": "Full markdown content...",
+  "category": "RESEARCH",
+  "author": "BabahAlgo Research",
+  "readTime": "5 min read",
+  "publishedAt": "2026-04-16T00:00:00.000Z"
+}
+```
+
+---
+
+### POST /api/auth/register
+
+Self-serve user registration. Creates a user with PENDING status awaiting admin activation.
+
+**Request Body:**
+```json
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "SecurePassword123",
+  "tier": "SIGNAL_BASIC",
+  "brokerName": "ICMarkets",
+  "mt5Account": "12345678"
+}
+```
+
+| Field | Required | Description |
+|---|---|---|
+| `name` | Yes | Full name |
+| `email` | Yes | Email address (unique) |
+| `password` | Yes | Min 8 characters |
+| `tier` | Yes | `SIGNAL_BASIC`, `SIGNAL_VIP`, `PAMM_BASIC`, or `PAMM_PRO` |
+| `brokerName` | PAMM only | Broker name |
+| `mt5Account` | PAMM only | MT5 account number |
+
+**Response 201 Created:**
+```json
+{
+  "message": "Registration successful! Your account will be activated by admin."
+}
+```
+
+| Status | Condition |
+|---|---|
+| 201 | User registered |
+| 400 | Missing required fields |
+| 409 | Email already registered |
+
+---
+
+## 7. Health Endpoint
 
 ### GET /api/health
 
@@ -762,7 +938,7 @@ Public endpoint for Docker health checks and uptime monitoring.
 
 ---
 
-## 6. Error Responses
+## 8. Error Responses
 
 All error responses use the following structure:
 
@@ -789,7 +965,7 @@ All error responses use the following structure:
 
 ---
 
-## 7. Rate Limits
+## 9. Rate Limits
 
 Rate limiting is enforced by the Next.js Edge Middleware (`src/middleware.ts`) using an in-memory store (resets on server restart).
 
@@ -813,7 +989,7 @@ or
 
 ---
 
-## 8. JWT Token Structure
+## 10. JWT Token Structure
 
 ### Access Token
 

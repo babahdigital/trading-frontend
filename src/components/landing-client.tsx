@@ -403,94 +403,122 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
       </section>
 
       {/* ═══════════════════════════════════════════
-          SECTION 5 — PRICING (Tab-based)
+          SECTION 5 — PRICING (Split layout)
           ═══════════════════════════════════════════ */}
       <section className="section-padding border-t border-white/8">
         <div className="container-default px-6">
-          <AnimatedSection>
-            <div className="t-eyebrow mb-4">PRICING</div>
-            <h2 className="t-display-section text-foreground mb-4">Choose your path.</h2>
-            <p className="t-lead text-ink-400 max-w-2xl mb-12">
-              Three engagement models, each designed for a different type of capital.
-            </p>
-          </AnimatedSection>
-
-          {/* Tab bar */}
-          <AnimatedSection delay={0.1}>
-            <div className="tab-bar mb-12">
-              {PRICING_TABS.map(tab => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  className={`tab-btn ${pricingTab === tab.id ? 'active' : ''}`}
-                  onClick={() => setPricingTab(tab.id)}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-          </AnimatedSection>
-
-          {/* Pricing cards */}
-          <div className="grid md:grid-cols-2 gap-6 max-w-3xl">
-            {(PRICING_PLANS[pricingTab] || []).map((plan, i) => (
-              <AnimatedSection key={plan.name} delay={0.15 + i * 0.1}>
-                <div className={`relative rounded-2xl p-8 transition-all duration-300 border ${
-                  plan.popular
-                    ? 'border-amber-500 ring-1 ring-amber-500 shadow-glow-amber'
-                    : 'border-white/8 bg-midnight-2 hover:border-amber-500/30'
-                }`}>
-                  {plan.popular && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-amber-500 text-midnight text-[11px] font-medium tracking-wider uppercase">
-                      Most popular
-                    </div>
-                  )}
-
-                  <div className="t-eyebrow mb-3">{plan.tier}</div>
-                  <h3 className="t-display-sub text-foreground mb-2">{plan.name}</h3>
-                  <p className="t-body-sm text-ink-500 mb-6">{plan.tagline}</p>
-
-                  <div className="flex items-baseline gap-1 mb-8">
-                    <span className="t-data-kpi text-foreground">{plan.price}</span>
-                    <span className="t-body-sm text-ink-400">/{plan.period}</span>
-                  </div>
-
-                  <ul className="space-y-3 mb-8">
-                    {plan.features.map(f => (
-                      <li key={f} className="flex gap-3 t-body-sm">
-                        <Check className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
-                        <span className="text-ink-300">{f}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <Link
-                    href={plan.cta.href}
-                    className={`w-full text-center ${plan.popular ? 'btn-primary' : 'btn-secondary'} justify-center`}
-                  >
-                    {plan.cta.label}
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
-                </div>
+          <div className="grid lg:grid-cols-12 gap-12 lg:gap-16">
+            {/* Left column — heading, description, tabs */}
+            <div className="lg:col-span-4 lg:sticky lg:top-28 lg:self-start">
+              <AnimatedSection>
+                <div className="t-eyebrow mb-4">PRICING</div>
+                <h2 className="t-display-section text-foreground mb-4">Choose your path.</h2>
+                <p className="t-body text-ink-400 mb-8">
+                  Three engagement models, each designed for a different type of capital.
+                </p>
               </AnimatedSection>
-            ))}
-          </div>
 
-          {/* VPS Enterprise CTA */}
-          {pricingTab === 'retail' && (
-            <AnimatedSection delay={0.3}>
-              <div className="mt-8 max-w-3xl rounded-xl border border-amber-500/20 bg-amber-500/5 p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                  <div className="font-medium text-foreground mb-1">Need a dedicated VPS deployment?</div>
-                  <div className="t-body-sm text-ink-400">Custom installation with private infrastructure. From $3,000.</div>
+              {/* Tab bar — vertical on desktop */}
+              <AnimatedSection delay={0.1}>
+                <div className="flex lg:flex-col gap-2 mb-8 lg:mb-10">
+                  {PRICING_TABS.map(tab => (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      className={`text-left px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        pricingTab === tab.id
+                          ? 'bg-amber-500 text-black'
+                          : 'text-ink-400 hover:text-foreground hover:bg-white/[0.04]'
+                      }`}
+                      onClick={() => setPricingTab(tab.id)}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
                 </div>
-                <Link href="/solutions/license" className="btn-tertiary shrink-0">
-                  Speak with our team
-                  <ArrowRight className="w-4 h-4" />
+
+                <Link href="/pricing" className="btn-tertiary text-sm hidden lg:inline-flex">
+                  Compare all plans <ArrowRight className="w-4 h-4" />
+                </Link>
+              </AnimatedSection>
+            </div>
+
+            {/* Right column — pricing cards */}
+            <div className="lg:col-span-8">
+              <div className="space-y-6">
+                {(PRICING_PLANS[pricingTab] || []).map((plan, i) => (
+                  <AnimatedSection key={plan.name} delay={0.15 + i * 0.1}>
+                    <div className={`rounded-xl p-6 sm:p-8 transition-all duration-300 border ${
+                      plan.popular
+                        ? 'border-amber-500 ring-1 ring-amber-500'
+                        : 'border-white/8 hover:border-amber-500/30'
+                    }`}>
+                      {/* Card header — horizontal layout */}
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-1">
+                            <h3 className="text-lg font-medium text-foreground">{plan.name}</h3>
+                            {plan.popular && (
+                              <span className="px-2.5 py-0.5 rounded-full bg-amber-500 text-black text-[11px] font-medium tracking-wider uppercase">
+                                Popular
+                              </span>
+                            )}
+                          </div>
+                          <p className="t-body-sm text-ink-500">{plan.tagline}</p>
+                        </div>
+                        <div className="flex items-baseline gap-1 sm:text-right shrink-0">
+                          <span className="font-mono text-3xl font-semibold text-foreground">{plan.price}</span>
+                          <span className="t-body-sm text-ink-400">/{plan.period}</span>
+                        </div>
+                      </div>
+
+                      {/* Features + CTA — horizontal on larger screens */}
+                      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
+                        <ul className="flex flex-wrap gap-x-6 gap-y-2">
+                          {plan.features.map(f => (
+                            <li key={f} className="flex gap-2 t-body-sm">
+                              <Check className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
+                              <span className="text-ink-300">{f}</span>
+                            </li>
+                          ))}
+                        </ul>
+                        <Link
+                          href={plan.cta.href}
+                          className={`shrink-0 text-center ${plan.popular ? 'btn-primary' : 'btn-secondary'} justify-center`}
+                        >
+                          {plan.cta.label}
+                          <ArrowRight className="w-4 h-4" />
+                        </Link>
+                      </div>
+                    </div>
+                  </AnimatedSection>
+                ))}
+              </div>
+
+              {/* VPS Enterprise CTA */}
+              {pricingTab === 'retail' && (
+                <AnimatedSection delay={0.3}>
+                  <div className="mt-6 rounded-xl border border-amber-500/20 bg-amber-500/5 p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                      <div className="font-medium text-foreground mb-1">Need a dedicated VPS deployment?</div>
+                      <div className="t-body-sm text-ink-400">Custom installation with private infrastructure. From $3,000.</div>
+                    </div>
+                    <Link href="/solutions/license" className="btn-tertiary shrink-0">
+                      Speak with our team
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
+                  </div>
+                </AnimatedSection>
+              )}
+
+              {/* Mobile: compare all plans link */}
+              <div className="mt-6 lg:hidden">
+                <Link href="/pricing" className="btn-tertiary text-sm">
+                  Compare all plans <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
-            </AnimatedSection>
-          )}
+            </div>
+          </div>
         </div>
       </section>
 

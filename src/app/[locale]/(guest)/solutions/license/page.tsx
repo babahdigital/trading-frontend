@@ -5,6 +5,17 @@ import { ArrowRight } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
+const SPECS = [
+  { spec: 'CPU', value: '4 vCPUs (dedicated)', note: 'Guaranteed cores, no shared contention' },
+  { spec: 'RAM', value: '8 GB DDR4', note: 'Expandable to 16 GB on request' },
+  { spec: 'Storage', value: '100 GB NVMe SSD', note: 'Sub-millisecond I/O for trade logging' },
+  { spec: 'Network', value: '1 Gbps dedicated', note: 'Low-latency broker connectivity' },
+  { spec: 'Uptime SLA', value: '99.9%', note: 'Contractual guarantee with failover' },
+  { spec: 'OS', value: 'Linux (hardened)', note: 'Minimal attack surface, auto-patched' },
+  { spec: 'Monitoring', value: '60-second health checks', note: '24/7 automated alerting' },
+  { spec: 'Backup', value: 'Daily snapshots', note: '7-day retention with point-in-time recovery' },
+];
+
 const FEATURES = [
   {
     title: 'Dedicated VPS instance',
@@ -113,6 +124,37 @@ export default async function LicensePage() {
           </div>
         </section>
 
+        {/* Technical Specs Table */}
+        <section className="section-padding border-b border-white/8">
+          <div className="container-default px-6">
+            <p className="t-eyebrow mb-3">Infrastructure</p>
+            <h2 className="t-display-sub mb-4">Technical specifications</h2>
+            <p className="t-body text-foreground/60 mb-10 max-w-xl">
+              Every VPS license includes enterprise-grade hardware with guaranteed resources.
+            </p>
+            <div className="table-enterprise-wrapper max-w-4xl">
+              <table className="table-enterprise w-full">
+                <thead>
+                  <tr className="border-b border-white/8">
+                    <th className="text-left px-6 py-3">Component</th>
+                    <th className="text-left px-6 py-3">Specification</th>
+                    <th className="text-left px-6 py-3 hidden md:table-cell">Notes</th>
+                  </tr>
+                </thead>
+                <tbody className="text-sm">
+                  {SPECS.map((row) => (
+                    <tr key={row.spec} className="border-b border-white/8 last:border-0">
+                      <td className="px-6 py-3 font-medium text-foreground/80">{row.spec}</td>
+                      <td className="px-6 py-3 font-mono text-amber-400">{row.value}</td>
+                      <td className="px-6 py-3 text-foreground/50 hidden md:table-cell">{row.note}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
         {/* Who it's for */}
         <section className="section-padding border-b border-white/8">
           <div className="container-default px-6">
@@ -135,16 +177,33 @@ export default async function LicensePage() {
           </div>
         </section>
 
-        {/* What you get */}
+        {/* Features — alternating left-right sections */}
         <section className="section-padding border-b border-white/8">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-4">Capabilities</p>
-            <h2 className="t-display-sub mb-12">What you get</h2>
-            <div className="grid md:grid-cols-2 gap-8">
-              {FEATURES.map((feature) => (
-                <div key={feature.title} className="card-enterprise">
-                  <h3 className="font-semibold mb-3">{feature.title}</h3>
-                  <p className="t-body-sm text-foreground/60 leading-relaxed">{feature.description}</p>
+            <h2 className="t-display-sub mb-14">What you get</h2>
+            <div className="space-y-16">
+              {FEATURES.map((feature, i) => (
+                <div
+                  key={feature.title}
+                  className={`grid md:grid-cols-2 gap-8 md:gap-16 items-center ${
+                    i % 2 === 1 ? 'md:[direction:rtl]' : ''
+                  }`}
+                >
+                  {/* Image placeholder */}
+                  <div className={`${i % 2 === 1 ? 'md:[direction:ltr]' : ''}`}>
+                    <div className="aspect-[4/3] rounded-lg border border-white/8 bg-white/[0.02] flex items-center justify-center">
+                      <div className="text-center">
+                        <p className="font-mono text-6xl text-amber-500/10 font-bold">{String(i + 1).padStart(2, '0')}</p>
+                        <p className="t-body-sm text-foreground/20 mt-2">{feature.title}</p>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Text */}
+                  <div className={`${i % 2 === 1 ? 'md:[direction:ltr]' : ''}`}>
+                    <h3 className="font-display text-xl font-medium mb-4">{feature.title}</h3>
+                    <p className="t-body text-foreground/60 leading-relaxed">{feature.description}</p>
+                  </div>
                 </div>
               ))}
             </div>

@@ -121,29 +121,59 @@ export default async function RiskFrameworkPage() {
           </div>
         </section>
 
-        {/* Layers */}
+        {/* Layers — alternating left-right with connecting line */}
         <section className="section-padding">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-4">Protection Layers</p>
-            <div className="space-y-6">
-              {RISK_LAYERS.map((layer) => (
-                <div key={layer.number} className="card-enterprise">
-                  <div className="flex items-start gap-4">
-                    <span className="font-mono text-amber-400 text-sm font-semibold shrink-0 mt-0.5">
-                      {String(layer.number).padStart(2, '0')}
-                    </span>
-                    <div>
-                      <h3 className="font-display text-lg text-foreground mb-1">
-                        {layer.name}
-                      </h3>
-                      <p className="t-body-sm text-amber-400 mb-3">{layer.subtitle}</p>
-                      <p className="text-foreground/60 leading-relaxed text-sm">
-                        {layer.description}
-                      </p>
+            <h2 className="t-display-sub mb-14">All 12 layers</h2>
+
+            <div className="relative">
+              {/* Vertical connecting line */}
+              <div className="absolute left-1/2 top-0 bottom-0 w-px bg-white/8 hidden md:block" />
+
+              <div className="space-y-0">
+                {RISK_LAYERS.map((layer) => {
+                  const isEven = layer.number % 2 === 0;
+                  const paddedNum = String(layer.number).padStart(2, '0');
+
+                  return (
+                    <div key={layer.number} className="relative md:grid md:grid-cols-2 md:gap-16 py-10 first:pt-0 last:pb-0">
+                      {/* Center dot on the line */}
+                      <div className="absolute left-1/2 top-10 first:top-0 -translate-x-1/2 w-3 h-3 rounded-full border-2 border-amber-500/40 bg-background z-10 hidden md:block" />
+
+                      {/* Odd: number+title left, description right */}
+                      {/* Even: description left, number+title right */}
+                      {!isEven ? (
+                        <>
+                          {/* Left — title block */}
+                          <div className="md:text-right md:pr-12">
+                            <span className="font-display text-6xl text-amber-500/10 leading-none block mb-2">{paddedNum}</span>
+                            <h3 className="font-display text-lg text-foreground mb-1">{layer.name}</h3>
+                            <p className="t-body-sm text-amber-400">{layer.subtitle}</p>
+                          </div>
+                          {/* Right — description */}
+                          <div className="md:pl-12 mt-4 md:mt-0">
+                            <p className="text-foreground/60 leading-relaxed text-sm">{layer.description}</p>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          {/* Left — description */}
+                          <div className="md:text-right md:pr-12 order-2 md:order-1 mt-4 md:mt-0">
+                            <p className="text-foreground/60 leading-relaxed text-sm">{layer.description}</p>
+                          </div>
+                          {/* Right — title block */}
+                          <div className="md:pl-12 order-1 md:order-2">
+                            <span className="font-display text-6xl text-amber-500/10 leading-none block mb-2">{paddedNum}</span>
+                            <h3 className="font-display text-lg text-foreground mb-1">{layer.name}</h3>
+                            <p className="t-body-sm text-amber-400">{layer.subtitle}</p>
+                          </div>
+                        </>
+                      )}
                     </div>
-                  </div>
-                </div>
-              ))}
+                  );
+                })}
+              </div>
             </div>
           </div>
         </section>

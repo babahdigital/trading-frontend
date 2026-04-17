@@ -119,8 +119,18 @@ export function EnterpriseFooter() {
 
         {/* Bottom strip */}
         <div className="border-t border-white/8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-ink-400">
+          <p className="text-xs text-foreground/40">
             &copy; {new Date().getFullYear()} CV Babah Digital. All rights reserved.
+          </p>
+          <p className="text-xs text-foreground/40">
+            Trading via{' '}
+            <a
+              href="#"
+              className="hover:text-amber-400 transition-colors underline underline-offset-2"
+            >
+              Exness
+            </a>{' '}
+            &mdash; Regulated Broker Partner
           </p>
         </div>
       </div>

@@ -82,13 +82,22 @@ export default async function GovernancePage() {
             <h2 className="t-display-sub mb-8">Partner brokers</h2>
             <div className="max-w-3xl space-y-4 text-foreground/60 leading-relaxed">
               <p>
-                BabahAlgo works with selected broker partners who meet our criteria for execution quality,
-                regulatory status, fund segregation, and API reliability. Our broker partners are regulated
-                by their respective financial authorities and maintain segregated client fund accounts.
+                All client trades execute through{' '}
+                <a href="#" className="text-foreground underline underline-offset-4 hover:text-amber-400 transition-colors">
+                  Exness
+                </a>
+                , a globally regulated multi-asset broker. Exness is our primary broker partner, selected
+                for superior execution quality, regulatory standing across multiple jurisdictions, segregated
+                client fund accounts, and reliable API infrastructure.
+              </p>
+              <p>
+                BabahAlgo continuously evaluates broker performance against our criteria for latency,
+                slippage, fund safety, and regulatory compliance. Exness meets and exceeds these standards
+                across all benchmarks.
               </p>
               <p className="t-body-sm border-l-2 border-white/8 pl-4">
-                <strong className="text-foreground">Disclosure:</strong> BabahAlgo may receive introducing
-                broker (IB) commissions or rebates from partner brokers for client referrals. These
+                <strong className="text-foreground">Disclosure:</strong> BabahAlgo receives introducing
+                broker (IB) commissions from Exness for client referrals. These
                 arrangements are disclosed to clients during onboarding and do not affect the execution
                 quality or pricing clients receive. Broker selection is based on objective criteria
                 documented in our broker evaluation framework.

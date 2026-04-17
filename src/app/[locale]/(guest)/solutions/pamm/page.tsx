@@ -1,9 +1,17 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import { Link } from '@/i18n/navigation';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { ArrowRight } from 'lucide-react';
 
-export const dynamic = 'force-dynamic';
+const KPI_STATS = [
+  { value: '20%', label: 'Profit share (Standard)' },
+  { value: '$0', label: 'Management fee' },
+  { value: '3 days', label: 'Withdrawal processing' },
+  { value: '12', label: 'Risk layers active' },
+];
 
 const FEATURES = [
   { title: 'Fully managed execution', description: 'Our algorithms execute trades on your behalf from a master account. No manual intervention — your capital works while you focus on other priorities.' },
@@ -25,7 +33,7 @@ const STEPS = [
   { step: '03', title: 'Start earning', description: 'Once your account is linked to our master account, trading begins automatically. Monitor performance from your dashboard.' },
 ];
 
-const FAQ = [
+const FAQ_FALLBACK = [
   { q: 'Is my capital safe?', a: 'Your funds are held at a regulated broker in a segregated client account under your name. BabahAlgo has trading authority only — we cannot withdraw your funds.' },
   { q: 'What is the minimum investment?', a: 'Standard requires $5,000, Premier requires $25,000. These minimums ensure proper position sizing across our instrument universe.' },
   { q: 'How is profit share calculated?', a: 'Calculated on net realized profits using a high-water mark. You never pay performance fees on recovering previous losses. Fees are deducted monthly.' },
@@ -33,7 +41,35 @@ const FAQ = [
   { q: 'Can I set custom risk parameters?', a: 'Premier investors can define custom parameters including maximum drawdown limits, instrument restrictions, and position size caps.' },
 ];
 
-export default async function PAMMPage() {
+interface FaqItem {
+  q: string;
+  a: string;
+}
+
+export default function PAMMPage() {
+  const [faq, setFaq] = useState<FaqItem[]>(FAQ_FALLBACK);
+
+  useEffect(() => {
+    async function loadFaq() {
+      try {
+        const res = await fetch('/api/public/faq?category=PRICING');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          setFaq(
+            data.map((item: Record<string, unknown>) => ({
+              q: (item.question as string) || (item.q as string) || '',
+              a: (item.answer as string) || (item.a as string) || '',
+            }))
+          );
+        }
+      } catch {
+        // keep fallback
+      }
+    }
+    loadFaq();
+  }, []);
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <EnterpriseNav />
@@ -56,6 +92,47 @@ export default async function PAMMPage() {
               <Link href="/performance" className="btn-secondary">
                 View Track Record
               </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* KPI Preview Strip */}
+        <section className="border-b border-white/8">
+          <div className="container-default px-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-white/8">
+              {KPI_STATS.map((stat) => (
+                <div key={stat.label} className="py-8 md:py-10 px-6 text-center">
+                  <p className="font-display text-3xl md:text-4xl font-medium text-amber-400 mb-2">{stat.value}</p>
+                  <p className="t-body-sm text-foreground/50">{stat.label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* How it works — vertical timeline */}
+        <section className="section-padding border-b border-white/8">
+          <div className="container-default px-6">
+            <p className="t-eyebrow mb-3">How It Works</p>
+            <h2 className="t-display-sub mb-14">Getting started</h2>
+            <div className="max-w-2xl">
+              {STEPS.map((step, i) => (
+                <div key={step.step} className="relative flex gap-8 pb-12 last:pb-0">
+                  {/* Vertical connecting line */}
+                  {i < STEPS.length - 1 && (
+                    <div className="absolute left-[23px] top-12 bottom-0 w-px bg-white/8" />
+                  )}
+                  {/* Step number circle */}
+                  <div className="w-12 h-12 rounded-full border border-amber-500/30 bg-amber-500/5 flex items-center justify-center shrink-0">
+                    <span className="font-mono text-sm text-amber-400 font-semibold">{step.step}</span>
+                  </div>
+                  {/* Content */}
+                  <div className="pt-1">
+                    <h3 className="text-lg font-medium mb-2">{step.title}</h3>
+                    <p className="t-body-sm text-foreground/60 leading-relaxed">{step.description}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </section>
@@ -86,7 +163,7 @@ export default async function PAMMPage() {
           </div>
         </section>
 
-        {/* Features */}
+        {/* Features — 3-column cards */}
         <section className="section-padding border-b border-white/8">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-3">Features</p>
@@ -136,26 +213,6 @@ export default async function PAMMPage() {
           </div>
         </section>
 
-        {/* Onboarding */}
-        <section className="section-padding border-b border-white/8">
-          <div className="container-default px-6">
-            <p className="t-eyebrow mb-3">Getting Started</p>
-            <h2 className="t-display-sub mb-12">Three simple steps</h2>
-            <div className="grid md:grid-cols-3 gap-8">
-              {STEPS.map((step, i) => (
-                <div key={step.step} className="relative">
-                  <p className="font-mono text-5xl text-amber-500/20 mb-4">{step.step}</p>
-                  <h3 className="text-lg font-medium mb-2">{step.title}</h3>
-                  <p className="t-body-sm text-foreground/60 leading-relaxed">{step.description}</p>
-                  {i < STEPS.length - 1 && (
-                    <ArrowRight className="hidden md:block absolute top-6 -right-5 w-5 h-5 text-foreground/20" />
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
         {/* FAQ */}
         <section className="section-padding border-b border-white/8">
           <div className="container-default px-6">
@@ -165,7 +222,7 @@ export default async function PAMMPage() {
                 <h2 className="t-display-sub">Common questions</h2>
               </div>
               <div className="lg:col-span-3 space-y-8">
-                {FAQ.map((item) => (
+                {faq.map((item) => (
                   <div key={item.q} className="border-b border-white/[0.04] pb-8 last:border-b-0">
                     <h3 className="text-base font-medium mb-2">{item.q}</h3>
                     <p className="t-body-sm text-foreground/60 leading-relaxed">{item.a}</p>

@@ -214,7 +214,14 @@ export default function RegisterSignalPage() {
                 </form>
               </div>
 
-              <p className="t-body-sm text-foreground/60 text-center mt-8">
+              <p className="text-xs text-foreground/50 text-center mt-6">
+                We recommend{' '}
+                <a href="#" className="text-amber-400 hover:text-amber-300 underline underline-offset-2 transition-colors">
+                  Exness
+                </a>{' '}
+                as your broker for optimal signal execution.
+              </p>
+              <p className="t-body-sm text-foreground/60 text-center mt-4">
                 Trading involves significant risk of loss. Past performance does not guarantee future results.
               </p>
             </div>

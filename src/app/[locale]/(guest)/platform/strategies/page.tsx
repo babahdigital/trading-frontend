@@ -2,6 +2,7 @@ import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { Link } from '@/i18n/navigation';
 import { ArrowRight } from 'lucide-react';
+import { STRATEGY_ICONS } from '@/components/icons/strategy-icons';
 
 export const dynamic = 'force-dynamic';
 
@@ -83,12 +84,21 @@ export default async function StrategiesPage() {
           <div className="container-default px-6">
             <p className="t-eyebrow mb-4">Active Strategies</p>
             <div className="space-y-6">
-              {STRATEGIES.map((strategy) => (
+              {STRATEGIES.map((strategy) => {
+                const StrategyIcon = STRATEGY_ICONS[strategy.slug];
+                return (
                 <div key={strategy.slug} className="card-enterprise group">
                   <div className="flex items-start justify-between mb-3">
-                    <h2 className="t-display-sub group-hover:text-amber-400">
-                      {strategy.name}
-                    </h2>
+                    <div className="flex items-center gap-4">
+                      {StrategyIcon && (
+                        <div className="icon-container shrink-0">
+                          <StrategyIcon className="w-6 h-6" />
+                        </div>
+                      )}
+                      <h2 className="t-display-sub group-hover:text-amber-400">
+                        {strategy.name}
+                      </h2>
+                    </div>
                     <div className="flex items-center gap-4 t-body-sm text-foreground/60">
                       <span className="font-mono">{strategy.timeframe}</span>
                       <span className="font-mono text-amber-400">{strategy.winRate} WR</span>
@@ -104,7 +114,8 @@ export default async function StrategiesPage() {
                     View full methodology <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </section>

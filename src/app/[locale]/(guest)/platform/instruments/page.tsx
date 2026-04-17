@@ -1,9 +1,10 @@
+'use client';
+
+import { useState } from 'react';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { Link } from '@/i18n/navigation';
 import { ArrowLeft } from 'lucide-react';
-
-export const dynamic = 'force-dynamic';
 
 interface Instrument {
   ticker: string;
@@ -50,7 +51,12 @@ const ASSET_CLASS_DESCRIPTIONS: Record<string, string> = {
     'Bitcoin and Ethereum are monitored for high-conviction momentum setups. Due to their higher volatility, position sizes are reduced and spread guard thresholds are elevated.',
 };
 
-export default async function InstrumentsPage() {
+const ASSET_CLASSES = Object.keys(INSTRUMENTS);
+
+export default function InstrumentsPage() {
+  const [activeTab, setActiveTab] = useState('Forex');
+  const activeItems = INSTRUMENTS[activeTab];
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <EnterpriseNav />
@@ -87,15 +93,34 @@ export default async function InstrumentsPage() {
           </div>
         </section>
 
-        {/* Instrument tables by asset class */}
-        {Object.entries(INSTRUMENTS).map(([assetClass, items]) => (
-          <section key={assetClass} className="section-padding border-b border-white/8">
-            <div className="container-default px-6">
-              <p className="t-eyebrow mb-4">Asset Class</p>
-              <h2 className="t-display-sub mb-4">{assetClass}</h2>
-              <p className="text-foreground/60 leading-relaxed mb-6">
-                {ASSET_CLASS_DESCRIPTIONS[assetClass]}
+        {/* Tab-based instrument browser */}
+        <section className="section-padding border-b border-white/8">
+          <div className="container-default px-6">
+            <p className="t-eyebrow mb-4">Asset Classes</p>
+            <h2 className="t-display-sub mb-8">Browse instruments</h2>
+
+            {/* Tab bar */}
+            <div className="tab-bar mb-10" role="tablist">
+              {ASSET_CLASSES.map((assetClass) => (
+                <button
+                  key={assetClass}
+                  role="tab"
+                  className={`tab-btn ${activeTab === assetClass ? 'active' : ''}`}
+                  onClick={() => setActiveTab(assetClass)}
+                  aria-selected={activeTab === assetClass}
+                >
+                  {assetClass}
+                  <span className="ml-2 text-xs text-foreground/40">({INSTRUMENTS[assetClass].length})</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Active tab content */}
+            <div>
+              <p className="text-foreground/60 leading-relaxed mb-8">
+                {ASSET_CLASS_DESCRIPTIONS[activeTab]}
               </p>
+
               <div className="table-enterprise-wrapper">
                 <table className="table-enterprise">
                   <thead>
@@ -108,7 +133,7 @@ export default async function InstrumentsPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {items.map((inst) => (
+                    {activeItems.map((inst) => (
                       <tr key={inst.ticker} className="border-b border-white/8 last:border-0">
                         <td className="font-mono px-6 py-3">{inst.ticker}</td>
                         <td className="px-6 py-3 text-foreground/60">{inst.name}</td>
@@ -121,8 +146,8 @@ export default async function InstrumentsPage() {
                 </table>
               </div>
             </div>
-          </section>
-        ))}
+          </div>
+        </section>
 
         {/* Selection criteria */}
         <section className="section-padding">

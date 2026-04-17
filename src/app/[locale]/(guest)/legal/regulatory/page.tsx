@@ -1,10 +1,36 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import { Link } from '@/i18n/navigation';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 
-export const dynamic = 'force-dynamic';
+const LEGAL_LINKS = [
+  { href: '/legal/terms', label: 'Terms of Service' },
+  { href: '/legal/privacy', label: 'Privacy Policy' },
+  { href: '/legal/risk-disclosure', label: 'Risk Disclosure' },
+  { href: '/legal/cookies', label: 'Cookie Policy' },
+];
 
-export default async function RegulatoryPage() {
+export default function RegulatoryPage() {
+  const [cmsBody, setCmsBody] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadCms() {
+      try {
+        const res = await fetch('/api/public/pages?slug=legal-regulatory');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data && data.body) {
+          setCmsBody(data.body);
+        }
+      } catch {
+        // keep fallback
+      }
+    }
+    loadCms();
+  }, []);
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <EnterpriseNav />
@@ -21,6 +47,13 @@ export default async function RegulatoryPage() {
         {/* Content */}
         <section className="section-padding">
           <div className="container-default px-6">
+            {cmsBody ? (
+              <div
+                className="container-prose space-y-10 text-foreground/60"
+                style={{ lineHeight: 1.7 }}
+                dangerouslySetInnerHTML={{ __html: cmsBody }}
+              />
+            ) : (
             <div className="container-prose space-y-10 text-foreground/60" style={{ lineHeight: 1.7 }}>
 
               {/* BabahAlgo Status */}
@@ -185,6 +218,27 @@ export default async function RegulatoryPage() {
                 </p>
               </section>
 
+            </div>
+            )}
+          </div>
+        </section>
+
+        {/* Related Documents */}
+        <section className="section-padding border-t border-white/8">
+          <div className="container-default px-6">
+            <p className="t-eyebrow mb-4">Related Documents</p>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {LEGAL_LINKS.map((doc) => (
+                <Link
+                  key={doc.href}
+                  href={doc.href}
+                  className="card-enterprise group hover:border-amber-500/30 transition-colors"
+                >
+                  <p className="text-sm font-medium group-hover:text-amber-400 transition-colors">
+                    {doc.label}
+                  </p>
+                </Link>
+              ))}
             </div>
           </div>
         </section>

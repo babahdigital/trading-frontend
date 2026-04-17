@@ -18,7 +18,7 @@ export default function RegisterPammPage() {
     name: '',
     email: '',
     password: '',
-    broker: '',
+    broker: 'Exness',
     mt5Account: '',
     tier: 'PAMM_BASIC',
   });
@@ -179,6 +179,13 @@ export default function RegisterPammPage() {
                           onChange={(e) => set('broker', e.target.value)}
                           placeholder="e.g. ICMarkets, Exness"
                         />
+                        <p className="text-xs text-foreground/50 mt-1.5">
+                          Recommended:{' '}
+                          <a href="#" className="text-amber-400 hover:text-amber-300 underline underline-offset-2 transition-colors">
+                            Exness
+                          </a>{' '}
+                          — our regulated broker partner
+                        </p>
                       </div>
                       <div>
                         <label className="text-sm font-medium mb-1 block">MT5 Account Number</label>

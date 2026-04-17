@@ -6,6 +6,7 @@ import { Link } from '@/i18n/navigation';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';
 import { Menu, X, ChevronDown, ArrowRight, BookOpen, Users, FileCheck, ShieldCheck, Scale, Library, FileText } from 'lucide-react';
 import Image from 'next/image';
+import { STRATEGY_ICONS } from '@/components/icons/strategy-icons';
 
 // ─── Mega Menu Data ───
 const PLATFORM_MENU = {
@@ -202,9 +203,15 @@ export function EnterpriseNav() {
             <div className="col-span-4">
               <MegaMenuHeading>Strategies</MegaMenuHeading>
               <div className="grid grid-cols-2 gap-x-6 gap-y-0.5">
-                {PLATFORM_MENU.strategies.map((item) => (
-                  <MegaMenuLink key={item.href} {...item} onClick={() => setActiveMenu(null)} />
-                ))}
+                {PLATFORM_MENU.strategies.map((item) => {
+                  const slug = item.href.split('/').pop() || '';
+                  const Icon = STRATEGY_ICONS[slug];
+                  return Icon ? (
+                    <MegaMenuIconLink key={item.href} href={item.href} label={item.label} icon={Icon} onClick={() => setActiveMenu(null)} />
+                  ) : (
+                    <MegaMenuLink key={item.href} {...item} onClick={() => setActiveMenu(null)} />
+                  );
+                })}
               </div>
             </div>
             {/* Featured card */}

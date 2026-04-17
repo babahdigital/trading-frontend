@@ -1,11 +1,12 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import { Link } from '@/i18n/navigation';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { ArrowRight } from 'lucide-react';
 
-export const dynamic = 'force-dynamic';
-
-const TEAM = [
+const TEAM_FALLBACK = [
   {
     name: 'Abdullah',
     role: 'Founder & Lead Quant',
@@ -18,7 +19,40 @@ const TEAM = [
   },
 ];
 
-export default async function TeamPage() {
+interface TeamMember {
+  name: string;
+  role: string;
+  bio: string;
+}
+
+export default function TeamPage() {
+  const [team, setTeam] = useState<TeamMember[]>(TEAM_FALLBACK);
+
+  useEffect(() => {
+    async function loadCms() {
+      try {
+        const res = await fetch('/api/public/pages?slug=about-team');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data && Array.isArray(data.sections) && data.sections.length > 0) {
+          const members: TeamMember[] = data.sections
+            .filter((s: Record<string, unknown>) => s.name && s.role)
+            .map((s: Record<string, unknown>) => ({
+              name: (s.name as string) || '',
+              role: (s.role as string) || '',
+              bio: (s.bio as string) || (s.description as string) || '',
+            }));
+          if (members.length > 0) {
+            setTeam(members);
+          }
+        }
+      } catch {
+        // keep fallback
+      }
+    }
+    loadCms();
+  }, []);
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <EnterpriseNav />
@@ -47,7 +81,7 @@ export default async function TeamPage() {
           <div className="container-default px-6">
             <p className="t-eyebrow mb-4">The People</p>
             <div className="grid md:grid-cols-2 gap-8">
-              {TEAM.map((member) => (
+              {team.map((member) => (
                 <div key={member.name} className="card-enterprise">
                   <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-6">
                     <span className="font-mono text-lg text-foreground/50">

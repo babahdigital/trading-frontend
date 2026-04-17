@@ -38,6 +38,30 @@ export default async function TechnologyPage() {
           </div>
         </section>
 
+        {/* Stats Bar */}
+        <section className="border-b border-white/8">
+          <div className="container-default px-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-white/8">
+              <div className="py-8 md:py-10 px-6 text-center">
+                <p className="font-mono text-2xl md:text-3xl text-amber-400 mb-1">&lt; 50ms</p>
+                <p className="t-eyebrow text-foreground/50">Latency</p>
+              </div>
+              <div className="py-8 md:py-10 px-6 text-center">
+                <p className="font-mono text-2xl md:text-3xl text-amber-400 mb-1">99.9%</p>
+                <p className="t-eyebrow text-foreground/50">Uptime</p>
+              </div>
+              <div className="py-8 md:py-10 px-6 text-center">
+                <p className="font-mono text-2xl md:text-3xl text-amber-400 mb-1">24/5</p>
+                <p className="t-eyebrow text-foreground/50">Operation</p>
+              </div>
+              <div className="py-8 md:py-10 px-6 text-center">
+                <p className="font-mono text-2xl md:text-3xl text-amber-400 mb-1">Multi</p>
+                <p className="t-eyebrow text-foreground/50">Region</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* AI Advisor */}
         <section className="section-padding border-b border-white/8">
           <div className="container-default px-6">

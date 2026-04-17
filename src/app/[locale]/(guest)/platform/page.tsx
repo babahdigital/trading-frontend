@@ -10,19 +10,19 @@ const PILLARS = [
     title: 'Strategy Framework',
     href: '/platform/strategies/smc',
     description:
-      'Six independently validated strategies spanning Smart Money Concepts, Wyckoff accumulation-distribution, Astronacci harmonic geometry, AI-driven momentum, energy-sector macro plays, and multi-day SMC swing positioning. Each strategy operates on a strict multi-timeframe confluence model -- H4 for bias, H1 for structure, M15 for entry, M5 for precision -- ensuring that every trade is backed by layered confirmation across time horizons.',
+      'Six independently validated strategies spanning Smart Money Concepts, Wyckoff accumulation-distribution, Astronacci harmonic geometry, AI-driven momentum, energy-sector macro plays, and multi-day SMC swing positioning. Each strategy operates on a strict multi-timeframe confluence model.',
   },
   {
     title: 'Technology Stack',
     href: '/platform/technology',
     description:
-      'A purpose-built execution pipeline anchored by Gemini 2.5 Flash for real-time market analysis and confidence scoring, a ZeroMQ bridge delivering sub-2ms order routing, and MetaTrader 5 for broker connectivity. The entire stack runs on isolated VPS infrastructure behind Cloudflare Tunnel with zero-trust network policies, PostgreSQL for persistent state, and Docker for reproducible deployments.',
+      'A purpose-built execution pipeline anchored by Gemini 2.5 Flash for real-time analysis and confidence scoring, a ZeroMQ bridge delivering sub-2ms order routing, and MetaTrader 5 for broker connectivity. The entire stack runs on isolated VPS infrastructure behind Cloudflare Tunnel.',
   },
   {
     title: 'Risk Discipline',
     href: '/platform/risk-framework',
     description:
-      'Capital preservation is not a feature -- it is the architecture. Twelve independent risk layers operate simultaneously: dynamic lot sizing, catastrophic breakers, daily loss limits, spread guards, news blackout windows, session drawdown monitors, cooldown trackers, and more. No single failure can cascade into uncontrolled loss.',
+      'Capital preservation is not a feature — it is the architecture. Twelve independent risk layers operate simultaneously: dynamic lot sizing, catastrophic breakers, daily loss limits, spread guards, news blackout windows, session drawdown monitors, and more.',
   },
 ];
 
@@ -43,191 +43,147 @@ const INSTRUMENTS = [
   { ticker: 'ETHUSD', assetClass: 'Crypto', status: 'Active' },
 ];
 
+const PIPELINE_STEPS = [
+  { step: 1, name: 'Market Data', desc: 'Real-time tick aggregation and candle construction' },
+  { step: 2, name: 'AI Advisor', desc: 'Gemini 2.5 Flash analysis, confidence scoring, bias' },
+  { step: 3, name: 'Strategy Engine', desc: 'Multi-timeframe confluence across active strategies' },
+  { step: 4, name: 'Risk Filter', desc: '12-layer validation: lot sizing, drawdown, spread, session' },
+  { step: 5, name: 'ZeroMQ Bridge', desc: 'Sub-2ms order serialization and transmission' },
+  { step: 6, name: 'MetaTrader 5', desc: 'Order execution via broker liquidity pool' },
+  { step: 7, name: 'Broker', desc: 'Fill confirmation, position tracking, equity reconciliation' },
+];
+
 export default async function PlatformPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <EnterpriseNav />
-      <main className="max-w-4xl mx-auto px-6 py-20">
+      <main id="main-content">
         {/* Hero */}
-        <section className="mb-20">
-          <h1 className="font-display text-display-lg md:text-display-xl text-foreground mb-6">
-            The infrastructure behind every decision.
-          </h1>
-          <p className="text-muted-foreground leading-relaxed mb-8 max-w-2xl">
-            BabahAlgo is a quantitative trading platform that combines multi-strategy
-            execution, AI-driven analysis, and institutional-grade risk management into a
-            single, auditable pipeline. Every component -- from signal generation to order
-            routing -- is purpose-built for consistency, transparency, and capital preservation.
-          </p>
-        </section>
-
-        {/* Pillars */}
-        <section className="mb-20">
-          <h2 className="font-display text-display-sm text-foreground mb-4">
-            Three pillars
-          </h2>
-          <p className="text-muted-foreground leading-relaxed mb-8">
-            The platform is organized around three foundational disciplines. Each operates
-            independently but reinforces the others.
-          </p>
-          <div className="space-y-6">
-            {PILLARS.map((pillar) => (
-              <div key={pillar.title} className="border border-border rounded-lg p-8 bg-card">
-                <h3 className="font-display text-xl text-foreground mb-3">
-                  {pillar.title}
-                </h3>
-                <p className="text-muted-foreground leading-relaxed mb-4">
-                  {pillar.description}
-                </p>
-                <Link
-                  href={pillar.href}
-                  className="inline-flex items-center gap-1.5 text-sm text-accent hover:text-accent/80 transition-colors"
-                >
-                  Learn more <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
-              </div>
-            ))}
+        <section className="section-padding border-b border-white/8">
+          <div className="container-default px-6">
+            <p className="t-eyebrow mb-4">Platform</p>
+            <h1 className="t-display-page mb-6">
+              The infrastructure behind<br className="hidden sm:block" /> every decision.
+            </h1>
+            <p className="t-lead text-foreground/60 max-w-3xl">
+              BabahAlgo is a quantitative trading platform combining multi-strategy
+              execution, AI-driven analysis, and institutional-grade risk management into a
+              single, auditable pipeline.
+            </p>
           </div>
         </section>
 
-        {/* Architecture */}
-        <section className="mb-20">
-          <h2 className="font-display text-display-sm text-foreground mb-4">
-            Execution architecture
-          </h2>
-          <p className="text-muted-foreground leading-relaxed mb-8">
-            Every trade follows a deterministic pipeline with no manual intervention. The
-            flow is linear and auditable at every stage.
-          </p>
-          <div className="border border-border rounded-lg p-8 bg-card">
-            <div className="space-y-4 font-mono text-sm text-muted-foreground">
-              <div className="flex items-center gap-3">
-                <span className="text-accent font-semibold">1.</span>
-                <span>Market Data Feeds</span>
-                <span className="text-border">---&gt;</span>
-                <span>Real-time tick aggregation and candle construction</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-accent font-semibold">2.</span>
-                <span>AI Advisor</span>
-                <span className="text-border">---&gt;</span>
-                <span>Gemini 2.5 Flash analysis, confidence scoring, bias determination</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-accent font-semibold">3.</span>
-                <span>Strategy Engine</span>
-                <span className="text-border">---&gt;</span>
-                <span>Multi-timeframe confluence check across active strategies</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-accent font-semibold">4.</span>
-                <span>Risk Filter</span>
-                <span className="text-border">---&gt;</span>
-                <span>12-layer validation: lot sizing, drawdown, spread, session checks</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-accent font-semibold">5.</span>
-                <span>ZeroMQ Bridge</span>
-                <span className="text-border">---&gt;</span>
-                <span>Sub-2ms order serialization and transmission</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-accent font-semibold">6.</span>
-                <span>MetaTrader 5</span>
-                <span className="text-border">---&gt;</span>
-                <span>Order execution via broker liquidity pool</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-accent font-semibold">7.</span>
-                <span>Broker</span>
-                <span className="text-border">---&gt;</span>
-                <span>Fill confirmation, position tracking, equity reconciliation</span>
+        {/* Three Pillars */}
+        <section className="section-padding border-b border-white/8">
+          <div className="container-default px-6">
+            <p className="t-eyebrow mb-3">Foundation</p>
+            <h2 className="t-display-sub mb-4">Three pillars</h2>
+            <p className="t-body text-foreground/60 mb-12 max-w-2xl">
+              The platform is organized around three foundational disciplines. Each operates
+              independently but reinforces the others.
+            </p>
+            <div className="grid lg:grid-cols-3 gap-6">
+              {PILLARS.map((pillar) => (
+                <Link key={pillar.title} href={pillar.href} className="card-enterprise group flex flex-col">
+                  <h3 className="text-xl font-medium mb-4 group-hover:text-amber-400 transition-colors">
+                    {pillar.title}
+                  </h3>
+                  <p className="t-body-sm text-foreground/60 leading-relaxed mb-6 flex-1">
+                    {pillar.description}
+                  </p>
+                  <span className="btn-tertiary text-sm">
+                    Learn more <ArrowRight className="w-3.5 h-3.5" />
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Execution Pipeline */}
+        <section className="section-padding border-b border-white/8">
+          <div className="container-default px-6">
+            <p className="t-eyebrow mb-3">Architecture</p>
+            <h2 className="t-display-sub mb-4">Execution pipeline</h2>
+            <p className="t-body text-foreground/60 mb-12 max-w-2xl">
+              Every trade follows a deterministic pipeline with no manual intervention.
+            </p>
+            <div className="card-enterprise p-8">
+              <div className="space-y-0">
+                {PIPELINE_STEPS.map((s, i) => (
+                  <div key={s.step} className="flex items-start gap-4 py-4 border-b border-white/[0.04] last:border-b-0">
+                    <span className="font-mono text-amber-400 font-semibold text-sm w-6 shrink-0 mt-0.5">{s.step}.</span>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
+                      <span className="font-mono text-sm text-foreground min-w-[140px]">{s.name}</span>
+                      {i < PIPELINE_STEPS.length - 1 && <span className="hidden sm:inline text-foreground/20">&rarr;</span>}
+                      <span className="text-sm text-foreground/50">{s.desc}</span>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         </section>
 
         {/* Instruments */}
-        <section className="mb-20">
-          <h2 className="font-display text-display-sm text-foreground mb-4">
-            Instruments coverage
-          </h2>
-          <p className="text-muted-foreground leading-relaxed mb-8">
-            14 instruments across four asset classes, selected for liquidity depth, spread
-            efficiency, and strategy compatibility.
-          </p>
-          <div className="border border-border rounded-lg bg-card overflow-hidden">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left text-sm font-semibold text-foreground px-6 py-3">
-                    Ticker
-                  </th>
-                  <th className="text-left text-sm font-semibold text-foreground px-6 py-3">
-                    Asset Class
-                  </th>
-                  <th className="text-right text-sm font-semibold text-foreground px-6 py-3">
-                    Status
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {INSTRUMENTS.map((inst) => (
-                  <tr key={inst.ticker} className="border-b border-border last:border-0">
-                    <td className="font-mono text-sm px-6 py-3">{inst.ticker}</td>
-                    <td className="text-sm text-muted-foreground px-6 py-3">
-                      {inst.assetClass}
-                    </td>
-                    <td className="font-mono text-sm text-right px-6 py-3 text-accent">
-                      {inst.status}
-                    </td>
+        <section className="section-padding border-b border-white/8">
+          <div className="container-default px-6">
+            <p className="t-eyebrow mb-3">Coverage</p>
+            <h2 className="t-display-sub mb-4">Instruments</h2>
+            <p className="t-body text-foreground/60 mb-12 max-w-2xl">
+              14 instruments across four asset classes, selected for liquidity depth, spread
+              efficiency, and strategy compatibility.
+            </p>
+            <div className="table-enterprise-wrapper">
+              <table className="table-enterprise">
+                <thead>
+                  <tr>
+                    <th>Ticker</th>
+                    <th>Asset Class</th>
+                    <th className="text-right">Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div className="mt-4">
-            <Link
-              href="/platform/instruments"
-              className="inline-flex items-center gap-1.5 text-sm text-accent hover:text-accent/80 transition-colors"
-            >
-              View detailed instrument specifications <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
+                </thead>
+                <tbody>
+                  {INSTRUMENTS.map((inst) => (
+                    <tr key={inst.ticker}>
+                      <td className="font-semibold">{inst.ticker}</td>
+                      <td className="!text-foreground/50">{inst.assetClass}</td>
+                      <td className="text-right text-emerald-400">{inst.status}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="mt-4">
+              <Link href="/platform/instruments" className="btn-tertiary text-sm">
+                View detailed specifications <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
           </div>
         </section>
 
-        {/* Downloads */}
-        <section className="mb-20">
-          <h2 className="font-display text-display-sm text-foreground mb-4">
-            Documentation
-          </h2>
-          <p className="text-muted-foreground leading-relaxed mb-8">
-            Detailed methodology and technical documentation available for review.
-          </p>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="border border-border rounded-lg p-8 bg-card">
-              <h3 className="font-display text-lg text-foreground mb-2">
-                Methodology PDF
-              </h3>
-              <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-                Complete description of strategy logic, entry/exit criteria, backtesting
-                methodology, and walk-forward validation results across all six strategies.
-              </p>
-              <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground/50">
-                Coming soon <ArrowRight className="w-3.5 h-3.5" />
-              </span>
-            </div>
-            <div className="border border-border rounded-lg p-8 bg-card">
-              <h3 className="font-display text-lg text-foreground mb-2">
-                Technical Whitepaper
-              </h3>
-              <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-                Infrastructure architecture, security model, execution latency benchmarks,
-                and risk framework formal specification.
-              </p>
-              <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground/50">
-                Coming soon <ArrowRight className="w-3.5 h-3.5" />
-              </span>
+        {/* Documentation */}
+        <section className="section-padding">
+          <div className="container-default px-6">
+            <p className="t-eyebrow mb-3">Documents</p>
+            <h2 className="t-display-sub mb-8">Documentation</h2>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="card-enterprise">
+                <h3 className="text-lg font-medium mb-2">Methodology PDF</h3>
+                <p className="t-body-sm text-foreground/60 leading-relaxed mb-4">
+                  Complete description of strategy logic, entry/exit criteria, backtesting
+                  methodology, and walk-forward validation results.
+                </p>
+                <span className="text-sm text-foreground/30">Coming soon</span>
+              </div>
+              <div className="card-enterprise">
+                <h3 className="text-lg font-medium mb-2">Technical Whitepaper</h3>
+                <p className="t-body-sm text-foreground/60 leading-relaxed mb-4">
+                  Infrastructure architecture, security model, execution latency benchmarks,
+                  and risk framework formal specification.
+                </p>
+                <span className="text-sm text-foreground/30">Coming soon</span>
+              </div>
             </div>
           </div>
         </section>

@@ -7,7 +7,6 @@ import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { EquityCurve } from '@/components/charts/equity-curve';
 import { AnimatedSection } from '@/components/ui/animated-section';
 import { ArrowRight, ArrowUpRight, Shield, Zap, Brain, ChevronDown, Check } from 'lucide-react';
-import { StrategyIcon, TechnologyIcon, RiskIcon } from '@/components/icons/enterprise-icons';
 
 // ─── Demo equity data generator ───
 function generateDemoEquity(): { time: string; value: number }[] {

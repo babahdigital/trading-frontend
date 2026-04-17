@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import Image from 'next/image';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -40,15 +40,12 @@ export default function LoginPage() {
         return;
       }
 
-      // Store tokens
       localStorage.setItem('access_token', data.accessToken);
       localStorage.setItem('refresh_token', data.refreshToken);
       localStorage.setItem('user', JSON.stringify(data.user));
 
-      // Set cookie for middleware
       document.cookie = `access_token=${data.accessToken}; path=/; max-age=${15 * 60}; SameSite=Lax`;
 
-      // Redirect based on role
       if (data.user.role === 'ADMIN') {
         router.push('/admin');
       } else {
@@ -62,71 +59,86 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">BabahAlgo</CardTitle>
-          <CardDescription>Autonomous Intelligence. Institutional Precision.</CardDescription>
-        </CardHeader>
-        <CardContent>
+    <div className="min-h-screen grid lg:grid-cols-5">
+      {/* Left — Form (60%) */}
+      <div className="col-span-3 flex flex-col justify-center px-6 sm:px-12 lg:px-20 py-12">
+        <div className="w-full max-w-md mx-auto lg:mx-0">
+          {/* Logo */}
+          <Image
+            src="/logo/babahalgo-horizontal-inverse.png"
+            alt="BabahAlgo"
+            width={140}
+            height={28}
+            className="h-7 w-auto mb-12 hidden dark:block"
+          />
+          <Image
+            src="/logo/babahalgo-horizontal-dual.png"
+            alt="BabahAlgo"
+            width={140}
+            height={28}
+            className="h-7 w-auto mb-12 dark:hidden"
+          />
+
+          <h1 className="t-display-sub mb-2">Welcome back.</h1>
+          <p className="t-body text-foreground/60 mb-10">Sign in to continue.</p>
+
           {/* Mode toggle */}
-          <div className="flex gap-2 mb-6">
-            <Button
-              variant={mode === 'admin' ? 'default' : 'outline'}
-              className="flex-1"
-              onClick={() => setMode('admin')}
+          <div className="tab-bar mb-8">
+            <button
               type="button"
+              onClick={() => setMode('admin')}
+              className={`tab-btn ${mode === 'admin' ? 'active' : ''}`}
             >
               Admin / PAMM
-            </Button>
-            <Button
-              variant={mode === 'license' ? 'default' : 'outline'}
-              className="flex-1"
-              onClick={() => setMode('license')}
+            </button>
+            <button
               type="button"
+              onClick={() => setMode('license')}
+              className={`tab-btn ${mode === 'license' ? 'active' : ''}`}
             >
               License Key
-            </Button>
+            </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             {mode === 'admin' ? (
-              <>
-                <div>
-                  <label className="text-sm font-medium text-foreground mb-1 block">Email</label>
-                  <Input
-                    type="email"
-                    placeholder="admin@babahalgo.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-              </>
+              <div>
+                <label className="t-eyebrow mb-2 block">Email</label>
+                <Input
+                  type="email"
+                  placeholder="you@company.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="font-mono"
+                  required
+                />
+              </div>
             ) : (
               <>
                 <div>
-                  <label className="text-sm font-medium text-foreground mb-1 block">License Key</label>
+                  <label className="t-eyebrow mb-2 block">License Key</label>
                   <Input
                     placeholder="TRAD-XXXX-XXXX-XXXX-XXXX"
                     value={licenseKey}
                     onChange={(e) => setLicenseKey(e.target.value)}
+                    className="font-mono"
                     required
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-foreground mb-1 block">MT5 Account</label>
+                  <label className="t-eyebrow mb-2 block">MT5 Account</label>
                   <Input
                     placeholder="12345678"
                     value={mt5Account}
                     onChange={(e) => setMt5Account(e.target.value)}
+                    className="font-mono"
                   />
                 </div>
               </>
             )}
 
             <div>
-              <label className="text-sm font-medium text-foreground mb-1 block">Password</label>
+              <label className="t-eyebrow mb-2 block">Password</label>
               <Input
                 type="password"
                 placeholder="Enter password"
@@ -137,17 +149,49 @@ export default function LoginPage() {
             </div>
 
             {error && (
-              <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
+              <div className="text-sm text-red-400 bg-red-400/10 p-3 rounded-md">
                 {error}
               </div>
             )}
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="btn-primary w-full h-12 text-sm font-medium" disabled={loading}>
               {loading ? 'Signing in...' : 'Sign In'}
             </Button>
+
+            <div className="flex items-center justify-between text-sm">
+              <a href="/contact" className="text-foreground/50 hover:text-amber-400 transition-colors">
+                Forgot password?
+              </a>
+              <a href="/contact" className="text-foreground/50 hover:text-amber-400 transition-colors">
+                Need access? Contact us
+              </a>
+            </div>
           </form>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+
+      {/* Right — Editorial panel (40%) */}
+      <div
+        className="hidden lg:flex col-span-2 flex-col justify-center items-center px-12 relative"
+        style={{ background: 'var(--brand-midnight)' }}
+      >
+        {/* Subtle texture overlay */}
+        <div className="absolute inset-0 opacity-[0.03]" style={{
+          backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.3) 1px, transparent 0)',
+          backgroundSize: '24px 24px',
+        }} />
+
+        <div className="relative max-w-sm text-center">
+          <div className="w-12 h-px bg-amber-500/40 mx-auto mb-8" />
+          <blockquote className="font-display text-[28px] leading-snug italic text-foreground/80 mb-8">
+            &ldquo;Discipline isn&rsquo;t a strategy. It&rsquo;s the substrate every strategy must run on.&rdquo;
+          </blockquote>
+          <p className="t-body-sm text-foreground/40 tracking-wide">
+            From the BabahAlgo manifesto
+          </p>
+          <div className="w-12 h-px bg-amber-500/40 mx-auto mt-8" />
+        </div>
+      </div>
     </div>
   );
 }

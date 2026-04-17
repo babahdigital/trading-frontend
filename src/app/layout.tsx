@@ -16,6 +16,35 @@ export const metadata: Metadata = {
   },
 };
 
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'BabahAlgo',
+  legalName: 'CV Babah Digital',
+  url: 'https://babahalgo.com',
+  logo: 'https://babahalgo.com/logo/babahalgo-icon-256.png',
+  description: 'Institutional-grade quantitative trading infrastructure powered by AI.',
+  address: {
+    '@type': 'PostalAddress',
+    addressCountry: 'ID',
+  },
+  contactPoint: [
+    {
+      '@type': 'ContactPoint',
+      email: 'hello@babahalgo.com',
+      contactType: 'customer service',
+    },
+    {
+      '@type': 'ContactPoint',
+      email: 'ir@babahalgo.com',
+      contactType: 'institutional inquiries',
+    },
+  ],
+  sameAs: [
+    'https://t.me/babahalgo',
+  ],
+};
+
 export default async function RootLayout({
   children,
 }: {
@@ -24,7 +53,16 @@ export default async function RootLayout({
   const locale = await getLocale();
   return (
     <html lang={locale} className="dark">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body className="font-body">
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:bg-amber-500 focus:text-black focus:px-4 focus:py-2 focus:rounded-md focus:text-sm">
+          Skip to main content
+        </a>
         {children}
         <ChatWidget />
       </body>

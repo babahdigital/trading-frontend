@@ -6,17 +6,21 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 export const revalidate = 0;
 
-const WORKER_SCOPES = [
-  { key: 'signals', label: 'Signal Consumer' },
-  { key: 'trade_events', label: 'Trade Events Consumer' },
-  { key: 'research_ingester', label: 'Research Ingester' },
+const WORKER_SCOPES: Array<{
+  key: string;
+  label: string;
+  /** Max age before worker is considered stale (ms) */
+  staleAfterMs: number;
+}> = [
+  { key: 'signals', label: 'Signal Consumer', staleAfterMs: 10 * 60 * 1000 },            // 10m (runs every 30s)
+  { key: 'trade_events', label: 'Trade Events Consumer', staleAfterMs: 10 * 60 * 1000 },  // 10m (runs every 20s)
+  { key: 'research_ingester', label: 'Research Ingester', staleAfterMs: 7 * 60 * 60 * 1000 }, // 7h (runs every 6h)
 ];
 
 export async function GET() {
   const [dbOk, vps1, workerRuns, consumerStates, recentChecks] = await Promise.all([
     prisma.$queryRaw`SELECT 1`.then(() => true).catch(() => false),
     getHealth(),
-    // Last run per worker key
     prisma.workerRun.findMany({
       orderBy: { startedAt: 'desc' },
       take: 100,
@@ -32,19 +36,23 @@ export async function GET() {
     }),
   ]);
 
-  const workerComponents = WORKER_SCOPES.map(({ key, label }) => {
+  const workerComponents = WORKER_SCOPES.map(({ key, label, staleAfterMs }) => {
     const last = workerRuns.find((r) => r.worker === key);
     if (!last) {
       return { name: label, status: 'degraded' as const, description: 'Not yet run' };
     }
     const ageMs = Date.now() - last.startedAt.getTime();
-    const mins = Math.round(ageMs / 60000);
     const failed = last.status === 'ERROR';
-    const stale = ageMs > 30 * 60 * 1000;
+    const stale = ageMs > staleAfterMs;
     const status = failed || stale ? 'degraded' as const : 'operational' as const;
+
+    // Human-friendly age
+    const mins = Math.round(ageMs / 60000);
+    const ageStr = mins < 60 ? `${mins}m ago` : `${Math.round(mins / 60)}h ago`;
+
     const desc = failed
-      ? `Last run ${mins}m ago — error: ${last.errorMessage?.slice(0, 80) ?? 'unknown'}`
-      : `Last run ${mins}m ago — ${last.itemsProcessed} items (${last.status})`;
+      ? `Last run ${ageStr} — error: ${last.errorMessage?.slice(0, 80) ?? 'unknown'}`
+      : `Last run ${ageStr} — ${last.itemsProcessed} items`;
     return { name: label, status, description: desc };
   });
 
@@ -57,12 +65,12 @@ export async function GET() {
     {
       name: 'Database',
       status: dbOk ? 'operational' as const : 'outage' as const,
-      description: 'PostgreSQL primary',
+      description: dbOk ? 'PostgreSQL connected' : 'PostgreSQL unreachable',
     },
     {
       name: 'Trading Backend (VPS 1)',
       status: vps1.ok ? 'operational' as const : 'degraded' as const,
-      description: vps1.ok ? `Latency ${vps1.latencyMs}ms` : `Latency ${vps1.latencyMs}ms — ${vps1.error ?? 'unreachable'}`,
+      description: vps1.ok ? `Latency ${vps1.latencyMs}ms` : `${vps1.error ?? 'Unreachable'} (${vps1.latencyMs}ms)`,
     },
     ...workerComponents,
   ];

@@ -24,6 +24,26 @@ services:
       - ADMIN_PASSWORD=${ADMIN_PASSWORD:-}
       - NODE_ENV=production
       - NEXT_PUBLIC_APP_URL=${APP_URL:-https://babahalgo.com}
+      # Telegram
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+      - TELEGRAM_ADMIN_CHAT_ID=${TELEGRAM_ADMIN_CHAT_ID:-}
+      # Email SMTP
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - SMTP_FROM=${SMTP_FROM:-BabahAlgo <no-reply@babahalgo.com>}
+      # Payment — Midtrans
+      - MIDTRANS_SERVER_KEY=${MIDTRANS_SERVER_KEY:-}
+      - MIDTRANS_CLIENT_KEY=${MIDTRANS_CLIENT_KEY:-}
+      # Payment — Xendit
+      - XENDIT_SECRET_KEY=${XENDIT_SECRET_KEY:-}
+      - XENDIT_WEBHOOK_TOKEN=${XENDIT_WEBHOOK_TOKEN:-}
+      # Observability — Sentry
+      - SENTRY_DSN=${SENTRY_DSN:-}
+      - NEXT_PUBLIC_SENTRY_DSN=${SENTRY_DSN:-}
+      - SENTRY_ORG=${SENTRY_ORG:-}
+      - SENTRY_PROJECT=${SENTRY_PROJECT:-}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     healthcheck:

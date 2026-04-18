@@ -5,7 +5,7 @@ import { locales, defaultLocale } from '@/i18n/config';
 
 const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 
-const publicPaths = ['/login', '/api/auth/login', '/api/auth/register', '/api/auth/refresh', '/api/health', '/api/public/', '/api/client/inquiries', '/api/chat', '/api/cron/', '/manifest.json'];
+const publicPaths = ['/login', '/api/auth/login', '/api/auth/register', '/api/auth/refresh', '/api/health', '/api/public/', '/api/client/inquiries', '/api/chat', '/api/cron/', '/api/billing/webhook/', '/manifest.json'];
 
 // In-memory rate limit store (per-process, resets on restart)
 const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
@@ -108,6 +108,23 @@ function isNonGuestPath(pathname: string): boolean {
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const host = request.headers.get('host') ?? '';
+
+  // api.babahalgo.com subdomain → rewrite to /api/* routes
+  if (host.startsWith('api.')) {
+    // Health check at root
+    if (pathname === '/' || pathname === '') {
+      return NextResponse.rewrite(new URL('/api/health', request.url));
+    }
+    // Already prefixed with /api — pass through
+    if (pathname.startsWith('/api/')) {
+      // Continue to rate limiting and auth below
+    } else {
+      // Rewrite: api.babahalgo.com/billing/checkout → /api/billing/checkout
+      const apiUrl = new URL(`/api${pathname}${request.nextUrl.search}`, request.url);
+      return NextResponse.rewrite(apiUrl);
+    }
+  }
 
   // Legacy redirects (old pages → new enterprise pages)
   const redirectTarget = getLegacyRedirect(pathname);

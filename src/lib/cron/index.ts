@@ -3,6 +3,7 @@ import { runHealthCheckCron } from './health-check';
 import { runSignalConsumer } from '@/lib/consumers/signal';
 import { runTradeEventsConsumer } from '@/lib/consumers/trade-events';
 import { runResearchIngester } from '@/lib/ingesters/research';
+import { expireSubscriptions } from '@/lib/subscription/lifecycle';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('cron');
@@ -55,6 +56,11 @@ export function initCronJobs() {
     }, 6 * 60 * 60 * 1000);
     log.info('Research ingester enabled (6h interval)');
   }
+
+  // Subscription expiry — every hour (expire + send renewal reminders)
+  setInterval(async () => {
+    try { await expireSubscriptions(); } catch (err) { log.error('Subscription expiry error:', err); }
+  }, 60 * 60 * 1000);
 
   log.info('Cron jobs initialized.');
 }

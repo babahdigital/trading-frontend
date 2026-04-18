@@ -1,7 +1,10 @@
 import { prisma } from '@/lib/db/prisma';
 import { getLatestSignals, Vps1Error } from '@/lib/vps1/client';
 import { commitConsumerProgress, getLastSeenId } from './state';
+import { dispatchSignalToSubscribers } from '@/lib/notifier/dispatcher';
+import type { Signal } from '@/types/signal';
 import { createLogger } from '@/lib/logger';
+import * as Sentry from '@sentry/nextjs';
 
 const log = createLogger('signal-consumer');
 const SCOPE = 'signals';
@@ -64,6 +67,28 @@ export async function runSignalConsumer(opts: {
           update: {},
         });
         if (sid > highest) highest = sid;
+
+        // Dispatch to subscribers via Telegram/Email
+        try {
+          const dispatchSignal: Signal = {
+            id: s.id,
+            emitted_at: s.emitted_at,
+            pair: s.pair,
+            direction: s.direction,
+            entry_type: s.entry_type ?? 'unknown',
+            confidence: s.confidence ?? 0,
+            market_condition: null,
+            entry_price_hint: s.entry_price ?? null,
+            take_profit: s.take_profit ?? null,
+            stop_loss: s.stop_loss ?? null,
+            reasoning: s.reasoning ?? '',
+            indicator_snapshot_summary: s.indicator_snapshot ?? {},
+          };
+          const dispatch = await dispatchSignalToSubscribers(dispatchSignal);
+          log.info(`Signal ${s.id}: dispatched to ${dispatch.sent} subs, ${dispatch.failed} failed, ${dispatch.skipped} skipped`);
+        } catch (dispatchErr) {
+          log.error(`Signal ${s.id} dispatch failed:`, dispatchErr);
+        }
       } catch (err) {
         log.error(`Failed to persist signal ${s.id}:`, err);
       }
@@ -84,6 +109,7 @@ export async function runSignalConsumer(opts: {
   } catch (err) {
     const msg = err instanceof Vps1Error ? `${err.status} ${err.message}` : err instanceof Error ? err.message : 'unknown';
     log.error('Signal consumer failed:', msg);
+    Sentry.captureException(err, { tags: { worker: 'signal-consumer' } });
     await commitConsumerProgress(SCOPE, await getLastSeenId(SCOPE), 'error', { error: msg });
     await prisma.workerRun.update({
       where: { id: run.id },

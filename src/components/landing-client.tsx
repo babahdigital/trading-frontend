@@ -557,49 +557,49 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
           ═══════════════════════════════════════════ */}
       <section className="section-padding border-t border-white/8">
         <div className="container-default px-6">
-          <div className="grid lg:grid-cols-5 gap-16">
-            <div className="lg:col-span-2">
-              <AnimatedSection>
-                <div className="t-eyebrow mb-4">FAQ</div>
-                <h2 className="t-display-section text-foreground mb-4">Common questions.</h2>
-                <p className="t-body text-ink-400 mb-8">
-                  Can&apos;t find what you&apos;re looking for?
-                </p>
-                <Link href="/contact" className="btn-tertiary">
-                  Schedule a 30-min briefing
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-              </AnimatedSection>
-            </div>
+          {/* Header row — heading left, CTA right */}
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-12">
+            <AnimatedSection>
+              <div className="t-eyebrow mb-4">FAQ</div>
+              <h2 className="t-display-section text-foreground mb-2">Common questions.</h2>
+              <p className="t-body text-ink-400">
+                Can&apos;t find what you&apos;re looking for?
+              </p>
+            </AnimatedSection>
+            <AnimatedSection delay={0.1}>
+              <Link href="/contact" className="btn-tertiary shrink-0">
+                Schedule a 30-min briefing
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </AnimatedSection>
+          </div>
 
-            <div className="lg:col-span-3">
-              <div className="divide-y divide-white/8">
-                {displayFaqs.map((faq, i) => (
-                  <AnimatedSection key={i} delay={0.05 * i}>
-                    <div className="py-6">
-                      <button
-                        type="button"
-                        className="w-full flex items-start justify-between gap-4 text-left"
-                        onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                        aria-expanded={openFaq === i}
-                      >
-                        <span className="font-display text-lg md:text-xl font-medium text-foreground">
-                          {faq.q}
-                        </span>
-                        <span className="shrink-0 mt-1.5">
-                          <ChevronDown className={`w-5 h-5 text-ink-400 transition-transform duration-200 ${openFaq === i ? 'rotate-180' : ''}`} />
-                        </span>
-                      </button>
-                      {openFaq === i && (
-                        <div className="mt-4 t-body text-ink-400 max-w-prose leading-relaxed">
-                          {faq.a}
-                        </div>
-                      )}
+          {/* FAQ grid — 2 columns on desktop */}
+          <div className="grid lg:grid-cols-2 gap-x-12">
+            {displayFaqs.map((faq, i) => (
+              <AnimatedSection key={i} delay={0.05 * i}>
+                <div className="py-5 border-b border-white/8">
+                  <button
+                    type="button"
+                    className="w-full flex items-start justify-between gap-4 text-left"
+                    onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                    aria-expanded={openFaq === i}
+                  >
+                    <span className="font-display text-base md:text-lg font-medium text-foreground">
+                      {faq.q}
+                    </span>
+                    <span className="shrink-0 mt-1">
+                      <ChevronDown className={`w-5 h-5 text-ink-400 transition-transform duration-200 ${openFaq === i ? 'rotate-180' : ''}`} />
+                    </span>
+                  </button>
+                  {openFaq === i && (
+                    <div className="mt-3 t-body-sm text-ink-400 leading-relaxed">
+                      {faq.a}
                     </div>
-                  </AnimatedSection>
-                ))}
-              </div>
-            </div>
+                  )}
+                </div>
+              </AnimatedSection>
+            ))}
           </div>
         </div>
       </section>

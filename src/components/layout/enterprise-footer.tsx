@@ -27,6 +27,8 @@ const FOOTER_LINKS = {
     { href: '/about/team', label: 'Team' },
     { href: '/about/governance', label: 'Governance' },
     { href: '/research', label: 'Research' },
+    { href: '/changelog', label: 'Changelog' },
+    { href: '/status', label: 'Status' },
     { href: '/contact', label: 'Contact' },
   ],
   legal: [

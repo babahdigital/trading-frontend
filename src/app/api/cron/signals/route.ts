@@ -1,0 +1,24 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { runSignalConsumer } from '@/lib/consumers/signal';
+
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
+function authorized(req: NextRequest): boolean {
+  const header = req.headers.get('x-cron-secret') ?? req.nextUrl.searchParams.get('secret');
+  const expected = process.env.CRON_SECRET;
+  return !!expected && header === expected;
+}
+
+export async function GET(req: NextRequest) {
+  if (!authorized(req)) {
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  }
+  const result = await runSignalConsumer();
+  return NextResponse.json({
+    ...result,
+    lastSeenId: result.lastSeenId.toString(),
+  });
+}
+
+export const POST = GET;

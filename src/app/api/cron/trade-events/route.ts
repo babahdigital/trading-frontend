@@ -1,0 +1,21 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { runTradeEventsConsumer } from '@/lib/consumers/trade-events';
+
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
+function authorized(req: NextRequest): boolean {
+  const header = req.headers.get('x-cron-secret') ?? req.nextUrl.searchParams.get('secret');
+  const expected = process.env.CRON_SECRET;
+  return !!expected && header === expected;
+}
+
+export async function GET(req: NextRequest) {
+  if (!authorized(req)) {
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  }
+  const result = await runTradeEventsConsumer();
+  return NextResponse.json(result);
+}
+
+export const POST = GET;

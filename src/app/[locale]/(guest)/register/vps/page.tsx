@@ -104,7 +104,7 @@ export default function RegisterVpsPage() {
                           className="font-mono"
                           value={form.phone}
                           onChange={(e) => set('phone', e.target.value)}
-                          placeholder="+62 xxx-xxxx-xxxx"
+                          placeholder="+628123456789"
                         />
                       </div>
                       <div>

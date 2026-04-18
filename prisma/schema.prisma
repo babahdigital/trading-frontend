@@ -9,18 +9,22 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  passwordHash  String
-  role          Role      @default(CLIENT)
-  name          String?
-  mt5Account    String?   @unique
-  twoFaSecret   String?
-  createdAt     DateTime  @default(now())
-  lastLoginAt   DateTime?
-  licenses      License[]
-  subscriptions Subscription[]
-  sessions      Session[]
+  id              String    @id @default(cuid())
+  email           String    @unique
+  passwordHash    String
+  role            Role      @default(CLIENT)
+  name            String?
+  mt5Account      String?   @unique
+  twoFaSecret     String?
+  twoFaEnabled    Boolean   @default(false)
+  recoveryCodes   Json      @default("[]")
+  telegramChatId  String?
+  whatsappNumber  String?
+  createdAt       DateTime  @default(now())
+  lastLoginAt     DateTime?
+  licenses        License[]
+  subscriptions   Subscription[]
+  sessions        Session[]
 }
 
 enum Role {
@@ -401,4 +405,168 @@ enum ArticleCategory {
   RISK
   OPERATIONS
   MARKET_ANALYSIS
+}
+
+// =============================================
+// Autonomy Layer — VPS1 integration
+// =============================================
+
+model ConsumerState {
+  id          String   @id @default(cuid())
+  scope       String   @unique
+  lastSeenId  BigInt   @default(0)
+  lastRunAt   DateTime?
+  lastStatus  String?
+  lastError   String?  @db.Text
+  runCount    Int      @default(0)
+  updatedAt   DateTime @updatedAt
+}
+
+model SignalAuditLog {
+  id                String    @id @default(cuid())
+  sourceId          BigInt    @unique
+  pair              String
+  direction         String
+  entryType         String?
+  lot               Decimal?  @db.Decimal(10, 2)
+  entryPrice        Decimal?  @db.Decimal(15, 5)
+  stopLoss          Decimal?  @db.Decimal(15, 5)
+  takeProfit        Decimal?  @db.Decimal(15, 5)
+  confidence        Decimal?  @db.Decimal(4, 2)
+  reasoning         String?   @db.Text
+  indicatorSnapshot Json?
+  emittedAt         DateTime
+  outcome           SignalOutcome @default(PENDING)
+  closePrice        Decimal?  @db.Decimal(15, 5)
+  closeReason       String?
+  profitUsd         Decimal?  @db.Decimal(12, 4)
+  closedAt          DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([pair, emittedAt])
+  @@index([outcome, emittedAt])
+  @@index([emittedAt])
+}
+
+enum SignalOutcome {
+  PENDING
+  OPEN
+  WIN
+  LOSS
+  BREAKEVEN
+  CANCELLED
+}
+
+model NotificationLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  channel    NotificationChannel
+  category   String
+  refId      String?
+  payload    Json     @default("{}")
+  status     NotificationStatus @default(PENDING)
+  deliveredAt DateTime?
+  errorMessage String? @db.Text
+  createdAt  DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+}
+
+enum NotificationChannel {
+  TELEGRAM
+  EMAIL
+  WHATSAPP
+  INAPP
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+  SKIPPED
+}
+
+model NotificationPreference {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  channels  Json     @default("[\"INAPP\"]")
+  minConfidence Decimal? @db.Decimal(4, 2)
+  language  String   @default("id")
+  timezone  String   @default("Asia/Jakarta")
+  quietHoursStart String?
+  quietHoursEnd   String?
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}
+
+model Invoice {
+  id             String        @id @default(cuid())
+  userId         String
+  number         String        @unique
+  amountUsd      Decimal       @db.Decimal(10, 2)
+  currency       String        @default("USD")
+  status         InvoiceStatus @default(DUE)
+  issuedAt       DateTime      @default(now())
+  dueAt          DateTime
+  paidAt         DateTime?
+  description    String        @db.Text
+  subscriptionId String?
+  licenseId      String?
+  periodStart    DateTime?
+  periodEnd      DateTime?
+  pdfUrl         String?
+  metadata       Json          @default("{}")
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([userId, issuedAt])
+  @@index([status, dueAt])
+}
+
+enum InvoiceStatus {
+  DRAFT
+  DUE
+  PAID
+  OVERDUE
+  CANCELLED
+  REFUNDED
+}
+
+model Changelog {
+  id          String   @id @default(cuid())
+  version     String   @unique
+  title       String
+  title_en    String?
+  body        String   @db.Text
+  body_en     String?  @db.Text
+  category    ChangelogCategory @default(FEATURE)
+  releasedAt  DateTime
+  isPublished Boolean  @default(false)
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+
+  @@index([isPublished, releasedAt])
+}
+
+enum ChangelogCategory {
+  FEATURE
+  IMPROVEMENT
+  FIX
+  SECURITY
+  BREAKING
+}
+
+model WorkerRun {
+  id         String   @id @default(cuid())
+  worker     String
+  startedAt  DateTime @default(now())
+  finishedAt DateTime?
+  status     String   @default("RUNNING")
+  itemsProcessed Int  @default(0)
+  errorMessage String? @db.Text
+  metadata   Json     @default("{}")
+
+  @@index([worker, startedAt])
 }

@@ -12,6 +12,7 @@ import {
   FileText,
   User,
   LogOut,
+  ScrollText,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ResponsiveSidebar } from '@/components/layout/responsive-sidebar';
@@ -23,6 +24,7 @@ const navItems = [
   { href: '/portal/history', label: 'Trade History', icon: History },
   { href: '/portal/performance', label: 'Performance', icon: BarChart3 },
   { href: '/portal/market', label: 'Market Scanner', icon: Radio },
+  { href: '/portal/signal-audit', label: 'Signal Audit', icon: ScrollText },
   { href: '/portal/reports', label: 'Reports', icon: FileText },
   { href: '/portal/account', label: 'Account', icon: User },
 ];

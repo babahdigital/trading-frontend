@@ -40,7 +40,7 @@ function getModel() {
       baseURL: 'https://openrouter.ai/api/v1',
       apiKey: openRouterKey,
     });
-    return { model: openrouter('google/gemini-2.0-flash-001'), name: 'openrouter/gemini-2.0-flash' };
+    return { model: openrouter('google/gemini-2.5-flash-lite'), name: 'openrouter/gemini-2.5-flash-lite' };
   }
 
   // Fallback to direct Google if available

@@ -192,6 +192,114 @@ export function getPerformanceStats(period_days = 30) {
   return request<Vps1PerformanceStats>('stats', `/api/stats/performance?period_days=${period_days}`);
 }
 
+// ─── Research: Dedicated Pair Endpoints ─────────────────────────────────────
+
+export interface Vps1MarketSnapshot {
+  pair: string;
+  current_price: number;
+  price_change_24h: number;
+  price_change_pct: number;
+  high_24h: number;
+  low_24h: number;
+  volume_24h?: number;
+  spread?: number;
+  atr_daily?: number;
+  session_info?: {
+    current_session: string;
+    session_open: number;
+    prev_high: number;
+    prev_low: number;
+    current_high: number;
+    current_low: number;
+  };
+  [key: string]: unknown;
+}
+
+export function getMarketSnapshot(pair: string) {
+  return request<Vps1MarketSnapshot>('research', `/api/research/market-snapshot/${pair}`);
+}
+
+export interface Vps1CalendarEvent {
+  time: string;
+  currency: string;
+  event: string;
+  impact: 'HIGH' | 'MEDIUM' | 'LOW';
+  forecast?: string;
+  previous?: string;
+  actual?: string;
+  [key: string]: unknown;
+}
+
+export interface Vps1Calendar {
+  pair: string;
+  events: Vps1CalendarEvent[];
+  [key: string]: unknown;
+}
+
+export function getCalendar(pair: string) {
+  return request<Vps1Calendar>('research', `/api/research/calendar/${pair}`);
+}
+
+export interface Vps1TimeframeIndicators {
+  tf: string;
+  trend: string;
+  rsi: number;
+  macd_signal: string;
+  bb_position: string;
+  ema_alignment: string;
+  key_levels: {
+    support: number[];
+    resistance: number[];
+  };
+  snd_zones: Array<{ type: string; high: number; low: number }>;
+  patterns: Array<{ name: string; description: string }>;
+  [key: string]: unknown;
+}
+
+export interface Vps1TechnicalAnalysis {
+  pair: string;
+  timeframes: Record<string, Vps1TimeframeIndicators>;
+  multi_tf_confluence: {
+    score: number;
+    dominant_bias: string;
+    aligned_timeframes: string[];
+  };
+  [key: string]: unknown;
+}
+
+export function getTechnicalAnalysis(pair: string) {
+  return request<Vps1TechnicalAnalysis>('research', `/api/research/technical-analysis/${pair}`);
+}
+
+export interface Vps1LiquidityPool {
+  level: number;
+  type: string;
+  strength: number;
+  [key: string]: unknown;
+}
+
+export interface Vps1SessionLevels {
+  prev_high: number;
+  prev_low: number;
+  current_high: number;
+  current_low: number;
+  at_session_level: boolean;
+  [key: string]: unknown;
+}
+
+export interface Vps1TechnicalExtras {
+  pair: string;
+  liquidity_pools: Vps1LiquidityPool[];
+  session_levels: Vps1SessionLevels;
+  order_flow_bias?: string;
+  institutional_levels?: number[];
+  [key: string]: unknown;
+}
+
+export function getTechnicalExtras(pair: string) {
+  return request<Vps1TechnicalExtras>('research', `/api/research/technical-extras/${pair}`);
+}
+
 // ─── Health ──────────────────────────────────────────────────────────────────
 
 export async function getHealth(): Promise<{ ok: boolean; latencyMs: number; body?: unknown; error?: string }> {

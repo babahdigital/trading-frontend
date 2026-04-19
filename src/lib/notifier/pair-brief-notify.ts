@@ -27,6 +27,15 @@ function buildTelegramMessage(pair: string, session: string, data: PairDataBundl
     '',
   ];
 
+  // Add market snapshot if available
+  if (data.marketSnapshot) {
+    const snap = data.marketSnapshot;
+    const pctSign = snap.price_change_pct >= 0 ? '+' : '';
+    lines.push(`*Price:* ${formatPrice(snap.current_price)} (${pctSign}${snap.price_change_pct.toFixed(2)}%)`);
+    lines.push(`*24h Range:* ${formatPrice(snap.low_24h)} — ${formatPrice(snap.high_24h)}`);
+    lines.push('');
+  }
+
   if (data.supportLevels.length > 0) {
     lines.push(`*Support:* ${data.supportLevels.slice(0, 3).map(formatPrice).join(' | ')}`);
   }

@@ -1,8 +1,9 @@
 /**
- * Anti-Hallucination Validator for Pair Intelligence Briefs
+ * Anti-Hallucination Validator for Pair Intelligence Briefs — Phase 2
  *
  * Layer 3: Post-validation that checks AI narrative against source data.
  * Ensures the AI didn't fabricate price levels, percentages, or data.
+ * Now validates against all 6 VPS1 endpoint data sources.
  */
 
 import type { PairDataBundle } from '@/lib/vps1/pair-data';
@@ -18,7 +19,6 @@ export interface ValidationResult {
  */
 function extractNumbers(text: string): number[] {
   const numbers: number[] = [];
-  // Match numbers with optional comma thousands and decimal point
   const regex = /\b(\d{1,3}(?:,\d{3})*(?:\.\d+)?|\d+(?:\.\d+)?)\b/g;
   let match;
   while ((match = regex.exec(text)) !== null) {
@@ -35,9 +35,7 @@ function extractNumbers(text: string): number[] {
  * Uses 0.1% tolerance for rounding differences.
  */
 function numberExistsInSource(num: number, sourceNumbers: number[]): boolean {
-  // Skip small numbers that are likely generic (confidence %, counts, etc.)
   if (num < 10) return true;
-  // Skip round numbers that are likely just dates, counts, word counts, or years
   if (Number.isInteger(num) && num < 3000) return true;
 
   const tolerance = num * 0.001; // 0.1%
@@ -45,12 +43,12 @@ function numberExistsInSource(num: number, sourceNumbers: number[]): boolean {
 }
 
 /**
- * Build the set of all valid numbers from source data.
+ * Build the set of all valid numbers from all 6 endpoint data sources.
  */
 function buildSourceNumbers(data: PairDataBundle): number[] {
   const nums: number[] = [];
 
-  // S/R levels
+  // Consolidated S/R levels
   nums.push(...data.supportLevels);
   nums.push(...data.resistanceLevels);
 
@@ -61,8 +59,7 @@ function buildSourceNumbers(data: PairDataBundle): number[] {
 
   // Fake liquidity levels
   for (const f of data.fakeLiquidity) {
-    nums.push(f.level);
-    nums.push(f.strength);
+    nums.push(f.level, f.strength);
   }
 
   // Signal data
@@ -86,8 +83,55 @@ function buildSourceNumbers(data: PairDataBundle): number[] {
   nums.push(data.signals.filter((s) => s.direction === 'BUY').length);
   nums.push(data.signals.filter((s) => s.direction === 'SELL').length);
 
-  // Average confidence
-  nums.push(data.avgConfidence);
+  // Market Snapshot
+  if (data.marketSnapshot) {
+    const snap = data.marketSnapshot;
+    nums.push(snap.current_price, snap.high_24h, snap.low_24h);
+    nums.push(snap.price_change_24h, snap.price_change_pct);
+    if (snap.atr_daily) nums.push(snap.atr_daily);
+    if (snap.spread) nums.push(snap.spread);
+    if (snap.volume_24h) nums.push(snap.volume_24h);
+    if (snap.session_info) {
+      nums.push(snap.session_info.session_open);
+      nums.push(snap.session_info.prev_high, snap.session_info.prev_low);
+      nums.push(snap.session_info.current_high, snap.session_info.current_low);
+    }
+  }
+
+  // Technical Analysis — per-timeframe data
+  if (data.technicalAnalysis?.timeframes) {
+    for (const tf of Object.values(data.technicalAnalysis.timeframes)) {
+      nums.push(tf.rsi);
+      if (tf.key_levels) {
+        nums.push(...tf.key_levels.support);
+        nums.push(...tf.key_levels.resistance);
+      }
+      if (tf.snd_zones) {
+        for (const z of tf.snd_zones) {
+          nums.push(z.high, z.low);
+        }
+      }
+    }
+    if (data.technicalAnalysis.multi_tf_confluence) {
+      nums.push(data.technicalAnalysis.multi_tf_confluence.score);
+    }
+  }
+
+  // Technical Extras — liquidity pools + session levels
+  if (data.technicalExtras) {
+    if (data.technicalExtras.liquidity_pools) {
+      for (const pool of data.technicalExtras.liquidity_pools) {
+        nums.push(pool.level, pool.strength);
+      }
+    }
+    if (data.technicalExtras.session_levels) {
+      const sl = data.technicalExtras.session_levels;
+      nums.push(sl.prev_high, sl.prev_low, sl.current_high, sl.current_low);
+    }
+    if (data.technicalExtras.institutional_levels) {
+      nums.push(...data.technicalExtras.institutional_levels);
+    }
+  }
 
   return nums;
 }
@@ -105,7 +149,6 @@ function checkDirectionAlignment(narrative: string, bias: string): string[] {
   const hasBullish = bullishWords.some((w) => lower.includes(w));
   const hasBearish = bearishWords.some((w) => lower.includes(w));
 
-  // Only flag if the dominant direction contradicts the bias
   if (bias === 'BULLISH' && hasBearish && !hasBullish) {
     errors.push(`Narrative uses bearish language but bias is BULLISH`);
   }
@@ -132,6 +175,28 @@ function checkPairMention(narrative: string, targetPair: string): string[] {
       errors.push(`Narrative mentions unrelated pair: ${pair}`);
     }
   }
+  return errors;
+}
+
+/**
+ * Check that trade scenarios in narrative are consistent with trade ideas data.
+ */
+function checkTradeScenarios(narrative: string, data: PairDataBundle): string[] {
+  const errors: string[] = [];
+  const lower = narrative.toLowerCase();
+
+  if (data.tradeIdeas.length > 0) {
+    const allBuy = data.tradeIdeas.every((t) => t.direction === 'BUY');
+    const allSell = data.tradeIdeas.every((t) => t.direction === 'SELL');
+
+    if (allBuy && lower.includes('sell') && !lower.includes('buy')) {
+      errors.push('Narrative recommends SELL but all trade ideas are BUY');
+    }
+    if (allSell && lower.includes('buy') && !lower.includes('sell')) {
+      errors.push('Narrative recommends BUY but all trade ideas are SELL');
+    }
+  }
+
   return errors;
 }
 
@@ -164,6 +229,9 @@ export function validateBriefNarrative(
 
   // 3. Check no other pairs mentioned
   errors.push(...checkPairMention(narrative, data.pair));
+
+  // 4. Check trade scenario consistency
+  errors.push(...checkTradeScenarios(narrative, data));
 
   return {
     valid: errors.length === 0,

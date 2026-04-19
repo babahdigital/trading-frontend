@@ -1,17 +1,29 @@
 /**
- * VPS1 Pair Data Aggregator
+ * VPS1 Pair Data Aggregator — Phase 2
  *
- * Fetches data from multiple existing VPS1 endpoints for a single pair
- * and structures it into a PairDataBundle for brief generation.
+ * Fetches data from 6 VPS1 endpoints in parallel for a single pair:
+ *   1. signals/latest       — recent trading signals
+ *   2. research/top-signals — top-ranked signals
+ *   3. research/market-snapshot/{pair} — live price, session info, ATR
+ *   4. research/calendar/{pair}        — economic calendar events
+ *   5. research/technical-analysis/{pair} — multi-TF indicators, S/R, SND, patterns
+ *   6. research/technical-extras/{pair}   — liquidity pools, session levels, order flow
+ *
  * Returns null if VPS1 is unreachable — caller must handle gracefully.
  */
 
 import {
   getLatestSignals,
   getTopSignals,
-  getLatestResearch,
+  getMarketSnapshot,
+  getCalendar,
+  getTechnicalAnalysis,
+  getTechnicalExtras,
   Vps1Signal,
-  Vps1ResearchItem,
+  Vps1MarketSnapshot,
+  Vps1Calendar,
+  Vps1TechnicalAnalysis,
+  Vps1TechnicalExtras,
   Vps1Error,
 } from './client';
 import { createLogger } from '@/lib/logger';
@@ -20,11 +32,6 @@ const log = createLogger('pair-data');
 
 /**
  * Safely unwrap VPS1 responses that may be wrapped in an object.
- * VPS1 endpoints return wrapped responses:
- *   signals/latest → {"signals": [...]}
- *   research/top-signals → {"period_hours": 24, "signals": [...]}
- *   research/latest → {"analyses": [...]}
- * But client types expect flat arrays — handle both shapes.
  */
 function unwrapArray<T>(data: unknown, keys: string[]): T[] {
   if (Array.isArray(data)) return data;
@@ -69,7 +76,6 @@ export interface PairDataBundle {
   pair: string;
   fetchedAt: string;
   signals: Vps1Signal[];
-  researchItems: Vps1ResearchItem[];
   supportLevels: number[];
   resistanceLevels: number[];
   sndZones: SndZone[];
@@ -78,6 +84,11 @@ export interface PairDataBundle {
   fundamentalBias: 'BULLISH' | 'BEARISH' | 'NEUTRAL';
   avgConfidence: number;
   tradeIdeas: TradeIdeaRaw[];
+  // Phase 2: dedicated endpoint data
+  marketSnapshot: Vps1MarketSnapshot | null;
+  calendar: Vps1Calendar | null;
+  technicalAnalysis: Vps1TechnicalAnalysis | null;
+  technicalExtras: Vps1TechnicalExtras | null;
 }
 
 /**
@@ -88,19 +99,33 @@ function getEntryPrice(s: Vps1Signal): number | undefined {
 }
 
 /**
- * Extract S/R levels from signal indicator_snapshots.
- * VPS1 signals may include support/resistance in their indicator_snapshot field.
+ * Extract S/R levels from dedicated technical-analysis + signal indicator_snapshots.
  */
-function extractLevels(signals: Vps1Signal[]): { support: number[]; resistance: number[] } {
+function extractLevels(
+  signals: Vps1Signal[],
+  ta: Vps1TechnicalAnalysis | null,
+): { support: number[]; resistance: number[] } {
   const support = new Set<number>();
   const resistance = new Set<number>();
 
-  for (const s of signals) {
-    // Check both indicator_snapshot and indicator_snapshot_summary
-    const snap = s.indicator_snapshot || s.indicator_snapshot_summary;
+  // Primary: dedicated technical-analysis endpoint
+  if (ta?.timeframes) {
+    for (const tf of Object.values(ta.timeframes)) {
+      if (tf.key_levels) {
+        for (const lvl of tf.key_levels.support ?? []) {
+          if (typeof lvl === 'number') support.add(lvl);
+        }
+        for (const lvl of tf.key_levels.resistance ?? []) {
+          if (typeof lvl === 'number') resistance.add(lvl);
+        }
+      }
+    }
+  }
 
+  // Supplementary: signal indicator_snapshots
+  for (const s of signals) {
+    const snap = s.indicator_snapshot || s.indicator_snapshot_summary;
     if (snap) {
-      // VPS1 may store levels as arrays in indicator_snapshot
       if (Array.isArray(snap.support_levels)) {
         for (const lvl of snap.support_levels) {
           if (typeof lvl === 'number') support.add(lvl);
@@ -113,16 +138,15 @@ function extractLevels(signals: Vps1Signal[]): { support: number[]; resistance: 
       }
     }
 
-    // Extract from entry_price_hint, stop_loss, take_profit
     const entry = getEntryPrice(s);
     if (s.direction === 'BUY') {
       if (s.stop_loss != null) support.add(s.stop_loss);
       if (s.take_profit != null) resistance.add(s.take_profit);
-      if (entry) support.add(entry); // entry near support for BUY
+      if (entry) support.add(entry);
     } else {
       if (s.stop_loss != null) resistance.add(s.stop_loss);
       if (s.take_profit != null) support.add(s.take_profit);
-      if (entry) resistance.add(entry); // entry near resistance for SELL
+      if (entry) resistance.add(entry);
     }
   }
 
@@ -133,21 +157,50 @@ function extractLevels(signals: Vps1Signal[]): { support: number[]; resistance: 
 }
 
 /**
- * Extract SND zones from indicator snapshots.
+ * Extract SND zones from dedicated technical-analysis + signal indicator snapshots.
  */
-function extractSndZones(signals: Vps1Signal[]): SndZone[] {
+function extractSndZones(signals: Vps1Signal[], ta: Vps1TechnicalAnalysis | null): SndZone[] {
   const zones: SndZone[] = [];
+  const seen = new Set<string>();
+
+  // Primary: dedicated technical-analysis endpoint
+  if (ta?.timeframes) {
+    for (const [tfName, tf] of Object.entries(ta.timeframes)) {
+      if (Array.isArray(tf.snd_zones)) {
+        for (const z of tf.snd_zones) {
+          if (z && typeof z.high === 'number' && typeof z.low === 'number') {
+            const key = `${z.type}-${z.high}-${z.low}-${tfName}`;
+            if (!seen.has(key)) {
+              seen.add(key);
+              zones.push({
+                type: z.type === 'SUPPLY' ? 'SUPPLY' : 'DEMAND',
+                high: z.high,
+                low: z.low,
+                tf: tfName,
+              });
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Supplementary: signal indicator snapshots
   for (const s of signals) {
     const snap = s.indicator_snapshot;
     if (!snap || !Array.isArray(snap.snd_zones)) continue;
     for (const z of snap.snd_zones) {
       if (z && typeof z.high === 'number' && typeof z.low === 'number') {
-        zones.push({
-          type: z.type === 'SUPPLY' ? 'SUPPLY' : 'DEMAND',
-          high: z.high,
-          low: z.low,
-          tf: z.tf || 'H4',
-        });
+        const key = `${z.type}-${z.high}-${z.low}-${z.tf || 'H4'}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          zones.push({
+            type: z.type === 'SUPPLY' ? 'SUPPLY' : 'DEMAND',
+            high: z.high,
+            low: z.low,
+            tf: z.tf || 'H4',
+          });
+        }
       }
     }
   }
@@ -155,14 +208,35 @@ function extractSndZones(signals: Vps1Signal[]): SndZone[] {
 }
 
 /**
- * Extract key patterns (QM, Wyckoff, etc.) from indicator snapshots.
+ * Extract key patterns from dedicated technical-analysis + signal indicator snapshots.
  */
-function extractPatterns(signals: Vps1Signal[]): KeyPattern[] {
+function extractPatterns(signals: Vps1Signal[], ta: Vps1TechnicalAnalysis | null): KeyPattern[] {
   const patterns: KeyPattern[] = [];
   const seen = new Set<string>();
 
+  // Primary: dedicated technical-analysis endpoint
+  if (ta?.timeframes) {
+    for (const [tfName, tf] of Object.entries(ta.timeframes)) {
+      if (Array.isArray(tf.patterns)) {
+        for (const p of tf.patterns) {
+          if (p && typeof p.name === 'string') {
+            const key = `${p.name}-${tfName}`;
+            if (!seen.has(key)) {
+              seen.add(key);
+              patterns.push({
+                name: p.name,
+                tf: tfName,
+                description: p.description || p.name,
+              });
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Supplementary: signal indicator_snapshot
   for (const s of signals) {
-    // From detailed indicator_snapshot
     const snap = s.indicator_snapshot;
     if (snap && Array.isArray(snap.patterns)) {
       for (const p of snap.patterns) {
@@ -180,10 +254,8 @@ function extractPatterns(signals: Vps1Signal[]): KeyPattern[] {
       }
     }
 
-    // From summary — extract pattern info from entry_type + snapshot_summary
     const summary = s.indicator_snapshot_summary;
     if (summary) {
-      // Detect Wyckoff events from summary
       if (summary.h1_event && summary.h1_event !== 'none') {
         const key = `wyckoff-${summary.h1_event}-H1`;
         if (!seen.has(key)) {
@@ -195,7 +267,6 @@ function extractPatterns(signals: Vps1Signal[]): KeyPattern[] {
           });
         }
       }
-      // Detect QM from M5
       if (summary.m5_qm && summary.m5_qm !== 'none') {
         const key = `qm-${summary.m5_qm}-M5`;
         if (!seen.has(key)) {
@@ -209,7 +280,6 @@ function extractPatterns(signals: Vps1Signal[]): KeyPattern[] {
       }
     }
 
-    // From entry_type (e.g., "wyckoff_combo", "qm_ao_combo")
     if (s.entry_type) {
       const key = `entry-${s.entry_type}`;
       if (!seen.has(key)) {
@@ -227,20 +297,47 @@ function extractPatterns(signals: Vps1Signal[]): KeyPattern[] {
 }
 
 /**
- * Extract fake liquidity signals from indicator snapshots.
+ * Extract liquidity signals from dedicated technical-extras + signal indicator snapshots.
  */
-function extractFakeLiquidity(signals: Vps1Signal[]): FakeLiquiditySignal[] {
+function extractFakeLiquidity(
+  signals: Vps1Signal[],
+  extras: Vps1TechnicalExtras | null,
+): FakeLiquiditySignal[] {
   const fakes: FakeLiquiditySignal[] = [];
+  const seen = new Set<string>();
+
+  // Primary: dedicated technical-extras endpoint
+  if (extras?.liquidity_pools) {
+    for (const pool of extras.liquidity_pools) {
+      if (typeof pool.level === 'number') {
+        const key = `${pool.level}-${pool.type}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          fakes.push({
+            level: pool.level,
+            type: pool.type === 'ABOVE_RESISTANCE' ? 'ABOVE_RESISTANCE' : 'BELOW_SUPPORT',
+            strength: typeof pool.strength === 'number' ? pool.strength : 0.5,
+          });
+        }
+      }
+    }
+  }
+
+  // Supplementary: signal indicator snapshots
   for (const s of signals) {
     const snap = s.indicator_snapshot;
     if (!snap || !Array.isArray(snap.fake_liquidity)) continue;
     for (const f of snap.fake_liquidity) {
       if (f && typeof f.level === 'number') {
-        fakes.push({
-          level: f.level,
-          type: f.type === 'ABOVE_RESISTANCE' ? 'ABOVE_RESISTANCE' : 'BELOW_SUPPORT',
-          strength: typeof f.strength === 'number' ? f.strength : 0.5,
-        });
+        const key = `${f.level}-${f.type}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          fakes.push({
+            level: f.level,
+            type: f.type === 'ABOVE_RESISTANCE' ? 'ABOVE_RESISTANCE' : 'BELOW_SUPPORT',
+            strength: typeof f.strength === 'number' ? f.strength : 0.5,
+          });
+        }
       }
     }
   }
@@ -248,9 +345,19 @@ function extractFakeLiquidity(signals: Vps1Signal[]): FakeLiquiditySignal[] {
 }
 
 /**
- * Determine fundamental bias from signal consensus.
+ * Determine fundamental bias from multi-TF confluence + signal consensus.
  */
-function determineBias(signals: Vps1Signal[]): 'BULLISH' | 'BEARISH' | 'NEUTRAL' {
+function determineBias(
+  signals: Vps1Signal[],
+  ta: Vps1TechnicalAnalysis | null,
+): 'BULLISH' | 'BEARISH' | 'NEUTRAL' {
+  // Prefer multi-TF confluence from dedicated endpoint
+  if (ta?.multi_tf_confluence?.dominant_bias) {
+    const bias = ta.multi_tf_confluence.dominant_bias.toUpperCase();
+    if (bias === 'BULLISH' || bias === 'BEARISH') return bias;
+  }
+
+  // Fallback to signal consensus
   let buyWeight = 0;
   let sellWeight = 0;
   for (const s of signals) {
@@ -271,7 +378,7 @@ function determineBias(signals: Vps1Signal[]): 'BULLISH' | 'BEARISH' | 'NEUTRAL'
 function buildTradeIdeas(signals: Vps1Signal[]): TradeIdeaRaw[] {
   return signals
     .filter((s) => (s.confidence ?? 0) >= 0.75 && getEntryPrice(s) && s.stop_loss != null && s.take_profit != null)
-    .slice(0, 3) // max 3 ideas per brief
+    .slice(0, 3)
     .map((s) => ({
       direction: s.direction,
       entry: getEntryPrice(s)!,
@@ -284,29 +391,47 @@ function buildTradeIdeas(signals: Vps1Signal[]): TradeIdeaRaw[] {
 
 /**
  * Fetch and aggregate all available data for a pair from VPS1.
- * Returns null if VPS1 is unreachable.
+ * Phase 2: Uses 6 parallel endpoint calls for maximum data richness.
+ * Returns null if VPS1 is completely unreachable.
  */
 export async function fetchPairData(pair: string): Promise<PairDataBundle | null> {
   try {
-    // Fetch from multiple endpoints in parallel
-    // NOTE: VPS1 signals/latest pair filter is broken — fetch all and filter client-side
-    // NOTE: VPS1 wraps arrays in objects — unwrap safely
-    const [signalsRaw, topSignalsRaw, researchRaw] = await Promise.allSettled([
+    // Fetch from 6 endpoints in parallel
+    const [signalsRaw, topSignalsRaw, snapshotRaw, calendarRaw, taRaw, extrasRaw] = await Promise.allSettled([
       getLatestSignals({ limit: 50 }),
       getTopSignals(24, 30),
-      getLatestResearch(30),
+      getMarketSnapshot(pair),
+      getCalendar(pair),
+      getTechnicalAnalysis(pair),
+      getTechnicalExtras(pair),
     ]);
 
+    // Unwrap signal arrays (VPS1 wraps in objects)
     const signalsList = signalsRaw.status === 'fulfilled'
       ? unwrapArray<Vps1Signal>(signalsRaw.value, ['signals'])
       : [];
     const topList = topSignalsRaw.status === 'fulfilled'
       ? unwrapArray<Vps1Signal>(topSignalsRaw.value, ['signals'])
       : [];
-    const researchList = researchRaw.status === 'fulfilled'
-      ? unwrapArray<Vps1ResearchItem>(researchRaw.value, ['analyses', 'items', 'research'])
-      : [];
 
+    // Dedicated endpoints return objects directly
+    const snapshot = snapshotRaw.status === 'fulfilled' ? snapshotRaw.value : null;
+    const calendar = calendarRaw.status === 'fulfilled' ? calendarRaw.value : null;
+    const ta = taRaw.status === 'fulfilled' ? taRaw.value : null;
+    const extras = extrasRaw.status === 'fulfilled' ? extrasRaw.value : null;
+
+    // Log which endpoints succeeded/failed
+    const endpointStatus = {
+      signals: signalsRaw.status,
+      topSignals: topSignalsRaw.status,
+      snapshot: snapshotRaw.status,
+      calendar: calendarRaw.status,
+      technicalAnalysis: taRaw.status,
+      technicalExtras: extrasRaw.status,
+    };
+    log.info(`VPS1 endpoint status for ${pair}: ${JSON.stringify(endpointStatus)}`);
+
+    // Filter signals for this pair (VPS1 pair filter is broken)
     const pairSignals = [
       ...signalsList.filter((s) => s.pair === pair),
       ...topList.filter((s) => s.pair === pair),
@@ -320,32 +445,34 @@ export async function fetchPairData(pair: string): Promise<PairDataBundle | null
       return true;
     }) as Vps1Signal[];
 
-    const researchItems = researchList.filter((r) => r.pair === pair);
-
-    // If we got zero data from all endpoints, treat as VPS1 unavailable
-    if (uniqueSignals.length === 0 && researchItems.length === 0) {
-      log.warn(`No data from VPS1 for ${pair} — all endpoints returned empty`);
+    // If ALL 6 endpoints failed, treat as VPS1 unavailable
+    const anySuccess = uniqueSignals.length > 0 || snapshot || ta || extras;
+    if (!anySuccess) {
+      log.warn(`No data from VPS1 for ${pair} — all endpoints returned empty/failed`);
       return null;
     }
 
-    const { support, resistance } = extractLevels(uniqueSignals);
+    const { support, resistance } = extractLevels(uniqueSignals, ta);
     const avgConf = uniqueSignals.length > 0
       ? uniqueSignals.reduce((sum, s) => sum + (s.confidence ?? 0), 0) / uniqueSignals.length
-      : 0;
+      : (ta?.multi_tf_confluence?.score ?? 0);
 
     return {
       pair,
       fetchedAt: new Date().toISOString(),
       signals: uniqueSignals,
-      researchItems,
       supportLevels: support,
       resistanceLevels: resistance,
-      sndZones: extractSndZones(uniqueSignals),
-      keyPatterns: extractPatterns(uniqueSignals),
-      fakeLiquidity: extractFakeLiquidity(uniqueSignals),
-      fundamentalBias: determineBias(uniqueSignals),
+      sndZones: extractSndZones(uniqueSignals, ta),
+      keyPatterns: extractPatterns(uniqueSignals, ta),
+      fakeLiquidity: extractFakeLiquidity(uniqueSignals, extras),
+      fundamentalBias: determineBias(uniqueSignals, ta),
       avgConfidence: Math.round(avgConf * 100) / 100,
       tradeIdeas: buildTradeIdeas(uniqueSignals),
+      marketSnapshot: snapshot,
+      calendar,
+      technicalAnalysis: ta,
+      technicalExtras: extras,
     };
   } catch (err) {
     if (err instanceof Vps1Error) {

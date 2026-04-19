@@ -1,32 +1,40 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useLocale } from 'next-intl';
+import Link from 'next/link';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 
-const ARTICLES_FALLBACK = [
-  { slug: 'why-14-instruments', tag: 'Strategy', title: 'Why we trade 14 instruments and not 50', excerpt: 'Concentration beats diversification when your edge is instrument-specific. We explain why a focused universe produces better risk-adjusted returns.', author: 'Abdullah', date: 'Mar 2026', readTime: '7 min read' },
-  { slug: 'case-against-news-trading', tag: 'Execution', title: 'The case against news trading', excerpt: 'News events create noise, not signal. Our data shows that avoiding NFP, FOMC, and ECB windows improves Sharpe by 0.3.', author: 'Abdullah', date: 'Feb 2026', readTime: '5 min read' },
-  { slug: 'multi-timeframe-confluence', tag: 'Research', title: 'Multi-timeframe confluence: a primer', excerpt: 'How we combine H1, H4, and D1 signals into a single trade decision. The mathematics of confluence scoring.', author: 'Abdullah', date: 'Jan 2026', readTime: '9 min read' },
-  { slug: 'risk-framework', tag: 'Risk', title: 'How our 12-layer risk framework actually works', excerpt: 'From position sizing to correlation filters to drawdown circuit breakers. A transparent look at every layer.', author: 'Abdullah', date: 'Dec 2025', readTime: '12 min read' },
-  { slug: 'backtest-vs-live', tag: 'Research', title: 'Backtest vs live: what changes', excerpt: 'Slippage, spread variation, execution latency, and requotes. The gap between backtest and live results is real.', author: 'Abdullah', date: 'Nov 2025', readTime: '8 min read' },
-  { slug: 'choosing-broker-quant', tag: 'Operations', title: 'Choosing a broker as a quant trader', excerpt: 'Regulation, execution quality, API reliability, and spread consistency. Our framework for evaluating brokers.', author: 'Abdullah', date: 'Oct 2025', readTime: '6 min read' },
-];
-
 interface Article {
   slug: string;
-  tag?: string;
-  category?: string;
   title: string;
+  title_en?: string | null;
   excerpt: string;
+  excerpt_en?: string | null;
+  category?: string;
   author: string;
-  date?: string;
+  readTime: number;
+  imageUrl?: string | null;
   publishedAt?: string;
-  readTime: string | number;
+}
+
+function formatDate(dateStr: string | undefined, locale: string): string {
+  if (!dateStr) return '';
+  try {
+    return new Date(dateStr).toLocaleDateString(locale === 'id' ? 'id-ID' : 'en-US', {
+      year: 'numeric', month: 'short', day: 'numeric',
+    });
+  } catch {
+    return dateStr;
+  }
 }
 
 export default function ResearchPage() {
-  const [articles, setArticles] = useState<Article[]>(ARTICLES_FALLBACK);
+  const locale = useLocale();
+  const isEn = locale === 'en';
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadArticles() {
@@ -35,20 +43,12 @@ export default function ResearchPage() {
         if (!res.ok) return;
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
-          setArticles(
-            data.map((a: Record<string, unknown>) => ({
-              slug: (a.slug as string) || '',
-              tag: (a.category as string) || (a.tag as string) || '',
-              title: (a.title as string) || '',
-              excerpt: (a.excerpt as string) || '',
-              author: (a.author as string) || 'Abdullah',
-              date: (a.publishedAt as string) || (a.date as string) || '',
-              readTime: typeof a.readTime === 'number' ? `${a.readTime} min read` : (a.readTime as string) || '',
-            }))
-          );
+          setArticles(data);
         }
       } catch {
-        // keep fallback
+        // keep empty
+      } finally {
+        setLoading(false);
       }
     }
     loadArticles();
@@ -62,9 +62,13 @@ export default function ResearchPage() {
         <section className="section-padding border-b border-white/8">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-4">Research</p>
-            <h1 className="t-display-page mb-6">Research & Insights</h1>
+            <h1 className="t-display-page mb-6">
+              {isEn ? 'Research & Insights' : 'Riset & Analisis'}
+            </h1>
             <p className="t-lead text-foreground/60 max-w-2xl">
-              Notes from the desk on markets, models, and execution.
+              {isEn
+                ? 'Notes from the desk on markets, models, and execution.'
+                : 'Catatan dari meja riset tentang pasar, model, dan eksekusi.'}
             </p>
           </div>
         </section>
@@ -72,29 +76,55 @@ export default function ResearchPage() {
         {/* Articles Grid */}
         <section className="section-padding border-b border-white/8">
           <div className="container-default px-6">
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {articles.map((article) => (
-                <article
-                  key={article.slug}
-                  className="card-enterprise flex flex-col group cursor-pointer"
-                >
-                  <p className="t-eyebrow mb-3">{article.tag}</p>
-                  <h2 className="text-lg font-medium mb-3 line-clamp-2 group-hover:text-amber-400 transition-colors">
-                    {article.title}
-                  </h2>
-                  <p className="t-body-sm text-foreground/60 leading-relaxed line-clamp-3 mb-6 flex-1">
-                    {article.excerpt}
-                  </p>
-                  <div className="flex items-center gap-3 text-xs text-foreground/40 pt-4 border-t border-white/[0.04]">
-                    <span>{article.author}</span>
-                    <span className="w-1 h-1 rounded-full bg-foreground/20" />
-                    <span>{article.date}</span>
-                    <span className="w-1 h-1 rounded-full bg-foreground/20" />
-                    <span>{typeof article.readTime === 'number' ? `${article.readTime} min read` : article.readTime}</span>
+            {loading ? (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="card-enterprise animate-pulse">
+                    <div className="h-4 w-20 bg-white/10 rounded mb-3" />
+                    <div className="h-5 w-3/4 bg-white/10 rounded mb-3" />
+                    <div className="h-4 w-full bg-white/10 rounded mb-2" />
+                    <div className="h-4 w-2/3 bg-white/10 rounded mb-6" />
+                    <div className="h-3 w-1/2 bg-white/10 rounded" />
                   </div>
-                </article>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : articles.length === 0 ? (
+              <div className="text-center py-16">
+                <p className="text-foreground/40 text-lg">
+                  {isEn ? 'No articles published yet.' : 'Belum ada artikel yang dipublikasikan.'}
+                </p>
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {articles.map((article) => {
+                  const title = (isEn && article.title_en) ? article.title_en : article.title;
+                  const excerpt = (isEn && article.excerpt_en) ? article.excerpt_en : article.excerpt;
+
+                  return (
+                    <Link
+                      key={article.slug}
+                      href={`/${locale}/research/${article.slug}`}
+                      className="card-enterprise flex flex-col group cursor-pointer hover:border-amber-500/20 transition-colors"
+                    >
+                      <p className="t-eyebrow mb-3">{article.category}</p>
+                      <h2 className="text-lg font-medium mb-3 line-clamp-2 group-hover:text-amber-400 transition-colors">
+                        {title}
+                      </h2>
+                      <p className="t-body-sm text-foreground/60 leading-relaxed line-clamp-3 mb-6 flex-1">
+                        {excerpt}
+                      </p>
+                      <div className="flex items-center gap-3 text-xs text-foreground/40 pt-4 border-t border-white/[0.04]">
+                        <span>{article.author}</span>
+                        <span className="w-1 h-1 rounded-full bg-foreground/20" />
+                        <span>{formatDate(article.publishedAt, locale)}</span>
+                        <span className="w-1 h-1 rounded-full bg-foreground/20" />
+                        <span>{article.readTime} min {isEn ? 'read' : 'baca'}</span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </section>
 
@@ -102,11 +132,14 @@ export default function ResearchPage() {
         <section className="section-padding">
           <div className="container-default px-6">
             <div className="max-w-xl mx-auto text-center">
-              <p className="t-eyebrow mb-3">Stay Informed</p>
-              <h2 className="t-display-sub mb-3">Quarterly research letter</h2>
+              <p className="t-eyebrow mb-3">{isEn ? 'Stay Informed' : 'Tetap Terinformasi'}</p>
+              <h2 className="t-display-sub mb-3">
+                {isEn ? 'Quarterly research letter' : 'Surat riset kuartalan'}
+              </h2>
               <p className="t-body-sm text-foreground/60 mb-8">
-                No marketing, no spam. Four times a year we share our latest research on strategy development,
-                market microstructure, and systematic trading. Unsubscribe anytime.
+                {isEn
+                  ? 'No marketing, no spam. Four times a year we share our latest research on strategy development, market microstructure, and systematic trading. Unsubscribe anytime.'
+                  : 'Tanpa marketing, tanpa spam. Empat kali setahun kami membagikan riset terbaru tentang pengembangan strategi, mikrostruktur pasar, dan trading sistematis. Berhenti berlangganan kapan saja.'}
               </p>
               <form className="flex gap-3 max-w-md mx-auto">
                 <input
@@ -116,11 +149,13 @@ export default function ResearchPage() {
                   required
                 />
                 <button type="submit" className="btn-primary shrink-0 py-3 px-6">
-                  Subscribe
+                  {isEn ? 'Subscribe' : 'Berlangganan'}
                 </button>
               </form>
               <p className="text-xs text-foreground/40 mt-4">
-                By subscribing you agree to our privacy policy. We will never share your email.
+                {isEn
+                  ? 'By subscribing you agree to our privacy policy. We will never share your email.'
+                  : 'Dengan berlangganan Anda menyetujui kebijakan privasi kami. Kami tidak akan pernah membagikan email Anda.'}
               </p>
             </div>
           </div>

@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/db/prisma';
 import { getWeeklyRecap, Vps1Error } from '@/lib/vps1/client';
 import { createLogger } from '@/lib/logger';
+import { enhanceResearchBody, enhanceAndTranslateArticle } from '@/lib/ai/content';
 
 const log = createLogger('research-ingester');
 const WORKER = 'research_ingester';
@@ -13,7 +14,7 @@ function slugify(s: string): string {
     .slice(0, 80);
 }
 
-function buildBody(recap: Awaited<ReturnType<typeof getWeeklyRecap>>): string {
+function buildBasicBody(recap: Awaited<ReturnType<typeof getWeeklyRecap>>): string {
   if (recap.markdown && typeof recap.markdown === 'string') return recap.markdown;
   const lines: string[] = [];
   lines.push(`# Weekly Research Recap`);
@@ -59,9 +60,27 @@ export async function runResearchIngester(): Promise<ResearchIngestResult> {
 
     const slug = `weekly-recap-${slugify(recap.week_start)}`;
     const title = `Weekly Research Recap — ${recap.week_start} to ${recap.week_end}`;
-    const body = buildBody(recap);
     const excerpt = `Rangkuman ${recap.total_signals ?? 0} sinyal minggu ini${recap.top_pair ? `, top pair ${recap.top_pair}` : ''}.`;
 
+    // Step 1: Build body — use AI enhancement if available, fallback to basic template
+    let body = buildBasicBody(recap);
+    if (!recap.markdown) {
+      try {
+        const enhanced = await enhanceResearchBody({
+          week_start: recap.week_start,
+          week_end: recap.week_end,
+          total_signals: recap.total_signals,
+          top_pair: recap.top_pair,
+          avg_confidence: recap.avg_confidence,
+          highlights: recap.highlights,
+        });
+        if (enhanced) body = enhanced;
+      } catch (aiErr) {
+        log.warn(`AI body enhancement failed, using basic template: ${aiErr instanceof Error ? aiErr.message : 'unknown'}`);
+      }
+    }
+
+    // Step 2: Upsert article (Indonesian)
     const article = await prisma.article.upsert({
       where: { slug },
       create: {
@@ -81,6 +100,20 @@ export async function runResearchIngester(): Promise<ResearchIngestResult> {
         body,
       },
     });
+
+    // Step 3: AI auto-translate to English (non-blocking — article is already published)
+    try {
+      const translations = await enhanceAndTranslateArticle({ title, excerpt, body });
+      if (translations.title_en) {
+        await prisma.article.update({
+          where: { id: article.id },
+          data: translations,
+        });
+        log.info(`AI translation completed for: ${slug}`);
+      }
+    } catch (translateErr) {
+      log.warn(`AI translation failed (article published without EN): ${translateErr instanceof Error ? translateErr.message : 'unknown'}`);
+    }
 
     await prisma.workerRun.update({
       where: { id: run.id },

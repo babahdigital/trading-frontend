@@ -154,6 +154,42 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, translated });
     }
 
+    if (type === 'article') {
+      const article = await prisma.article.findUnique({ where: { id } });
+      if (!article) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+
+      const [title_en, excerpt_en, body_en] = await Promise.all([
+        translateText(article.title),
+        translateText(article.excerpt),
+        translateText(article.body),
+      ]);
+
+      await prisma.article.update({
+        where: { id },
+        data: { title_en, excerpt_en, body_en },
+      });
+
+      return NextResponse.json({ success: true, title_en, excerpt_en });
+    }
+
+    if (type === 'all-articles') {
+      const articles = await prisma.article.findMany();
+      let translated = 0;
+      for (const article of articles) {
+        const [title_en, excerpt_en, body_en] = await Promise.all([
+          translateText(article.title),
+          translateText(article.excerpt),
+          translateText(article.body),
+        ]);
+        await prisma.article.update({
+          where: { id: article.id },
+          data: { title_en, excerpt_en, body_en },
+        });
+        translated++;
+      }
+      return NextResponse.json({ success: true, translated });
+    }
+
     return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
   } catch (err) {
     return NextResponse.json(

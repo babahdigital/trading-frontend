@@ -27,11 +27,8 @@ services:
       # Telegram
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
       - TELEGRAM_ADMIN_CHAT_ID=${TELEGRAM_ADMIN_CHAT_ID:-}
-      # Email SMTP
-      - SMTP_HOST=${SMTP_HOST:-}
-      - SMTP_PORT=${SMTP_PORT:-587}
-      - SMTP_USER=${SMTP_USER:-}
-      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      # Email — Brevo API
+      - BREVO_API_KEY=${BREVO_API_KEY:-}
       - SMTP_FROM=${SMTP_FROM:-BabahAlgo <no-reply@babahalgo.com>}
       # Payment — Midtrans
       - MIDTRANS_SERVER_KEY=${MIDTRANS_SERVER_KEY:-}

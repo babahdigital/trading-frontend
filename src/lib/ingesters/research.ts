@@ -72,7 +72,8 @@ export async function runResearchIngester(): Promise<ResearchIngestResult> {
         category: 'RESEARCH',
         author: 'BabahAlgo Research Desk',
         readTime: Math.max(3, Math.ceil(body.length / 900)),
-        isPublished: false,
+        isPublished: true,
+        publishedAt: new Date(),
       },
       update: {
         title,
@@ -86,7 +87,7 @@ export async function runResearchIngester(): Promise<ResearchIngestResult> {
       data: { finishedAt: new Date(), status: 'OK', itemsProcessed: 1, metadata: { slug } },
     });
 
-    log.info(`Research ingested: ${slug} (draft, admin to publish)`);
+    log.info(`Research ingested & published: ${slug}`);
     return { status: 'ok', articleId: article.id, slug, durationMs: Date.now() - start };
   } catch (err) {
     const msg = err instanceof Vps1Error ? `${err.status} ${err.message}` : err instanceof Error ? err.message : 'unknown';

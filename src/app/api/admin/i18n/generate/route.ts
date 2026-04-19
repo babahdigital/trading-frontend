@@ -3,9 +3,9 @@ export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { generateText } from 'ai';
-import { google } from '@ai-sdk/google';
 import { prisma } from '@/lib/db/prisma';
 import { requireAdmin } from '@/lib/auth/require-admin';
+import { getOpenRouter, DEFAULT_MODEL } from '@/lib/ai/openrouter';
 
 const TRANSLATE_PROMPT = `Translate the following Indonesian text to English.
 Context: fintech/trading platform. Keep it professional and institutional.
@@ -16,8 +16,10 @@ Context: fintech/trading platform. Keep keys unchanged. Only return valid JSON.
 Maintain professional, institutional tone.`;
 
 async function translateText(text: string): Promise<string> {
+  const or = getOpenRouter();
+  if (!or) throw new Error('OPENROUTER_API_KEY not configured');
   const { text: result } = await generateText({
-    model: google('gemini-2.0-flash'),
+    model: or(DEFAULT_MODEL),
     prompt: `${TRANSLATE_PROMPT}\n\n${text}`,
     temperature: 0.2,
   });
@@ -25,8 +27,10 @@ async function translateText(text: string): Promise<string> {
 }
 
 async function translateJson(json: unknown): Promise<unknown> {
+  const or = getOpenRouter();
+  if (!or) throw new Error('OPENROUTER_API_KEY not configured');
   const { text: result } = await generateText({
-    model: google('gemini-2.0-flash'),
+    model: or(DEFAULT_MODEL),
     prompt: `${TRANSLATE_JSON_PROMPT}\n\n${JSON.stringify(json, null, 2)}`,
     temperature: 0.2,
   });

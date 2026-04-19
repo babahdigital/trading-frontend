@@ -8,8 +8,8 @@
  */
 
 import { generateText } from 'ai';
-import { createOpenAI } from '@ai-sdk/openai';
 import { translateText } from './content';
+import { getOpenRouter, DEFAULT_MODEL } from './openrouter';
 import { createLogger } from '@/lib/logger';
 import { prisma } from '@/lib/db/prisma';
 import type { Prisma } from '@prisma/client';
@@ -29,30 +29,7 @@ import type {
 
 const log = createLogger('pair-brief-gen');
 
-/**
- * Create OpenRouter-backed model.
- * Falls back to Google Gemini if OpenRouter key is not set.
- */
-function getModel() {
-  const openRouterKey = process.env.OPENROUTER_API_KEY;
-  if (openRouterKey) {
-    const openrouter = createOpenAI({
-      baseURL: 'https://openrouter.ai/api/v1',
-      apiKey: openRouterKey,
-    });
-    return { model: openrouter('google/gemini-2.5-flash-lite'), name: 'openrouter/gemini-2.5-flash-lite' };
-  }
-
-  // Fallback to direct Google if available
-  const googleKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
-  if (googleKey) {
-    // Dynamic import to avoid hard dependency
-    const { google } = require('@ai-sdk/google');
-    return { model: google('gemini-2.0-flash'), name: 'gemini-2.0-flash' };
-  }
-
-  return null;
-}
+const MODEL_NAME = `openrouter/${DEFAULT_MODEL.split('/').pop()}`;
 
 function formatPrice(n: number | null | undefined): string {
   if (typeof n !== 'number' || !Number.isFinite(n)) return 'N/A';
@@ -351,14 +328,15 @@ export async function generatePairBriefNarrative(
   session: string,
 ): Promise<GeneratedBrief> {
   const factualTemplate = buildFactualTemplate(data, session);
-  const modelInfo = getModel();
+  const or = getOpenRouter();
 
-  if (!modelInfo) {
-    log.warn('No AI API key set (OPENROUTER_API_KEY or GOOGLE_GENERATIVE_AI_API_KEY) — generating template-only brief');
+  if (!or) {
+    log.warn('OPENROUTER_API_KEY not set — generating template-only brief');
     return { narrative: factualTemplate, narrative_en: null, aiModel: 'template-only', aiTokensUsed: 0 };
   }
 
-  const { model, name: modelName } = modelInfo;
+  const model = or(DEFAULT_MODEL);
+  const modelName = MODEL_NAME;
   const fullPrompt = `${NARRATIVE_PROMPT}\n${factualTemplate}`;
 
   // Layer 2: Generate narrative

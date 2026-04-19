@@ -1,10 +1,8 @@
 import { generateText } from 'ai';
-import { google } from '@ai-sdk/google';
 import { createLogger } from '@/lib/logger';
+import { getOpenRouter, DEFAULT_MODEL } from './openrouter';
 
 const log = createLogger('ai-content');
-
-const MODEL = google('gemini-2.0-flash');
 
 const TRANSLATE_PROMPT = `Translate the following Indonesian text to English.
 Context: fintech/trading platform. Keep it professional and institutional.
@@ -25,15 +23,16 @@ Requirements:
 Return ONLY the Markdown article body, no preamble.`;
 
 /**
- * Translate Indonesian text to English using Gemini.
+ * Translate Indonesian text to English via OpenRouter.
  */
 export async function translateText(text: string): Promise<string> {
-  if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
-    log.warn('GOOGLE_GENERATIVE_AI_API_KEY not set, skipping translation');
+  const or = getOpenRouter();
+  if (!or) {
+    log.warn('OPENROUTER_API_KEY not set, skipping translation');
     return '';
   }
   const { text: result } = await generateText({
-    model: MODEL,
+    model: or(DEFAULT_MODEL),
     prompt: `${TRANSLATE_PROMPT}\n\n${text}`,
     temperature: 0.2,
   });
@@ -51,12 +50,13 @@ export async function enhanceResearchBody(data: {
   avg_confidence?: number;
   highlights?: Array<{ pair: string; summary: string }>;
 }): Promise<string> {
-  if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
-    log.warn('GOOGLE_GENERATIVE_AI_API_KEY not set, skipping body enhancement');
+  const or = getOpenRouter();
+  if (!or) {
+    log.warn('OPENROUTER_API_KEY not set, skipping body enhancement');
     return '';
   }
   const { text: result } = await generateText({
-    model: MODEL,
+    model: or(DEFAULT_MODEL),
     prompt: `${ENHANCE_BODY_PROMPT}\n\nData:\n${JSON.stringify(data, null, 2)}`,
     temperature: 0.3,
   });

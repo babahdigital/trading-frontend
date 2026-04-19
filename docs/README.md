@@ -161,7 +161,7 @@ The app will be available at `http://localhost:3000`.
 ### Default Admin Credentials (seed)
 
 ```
-Email:    admin@babahdigital.net   (or ADMIN_EMAIL env var)
+Email:    admin@babahalgo.com      (or ADMIN_EMAIL env var)
 Password: configured via ADMIN_PASSWORD env var
 ```
 

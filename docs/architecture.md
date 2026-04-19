@@ -35,7 +35,7 @@ The platform is structured as a **three-tier architecture** where VPS2 (this app
 ╔══════════════════════════════════════════════════════════════════════════╗
 ║  NODE 1: CLIENT BROWSER                                                  ║
 ║                                                                          ║
-║  https://trading.babahdigital.net                                        ║
+║  https://babahalgo.com                                                   ║
 ║  Next.js SSR + React SPA — Tailwind CSS + Shadcn/UI                      ║
 ║  Charts: Lightweight Charts (equity) + Recharts (analytics)              ║
 ╚══════════════════════════════╦═══════════════════════════════════════════╝

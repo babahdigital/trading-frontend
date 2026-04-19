@@ -39,7 +39,7 @@ Server: VPS2 — 148.230.96.201 | OS: Ubuntu 24.04 LTS | Port: 1983 (SSH)
 - Minimum 2 vCPU, 4 GB RAM, 40 GB SSD
 - Docker Engine 24+
 - PostgreSQL 16 (installed on host, not containerized)
-- Cloudflare account with tunnel configured for `trading.babahdigital.net`
+- Cloudflare account with tunnel configured for `babahalgo.com`
 
 ---
 
@@ -57,9 +57,9 @@ cp .env.example .env
 |---|---|---|---|
 | `DATABASE_URL` | Yes | `postgresql://trading_user:pass@localhost:5432/trading_commercial` | PostgreSQL connection string |
 | `JWT_SECRET` | Yes | 64-char random hex | HS256 signing key for JWT tokens |
-| `ADMIN_EMAIL` | Yes | `admin@babahdigital.net` | Initial admin account email |
+| `ADMIN_EMAIL` | Yes | `admin@babahalgo.com` | Initial admin account email |
 | `ADMIN_PASSWORD` | Yes | `SecurePass123!` | Initial admin account password |
-| `NEXT_PUBLIC_APP_URL` | Yes | `https://trading.babahdigital.net` | Public URL (used in CORS, redirects) |
+| `NEXT_PUBLIC_APP_URL` | Yes | `https://babahalgo.com` | Public URL (used in CORS, redirects) |
 | `LICENSE_MW_MASTER_KEY` | Yes | 64-char hex string | AES-256-GCM master key for VPS token encryption |
 | `VPS1_BACKEND_URL` | Yes | `http://147.93.156.218:8000` | Python bot backend base URL |
 | `VPS1_ADMIN_TOKEN` | Yes | `plain_token_here` | Admin token for master backend (PAMM/Signal) |
@@ -270,7 +270,7 @@ docker run --rm --add-host=host.docker.internal:host-gateway postgres:16-alpine 
 
 ### Prerequisites
 
-- Cloudflare account with `babahdigital.net` domain added
+- Cloudflare account with `babahalgo.com` domain added
 - Cloudflare Zero Trust dashboard access
 
 ### Step 1: Authenticate Cloudflared
@@ -292,10 +292,10 @@ Note the tunnel UUID output. It will be needed in the config file.
 ### Step 3: Create DNS Record
 
 ```bash
-cloudflared tunnel route dns trading-app trading.babahdigital.net
+cloudflared tunnel route dns trading-app babahalgo.com
 ```
 
-This creates a CNAME record: `trading.babahdigital.net` → `<tunnel-uuid>.cfargotunnel.com`
+This creates a CNAME record: `babahalgo.com` → `<tunnel-uuid>.cfargotunnel.com`
 
 ### Step 4: Configure the Tunnel
 
@@ -313,7 +313,7 @@ tunnel: <tunnel-uuid>
 credentials-file: /root/.cloudflared/<tunnel-uuid>.json
 
 ingress:
-  - hostname: trading.babahdigital.net
+  - hostname: babahalgo.com
     service: http://localhost:3000
   - service: http_status:404
 ```
@@ -403,7 +403,7 @@ docker compose exec app npx prisma db seed
 sudo systemctl start cloudflared
 
 # 10. Verify
-curl https://trading.babahdigital.net/api/health
+curl https://babahalgo.com/api/health
 ```
 
 ---
@@ -475,7 +475,7 @@ sudo systemctl status cloudflared
 sudo journalctl -u cloudflared -f
 
 # Test public endpoint
-curl -I https://trading.babahdigital.net/api/health
+curl -I https://babahalgo.com/api/health
 ```
 
 ### Docker Container Stats
@@ -519,7 +519,7 @@ docker compose exec app sh -c 'nc -zv host.docker.internal 5432'
 
 ### Cloudflare Tunnel Not Routing Traffic
 
-**Symptom:** `trading.babahdigital.net` returns 1016 error
+**Symptom:** `babahalgo.com` returns 1016 error
 
 ```bash
 # Check tunnel is running

@@ -585,7 +585,7 @@ The seed script (`prisma/seed.ts`) creates initial data for development and prod
 
 ```typescript
 {
-  email: process.env.ADMIN_EMAIL || 'admin@babahdigital.net',
+  email: process.env.ADMIN_EMAIL || 'admin@babahalgo.com',
   passwordHash: await bcrypt.hash(process.env.ADMIN_PASSWORD || 'changeme123', 12),
   role: 'ADMIN',
   name: 'Abdullah - Babah Digital'

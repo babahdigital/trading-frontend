@@ -50,7 +50,7 @@ Authenticate a user. Supports two modes:
 **Mode A — Admin / Standard Login:**
 ```json
 {
-  "email": "admin@babahdigital.net",
+  "email": "admin@babahalgo.com",
   "password": "your_password"
 }
 ```

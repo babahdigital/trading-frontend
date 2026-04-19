@@ -37,8 +37,8 @@ function extractNumbers(text: string): number[] {
 function numberExistsInSource(num: number, sourceNumbers: number[]): boolean {
   // Skip small numbers that are likely generic (confidence %, counts, etc.)
   if (num < 10) return true;
-  // Skip round numbers that are likely just dates, counts, or word counts
-  if (Number.isInteger(num) && num < 1000) return true;
+  // Skip round numbers that are likely just dates, counts, word counts, or years
+  if (Number.isInteger(num) && num < 3000) return true;
 
   const tolerance = num * 0.001; // 0.1%
   return sourceNumbers.some((s) => Math.abs(s - num) <= tolerance);

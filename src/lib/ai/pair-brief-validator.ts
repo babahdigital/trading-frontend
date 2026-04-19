@@ -83,53 +83,49 @@ function buildSourceNumbers(data: PairDataBundle): number[] {
   nums.push(data.signals.filter((s) => s.direction === 'BUY').length);
   nums.push(data.signals.filter((s) => s.direction === 'SELL').length);
 
-  // Market Snapshot
+  const push = (v: unknown) => {
+    if (typeof v === 'number' && Number.isFinite(v)) nums.push(v);
+  };
+
+  // Market Snapshot — real VPS1 schema
   if (data.marketSnapshot) {
     const snap = data.marketSnapshot;
-    nums.push(snap.current_price, snap.high_24h, snap.low_24h);
-    nums.push(snap.price_change_24h, snap.price_change_pct);
-    if (snap.atr_daily) nums.push(snap.atr_daily);
-    if (snap.spread) nums.push(snap.spread);
-    if (snap.volume_24h) nums.push(snap.volume_24h);
-    if (snap.session_info) {
-      nums.push(snap.session_info.session_open);
-      nums.push(snap.session_info.prev_high, snap.session_info.prev_low);
-      nums.push(snap.session_info.current_high, snap.session_info.current_low);
+    push(snap.price?.bid); push(snap.price?.ask); push(snap.price?.mid);
+    push(snap.price?.spread_points); push(snap.price?.point_size);
+    push(snap.atr?.m5); push(snap.atr?.m15); push(snap.atr?.h1);
+    push(snap.atr?.h4); push(snap.atr?.d1);
+    if (snap.scanner) {
+      push(snap.scanner.score); push(snap.scanner.volatility);
+      push(snap.scanner.mtf_confluence); push(snap.scanner.higher_tf_bias);
+      push(snap.scanner.smc_score); push(snap.scanner.wyckoff_score);
+      push(snap.scanner.zone_score); push(snap.scanner.sr_score);
+      push(snap.scanner.session_score); push(snap.scanner.spread_quality);
     }
   }
 
-  // Technical Analysis — per-timeframe data
+  // Technical Analysis — per-timeframe numeric fields we actually emit
   if (data.technicalAnalysis?.timeframes) {
     for (const tf of Object.values(data.technicalAnalysis.timeframes)) {
-      nums.push(tf.rsi);
-      if (tf.key_levels) {
-        nums.push(...tf.key_levels.support);
-        nums.push(...tf.key_levels.resistance);
-      }
-      if (tf.snd_zones) {
-        for (const z of tf.snd_zones) {
-          nums.push(z.high, z.low);
-        }
-      }
-    }
-    if (data.technicalAnalysis.multi_tf_confluence) {
-      nums.push(data.technicalAnalysis.multi_tf_confluence.score);
+      push(tf.atr);
+      push(tf.wyckoff_conf); push(tf.wyckoff_tr_high); push(tf.wyckoff_tr_low);
+      push(tf.quasimodo_confidence); push(tf.quasimodo_level); push(tf.quasimodo_break_level);
+      push(tf.nearest_support); push(tf.nearest_resistance);
+      push(tf.nearest_demand_top); push(tf.nearest_demand_bottom); push(tf.nearest_demand_strength);
+      push(tf.nearest_supply_top); push(tf.nearest_supply_bottom); push(tf.nearest_supply_strength);
+      push(tf.swing_high_1); push(tf.swing_high_2);
+      push(tf.swing_low_1); push(tf.swing_low_2);
+      push(tf.bullish_target); push(tf.bearish_target);
+      push(tf.nearest_fvg_bull_top); push(tf.nearest_fvg_bull_bottom);
+      push(tf.nearest_fvg_bear_top); push(tf.nearest_fvg_bear_bottom);
     }
   }
 
-  // Technical Extras — liquidity pools + session levels
-  if (data.technicalExtras) {
-    if (data.technicalExtras.liquidity_pools) {
-      for (const pool of data.technicalExtras.liquidity_pools) {
-        nums.push(pool.level, pool.strength);
-      }
-    }
-    if (data.technicalExtras.session_levels) {
-      const sl = data.technicalExtras.session_levels;
-      nums.push(sl.prev_high, sl.prev_low, sl.current_high, sl.current_low);
-    }
-    if (data.technicalExtras.institutional_levels) {
-      nums.push(...data.technicalExtras.institutional_levels);
+  // Technical Extras — Fibonacci retracements + extensions
+  if (data.technicalExtras?.fibonacci) {
+    for (const fib of Object.values(data.technicalExtras.fibonacci)) {
+      push(fib.swing_low); push(fib.swing_high);
+      for (const r of fib.retracements ?? []) { push(r.price); push(r.ratio); }
+      for (const r of fib.extensions ?? []) { push(r.price); push(r.ratio); }
     }
   }
 

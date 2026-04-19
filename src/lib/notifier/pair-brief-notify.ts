@@ -30,14 +30,16 @@ function buildTelegramMessage(pair: string, session: string, data: PairDataBundl
   // Add market snapshot if available
   if (data.marketSnapshot) {
     const snap = data.marketSnapshot;
-    if (typeof snap.current_price === 'number') {
-      const pct = typeof snap.price_change_pct === 'number'
-        ? ` (${snap.price_change_pct >= 0 ? '+' : ''}${snap.price_change_pct.toFixed(2)}%)`
-        : '';
-      lines.push(`*Price:* ${formatPrice(snap.current_price)}${pct}`);
+    if (typeof snap.price?.mid === 'number') {
+      lines.push(`*Price:* ${formatPrice(snap.price.mid)}`);
+    } else if (typeof snap.price?.bid === 'number' && typeof snap.price?.ask === 'number') {
+      lines.push(`*Bid/Ask:* ${formatPrice(snap.price.bid)} / ${formatPrice(snap.price.ask)}`);
     }
-    if (typeof snap.low_24h === 'number' && typeof snap.high_24h === 'number') {
-      lines.push(`*24h Range:* ${formatPrice(snap.low_24h)} — ${formatPrice(snap.high_24h)}`);
+    if (typeof snap.atr?.d1 === 'number') {
+      lines.push(`*Daily ATR:* ${formatPrice(snap.atr.d1)}`);
+    }
+    if (snap.session?.active_window) {
+      lines.push(`*Session:* ${snap.session.active_window}`);
     }
     lines.push('');
   }

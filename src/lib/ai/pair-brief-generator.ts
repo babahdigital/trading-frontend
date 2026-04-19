@@ -60,11 +60,6 @@ function formatPrice(n: number | null | undefined): string {
     : n.toFixed(5);
 }
 
-function formatPct(n: number | null | undefined): string {
-  if (typeof n !== 'number' || !Number.isFinite(n)) return 'N/A';
-  return `${n >= 0 ? '+' : ''}${n.toFixed(2)}%`;
-}
-
 function formatLevels(levels: number[]): string {
   if (levels.length === 0) return 'N/A';
   return levels.slice(0, 8).map(formatPrice).join(' | ');
@@ -93,95 +88,131 @@ function formatTradeIdeas(ideas: TradeIdeaRaw[]): string {
 }
 
 /**
- * Build the technical analysis section from dedicated endpoint data.
+ * Build the technical analysis section from the real VPS1 schema.
+ *
+ * VPS1 exposes per-timeframe Wyckoff / Quasimodo / SMC fields rather than
+ * classic TA indicators, so the section surfaces those directly: Wyckoff
+ * phase + event, market structure (BOS/CHoCH), nearest demand & supply
+ * zones, nearest S/R, and directional targets when present.
  */
 function buildTechnicalSection(ta: Vps1TechnicalAnalysis): string {
   const lines: string[] = [];
   lines.push('## Multi-Timeframe Technical Analysis');
 
   for (const [tfName, tf] of Object.entries(ta.timeframes)) {
-    lines.push(`### ${tfName}`);
-    lines.push(`Trend: ${tf.trend} | RSI: ${tf.rsi} | MACD: ${tf.macd_signal} | BB: ${tf.bb_position} | EMA: ${tf.ema_alignment}`);
-    if (tf.key_levels) {
-      const support = tf.key_levels.support ?? [];
-      const resistance = tf.key_levels.resistance ?? [];
-      if (support.length > 0) {
-        lines.push(`  Support: ${support.map(formatPrice).join(', ')}`);
-      }
-      if (resistance.length > 0) {
-        lines.push(`  Resistance: ${resistance.map(formatPrice).join(', ')}`);
-      }
-    }
-    if (tf.snd_zones && tf.snd_zones.length > 0) {
-      lines.push(`  SND: ${tf.snd_zones.map((z) => `${z.type} ${formatPrice(z.low)}-${formatPrice(z.high)}`).join(', ')}`);
-    }
-    if (tf.patterns && tf.patterns.length > 0) {
-      lines.push(`  Patterns: ${tf.patterns.map((p) => p.name).join(', ')}`);
-    }
-  }
+    const tfLabel = (tf.timeframe || tfName).toUpperCase();
+    lines.push(`### ${tfLabel}`);
 
-  if (ta.multi_tf_confluence) {
-    const c = ta.multi_tf_confluence;
-    lines.push(`\nMulti-TF Confluence: score ${c.score}, bias ${c.dominant_bias}, aligned TFs: ${c.aligned_timeframes.join(', ')}`);
+    const header: string[] = [];
+    if (tf.wyckoff_phase) header.push(`Wyckoff phase: ${tf.wyckoff_phase}`);
+    if (tf.wyckoff_event && tf.wyckoff_event !== 'none') header.push(`event: ${tf.wyckoff_event}`);
+    if (tf.market_structure) header.push(`structure: ${tf.market_structure}`);
+    if (tf.last_bos) header.push(`last BOS: ${tf.last_bos}`);
+    if (tf.last_choch) header.push(`last CHoCH: ${tf.last_choch}`);
+    if (typeof tf.atr === 'number') header.push(`ATR ${formatPrice(tf.atr)}`);
+    if (header.length > 0) lines.push(header.join(' | '));
+
+    const levels: string[] = [];
+    if (typeof tf.nearest_support === 'number') levels.push(`nearest S ${formatPrice(tf.nearest_support)}`);
+    if (typeof tf.nearest_resistance === 'number') levels.push(`nearest R ${formatPrice(tf.nearest_resistance)}`);
+    if (typeof tf.swing_high_1 === 'number') levels.push(`swing hi ${formatPrice(tf.swing_high_1)}`);
+    if (typeof tf.swing_low_1 === 'number') levels.push(`swing lo ${formatPrice(tf.swing_low_1)}`);
+    if (levels.length > 0) lines.push(`  Levels: ${levels.join(', ')}`);
+
+    const zones: string[] = [];
+    if (typeof tf.nearest_demand_top === 'number' && typeof tf.nearest_demand_bottom === 'number') {
+      zones.push(`Demand ${formatPrice(tf.nearest_demand_bottom)}–${formatPrice(tf.nearest_demand_top)}`);
+    }
+    if (typeof tf.nearest_supply_top === 'number' && typeof tf.nearest_supply_bottom === 'number') {
+      zones.push(`Supply ${formatPrice(tf.nearest_supply_bottom)}–${formatPrice(tf.nearest_supply_top)}`);
+    }
+    if (zones.length > 0) lines.push(`  Zones: ${zones.join(', ')}`);
+
+    const targets: string[] = [];
+    if (typeof tf.bullish_target === 'number') targets.push(`bullish ${formatPrice(tf.bullish_target)}`);
+    if (typeof tf.bearish_target === 'number') targets.push(`bearish ${formatPrice(tf.bearish_target)}`);
+    if (targets.length > 0) lines.push(`  Targets: ${targets.join(', ')}`);
   }
 
   return lines.join('\n');
 }
 
 /**
- * Build liquidity and session levels section from technical-extras.
+ * Build liquidity section from Fibonacci retracements + FVG data in TA.
  */
-function buildLiquiditySection(extras: Vps1TechnicalExtras): string {
+function buildLiquiditySection(extras: Vps1TechnicalExtras, ta: Vps1TechnicalAnalysis | null): string {
   const lines: string[] = [];
-  lines.push('## Liquidity & Session Levels');
+  lines.push('## Liquidity & Fibonacci Structure');
 
-  if (extras.session_levels) {
-    const sl = extras.session_levels;
-    lines.push(`Previous Session: High ${formatPrice(sl.prev_high)}, Low ${formatPrice(sl.prev_low)}`);
-    lines.push(`Current Session: High ${formatPrice(sl.current_high)}, Low ${formatPrice(sl.current_low)}`);
-    if (sl.at_session_level) {
-      lines.push(`⚠ Price is AT a session level — expect volatility`);
+  if (extras.fibonacci) {
+    for (const [tfName, fib] of Object.entries(extras.fibonacci)) {
+      const TF = tfName.toUpperCase();
+      const parts: string[] = [];
+      if (fib.trend) parts.push(`trend ${fib.trend}`);
+      if (typeof fib.swing_low === 'number' && typeof fib.swing_high === 'number') {
+        parts.push(`swing ${formatPrice(fib.swing_low)}–${formatPrice(fib.swing_high)}`);
+      }
+      if (parts.length > 0) lines.push(`### ${TF} Fib — ${parts.join(', ')}`);
+      const retrs = (fib.retracements ?? []).filter((r) => typeof r.price === 'number').slice(0, 5);
+      if (retrs.length > 0) {
+        lines.push(`  Retracements: ${retrs.map((r) => `${r.label} @ ${formatPrice(r.price)} (${r.role})`).join(', ')}`);
+      }
     }
   }
 
-  if (extras.liquidity_pools && extras.liquidity_pools.length > 0) {
-    lines.push(`Liquidity Pools:`);
-    for (const pool of extras.liquidity_pools) {
-      lines.push(`  ${pool.type} at ${formatPrice(pool.level)} (strength ${pool.strength})`);
+  if (ta?.timeframes) {
+    const gaps: string[] = [];
+    for (const [tfName, tf] of Object.entries(ta.timeframes)) {
+      const TF = tfName.toUpperCase();
+      if (typeof tf.nearest_fvg_bull_top === 'number' && typeof tf.nearest_fvg_bull_bottom === 'number') {
+        gaps.push(`${TF} bullish FVG ${formatPrice(tf.nearest_fvg_bull_bottom)}–${formatPrice(tf.nearest_fvg_bull_top)}`);
+      }
+      if (typeof tf.nearest_fvg_bear_top === 'number' && typeof tf.nearest_fvg_bear_bottom === 'number') {
+        gaps.push(`${TF} bearish FVG ${formatPrice(tf.nearest_fvg_bear_bottom)}–${formatPrice(tf.nearest_fvg_bear_top)}`);
+      }
     }
+    if (gaps.length > 0) lines.push(`Fair Value Gaps: ${gaps.join(' | ')}`);
   }
 
-  if (extras.order_flow_bias) {
-    lines.push(`Order Flow Bias: ${extras.order_flow_bias}`);
-  }
-
-  if (extras.institutional_levels && extras.institutional_levels.length > 0) {
-    lines.push(`Institutional Levels: ${extras.institutional_levels.map(formatPrice).join(', ')}`);
-  }
-
-  return lines.join('\n');
+  return lines.length > 1 ? lines.join('\n') : '';
 }
 
 /**
- * Build market snapshot section.
+ * Build market snapshot section from the real VPS1 schema (price.mid, atr.d1,
+ * scanner.higher_tf_bias, session.active_window).
  */
 function buildMarketSnapshotSection(snap: Vps1MarketSnapshot): string {
   const lines: string[] = [];
   lines.push('## Market Snapshot');
-  if (typeof snap.current_price === 'number') {
-    lines.push(`Current Price: ${formatPrice(snap.current_price)}`);
+  const mid = snap.price?.mid;
+  const bid = snap.price?.bid;
+  const ask = snap.price?.ask;
+  if (typeof mid === 'number') {
+    lines.push(`Current Price (mid): ${formatPrice(mid)}`);
+  } else if (typeof bid === 'number' && typeof ask === 'number') {
+    lines.push(`Current Price: bid ${formatPrice(bid)} / ask ${formatPrice(ask)}`);
   }
-  if (typeof snap.price_change_pct === 'number') {
-    const changeAbs = typeof snap.price_change_24h === 'number' ? ` (${formatPrice(snap.price_change_24h)})` : '';
-    lines.push(`24h Change: ${formatPct(snap.price_change_pct)}${changeAbs}`);
+  if (typeof snap.price?.spread_points === 'number') {
+    lines.push(`Spread: ${snap.price.spread_points} points`);
   }
-  if (typeof snap.low_24h === 'number' && typeof snap.high_24h === 'number') {
-    lines.push(`24h Range: ${formatPrice(snap.low_24h)} — ${formatPrice(snap.high_24h)}`);
+  if (typeof snap.atr?.d1 === 'number') {
+    lines.push(`Daily ATR: ${formatPrice(snap.atr.d1)}`);
   }
-  if (typeof snap.atr_daily === 'number') lines.push(`Daily ATR: ${formatPrice(snap.atr_daily)}`);
-  if (snap.spread != null) lines.push(`Spread: ${snap.spread}`);
-  if (snap.session_info?.current_session) {
-    lines.push(`Session: ${snap.session_info.current_session}`);
+  if (snap.atr?.regime) {
+    lines.push(`Volatility regime: ${snap.atr.regime}`);
+  }
+  if (snap.session?.active_window) {
+    lines.push(`Session: ${snap.session.active_window}${snap.session.market_open ? ' (open)' : ' (closed)'}`);
+  }
+  if (snap.scanner) {
+    const s = snap.scanner;
+    const scoreParts: string[] = [];
+    if (typeof s.score === 'number') scoreParts.push(`overall ${s.score.toFixed(2)}`);
+    if (typeof s.mtf_confluence === 'number') scoreParts.push(`MTF confluence ${s.mtf_confluence.toFixed(2)}`);
+    if (typeof s.higher_tf_bias === 'number') scoreParts.push(`higher-TF bias ${s.higher_tf_bias.toFixed(2)}`);
+    if (typeof s.smc_score === 'number') scoreParts.push(`SMC ${s.smc_score.toFixed(2)}`);
+    if (scoreParts.length > 0) lines.push(`Scanner: ${scoreParts.join(', ')}`);
+    if (s.reason_label) lines.push(`Scanner reason: ${s.reason_label}`);
   }
   return lines.join('\n');
 }
@@ -239,9 +270,10 @@ Date: ${new Date().toISOString().split('T')[0]}`);
     sections.push(buildTechnicalSection(data.technicalAnalysis));
   }
 
-  // Liquidity & Session Levels
+  // Liquidity & Fibonacci structure (pulls from technical-extras + TA FVGs)
   if (data.technicalExtras) {
-    sections.push(buildLiquiditySection(data.technicalExtras));
+    const liquiditySection = buildLiquiditySection(data.technicalExtras, data.technicalAnalysis);
+    if (liquiditySection) sections.push(liquiditySection);
   }
 
   // Legacy signal-extracted data (always present)

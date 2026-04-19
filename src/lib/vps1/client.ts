@@ -193,25 +193,65 @@ export function getPerformanceStats(period_days = 30) {
 }
 
 // ─── Research: Dedicated Pair Endpoints ─────────────────────────────────────
+//
+// Shapes below mirror the real VPS1 payloads observed on 2026-04-19. VPS1
+// returns rich per-timeframe data but the field names are domain-specific
+// (Wyckoff / SMC / Quasimodo) rather than generic TA terms. Types are
+// deliberately loose on secondary fields so extraction can use what is
+// present and skip what is not.
+
+export interface Vps1Price {
+  bid?: number;
+  ask?: number;
+  mid?: number;
+  spread_points?: number;
+  point_size?: number;
+}
+
+export interface Vps1MultiTfAtr {
+  m5?: number;
+  m15?: number;
+  h1?: number;
+  h4?: number;
+  d1?: number;
+  regime?: string;
+}
+
+export interface Vps1SessionInfo {
+  profile?: string;
+  profile_label?: string;
+  market_open?: boolean;
+  scan_allowed?: boolean;
+  active_window?: string;
+  next_window?: string;
+  utc_hour?: number;
+}
+
+export interface Vps1Scanner {
+  score?: number;
+  volatility?: number;
+  spread_quality?: number;
+  mtf_confluence?: number;
+  higher_tf_bias?: number;
+  smc_score?: number;
+  wyckoff_score?: number;
+  zone_score?: number;
+  sr_score?: number;
+  session_score?: number;
+  reason?: string;
+  reason_label?: string;
+  reason_detail?: string;
+  [key: string]: unknown;
+}
 
 export interface Vps1MarketSnapshot {
   pair: string;
-  current_price: number;
-  price_change_24h: number;
-  price_change_pct: number;
-  high_24h: number;
-  low_24h: number;
-  volume_24h?: number;
-  spread?: number;
-  atr_daily?: number;
-  session_info?: {
-    current_session: string;
-    session_open: number;
-    prev_high: number;
-    prev_low: number;
-    current_high: number;
-    current_low: number;
-  };
+  timestamp_utc: string;
+  engine_running?: boolean;
+  price?: Vps1Price;
+  atr?: Vps1MultiTfAtr;
+  session?: Vps1SessionInfo;
+  scanner?: Vps1Scanner;
   [key: string]: unknown;
 }
 
@@ -240,30 +280,63 @@ export function getCalendar(pair: string) {
   return request<Vps1Calendar>('research', `/api/research/calendar/${pair}`);
 }
 
+/**
+ * Single-timeframe indicator payload. VPS1 emits ~80 fields per TF; we only
+ * type the ones we read so the rest stays addressable via the index signature.
+ */
 export interface Vps1TimeframeIndicators {
-  tf: string;
-  trend: string;
-  rsi: number;
-  macd_signal: string;
-  bb_position: string;
-  ema_alignment: string;
-  key_levels: {
-    support: number[];
-    resistance: number[];
-  };
-  snd_zones: Array<{ type: string; high: number; low: number }>;
-  patterns: Array<{ name: string; description: string }>;
+  timeframe?: string;
+  atr?: number;
+  // Wyckoff
+  wyckoff_phase?: string;
+  wyckoff_event?: string;
+  wyckoff_conf?: number;
+  wyckoff_tr_high?: number;
+  wyckoff_tr_low?: number;
+  // Quasimodo
+  quasimodo_pattern?: string;
+  quasimodo_confidence?: number;
+  quasimodo_level?: number;
+  quasimodo_break_level?: number;
+  // SMC / structure
+  market_structure?: string;
+  last_bos?: string;
+  last_choch?: string;
+  // Nearest levels (single scalars)
+  nearest_support?: number;
+  nearest_resistance?: number;
+  // Nearest zones (top/bottom pair)
+  nearest_demand_top?: number;
+  nearest_demand_bottom?: number;
+  nearest_demand_strength?: number;
+  nearest_supply_top?: number;
+  nearest_supply_bottom?: number;
+  nearest_supply_strength?: number;
+  // Swings
+  swing_high_1?: number;
+  swing_high_2?: number;
+  swing_low_1?: number;
+  swing_low_2?: number;
+  // Targets
+  bullish_target?: number;
+  bullish_target_type?: string;
+  bearish_target?: number;
+  bearish_target_type?: string;
+  // Fair Value Gaps
+  nearest_fvg_bull_top?: number;
+  nearest_fvg_bull_bottom?: number;
+  nearest_fvg_bear_top?: number;
+  nearest_fvg_bear_bottom?: number;
   [key: string]: unknown;
 }
 
 export interface Vps1TechnicalAnalysis {
   pair: string;
+  timestamp_utc: string;
+  price?: Vps1Price;
   timeframes: Record<string, Vps1TimeframeIndicators>;
-  multi_tf_confluence: {
-    score: number;
-    dominant_bias: string;
-    aligned_timeframes: string[];
-  };
+  smc_execution?: Record<string, unknown>;
+  liquidity?: Record<string, unknown>;
   [key: string]: unknown;
 }
 
@@ -271,28 +344,25 @@ export function getTechnicalAnalysis(pair: string) {
   return request<Vps1TechnicalAnalysis>('research', `/api/research/technical-analysis/${pair}`);
 }
 
-export interface Vps1LiquidityPool {
-  level: number;
-  type: string;
-  strength: number;
-  [key: string]: unknown;
+export interface Vps1FibLevel {
+  ratio: number;
+  price: number;
+  label: string;
+  role: 'support' | 'resistance' | 'target' | string;
 }
 
-export interface Vps1SessionLevels {
-  prev_high: number;
-  prev_low: number;
-  current_high: number;
-  current_low: number;
-  at_session_level: boolean;
-  [key: string]: unknown;
+export interface Vps1FibTimeframe {
+  trend?: string;
+  swing_low?: number;
+  swing_high?: number;
+  retracements?: Vps1FibLevel[];
+  extensions?: Vps1FibLevel[];
 }
 
 export interface Vps1TechnicalExtras {
   pair: string;
-  liquidity_pools: Vps1LiquidityPool[];
-  session_levels: Vps1SessionLevels;
-  order_flow_bias?: string;
-  institutional_levels?: number[];
+  timestamp_utc: string;
+  fibonacci?: Record<string, Vps1FibTimeframe>;
   [key: string]: unknown;
 }
 

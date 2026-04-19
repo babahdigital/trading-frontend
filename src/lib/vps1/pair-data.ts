@@ -100,78 +100,72 @@ function getEntryPrice(s: Vps1Signal): number | undefined {
 
 const MAX_LEVELS_PER_SIDE = 8;
 
+function isFiniteNum(v: unknown): v is number {
+  return typeof v === 'number' && Number.isFinite(v);
+}
+
 /**
- * Extract S/R levels from dedicated technical-analysis + signal indicator_snapshots.
- *
- * When currentPrice is known, reclassify every candidate level against it:
- * levels below current price become supports (sorted nearest-first, i.e.
- * descending), levels above become resistances (sorted nearest-first, i.e.
- * ascending). VPS1's original support/resistance labelling is historical and
- * may flip as price moves, so using current price is more accurate for a
- * brief consumed at publish-time.
+ * Collect every price-level scalar VPS1 exposes for a pair, then split by
+ * current price into supports (nearest-first descending) and resistances
+ * (nearest-first ascending). VPS1 publishes dozens of per-timeframe level
+ * fields (nearest_support, nearest_supply_top/bottom, swing_high_1/2, FVG
+ * bounds, Wyckoff TR high/low, Fib retracement prices, etc.) — we gather
+ * all numeric ones, dedupe, and reclassify against current_price so the
+ * brief reflects where price actually is at publish-time rather than the
+ * historical label attached by the source.
  */
 function extractLevels(
   signals: Vps1Signal[],
   ta: Vps1TechnicalAnalysis | null,
+  extras: Vps1TechnicalExtras | null,
   currentPrice: number | null,
 ): { support: number[]; resistance: number[] } {
   const candidates = new Set<number>();
+  const push = (v: unknown) => { if (isFiniteNum(v)) candidates.add(v); };
 
-  // Primary: dedicated technical-analysis endpoint
+  // Technical-analysis: per-timeframe price-level fields
   if (ta?.timeframes) {
     for (const tf of Object.values(ta.timeframes)) {
-      if (tf.key_levels) {
-        for (const lvl of tf.key_levels.support ?? []) {
-          if (typeof lvl === 'number') candidates.add(lvl);
-        }
-        for (const lvl of tf.key_levels.resistance ?? []) {
-          if (typeof lvl === 'number') candidates.add(lvl);
-        }
-      }
+      push(tf.nearest_support);
+      push(tf.nearest_resistance);
+      push(tf.nearest_demand_top); push(tf.nearest_demand_bottom);
+      push(tf.nearest_supply_top); push(tf.nearest_supply_bottom);
+      push(tf.swing_high_1); push(tf.swing_high_2);
+      push(tf.swing_low_1); push(tf.swing_low_2);
+      push(tf.wyckoff_tr_high); push(tf.wyckoff_tr_low);
+      push(tf.bullish_target); push(tf.bearish_target);
+      push(tf.nearest_fvg_bull_top); push(tf.nearest_fvg_bull_bottom);
+      push(tf.nearest_fvg_bear_top); push(tf.nearest_fvg_bear_bottom);
+      push(tf.quasimodo_level); push(tf.quasimodo_break_level);
     }
   }
 
-  // Supplementary: signal indicator_snapshots + entry/SL/TP
-  for (const s of signals) {
-    const snap = s.indicator_snapshot || s.indicator_snapshot_summary;
-    if (snap) {
-      if (Array.isArray(snap.support_levels)) {
-        for (const lvl of snap.support_levels) {
-          if (typeof lvl === 'number') candidates.add(lvl);
-        }
-      }
-      if (Array.isArray(snap.resistance_levels)) {
-        for (const lvl of snap.resistance_levels) {
-          if (typeof lvl === 'number') candidates.add(lvl);
-        }
-      }
+  // Technical-extras: Fibonacci retracements per timeframe
+  if (extras?.fibonacci) {
+    for (const fib of Object.values(extras.fibonacci)) {
+      push(fib.swing_low); push(fib.swing_high);
+      for (const r of fib.retracements ?? []) push(r.price);
     }
-    if (s.stop_loss != null) candidates.add(s.stop_loss);
-    if (s.take_profit != null) candidates.add(s.take_profit);
-    const entry = getEntryPrice(s);
-    if (entry) candidates.add(entry);
+  }
+
+  // Signals: entry / SL / TP
+  for (const s of signals) {
+    push(s.stop_loss);
+    push(s.take_profit);
+    push(getEntryPrice(s));
   }
 
   const levels = [...candidates];
 
-  // Without a reference price we fall back to the legacy labelling path so
-  // existing tests and non-snapshot pairs still produce sensible arrays.
   if (currentPrice == null || !Number.isFinite(currentPrice)) {
-    const support: number[] = [];
-    const resistance: number[] = [];
-    if (ta?.timeframes) {
-      for (const tf of Object.values(ta.timeframes)) {
-        for (const lvl of tf.key_levels?.support ?? []) {
-          if (typeof lvl === 'number') support.push(lvl);
-        }
-        for (const lvl of tf.key_levels?.resistance ?? []) {
-          if (typeof lvl === 'number') resistance.push(lvl);
-        }
-      }
-    }
+    // Without a reference price, best we can do is split around the median.
+    levels.sort((a, b) => a - b);
+    const mid = Math.floor(levels.length / 2);
+    const below = levels.slice(0, mid).reverse();
+    const above = levels.slice(mid);
     return {
-      support: [...new Set(support)].sort((a, b) => b - a).slice(0, MAX_LEVELS_PER_SIDE),
-      resistance: [...new Set(resistance)].sort((a, b) => a - b).slice(0, MAX_LEVELS_PER_SIDE),
+      support: below.slice(0, MAX_LEVELS_PER_SIDE),
+      resistance: above.slice(0, MAX_LEVELS_PER_SIDE),
     };
   }
 
@@ -181,49 +175,43 @@ function extractLevels(
 }
 
 /**
- * Extract SND zones from dedicated technical-analysis + signal indicator snapshots.
+ * VPS1 emits exactly one nearest demand zone and one nearest supply zone per
+ * timeframe via `nearest_demand_{top,bottom}` / `nearest_supply_{top,bottom}`.
+ * We materialize those into SndZone records and dedupe across timeframes.
  */
 function extractSndZones(signals: Vps1Signal[], ta: Vps1TechnicalAnalysis | null): SndZone[] {
   const zones: SndZone[] = [];
   const seen = new Set<string>();
+  const add = (type: 'SUPPLY' | 'DEMAND', top: unknown, bottom: unknown, tf: string) => {
+    if (!isFiniteNum(top) || !isFiniteNum(bottom)) return;
+    const low = Math.min(top, bottom);
+    const high = Math.max(top, bottom);
+    const key = `${type}-${low}-${high}-${tf}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    zones.push({ type, low, high, tf });
+  };
 
-  // Primary: dedicated technical-analysis endpoint
   if (ta?.timeframes) {
     for (const [tfName, tf] of Object.entries(ta.timeframes)) {
-      if (Array.isArray(tf.snd_zones)) {
-        for (const z of tf.snd_zones) {
-          if (z && typeof z.high === 'number' && typeof z.low === 'number') {
-            const key = `${z.type}-${z.high}-${z.low}-${tfName}`;
-            if (!seen.has(key)) {
-              seen.add(key);
-              zones.push({
-                type: z.type === 'SUPPLY' ? 'SUPPLY' : 'DEMAND',
-                high: z.high,
-                low: z.low,
-                tf: tfName,
-              });
-            }
-          }
-        }
-      }
+      const TF = tfName.toUpperCase();
+      add('DEMAND', tf.nearest_demand_top, tf.nearest_demand_bottom, TF);
+      add('SUPPLY', tf.nearest_supply_top, tf.nearest_supply_bottom, TF);
     }
   }
 
-  // Supplementary: signal indicator snapshots
+  // Legacy path: signals may ship an indicator_snapshot with snd_zones array
   for (const s of signals) {
-    const snap = s.indicator_snapshot;
-    if (!snap || !Array.isArray(snap.snd_zones)) continue;
-    for (const z of snap.snd_zones) {
-      if (z && typeof z.high === 'number' && typeof z.low === 'number') {
-        const key = `${z.type}-${z.high}-${z.low}-${z.tf || 'H4'}`;
+    const snap = s.indicator_snapshot as Record<string, unknown> | undefined;
+    const arr = snap && Array.isArray(snap.snd_zones) ? (snap.snd_zones as Array<Record<string, unknown>>) : [];
+    for (const z of arr) {
+      if (isFiniteNum(z.high) && isFiniteNum(z.low)) {
+        const type = z.type === 'SUPPLY' ? 'SUPPLY' : 'DEMAND';
+        const tf = typeof z.tf === 'string' ? z.tf : 'H4';
+        const key = `${type}-${z.low}-${z.high}-${tf}`;
         if (!seen.has(key)) {
           seen.add(key);
-          zones.push({
-            type: z.type === 'SUPPLY' ? 'SUPPLY' : 'DEMAND',
-            high: z.high,
-            low: z.low,
-            tf: z.tf || 'H4',
-          });
+          zones.push({ type, high: z.high, low: z.low, tf });
         }
       }
     }
@@ -232,156 +220,107 @@ function extractSndZones(signals: Vps1Signal[], ta: Vps1TechnicalAnalysis | null
 }
 
 /**
- * Extract key patterns from dedicated technical-analysis + signal indicator snapshots.
+ * Pull named patterns (Wyckoff events, Quasimodo, BOS, CHoCH) from the
+ * per-timeframe TA payload and from signal summary fields.
  */
 function extractPatterns(signals: Vps1Signal[], ta: Vps1TechnicalAnalysis | null): KeyPattern[] {
   const patterns: KeyPattern[] = [];
   const seen = new Set<string>();
+  const push = (name: string, tf: string, description: string) => {
+    const key = `${name}-${tf}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    patterns.push({ name, tf, description });
+  };
+  const live = (v: unknown): v is string => typeof v === 'string' && v.length > 0 && v !== 'none';
 
-  // Primary: dedicated technical-analysis endpoint
   if (ta?.timeframes) {
     for (const [tfName, tf] of Object.entries(ta.timeframes)) {
-      if (Array.isArray(tf.patterns)) {
-        for (const p of tf.patterns) {
-          if (p && typeof p.name === 'string') {
-            const key = `${p.name}-${tfName}`;
-            if (!seen.has(key)) {
-              seen.add(key);
-              patterns.push({
-                name: p.name,
-                tf: tfName,
-                description: p.description || p.name,
-              });
-            }
-          }
-        }
+      const TF = tfName.toUpperCase();
+      if (live(tf.wyckoff_event)) {
+        const conf = isFiniteNum(tf.wyckoff_conf) ? ` (conf ${tf.wyckoff_conf})` : '';
+        const phase = live(tf.wyckoff_phase) ? tf.wyckoff_phase : 'unknown';
+        push(`Wyckoff ${tf.wyckoff_event}`, TF, `Wyckoff ${tf.wyckoff_event} in ${phase} phase${conf}`);
       }
+      if (live(tf.quasimodo_pattern)) {
+        const conf = isFiniteNum(tf.quasimodo_confidence) ? ` (conf ${tf.quasimodo_confidence})` : '';
+        push(`Quasimodo ${tf.quasimodo_pattern}`, TF, `Quasimodo ${tf.quasimodo_pattern} pattern${conf}`);
+      }
+      if (live(tf.last_bos)) push(`BOS ${tf.last_bos}`, TF, `Last break-of-structure: ${tf.last_bos}`);
+      if (live(tf.last_choch)) push(`CHoCH ${tf.last_choch}`, TF, `Last change-of-character: ${tf.last_choch}`);
     }
   }
 
-  // Supplementary: signal indicator_snapshot
   for (const s of signals) {
-    const snap = s.indicator_snapshot;
-    if (snap && Array.isArray(snap.patterns)) {
-      for (const p of snap.patterns) {
-        if (p && typeof p.name === 'string') {
-          const key = `${p.name}-${p.tf}`;
-          if (!seen.has(key)) {
-            seen.add(key);
-            patterns.push({
-              name: p.name,
-              tf: p.tf || 'H4',
-              description: p.description || p.name,
-            });
-          }
-        }
-      }
-    }
-
-    const summary = s.indicator_snapshot_summary;
+    const summary = s.indicator_snapshot_summary as Record<string, unknown> | undefined;
     if (summary) {
-      if (summary.h1_event && summary.h1_event !== 'none') {
-        const key = `wyckoff-${summary.h1_event}-H1`;
-        if (!seen.has(key)) {
-          seen.add(key);
-          patterns.push({
-            name: `Wyckoff ${String(summary.h1_event)}`,
-            tf: 'H1',
-            description: `H1 Wyckoff ${String(summary.h1_event)} event detected`,
-          });
-        }
-      }
-      if (summary.m5_qm && summary.m5_qm !== 'none') {
-        const key = `qm-${summary.m5_qm}-M5`;
-        if (!seen.has(key)) {
-          seen.add(key);
-          patterns.push({
-            name: `QM ${String(summary.m5_qm)}`,
-            tf: 'M5',
-            description: `M5 Quasimodo ${String(summary.m5_qm)} pattern`,
-          });
-        }
-      }
+      if (live(summary.h1_event)) push(`Wyckoff ${summary.h1_event}`, 'H1', `H1 Wyckoff event: ${summary.h1_event}`);
+      if (live(summary.m5_qm)) push(`Quasimodo ${summary.m5_qm}`, 'M5', `M5 Quasimodo: ${summary.m5_qm}`);
     }
-
     if (s.entry_type) {
-      const key = `entry-${s.entry_type}`;
-      if (!seen.has(key)) {
-        seen.add(key);
-        const name = s.entry_type.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-        patterns.push({
-          name,
-          tf: 'Multi',
-          description: s.reasoning?.slice(0, 100) || name,
-        });
-      }
+      const name = s.entry_type.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+      push(name, 'MULTI', s.reasoning?.slice(0, 120) || name);
     }
   }
   return patterns;
 }
 
 /**
- * Extract liquidity signals from dedicated technical-extras + signal indicator snapshots.
+ * VPS1 does not currently expose a dedicated fake-liquidity feed; the nearest
+ * proxy is "liquidity grab" patterns encoded in signal indicator snapshots.
+ * Returns whatever signals ship and dedupes by (level,type).
  */
-function extractFakeLiquidity(
-  signals: Vps1Signal[],
-  extras: Vps1TechnicalExtras | null,
-): FakeLiquiditySignal[] {
+function extractFakeLiquidity(signals: Vps1Signal[]): FakeLiquiditySignal[] {
   const fakes: FakeLiquiditySignal[] = [];
   const seen = new Set<string>();
-
-  // Primary: dedicated technical-extras endpoint
-  if (extras?.liquidity_pools) {
-    for (const pool of extras.liquidity_pools) {
-      if (typeof pool.level === 'number') {
-        const key = `${pool.level}-${pool.type}`;
-        if (!seen.has(key)) {
-          seen.add(key);
-          fakes.push({
-            level: pool.level,
-            type: pool.type === 'ABOVE_RESISTANCE' ? 'ABOVE_RESISTANCE' : 'BELOW_SUPPORT',
-            strength: typeof pool.strength === 'number' ? pool.strength : 0.5,
-          });
-        }
-      }
-    }
-  }
-
-  // Supplementary: signal indicator snapshots
   for (const s of signals) {
-    const snap = s.indicator_snapshot;
-    if (!snap || !Array.isArray(snap.fake_liquidity)) continue;
-    for (const f of snap.fake_liquidity) {
-      if (f && typeof f.level === 'number') {
-        const key = `${f.level}-${f.type}`;
-        if (!seen.has(key)) {
-          seen.add(key);
-          fakes.push({
-            level: f.level,
-            type: f.type === 'ABOVE_RESISTANCE' ? 'ABOVE_RESISTANCE' : 'BELOW_SUPPORT',
-            strength: typeof f.strength === 'number' ? f.strength : 0.5,
-          });
-        }
-      }
+    const snap = s.indicator_snapshot as Record<string, unknown> | undefined;
+    const arr = snap && Array.isArray(snap.fake_liquidity) ? (snap.fake_liquidity as Array<Record<string, unknown>>) : [];
+    for (const f of arr) {
+      if (!isFiniteNum(f.level)) continue;
+      const key = `${f.level}-${f.type}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      fakes.push({
+        level: f.level,
+        type: f.type === 'ABOVE_RESISTANCE' ? 'ABOVE_RESISTANCE' : 'BELOW_SUPPORT',
+        strength: isFiniteNum(f.strength) ? f.strength : 0.5,
+      });
     }
   }
   return fakes;
 }
 
 /**
- * Determine fundamental bias from multi-TF confluence + signal consensus.
+ * Combine the scanner's higher_tf_bias score with Wyckoff phase votes and
+ * signal-consensus weight to land on a final BULLISH / BEARISH / NEUTRAL.
  */
 function determineBias(
   signals: Vps1Signal[],
+  snapshot: Vps1MarketSnapshot | null,
   ta: Vps1TechnicalAnalysis | null,
 ): 'BULLISH' | 'BEARISH' | 'NEUTRAL' {
-  // Prefer multi-TF confluence from dedicated endpoint
-  if (ta?.multi_tf_confluence?.dominant_bias) {
-    const bias = ta.multi_tf_confluence.dominant_bias.toUpperCase();
-    if (bias === 'BULLISH' || bias === 'BEARISH') return bias;
+  // Scanner provides a signed score in [-1, 1].
+  const scoreBias = snapshot?.scanner?.higher_tf_bias;
+  if (isFiniteNum(scoreBias)) {
+    if (scoreBias >= 0.5) return 'BULLISH';
+    if (scoreBias <= -0.5) return 'BEARISH';
   }
 
-  // Fallback to signal consensus
+  // Count Wyckoff phase votes across timeframes.
+  let bull = 0;
+  let bear = 0;
+  if (ta?.timeframes) {
+    for (const tf of Object.values(ta.timeframes)) {
+      const phase = typeof tf.wyckoff_phase === 'string' ? tf.wyckoff_phase.toLowerCase() : '';
+      if (phase.includes('accum') || phase.includes('markup') || phase.includes('bull')) bull += 1;
+      else if (phase.includes('distrib') || phase.includes('markdown') || phase.includes('bear')) bear += 1;
+    }
+  }
+  if (bull >= bear + 2) return 'BULLISH';
+  if (bear >= bull + 2) return 'BEARISH';
+
+  // Signal-consensus fallback.
   let buyWeight = 0;
   let sellWeight = 0;
   for (const s of signals) {
@@ -476,11 +415,15 @@ export async function fetchPairData(pair: string): Promise<PairDataBundle | null
       return null;
     }
 
-    const currentPrice = typeof snapshot?.current_price === 'number' ? snapshot.current_price : null;
-    const { support, resistance } = extractLevels(uniqueSignals, ta, currentPrice);
+    const currentPrice = isFiniteNum(snapshot?.price?.mid)
+      ? snapshot!.price!.mid!
+      : isFiniteNum(snapshot?.price?.bid) && isFiniteNum(snapshot?.price?.ask)
+        ? ((snapshot!.price!.bid! + snapshot!.price!.ask!) / 2)
+        : null;
+    const { support, resistance } = extractLevels(uniqueSignals, ta, extras, currentPrice);
     const avgConf = uniqueSignals.length > 0
       ? uniqueSignals.reduce((sum, s) => sum + (s.confidence ?? 0), 0) / uniqueSignals.length
-      : (ta?.multi_tf_confluence?.score ?? 0);
+      : (isFiniteNum(snapshot?.scanner?.mtf_confluence) ? snapshot!.scanner!.mtf_confluence! : 0);
 
     return {
       pair,
@@ -490,8 +433,8 @@ export async function fetchPairData(pair: string): Promise<PairDataBundle | null
       resistanceLevels: resistance,
       sndZones: extractSndZones(uniqueSignals, ta),
       keyPatterns: extractPatterns(uniqueSignals, ta),
-      fakeLiquidity: extractFakeLiquidity(uniqueSignals, extras),
-      fundamentalBias: determineBias(uniqueSignals, ta),
+      fakeLiquidity: extractFakeLiquidity(uniqueSignals),
+      fundamentalBias: determineBias(uniqueSignals, snapshot, ta),
       avgConfidence: Math.round(avgConf * 100) / 100,
       tradeIdeas: buildTradeIdeas(uniqueSignals),
       marketSnapshot: snapshot,

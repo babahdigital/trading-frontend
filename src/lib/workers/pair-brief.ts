@@ -173,7 +173,8 @@ async function runPairBriefWorkerInner(): Promise<PairBriefWorkerResult> {
       }
     }
 
-    // Update consumer state
+    // Update consumer state — clear lastError on any non-error path so the
+    // status page doesn't keep showing a stale message from a prior run.
     await prisma.consumerState.upsert({
       where: { scope: WORKER },
       create: {
@@ -185,6 +186,7 @@ async function runPairBriefWorkerInner(): Promise<PairBriefWorkerResult> {
       update: {
         lastRunAt: new Date(),
         lastStatus: generated > 0 ? 'OK' : (skipped > 0 ? 'SKIPPED' : 'NO_DATA'),
+        lastError: null,
         runCount: { increment: 1 },
       },
     });

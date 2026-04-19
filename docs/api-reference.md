@@ -1030,12 +1030,12 @@ every autonomous worker's last run.
 {
   "overall": "operational",
   "components": [
-    { "name": "Frontend (VPS 2)", "status": "operational", "description": "Next.js app, CMS, and portal APIs" },
-    { "name": "Database", "status": "operational", "description": "PostgreSQL connected" },
-    { "name": "Trading Backend (VPS 1)", "status": "operational", "description": "Latency 67ms" },
-    { "name": "Signal Consumer", "status": "operational", "description": "Last run 0m ago — 0 items" },
-    { "name": "Trade Events Consumer", "status": "operational", "description": "Last run 0m ago — 0 items" },
-    { "name": "Research Ingester", "status": "operational", "description": "Last run 3m ago — 0 items" }
+    { "name": "Portal BabahAlgo", "status": "operational", "description": "Website publik, portal klien, dan CMS admin" },
+    { "name": "Database", "status": "operational", "description": "PostgreSQL terkoneksi" },
+    { "name": "Mesin Trading", "status": "operational", "description": "Latensi 67ms" },
+    { "name": "Sinyal Trading", "status": "operational", "description": "Jalan terakhir baru saja — 0 item" },
+    { "name": "Event Trading", "status": "operational", "description": "Jalan terakhir baru saja — 0 item" },
+    { "name": "Pengimpor Riset", "status": "operational", "description": "Jalan terakhir 3m lalu — 0 item" }
   ],
   "workers": [
     { "scope": "signals", "lastRunAt": "...", "lastStatus": "ok", "lastError": null, "runCount": 2286, "lastSeenId": "0" },
@@ -1052,6 +1052,15 @@ A worker is `degraded` if it has never run, if its last run was an
 ERROR, or if its last run is older than a per-worker staleness
 threshold (10m for signal/trade-event consumers, 7h for the 6-hour
 research ingester).
+
+**Note on labels.** `status` values (`operational` / `degraded` /
+`outage`) are the stable API contract and stay in English. The
+`name` and `description` strings are human-readable Indonesian —
+clients rendering the feed should use `status` for logic and
+`name` + `description` for display, not parse the text. The
+latest-run-per-worker query uses one `findFirst` per scope rather
+than a windowed `findMany` so a low-frequency worker cannot be
+"hidden" by a high-frequency one (see bug 2026-04-19.10).
 
 ---
 

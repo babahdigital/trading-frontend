@@ -18,6 +18,25 @@ import { createLogger } from '@/lib/logger';
 
 const log = createLogger('pair-data');
 
+/**
+ * Safely unwrap VPS1 responses that may be wrapped in an object.
+ * VPS1 endpoints return wrapped responses:
+ *   signals/latest → {"signals": [...]}
+ *   research/top-signals → {"period_hours": 24, "signals": [...]}
+ *   research/latest → {"analyses": [...]}
+ * But client types expect flat arrays — handle both shapes.
+ */
+function unwrapArray<T>(data: unknown, keys: string[]): T[] {
+  if (Array.isArray(data)) return data;
+  if (data && typeof data === 'object') {
+    const obj = data as Record<string, unknown>;
+    for (const key of keys) {
+      if (Array.isArray(obj[key])) return obj[key] as T[];
+    }
+  }
+  return [];
+}
+
 export interface SndZone {
   type: 'DEMAND' | 'SUPPLY';
   high: number;
@@ -62,6 +81,13 @@ export interface PairDataBundle {
 }
 
 /**
+ * Get entry price from signal, preferring entry_price_hint (VPS1 actual field name).
+ */
+function getEntryPrice(s: Vps1Signal): number | undefined {
+  return s.entry_price_hint ?? s.entry_price;
+}
+
+/**
  * Extract S/R levels from signal indicator_snapshots.
  * VPS1 signals may include support/resistance in their indicator_snapshot field.
  */
@@ -70,28 +96,33 @@ function extractLevels(signals: Vps1Signal[]): { support: number[]; resistance: 
   const resistance = new Set<number>();
 
   for (const s of signals) {
-    const snap = s.indicator_snapshot;
-    if (!snap) continue;
+    // Check both indicator_snapshot and indicator_snapshot_summary
+    const snap = s.indicator_snapshot || s.indicator_snapshot_summary;
 
-    // VPS1 may store levels as arrays in indicator_snapshot
-    if (Array.isArray(snap.support_levels)) {
-      for (const lvl of snap.support_levels) {
-        if (typeof lvl === 'number') support.add(lvl);
+    if (snap) {
+      // VPS1 may store levels as arrays in indicator_snapshot
+      if (Array.isArray(snap.support_levels)) {
+        for (const lvl of snap.support_levels) {
+          if (typeof lvl === 'number') support.add(lvl);
+        }
+      }
+      if (Array.isArray(snap.resistance_levels)) {
+        for (const lvl of snap.resistance_levels) {
+          if (typeof lvl === 'number') resistance.add(lvl);
+        }
       }
     }
-    if (Array.isArray(snap.resistance_levels)) {
-      for (const lvl of snap.resistance_levels) {
-        if (typeof lvl === 'number') resistance.add(lvl);
-      }
-    }
 
-    // Also extract from stop_loss (approximate support) and take_profit (approximate resistance)
+    // Extract from entry_price_hint, stop_loss, take_profit
+    const entry = getEntryPrice(s);
     if (s.direction === 'BUY') {
       if (s.stop_loss != null) support.add(s.stop_loss);
       if (s.take_profit != null) resistance.add(s.take_profit);
+      if (entry) support.add(entry); // entry near support for BUY
     } else {
       if (s.stop_loss != null) resistance.add(s.stop_loss);
       if (s.take_profit != null) support.add(s.take_profit);
+      if (entry) resistance.add(entry); // entry near resistance for SELL
     }
   }
 
@@ -128,15 +159,66 @@ function extractSndZones(signals: Vps1Signal[]): SndZone[] {
  */
 function extractPatterns(signals: Vps1Signal[]): KeyPattern[] {
   const patterns: KeyPattern[] = [];
+  const seen = new Set<string>();
+
   for (const s of signals) {
+    // From detailed indicator_snapshot
     const snap = s.indicator_snapshot;
-    if (!snap || !Array.isArray(snap.patterns)) continue;
-    for (const p of snap.patterns) {
-      if (p && typeof p.name === 'string') {
+    if (snap && Array.isArray(snap.patterns)) {
+      for (const p of snap.patterns) {
+        if (p && typeof p.name === 'string') {
+          const key = `${p.name}-${p.tf}`;
+          if (!seen.has(key)) {
+            seen.add(key);
+            patterns.push({
+              name: p.name,
+              tf: p.tf || 'H4',
+              description: p.description || p.name,
+            });
+          }
+        }
+      }
+    }
+
+    // From summary — extract pattern info from entry_type + snapshot_summary
+    const summary = s.indicator_snapshot_summary;
+    if (summary) {
+      // Detect Wyckoff events from summary
+      if (summary.h1_event && summary.h1_event !== 'none') {
+        const key = `wyckoff-${summary.h1_event}-H1`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          patterns.push({
+            name: `Wyckoff ${String(summary.h1_event)}`,
+            tf: 'H1',
+            description: `H1 Wyckoff ${String(summary.h1_event)} event detected`,
+          });
+        }
+      }
+      // Detect QM from M5
+      if (summary.m5_qm && summary.m5_qm !== 'none') {
+        const key = `qm-${summary.m5_qm}-M5`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          patterns.push({
+            name: `QM ${String(summary.m5_qm)}`,
+            tf: 'M5',
+            description: `M5 Quasimodo ${String(summary.m5_qm)} pattern`,
+          });
+        }
+      }
+    }
+
+    // From entry_type (e.g., "wyckoff_combo", "qm_ao_combo")
+    if (s.entry_type) {
+      const key = `entry-${s.entry_type}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        const name = s.entry_type.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
         patterns.push({
-          name: p.name,
-          tf: p.tf || 'H4',
-          description: p.description || p.name,
+          name,
+          tf: 'Multi',
+          description: s.reasoning?.slice(0, 100) || name,
         });
       }
     }
@@ -188,14 +270,14 @@ function determineBias(signals: Vps1Signal[]): 'BULLISH' | 'BEARISH' | 'NEUTRAL'
  */
 function buildTradeIdeas(signals: Vps1Signal[]): TradeIdeaRaw[] {
   return signals
-    .filter((s) => (s.confidence ?? 0) >= 0.75 && s.entry_price && s.stop_loss != null && s.take_profit != null)
+    .filter((s) => (s.confidence ?? 0) >= 0.75 && getEntryPrice(s) && s.stop_loss != null && s.take_profit != null)
     .slice(0, 3) // max 3 ideas per brief
     .map((s) => ({
       direction: s.direction,
-      entry: s.entry_price!,
+      entry: getEntryPrice(s)!,
       sl: s.stop_loss!,
       tp: s.take_profit!,
-      rationale: s.reasoning || `${s.direction} signal at ${s.entry_price} with confidence ${s.confidence}`,
+      rationale: s.reasoning || `${s.direction} signal at ${getEntryPrice(s)} with confidence ${s.confidence}`,
       confidence: s.confidence ?? 0.75,
     }));
 }
@@ -207,17 +289,27 @@ function buildTradeIdeas(signals: Vps1Signal[]): TradeIdeaRaw[] {
 export async function fetchPairData(pair: string): Promise<PairDataBundle | null> {
   try {
     // Fetch from multiple endpoints in parallel
-    const [signals, topSignals, research] = await Promise.allSettled([
-      getLatestSignals({ pair, limit: 30 }),
-      getTopSignals(24, 20),
+    // NOTE: VPS1 signals/latest pair filter is broken — fetch all and filter client-side
+    // NOTE: VPS1 wraps arrays in objects — unwrap safely
+    const [signalsRaw, topSignalsRaw, researchRaw] = await Promise.allSettled([
+      getLatestSignals({ limit: 50 }),
+      getTopSignals(24, 30),
       getLatestResearch(30),
     ]);
 
+    const signalsList = signalsRaw.status === 'fulfilled'
+      ? unwrapArray<Vps1Signal>(signalsRaw.value, ['signals'])
+      : [];
+    const topList = topSignalsRaw.status === 'fulfilled'
+      ? unwrapArray<Vps1Signal>(topSignalsRaw.value, ['signals'])
+      : [];
+    const researchList = researchRaw.status === 'fulfilled'
+      ? unwrapArray<Vps1ResearchItem>(researchRaw.value, ['analyses', 'items', 'research'])
+      : [];
+
     const pairSignals = [
-      ...(signals.status === 'fulfilled' ? signals.value : []),
-      ...(topSignals.status === 'fulfilled'
-        ? topSignals.value.filter((r) => r.pair === pair)
-        : []),
+      ...signalsList.filter((s) => s.pair === pair),
+      ...topList.filter((s) => s.pair === pair),
     ];
 
     // Deduplicate signals by id
@@ -228,9 +320,7 @@ export async function fetchPairData(pair: string): Promise<PairDataBundle | null
       return true;
     }) as Vps1Signal[];
 
-    const researchItems = research.status === 'fulfilled'
-      ? research.value.filter((r) => r.pair === pair)
-      : [];
+    const researchItems = researchList.filter((r) => r.pair === pair);
 
     // If we got zero data from all endpoints, treat as VPS1 unavailable
     if (uniqueSignals.length === 0 && researchItems.length === 0) {

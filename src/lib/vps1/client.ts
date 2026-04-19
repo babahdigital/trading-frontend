@@ -66,11 +66,13 @@ export interface Vps1Signal {
   entry_type?: string;
   lot?: number;
   entry_price?: number;
+  entry_price_hint?: number;
   stop_loss?: number | null;
   take_profit?: number | null;
   confidence?: number;
   reasoning?: string;
   indicator_snapshot?: Record<string, unknown>;
+  indicator_snapshot_summary?: Record<string, unknown>;
   emitted_at: string;
 }
 

@@ -67,6 +67,7 @@ function buildSourceNumbers(data: PairDataBundle): number[] {
 
   // Signal data
   for (const s of data.signals) {
+    if (s.entry_price_hint) nums.push(s.entry_price_hint);
     if (s.entry_price) nums.push(s.entry_price);
     if (s.stop_loss != null) nums.push(s.stop_loss);
     if (s.take_profit != null) nums.push(s.take_profit);

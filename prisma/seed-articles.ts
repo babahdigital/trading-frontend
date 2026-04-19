@@ -1,8 +1,19 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, ArticleCategory } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-const articles = [
+const articles: Array<{
+  slug: string;
+  title: string;
+  title_en: string;
+  excerpt: string;
+  excerpt_en: string;
+  body: string;
+  body_en: string;
+  category: ArticleCategory;
+  author: string;
+  readTime: number;
+}> = [
   {
     slug: 'weekly-recap-2026-04-14',
     title: 'Weekly Research Recap — 14 Apr to 18 Apr 2026',

@@ -6,8 +6,6 @@
  * Requires: TELEGRAM_BOT_TOKEN, SMTP_* credentials, active test subscription.
  */
 
-// Resolve path aliases
-import { register } from 'tsconfig-paths';
 import { resolve } from 'path';
 
 // Load .env

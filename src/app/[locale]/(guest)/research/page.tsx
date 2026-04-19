@@ -73,6 +73,33 @@ export default function ResearchPage() {
           </div>
         </section>
 
+        {/* Pair Intelligence Briefs CTA */}
+        <section className="section-padding border-b border-white/8">
+          <div className="container-default px-6">
+            <Link
+              href={`/${locale}/research/briefs`}
+              className="block card-enterprise group hover:border-amber-500/20 transition-colors"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="t-eyebrow mb-2">Pair Intelligence</p>
+                  <h2 className="text-xl font-semibold mb-2 group-hover:text-amber-400 transition-colors">
+                    {isEn ? 'Pair Intelligence Briefs' : 'Laporan Intelijen Per Pair'}
+                  </h2>
+                  <p className="t-body-sm text-foreground/60">
+                    {isEn
+                      ? 'Actionable per-pair analysis with S/R levels, SND zones, and trade ideas — updated 3x daily.'
+                      : 'Analisis per pair yang actionable dengan level S/R, zona SND, dan ide trading — diperbarui 3x sehari.'}
+                  </p>
+                </div>
+                <svg className="w-6 h-6 text-foreground/30 group-hover:text-amber-400 transition-colors shrink-0 ml-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </Link>
+          </div>
+        </section>
+
         {/* Articles Grid */}
         <section className="section-padding border-b border-white/8">
           <div className="container-default px-6">

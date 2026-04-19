@@ -13,6 +13,7 @@ import {
   User,
   LogOut,
   ScrollText,
+  BookOpen,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ResponsiveSidebar } from '@/components/layout/responsive-sidebar';
@@ -25,6 +26,7 @@ const navItems = [
   { href: '/portal/performance', label: 'Performance', icon: BarChart3 },
   { href: '/portal/market', label: 'Market Scanner', icon: Radio },
   { href: '/portal/signal-audit', label: 'Signal Audit', icon: ScrollText },
+  { href: '/portal/pair-briefs', label: 'Pair Briefs', icon: BookOpen },
   { href: '/portal/reports', label: 'Reports', icon: FileText },
   { href: '/portal/account', label: 'Account', icon: User },
 ];

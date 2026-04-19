@@ -570,3 +570,75 @@ model WorkerRun {
 
   @@index([worker, startedAt])
 }
+
+// =============================================
+// Pair Intelligence Brief
+// =============================================
+
+model PairBrief {
+  id               String           @id @default(cuid())
+  pair             String           // e.g. "BTCUSD"
+  session          TradingSession
+  date             DateTime         @db.Date
+  slug             String           @unique // "btcusd-2026-04-19-asian"
+
+  // Structured data from VPS1 (ground truth — never AI-generated)
+  supportLevels    Json             @default("[]")  // number[]
+  resistanceLevels Json             @default("[]")  // number[]
+  sndZones         Json             @default("[]")  // {type,high,low,tf}[]
+  confluenceScore  Decimal?         @db.Decimal(4, 2)
+  fundamentalBias  String?          // "BULLISH" | "BEARISH" | "NEUTRAL"
+  keyPatterns      Json             @default("[]")  // {name,tf,description}[]
+  fakeLiquidity    Json             @default("[]")  // {level,type,strength}[]
+  signalSnapshot   Json             @default("{}") // raw VPS1 signal data for audit
+
+  // AI-generated narrative (bounded by structured data above)
+  narrative        String           @db.Text
+  narrative_en     String?          @db.Text
+  tradeIdeas       Json             @default("[]")  // {direction,entry,sl,tp,rationale}[]
+
+  // Access control
+  accessTier       SubscriptionTier @default(SIGNAL_BASIC)
+
+  // Meta
+  aiModel          String?
+  aiTokensUsed     Int              @default(0)
+  validationStatus BriefValidation  @default(PENDING)
+  validationErrors Json             @default("[]")
+  isPublished      Boolean          @default(false)
+  publishedAt      DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@unique([pair, session, date])
+  @@index([pair, date])
+  @@index([isPublished, publishedAt])
+}
+
+enum TradingSession {
+  ASIAN
+  LONDON
+  NEW_YORK
+}
+
+enum BriefValidation {
+  PENDING
+  PASSED
+  FAILED
+  MANUAL_REVIEW
+}
+
+model AiCallLog {
+  id           String   @id @default(cuid())
+  purpose      String   // "pair_brief_narrative", "pair_brief_translate"
+  model        String
+  inputTokens  Int      @default(0)
+  outputTokens Int      @default(0)
+  latencyMs    Int      @default(0)
+  success      Boolean
+  errorMessage String?  @db.Text
+  metadata     Json     @default("{}")
+  createdAt    DateTime @default(now())
+
+  @@index([purpose, createdAt])
+}

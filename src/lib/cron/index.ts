@@ -3,6 +3,7 @@ import { runHealthCheckCron } from './health-check';
 import { runSignalConsumer } from '@/lib/consumers/signal';
 import { runTradeEventsConsumer } from '@/lib/consumers/trade-events';
 import { runResearchIngester } from '@/lib/ingesters/research';
+import { runPairBriefWorker } from '@/lib/workers/pair-brief';
 import { expireSubscriptions } from '@/lib/subscription/lifecycle';
 import { createLogger } from '@/lib/logger';
 
@@ -55,6 +56,14 @@ export function initCronJobs() {
       try { await runResearchIngester(); } catch (err) { log.error('Research ingester error:', err); }
     }, 6 * 60 * 60 * 1000);
     log.info('Research ingester enabled (6h interval)');
+  }
+
+  // Pair brief worker — every 4 hours (feature-flagged)
+  if (bool('ENABLE_PAIR_BRIEF_WORKER', false)) {
+    setInterval(async () => {
+      try { await runPairBriefWorker(); } catch (err) { log.error('Pair brief worker error:', err); }
+    }, 4 * 60 * 60 * 1000);
+    log.info('Pair brief worker enabled (4h interval)');
   }
 
   // Subscription expiry — every hour (expire + send renewal reminders)

@@ -20,25 +20,48 @@ interface StatusSnapshot {
 }
 
 const STATUS_META: Record<Component['status'], { label: string; dot: string; text: string; bg: string }> = {
-  operational: { label: 'Operational', dot: 'bg-emerald-400', text: 'text-emerald-400', bg: 'bg-emerald-400/10' },
-  degraded: { label: 'Degraded', dot: 'bg-amber-400', text: 'text-amber-400', bg: 'bg-amber-400/10' },
-  outage: { label: 'Outage', dot: 'bg-rose-400', text: 'text-rose-400', bg: 'bg-rose-400/10' },
+  operational: { label: 'Beroperasi', dot: 'bg-emerald-400', text: 'text-emerald-400', bg: 'bg-emerald-400/10' },
+  degraded: { label: 'Terdegradasi', dot: 'bg-amber-400', text: 'text-amber-400', bg: 'bg-amber-400/10' },
+  outage: { label: 'Gangguan', dot: 'bg-rose-400', text: 'text-rose-400', bg: 'bg-rose-400/10' },
 };
 
 const OVERALL_BANNER: Record<string, { label: string; bg: string; border: string; text: string }> = {
-  operational: { label: 'All Systems Operational', bg: 'bg-emerald-500/8', border: 'border-emerald-500/20', text: 'text-emerald-400' },
-  degraded: { label: 'Partial System Degradation', bg: 'bg-amber-500/8', border: 'border-amber-500/20', text: 'text-amber-400' },
-  outage: { label: 'Major Service Disruption', bg: 'bg-rose-500/8', border: 'border-rose-500/20', text: 'text-rose-400' },
+  operational: { label: 'Semua Sistem Beroperasi', bg: 'bg-emerald-500/8', border: 'border-emerald-500/20', text: 'text-emerald-400' },
+  degraded: { label: 'Gangguan Sebagian', bg: 'bg-amber-500/8', border: 'border-amber-500/20', text: 'text-amber-400' },
+  outage: { label: 'Gangguan Layanan Besar', bg: 'bg-rose-500/8', border: 'border-rose-500/20', text: 'text-rose-400' },
+};
+
+/**
+ * Friendly display names for the internal worker scope keys. Keys are what
+ * the workers persist into ConsumerState.scope / WorkerRun.worker; the
+ * labels are what we render to the public. Keep in sync with the
+ * WORKER_SCOPES list in /api/public/status/route.ts.
+ */
+const WORKER_LABELS: Record<string, string> = {
+  signals: 'Sinyal Trading',
+  trade_events: 'Event Trading',
+  research_ingester: 'Pengimpor Riset',
+  pair_brief: 'Brief Intelijen Pair',
+};
+
+const WORKER_STATUS_LABELS: Record<string, string> = {
+  ok: 'Sukses',
+  OK: 'Sukses',
+  SKIPPED: 'Dilewati',
+  NO_DATA: 'Tanpa Data',
+  ERROR: 'Error',
+  error: 'Error',
+  RUNNING: 'Berjalan',
 };
 
 function RelativeTime({ iso }: { iso: string }) {
   const d = new Date(iso);
   const diff = Date.now() - d.getTime();
   const mins = Math.round(diff / 60000);
-  if (mins < 1) return <span>just now</span>;
-  if (mins < 60) return <span>{mins}m ago</span>;
+  if (mins < 1) return <span>baru saja</span>;
+  if (mins < 60) return <span>{mins}m lalu</span>;
   const hrs = Math.round(mins / 60);
-  if (hrs < 24) return <span>{hrs}h ago</span>;
+  if (hrs < 24) return <span>{hrs}j lalu</span>;
   return <span>{d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}</span>;
 }
 
@@ -78,12 +101,12 @@ export default function StatusPage() {
           <div className="container-default px-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs uppercase tracking-widest text-foreground/50 mb-2">System Status</p>
-                <h1 className="text-2xl font-semibold tracking-tight">Platform Health</h1>
+                <p className="text-xs uppercase tracking-widest text-foreground/50 mb-2">Status Sistem</p>
+                <h1 className="text-2xl font-semibold tracking-tight">Kesehatan Platform</h1>
               </div>
               {data && (
                 <span className="text-xs text-foreground/40">
-                  Auto-refresh 30s &middot; Updated {new Date(data.timestamp).toLocaleTimeString('id-ID')}
+                  Auto-refresh 30d &middot; Diperbarui {new Date(data.timestamp).toLocaleTimeString('id-ID')}
                 </span>
               )}
             </div>
@@ -95,13 +118,13 @@ export default function StatusPage() {
           <div className="container-default px-6">
             {error ? (
               <div role="alert" className="rounded-lg bg-rose-500/10 border border-rose-500/30 px-5 py-3 text-sm text-rose-300">
-                Unable to fetch status: {error}
+                Gagal memuat status: {error}
               </div>
             ) : (
               <div className={cn('rounded-lg border px-5 py-3 flex items-center gap-3', banner.bg, banner.border)}>
                 <span className={cn('h-2.5 w-2.5 rounded-full', overall === 'operational' ? 'bg-emerald-400' : overall === 'degraded' ? 'bg-amber-400' : 'bg-rose-400')} />
                 <span className={cn('text-sm font-medium', banner.text)}>
-                  {data ? banner.label : 'Loading\u2026'}
+                  {data ? banner.label : 'Memuat\u2026'}
                 </span>
               </div>
             )}
@@ -128,7 +151,7 @@ export default function StatusPage() {
                 );
               })}
               {!data && (
-                <div className="px-5 py-8 text-center text-sm text-foreground/40">Loading components\u2026</div>
+                <div className="px-5 py-8 text-center text-sm text-foreground/40">Memuat komponen\u2026</div>
               )}
             </div>
           </div>
@@ -142,10 +165,10 @@ export default function StatusPage() {
               className="w-full rounded-lg border border-white/8 px-5 py-3 flex items-center justify-between hover:bg-white/[0.02] transition-colors text-left"
             >
               <div className="flex items-center gap-3">
-                <span className="text-sm font-medium">Autonomous Workers</span>
+                <span className="text-sm font-medium">Proses Otomatis</span>
                 {hasWorkers && (
                   <span className="text-xs text-foreground/40">
-                    {data!.workers.length} worker{data!.workers.length > 1 ? 's' : ''} &middot; {data!.workers.reduce((s, w) => s + w.runCount, 0).toLocaleString()} total runs
+                    {data!.workers.length} proses &middot; {data!.workers.reduce((s, w) => s + w.runCount, 0).toLocaleString()} total jalan
                   </span>
                 )}
               </div>
@@ -155,38 +178,43 @@ export default function StatusPage() {
             {expandWorkers && (
               <div className="mt-1 rounded-lg border border-white/8 overflow-hidden">
                 {!hasWorkers ? (
-                  <div className="px-5 py-4 text-sm text-foreground/40 text-center">No worker runs recorded yet.</div>
+                  <div className="px-5 py-4 text-sm text-foreground/40 text-center">Belum ada catatan proses.</div>
                 ) : (
                   <table className="w-full text-sm">
                     <thead className="text-[11px] uppercase text-foreground/40 bg-white/[0.02]">
                       <tr>
-                        <th className="text-left py-2 px-4 font-medium">Worker</th>
-                        <th className="text-left py-2 px-4 font-medium">Last Run</th>
+                        <th className="text-left py-2 px-4 font-medium">Proses</th>
+                        <th className="text-left py-2 px-4 font-medium">Jalan Terakhir</th>
                         <th className="text-left py-2 px-4 font-medium">Status</th>
-                        <th className="text-right py-2 px-4 font-medium">Runs</th>
+                        <th className="text-right py-2 px-4 font-medium">Jumlah</th>
                         <th className="text-right py-2 px-4 font-medium">Cursor</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
-                      {data!.workers.map((w) => (
-                        <tr key={w.scope} className="hover:bg-white/[0.02]">
-                          <td className="py-2 px-4 font-medium">{w.scope}</td>
-                          <td className="py-2 px-4 text-foreground/60">
-                            {w.lastRunAt ? <RelativeTime iso={w.lastRunAt} /> : <span className="text-foreground/30">&mdash;</span>}
-                          </td>
-                          <td className="py-2 px-4">
-                            <span className={cn(
-                              'inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded',
-                              w.lastStatus === 'ok' ? 'text-emerald-400 bg-emerald-400/10' : w.lastStatus === 'error' ? 'text-rose-400 bg-rose-400/10' : 'text-foreground/40'
-                            )}>
-                              <span className={cn('h-1.5 w-1.5 rounded-full', w.lastStatus === 'ok' ? 'bg-emerald-400' : w.lastStatus === 'error' ? 'bg-rose-400' : 'bg-foreground/30')} />
-                              {w.lastStatus ?? 'pending'}
-                            </span>
-                          </td>
-                          <td className="py-2 px-4 text-right tabular-nums text-foreground/60">{w.runCount.toLocaleString()}</td>
-                          <td className="py-2 px-4 text-right font-mono text-xs text-foreground/40">{w.lastSeenId}</td>
-                        </tr>
-                      ))}
+                      {data!.workers.map((w) => {
+                        const isOk = w.lastStatus === 'ok' || w.lastStatus === 'OK';
+                        const isErr = w.lastStatus === 'ERROR' || w.lastStatus === 'error';
+                        const statusLabel = w.lastStatus ? (WORKER_STATUS_LABELS[w.lastStatus] ?? w.lastStatus) : 'Belum jalan';
+                        return (
+                          <tr key={w.scope} className="hover:bg-white/[0.02]">
+                            <td className="py-2 px-4 font-medium">{WORKER_LABELS[w.scope] ?? w.scope}</td>
+                            <td className="py-2 px-4 text-foreground/60">
+                              {w.lastRunAt ? <RelativeTime iso={w.lastRunAt} /> : <span className="text-foreground/30">&mdash;</span>}
+                            </td>
+                            <td className="py-2 px-4">
+                              <span className={cn(
+                                'inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded',
+                                isOk ? 'text-emerald-400 bg-emerald-400/10' : isErr ? 'text-rose-400 bg-rose-400/10' : 'text-foreground/60 bg-white/5'
+                              )}>
+                                <span className={cn('h-1.5 w-1.5 rounded-full', isOk ? 'bg-emerald-400' : isErr ? 'bg-rose-400' : 'bg-foreground/30')} />
+                                {statusLabel}
+                              </span>
+                            </td>
+                            <td className="py-2 px-4 text-right tabular-nums text-foreground/60">{w.runCount.toLocaleString()}</td>
+                            <td className="py-2 px-4 text-right font-mono text-xs text-foreground/40">{w.lastSeenId}</td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 )}
@@ -204,10 +232,10 @@ export default function StatusPage() {
                 className="w-full rounded-lg border border-white/8 px-5 py-3 flex items-center justify-between hover:bg-white/[0.02] transition-colors text-left"
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-sm font-medium">Recent Health Checks</span>
+                  <span className="text-sm font-medium">Pemeriksaan Kesehatan Terkini</span>
                   {hasHealthChecks && (
                     <span className="text-xs text-foreground/40">
-                      {data!.recentHealthChecks.length} records
+                      {data!.recentHealthChecks.length} catatan
                     </span>
                   )}
                 </div>
@@ -220,9 +248,9 @@ export default function StatusPage() {
                     <thead className="text-[11px] uppercase text-foreground/40 bg-white/[0.02]">
                       <tr>
                         <th className="text-left py-2 px-4 font-medium">Instance</th>
-                        <th className="text-left py-2 px-4 font-medium">Time</th>
+                        <th className="text-left py-2 px-4 font-medium">Waktu</th>
                         <th className="text-right py-2 px-4 font-medium">HTTP</th>
-                        <th className="text-right py-2 px-4 font-medium">Latency</th>
+                        <th className="text-right py-2 px-4 font-medium">Latensi</th>
                         <th className="text-center py-2 px-4 font-medium">DB</th>
                         <th className="text-center py-2 px-4 font-medium">ZMQ</th>
                       </tr>

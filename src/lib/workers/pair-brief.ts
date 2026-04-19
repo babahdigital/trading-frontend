@@ -13,13 +13,20 @@ import { fetchPairData } from '@/lib/vps1/pair-data';
 import { generatePairBriefNarrative } from '@/lib/ai/pair-brief-generator';
 import { validateBriefNarrative } from '@/lib/ai/pair-brief-validator';
 import { createLogger } from '@/lib/logger';
-import type { TradingSession, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+import type { TradingSession } from '@prisma/client';
 
 const log = createLogger('pair-brief-worker');
 const WORKER = 'pair_brief';
 
 // MVP: single pair. Expand later.
 const CONFIGURED_PAIRS = ['BTCUSD'];
+
+// In-process guard: prevents two worker runs from starting in parallel on
+// this Node process (e.g. cron kickoff + manual POST + 4h interval all
+// firing near-simultaneously). If a run is already active, subsequent
+// callers receive the in-flight result instead of spawning a duplicate.
+let activeRun: Promise<PairBriefWorkerResult> | null = null;
 
 /**
  * Determine current trading session based on UTC hour.
@@ -47,6 +54,17 @@ export interface PairBriefWorkerResult {
 }
 
 export async function runPairBriefWorker(): Promise<PairBriefWorkerResult> {
+  if (activeRun) {
+    log.info('Pair brief worker already running — returning in-flight promise');
+    return activeRun;
+  }
+  activeRun = runPairBriefWorkerInner().finally(() => {
+    activeRun = null;
+  });
+  return activeRun;
+}
+
+async function runPairBriefWorkerInner(): Promise<PairBriefWorkerResult> {
   const start = Date.now();
   const run = await prisma.workerRun.create({
     data: { worker: WORKER, status: 'RUNNING' },
@@ -91,45 +109,58 @@ export async function runPairBriefWorker(): Promise<PairBriefWorkerResult> {
         log.warn(`Validation failed for ${slug}: ${validation.errors.join('; ')}`);
       }
 
-      // Step 4: Upsert brief — publish only if validation passed
+      // Step 4: Create brief — handle P2002 unique-constraint gracefully.
+      // A concurrent worker run (triggered by a different cron tick or a
+      // manual POST to /api/cron/pair-briefs) may have passed the
+      // existence check above in the same window and already written the
+      // row. Treat that as a "skipped" rather than a worker error so the
+      // consumer_state stays healthy.
       const dateObj = new Date(today + 'T00:00:00Z');
-      await prisma.pairBrief.create({
-        data: {
-          pair,
-          session,
-          date: dateObj,
-          slug,
-          supportLevels: data.supportLevels as Prisma.InputJsonValue,
-          resistanceLevels: data.resistanceLevels as Prisma.InputJsonValue,
-          sndZones: data.sndZones as unknown as Prisma.InputJsonValue,
-          confluenceScore: data.avgConfidence,
-          fundamentalBias: data.fundamentalBias,
-          keyPatterns: data.keyPatterns as unknown as Prisma.InputJsonValue,
-          fakeLiquidity: data.fakeLiquidity as unknown as Prisma.InputJsonValue,
-          signalSnapshot: {
-            signalCount: data.signals.length,
-            fetchedAt: data.fetchedAt,
-            signalIds: data.signals.map((s) => s.id),
-            hasMarketSnapshot: !!data.marketSnapshot,
-            hasCalendar: !!data.calendar,
-            hasTechnicalAnalysis: !!data.technicalAnalysis,
-            hasTechnicalExtras: !!data.technicalExtras,
-          } as Prisma.InputJsonValue,
-          narrative: brief.narrative,
-          narrative_en: brief.narrative_en,
-          tradeIdeas: data.tradeIdeas as unknown as Prisma.InputJsonValue,
-          accessTier: 'SIGNAL_BASIC',
-          aiModel: brief.aiModel,
-          aiTokensUsed: brief.aiTokensUsed,
-          validationStatus: validationStatus as 'PASSED' | 'FAILED',
-          validationErrors: validation.errors as Prisma.InputJsonValue,
-          isPublished: validation.valid,
-          publishedAt: validation.valid ? new Date() : null,
-        },
-      });
-
-      generated++;
-      log.info(`Brief created: ${slug} (validation: ${validationStatus})`);
+      try {
+        await prisma.pairBrief.create({
+          data: {
+            pair,
+            session,
+            date: dateObj,
+            slug,
+            supportLevels: data.supportLevels as Prisma.InputJsonValue,
+            resistanceLevels: data.resistanceLevels as Prisma.InputJsonValue,
+            sndZones: data.sndZones as unknown as Prisma.InputJsonValue,
+            confluenceScore: data.avgConfidence,
+            fundamentalBias: data.fundamentalBias,
+            keyPatterns: data.keyPatterns as unknown as Prisma.InputJsonValue,
+            fakeLiquidity: data.fakeLiquidity as unknown as Prisma.InputJsonValue,
+            signalSnapshot: {
+              signalCount: data.signals.length,
+              fetchedAt: data.fetchedAt,
+              signalIds: data.signals.map((s) => s.id),
+              hasMarketSnapshot: !!data.marketSnapshot,
+              hasCalendar: !!data.calendar,
+              hasTechnicalAnalysis: !!data.technicalAnalysis,
+              hasTechnicalExtras: !!data.technicalExtras,
+            } as Prisma.InputJsonValue,
+            narrative: brief.narrative,
+            narrative_en: brief.narrative_en,
+            tradeIdeas: data.tradeIdeas as unknown as Prisma.InputJsonValue,
+            accessTier: 'SIGNAL_BASIC',
+            aiModel: brief.aiModel,
+            aiTokensUsed: brief.aiTokensUsed,
+            validationStatus: validationStatus as 'PASSED' | 'FAILED',
+            validationErrors: validation.errors as Prisma.InputJsonValue,
+            isPublished: validation.valid,
+            publishedAt: validation.valid ? new Date() : null,
+          },
+        });
+        generated++;
+        log.info(`Brief created: ${slug} (validation: ${validationStatus})`);
+      } catch (err) {
+        if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+          log.info(`Brief ${slug} created by concurrent run — treating as skipped`);
+          skipped++;
+          continue;
+        }
+        throw err;
+      }
 
       // Step 5: Notify VIP subscribers if published
       if (validation.valid) {

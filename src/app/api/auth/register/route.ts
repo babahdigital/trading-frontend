@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { hashPassword } from '@/lib/auth/password';
+import { sendEmail } from '@/lib/notifier/email';
 import { z } from 'zod';
 import { createLogger } from '@/lib/logger';
 
@@ -94,7 +95,7 @@ export async function POST(request: NextRequest) {
       return { user, subscription };
     });
 
-    // Kirim notifikasi Telegram (fire-and-forget)
+    // Kirim notifikasi Telegram ke admin (fire-and-forget)
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
     const chatId = process.env.TELEGRAM_CHAT_ID;
     if (botToken && chatId) {
@@ -105,6 +106,32 @@ export async function POST(request: NextRequest) {
         body: JSON.stringify({ chat_id: chatId, text: msg, parse_mode: 'Markdown' }),
       }).catch(() => {});
     }
+
+    // Kirim welcome email ke user (fire-and-forget)
+    sendEmail(
+      email,
+      'Selamat Datang di BabahAlgo',
+      `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#333">
+        <h2 style="color:#d97706">Selamat Datang, ${name}!</h2>
+        <p>Terima kasih telah mendaftar di <strong>BabahAlgo</strong>.</p>
+        <p>Paket yang dipilih: <strong>${tier.replace('_', ' ')}</strong></p>
+        <h3>Langkah Selanjutnya:</h3>
+        <ol>
+          <li>Tunggu aktivasi akun oleh tim kami (maks 24 jam)</li>
+          <li>Setup Telegram Bot: buka <a href="https://t.me/babahalgo_bot">@babahalgo_bot</a> → ketik /start → copy Chat ID</li>
+          <li>Paste Chat ID di <a href="https://babahalgo.com/portal/account">Portal > Settings > Notifications</a></li>
+          <li>Setelah aktif, sinyal trading akan otomatis masuk ke Telegram & email Anda</li>
+        </ol>
+        <p style="margin-top:24px;padding:16px;background:#fef3c7;border-radius:8px">
+          <strong>Butuh bantuan?</strong> Balas email ini atau hubungi kami di
+          <a href="mailto:hello@babahalgo.com">hello@babahalgo.com</a>
+        </p>
+        <hr style="border:none;border-top:1px solid #eee;margin:24px 0">
+        <p style="font-size:12px;color:#999">
+          <em>Disclaimer: Trading berisiko tinggi. Sinyal bukan saran investasi. Pastikan memahami risiko sebelum trading.</em>
+        </p>
+      </div>`,
+    ).catch((err) => log.warn(`Welcome email failed for ${email}: ${err}`));
 
     return NextResponse.json({
       message: 'Registrasi berhasil. Akun Anda akan diaktivasi oleh admin.',

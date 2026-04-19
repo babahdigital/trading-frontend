@@ -54,9 +54,15 @@ function getModel() {
   return null;
 }
 
-function formatPrice(n: number): string {
+function formatPrice(n: number | null | undefined): string {
+  if (typeof n !== 'number' || !Number.isFinite(n)) return 'N/A';
   return n >= 100 ? n.toLocaleString('en-US', { maximumFractionDigits: 2 })
     : n.toFixed(5);
+}
+
+function formatPct(n: number | null | undefined): string {
+  if (typeof n !== 'number' || !Number.isFinite(n)) return 'N/A';
+  return `${n >= 0 ? '+' : ''}${n.toFixed(2)}%`;
 }
 
 function formatLevels(levels: number[]): string {
@@ -97,11 +103,13 @@ function buildTechnicalSection(ta: Vps1TechnicalAnalysis): string {
     lines.push(`### ${tfName}`);
     lines.push(`Trend: ${tf.trend} | RSI: ${tf.rsi} | MACD: ${tf.macd_signal} | BB: ${tf.bb_position} | EMA: ${tf.ema_alignment}`);
     if (tf.key_levels) {
-      if (tf.key_levels.support.length > 0) {
-        lines.push(`  Support: ${tf.key_levels.support.map(formatPrice).join(', ')}`);
+      const support = tf.key_levels.support ?? [];
+      const resistance = tf.key_levels.resistance ?? [];
+      if (support.length > 0) {
+        lines.push(`  Support: ${support.map(formatPrice).join(', ')}`);
       }
-      if (tf.key_levels.resistance.length > 0) {
-        lines.push(`  Resistance: ${tf.key_levels.resistance.map(formatPrice).join(', ')}`);
+      if (resistance.length > 0) {
+        lines.push(`  Resistance: ${resistance.map(formatPrice).join(', ')}`);
       }
     }
     if (tf.snd_zones && tf.snd_zones.length > 0) {
@@ -160,12 +168,19 @@ function buildLiquiditySection(extras: Vps1TechnicalExtras): string {
 function buildMarketSnapshotSection(snap: Vps1MarketSnapshot): string {
   const lines: string[] = [];
   lines.push('## Market Snapshot');
-  lines.push(`Current Price: ${formatPrice(snap.current_price)}`);
-  lines.push(`24h Change: ${snap.price_change_pct >= 0 ? '+' : ''}${snap.price_change_pct.toFixed(2)}% (${formatPrice(snap.price_change_24h)})`);
-  lines.push(`24h Range: ${formatPrice(snap.low_24h)} — ${formatPrice(snap.high_24h)}`);
-  if (snap.atr_daily) lines.push(`Daily ATR: ${formatPrice(snap.atr_daily)}`);
-  if (snap.spread) lines.push(`Spread: ${snap.spread}`);
-  if (snap.session_info) {
+  if (typeof snap.current_price === 'number') {
+    lines.push(`Current Price: ${formatPrice(snap.current_price)}`);
+  }
+  if (typeof snap.price_change_pct === 'number') {
+    const changeAbs = typeof snap.price_change_24h === 'number' ? ` (${formatPrice(snap.price_change_24h)})` : '';
+    lines.push(`24h Change: ${formatPct(snap.price_change_pct)}${changeAbs}`);
+  }
+  if (typeof snap.low_24h === 'number' && typeof snap.high_24h === 'number') {
+    lines.push(`24h Range: ${formatPrice(snap.low_24h)} — ${formatPrice(snap.high_24h)}`);
+  }
+  if (typeof snap.atr_daily === 'number') lines.push(`Daily ATR: ${formatPrice(snap.atr_daily)}`);
+  if (snap.spread != null) lines.push(`Spread: ${snap.spread}`);
+  if (snap.session_info?.current_session) {
     lines.push(`Session: ${snap.session_info.current_session}`);
   }
   return lines.join('\n');

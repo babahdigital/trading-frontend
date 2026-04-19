@@ -55,7 +55,8 @@ export function initCronJobs() {
     setInterval(async () => {
       try { await runResearchIngester(); } catch (err) { log.error('Research ingester error:', err); }
     }, 6 * 60 * 60 * 1000);
-    log.info('Research ingester enabled (6h interval)');
+    setTimeout(() => runResearchIngester().catch((err) => log.error('Research ingester startup error:', err)), 30_000);
+    log.info('Research ingester enabled (6h interval, kickoff +30s)');
   }
 
   // Pair brief worker — every 4 hours (feature-flagged)
@@ -63,7 +64,8 @@ export function initCronJobs() {
     setInterval(async () => {
       try { await runPairBriefWorker(); } catch (err) { log.error('Pair brief worker error:', err); }
     }, 4 * 60 * 60 * 1000);
-    log.info('Pair brief worker enabled (4h interval)');
+    setTimeout(() => runPairBriefWorker().catch((err) => log.error('Pair brief worker startup error:', err)), 45_000);
+    log.info('Pair brief worker enabled (4h interval, kickoff +45s)');
   }
 
   // Subscription expiry — every hour (expire + send renewal reminders)

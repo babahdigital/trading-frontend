@@ -98,62 +98,86 @@ function getEntryPrice(s: Vps1Signal): number | undefined {
   return s.entry_price_hint ?? s.entry_price;
 }
 
+const MAX_LEVELS_PER_SIDE = 8;
+
 /**
  * Extract S/R levels from dedicated technical-analysis + signal indicator_snapshots.
+ *
+ * When currentPrice is known, reclassify every candidate level against it:
+ * levels below current price become supports (sorted nearest-first, i.e.
+ * descending), levels above become resistances (sorted nearest-first, i.e.
+ * ascending). VPS1's original support/resistance labelling is historical and
+ * may flip as price moves, so using current price is more accurate for a
+ * brief consumed at publish-time.
  */
 function extractLevels(
   signals: Vps1Signal[],
   ta: Vps1TechnicalAnalysis | null,
+  currentPrice: number | null,
 ): { support: number[]; resistance: number[] } {
-  const support = new Set<number>();
-  const resistance = new Set<number>();
+  const candidates = new Set<number>();
 
   // Primary: dedicated technical-analysis endpoint
   if (ta?.timeframes) {
     for (const tf of Object.values(ta.timeframes)) {
       if (tf.key_levels) {
         for (const lvl of tf.key_levels.support ?? []) {
-          if (typeof lvl === 'number') support.add(lvl);
+          if (typeof lvl === 'number') candidates.add(lvl);
         }
         for (const lvl of tf.key_levels.resistance ?? []) {
-          if (typeof lvl === 'number') resistance.add(lvl);
+          if (typeof lvl === 'number') candidates.add(lvl);
         }
       }
     }
   }
 
-  // Supplementary: signal indicator_snapshots
+  // Supplementary: signal indicator_snapshots + entry/SL/TP
   for (const s of signals) {
     const snap = s.indicator_snapshot || s.indicator_snapshot_summary;
     if (snap) {
       if (Array.isArray(snap.support_levels)) {
         for (const lvl of snap.support_levels) {
-          if (typeof lvl === 'number') support.add(lvl);
+          if (typeof lvl === 'number') candidates.add(lvl);
         }
       }
       if (Array.isArray(snap.resistance_levels)) {
         for (const lvl of snap.resistance_levels) {
-          if (typeof lvl === 'number') resistance.add(lvl);
+          if (typeof lvl === 'number') candidates.add(lvl);
         }
       }
     }
-
+    if (s.stop_loss != null) candidates.add(s.stop_loss);
+    if (s.take_profit != null) candidates.add(s.take_profit);
     const entry = getEntryPrice(s);
-    if (s.direction === 'BUY') {
-      if (s.stop_loss != null) support.add(s.stop_loss);
-      if (s.take_profit != null) resistance.add(s.take_profit);
-      if (entry) support.add(entry);
-    } else {
-      if (s.stop_loss != null) resistance.add(s.stop_loss);
-      if (s.take_profit != null) support.add(s.take_profit);
-      if (entry) resistance.add(entry);
-    }
+    if (entry) candidates.add(entry);
   }
 
-  return {
-    support: [...support].sort((a, b) => b - a),
-    resistance: [...resistance].sort((a, b) => a - b),
-  };
+  const levels = [...candidates];
+
+  // Without a reference price we fall back to the legacy labelling path so
+  // existing tests and non-snapshot pairs still produce sensible arrays.
+  if (currentPrice == null || !Number.isFinite(currentPrice)) {
+    const support: number[] = [];
+    const resistance: number[] = [];
+    if (ta?.timeframes) {
+      for (const tf of Object.values(ta.timeframes)) {
+        for (const lvl of tf.key_levels?.support ?? []) {
+          if (typeof lvl === 'number') support.push(lvl);
+        }
+        for (const lvl of tf.key_levels?.resistance ?? []) {
+          if (typeof lvl === 'number') resistance.push(lvl);
+        }
+      }
+    }
+    return {
+      support: [...new Set(support)].sort((a, b) => b - a).slice(0, MAX_LEVELS_PER_SIDE),
+      resistance: [...new Set(resistance)].sort((a, b) => a - b).slice(0, MAX_LEVELS_PER_SIDE),
+    };
+  }
+
+  const support = levels.filter((l) => l < currentPrice).sort((a, b) => b - a).slice(0, MAX_LEVELS_PER_SIDE);
+  const resistance = levels.filter((l) => l > currentPrice).sort((a, b) => a - b).slice(0, MAX_LEVELS_PER_SIDE);
+  return { support, resistance };
 }
 
 /**
@@ -452,7 +476,8 @@ export async function fetchPairData(pair: string): Promise<PairDataBundle | null
       return null;
     }
 
-    const { support, resistance } = extractLevels(uniqueSignals, ta);
+    const currentPrice = typeof snapshot?.current_price === 'number' ? snapshot.current_price : null;
+    const { support, resistance } = extractLevels(uniqueSignals, ta, currentPrice);
     const avgConf = uniqueSignals.length > 0
       ? uniqueSignals.reduce((sum, s) => sum + (s.confidence ?? 0), 0) / uniqueSignals.length
       : (ta?.multi_tf_confluence?.score ?? 0);

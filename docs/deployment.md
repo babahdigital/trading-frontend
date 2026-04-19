@@ -61,13 +61,32 @@ cp .env.example .env
 | `ADMIN_PASSWORD` | Yes | `SecurePass123!` | Initial admin account password |
 | `NEXT_PUBLIC_APP_URL` | Yes | `https://babahalgo.com` | Public URL (used in CORS, redirects) |
 | `LICENSE_MW_MASTER_KEY` | Yes | 64-char hex string | AES-256-GCM master key for VPS token encryption |
-| `VPS1_BACKEND_URL` | Yes | `http://147.93.156.218:8000` | Python bot backend base URL |
-| `VPS1_ADMIN_TOKEN` | Yes | `plain_token_here` | Admin token for master backend (PAMM/Signal) |
+| `VPS1_BACKEND_URL` | Yes | `http://host.docker.internal:18000` | VPS1 base URL reachable from the app container (host-internal tunnel recommended) |
+| `VPS1_ADMIN_TOKEN` | Yes | 64-char hex | Last-resort admin token — VPS1 rejects this on scoped endpoints; used only for `healthz` and as a defensive fallback |
+| `VPS1_TOKEN_SIGNALS` | Yes | 64-char hex | Scoped token for `/api/signals/*` |
+| `VPS1_TOKEN_TRADE_EVENTS` | Yes | 64-char hex | Scoped token for `/api/trade-events/*` |
+| `VPS1_TOKEN_RESEARCH` | Yes | 64-char hex | Scoped token for `/api/research/*` (required for Pair Brief worker) |
+| `VPS1_TOKEN_PAMM` | Yes | 64-char hex | Scoped token for `/api/pamm/*` |
+| `VPS1_TOKEN_STATS` | Yes | 64-char hex | Scoped token for `/api/stats/*` |
+| `OPENROUTER_API_KEY` | Yes | `sk-or-v1-…` | Single AI provider credential — powers Pair Briefs, translations, Babah chat, admin i18n. See [ai-integration.md](./ai-integration.md) |
+| `CRON_SECRET` | Yes | 64-char hex | Protects `/api/cron/*` manual trigger endpoints |
+| `ENABLE_SIGNAL_CONSUMER` | Optional | `1` | Enables 30s signal-consumer interval |
+| `ENABLE_TRADE_EVENTS_CONSUMER` | Optional | `1` | Enables 20s trade-events-consumer interval |
+| `ENABLE_RESEARCH_INGESTER` | Optional | `1` | Enables 6h research-ingester + 30s startup kickoff |
+| `ENABLE_PAIR_BRIEF_WORKER` | Optional | `true` | Enables 4h pair-brief worker + 45s startup kickoff |
+| `BREVO_API_KEY` | Optional | `xkeys-…` | Brevo transactional email API — used for welcome/renewal emails |
+| `TELEGRAM_BOT_TOKEN` | Optional | `123:ABC…` | Telegram Bot token for VIP brief notifications |
 | `POSTGRES_DB` | Yes | `trading_commercial` | PostgreSQL database name |
 | `POSTGRES_USER` | Yes | `trading_user` | PostgreSQL user |
 | `POSTGRES_PASSWORD` | Yes | `SecureDbPass!` | PostgreSQL password |
 | `CF_ACCESS_CLIENT_ID` | Optional | `xxxxx.access` | Cloudflare Access client ID (if using service auth) |
 | `CF_ACCESS_CLIENT_SECRET` | Optional | `xxxxxxx` | Cloudflare Access client secret |
+
+> **On rotation.** `docker compose restart` does **not** re-read `.env`.
+> After editing a value, always `docker compose up -d` so the container
+> is recreated with the new environment. See
+> [bugs-and-fixes.md](./bugs-and-fixes.md) entry 2026-04-19.03 for the
+> incident where this tripped us up.
 
 ### Generating Secure Keys
 

@@ -10,12 +10,16 @@ This directory contains the complete technical documentation for BabahAlgo — a
 
 | Document | Description |
 |---|---|
-| [CHANGELOG.md](./CHANGELOG.md) | Complete changelog of enterprise transformation (v2.0) |
+| [CHANGELOG.md](./CHANGELOG.md) | Complete changelog of enterprise transformation (v2.0) + Phase 2 |
 | [architecture.md](./architecture.md) | 3-node architecture, data flow, Zero Trust topology |
 | [api-reference.md](./api-reference.md) | Complete API endpoint reference with request/response schemas |
+| [api-integration.md](./api-integration.md) | VPS1 ↔ VPS2 integration, scoped tokens, endpoint schemas |
 | [database.md](./database.md) | Database schema, models, enums, relationships, seed data |
 | [deployment.md](./deployment.md) | Docker build, server setup, Cloudflare Tunnel, environment variables |
 | [security.md](./security.md) | Auth flow, JWT, rate limiting, response filtering, kill-switch |
+| [pair-brief-system.md](./pair-brief-system.md) | Pair Intelligence Brief pipeline — 6-endpoint aggregation + 3-layer anti-hallucination |
+| [ai-integration.md](./ai-integration.md) | OpenRouter setup, default model, cost envelope, failure modes |
+| [bugs-and-fixes.md](./bugs-and-fixes.md) | Production bug register — symptom, root cause, resolution, commit per incident |
 | [charts.md](./charts.md) | Chart components, props, data formats, usage examples |
 | [pages.md](./pages.md) | Every page: route, layout, data sources, refresh intervals |
 
@@ -30,6 +34,13 @@ BabahAlgo is a **Next.js 14 App Router** application that serves as the enterpri
 - **CMS-powered content** with admin management for pages, articles, FAQ, pricing, testimonials, and more
 - **License issuance and lifecycle management** (CRUD, expiry, kill-switch)
 - **Client portal** with filtered, real-time data proxied from VPS backends
+- **Pair Intelligence Briefs** — institutional research reports generated
+  per pair/session from 6 parallel VPS1 endpoints, with 3-layer
+  anti-hallucination (factual template → bounded AI → post-validator)
+  and tier-gated distribution. See [pair-brief-system.md](./pair-brief-system.md).
+- **Unified AI via OpenRouter** — every narration/translation/chat call
+  routes through a single provider on `google/gemini-2.5-flash-lite`.
+  See [ai-integration.md](./ai-integration.md).
 - **Admin dashboard** for operators to manage users, VPS instances, CMS content, and audit logs
 - **Zero Trust deployment** via Cloudflare Tunnel — no exposed inbound ports
 - **Cal.com scheduling integration** for client briefings via Google Meet
@@ -110,8 +121,18 @@ BabahAlgo is a **Next.js 14 App Router** application that serves as the enterpri
 │  │  Middleware  │   │  API Routes  │   │  Cron Workers    │    │
 │  │  (Edge JWT)  │   │  /api/*      │   │  kill-switch 60s │    │
 │  │  (i18n)      │   │  /api/admin  │   │  health-check 5m │    │
-│  │  (geo-det.)  │   │  /api/public │   └──────────────────┘    │
-│  └──────────────┘   └──────┬───────┘                            │
+│  │  (geo-det.)  │   │  /api/public │   │  signal-consumer │    │
+│  └──────────────┘   └──────┬───────┘   │  trade-events    │    │
+│                            │           │  research-ingest │    │
+│                            │           │  pair-brief 4h   │    │
+│                            │           └─────────┬────────┘    │
+│                            │                     │             │
+│                            │                     ▼             │
+│                            │           ┌──────────────────┐    │
+│                            │           │  OpenRouter AI   │    │
+│                            │           │  gemini-2.5-     │    │
+│                            │           │  flash-lite      │    │
+│                            │           └──────────────────┘    │
 │                            │                                     │
 │  ┌─────────────────────────▼──────────────────────────────┐    │
 │  │               PostgreSQL 16 (host network)              │    │

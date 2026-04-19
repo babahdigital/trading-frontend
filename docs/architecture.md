@@ -369,6 +369,94 @@ Interval: 5 minutes (300 seconds)
    - Create `HealthCheck` record
    - Update `VpsInstance.lastHealthCheckAt`, `lastHealthStatus`, and `status` (ONLINE/OFFLINE)
 
+### Signal Consumer & Trade-Events Consumer
+
+```
+File:     src/lib/consumers/signal.ts       (ENABLE_SIGNAL_CONSUMER)
+          src/lib/consumers/trade-events.ts (ENABLE_TRADE_EVENTS_CONSUMER)
+Interval: 30s / 20s
+```
+
+Drain queues from VPS1 (`/api/signals/latest?since_id=...` and
+`/api/trade-events/latest?since_id=...`), advance
+`ConsumerState.lastSeenId`, and persist new records for the subscriber
+notification pipeline. Feature-flagged.
+
+### Research Ingester
+
+```
+File:     src/lib/ingesters/research.ts
+Interval: 6 hours + 30s startup kickoff
+Flag:     ENABLE_RESEARCH_INGESTER
+```
+
+Pulls VPS1's weekly-recap data, uses OpenRouter to expand it into a
+Markdown research article (and translate to English), upserts the
+`Article` row. The 30s startup kickoff exists because without it every
+container restart delayed the first run by a full 6 hours — see
+[bugs-and-fixes.md](./bugs-and-fixes.md) entry 2026-04-19.04.
+
+### Pair Brief Worker
+
+```
+File:     src/lib/workers/pair-brief.ts
+Interval: 4 hours + 45s startup kickoff
+Flag:     ENABLE_PAIR_BRIEF_WORKER
+```
+
+Generates Pair Intelligence Briefs — see
+[pair-brief-system.md](./pair-brief-system.md) for the full pipeline
+(6 parallel VPS1 calls → deterministic extractors → 3-layer
+anti-hallucination AI → `PairBrief` row → Telegram notification).
+
+The worker uses an in-process `activeRun` promise to prevent duplicate
+simultaneous runs and catches `P2002` unique-constraint violations on
+`PairBrief.create()` gracefully, in case a concurrent process slips
+past the existence check.
+
+### Subscription Lifecycle
+
+```
+File:     src/lib/subscription/lifecycle.ts
+Interval: 60 minutes
+```
+
+Expires `Subscription` records past their `endDate`, sends renewal
+reminders via Brevo email, and archives historical license state.
+
+---
+
+## 8a. AI Integration Layer
+
+All outbound AI requests route through a single factory in
+`src/lib/ai/openrouter.ts` targeting OpenRouter's OpenAI-compatible
+endpoint. The default model is `google/gemini-2.5-flash-lite`.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  VPS2 Workers & Routes                                      │
+│    • pair-brief-generator (narrative)                       │
+│    • content.ts translate / enhanceResearchBody             │
+│    • /api/chat/route.ts (Babah assistant, streaming)        │
+│    • /api/admin/i18n/generate (CMS bulk translate)          │
+└──────────────────────────┬──────────────────────────────────┘
+                           │ createOpenAI({ baseURL: openrouter })
+                           │ X-API-Token = OPENROUTER_API_KEY
+                           │ HTTP-Referer: babahalgo.com
+                           │ X-Title: BabahAlgo
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│  OpenRouter (openrouter.ai/api/v1)                          │
+│    Model: google/gemini-2.5-flash-lite ($0.10 / $0.40 per M)│
+└─────────────────────────────────────────────────────────────┘
+```
+
+No provider fallback exists — if `OPENROUTER_API_KEY` is missing,
+AI-dependent features degrade explicitly (e.g. pair briefs fall back
+to the template-only text and log a warning). See
+[ai-integration.md](./ai-integration.md) for the full rationale and
+cost envelope.
+
 ---
 
 ## 9. Technology Decisions

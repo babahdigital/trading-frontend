@@ -921,6 +921,174 @@ Self-serve user registration. Creates a user with PENDING status awaiting admin 
 
 ---
 
+### GET /api/public/pair-briefs
+
+List published Pair Intelligence Briefs, newest first. Response fields
+are tier-gated — see [pair-brief-system.md](./pair-brief-system.md) for
+the full spec.
+
+**Query parameters:**
+
+| Name | Required | Description |
+|---|---|---|
+| `pair` | No | Filter by pair symbol, e.g. `BTCUSD` |
+| `limit` | No | Max briefs to return (default 20, max 50) |
+
+**Headers (optional):**
+- `Authorization: Bearer <token>` — if present and user has an active
+  `SIGNAL_BASIC | SIGNAL_VIP | PAMM_BASIC | PAMM_PRO` subscription,
+  the response includes the full narrative and trade ideas.
+
+**Response 200 OK (anonymous or non-subscriber):**
+
+```json
+{
+  "briefs": [
+    {
+      "id": "cmo5pt0yb001hcqhu8whs9wgr",
+      "pair": "BTCUSD",
+      "session": "NEW_YORK",
+      "date": "2026-04-19",
+      "slug": "btcusd-2026-04-19-new-york",
+      "supportLevels": [76073.12, 76072.8, 76070.61, 76069.15, 76058.42, 76047.06, 76036.93, 76012.11],
+      "resistanceLevels": [76156.07, 76159.58, 76188.43, 76228.61, 76236.19, 76243.23, 76251.61, 76274.71],
+      "fundamentalBias": "BULLISH",
+      "confluenceScore": "0.80",
+      "isPublished": true,
+      "publishedAt": "2026-04-19T15:17:54.258Z"
+    }
+  ],
+  "access": "preview",
+  "tier": "anonymous"
+}
+```
+
+**Response 200 OK (active subscriber):**
+
+Adds: `sndZones`, `keyPatterns`, `fakeLiquidity`, `narrative`
+(Bahasa Indonesia), `narrative_en` (English), `tradeIdeas`,
+`validationStatus`.
+
+```json
+{
+  "briefs": [ { ...preview fields..., "sndZones": [...], "narrative": "## Ringkasan Eksekutif\n...", ... } ],
+  "access": "full",
+  "tier": "SIGNAL_BASIC"
+}
+```
+
+### GET /api/public/pair-briefs/[slug]
+
+Fetch a single published brief by slug
+(`{pair}-{date}-{session}`). Same tier-gating rules as the list
+endpoint.
+
+**Response 200 OK (subscriber):**
+```json
+{
+  "brief": {
+    "id": "cmo5pt0yb001hcqhu8whs9wgr",
+    "pair": "BTCUSD",
+    "session": "NEW_YORK",
+    "date": "2026-04-19",
+    "slug": "btcusd-2026-04-19-new-york",
+    "supportLevels": [...],
+    "resistanceLevels": [...],
+    "fundamentalBias": "BULLISH",
+    "confluenceScore": "0.80",
+    "sndZones": [{ "type": "DEMAND", "low": 76040, "high": 76080, "tf": "M5" }, ...],
+    "keyPatterns": [{ "name": "Wyckoff lpsy", "tf": "M5", "description": "..." }, ...],
+    "fakeLiquidity": [],
+    "narrative": "## Ringkasan Eksekutif\n...",
+    "narrative_en": "## Executive Summary\n...",
+    "tradeIdeas": [{ "direction": "SELL", "entry": 76100, "sl": 76150, "tp": 75800, "confidence": 0.82, "rationale": "..." }],
+    "validationStatus": "PASSED",
+    "isPublished": true,
+    "publishedAt": "2026-04-19T15:17:54.258Z"
+  },
+  "access": "full",
+  "tier": "SIGNAL_BASIC"
+}
+```
+
+| Status | Condition |
+|---|---|
+| 200 | Brief found |
+| 404 | No brief with that slug, or brief exists but `isPublished: false` |
+
+---
+
+### GET /api/public/status
+
+Public status page feed — used by the landing-page "system status"
+widget and by uptime monitors. Reports database, VPS1 latency, and
+every autonomous worker's last run.
+
+**Response 200 OK:**
+
+```json
+{
+  "overall": "operational",
+  "components": [
+    { "name": "Frontend (VPS 2)", "status": "operational", "description": "Next.js app, CMS, and portal APIs" },
+    { "name": "Database", "status": "operational", "description": "PostgreSQL connected" },
+    { "name": "Trading Backend (VPS 1)", "status": "operational", "description": "Latency 67ms" },
+    { "name": "Signal Consumer", "status": "operational", "description": "Last run 0m ago — 0 items" },
+    { "name": "Trade Events Consumer", "status": "operational", "description": "Last run 0m ago — 0 items" },
+    { "name": "Research Ingester", "status": "operational", "description": "Last run 3m ago — 0 items" }
+  ],
+  "workers": [
+    { "scope": "signals", "lastRunAt": "...", "lastStatus": "ok", "lastError": null, "runCount": 2286, "lastSeenId": "0" },
+    { "scope": "pair_brief", "lastRunAt": "...", "lastStatus": "SKIPPED", "lastError": null, "runCount": 15, "lastSeenId": "0" }
+  ],
+  "recentHealthChecks": [],
+  "timestamp": "2026-04-19T16:14:44.926Z"
+}
+```
+
+`overall` is `operational` if every component is operational,
+`degraded` if any component is degraded, `outage` if any is down.
+A worker is `degraded` if it has never run, if its last run was an
+ERROR, or if its last run is older than a per-worker staleness
+threshold (10m for signal/trade-event consumers, 7h for the 6-hour
+research ingester).
+
+---
+
+### POST /api/cron/pair-briefs
+
+Manual trigger for the Pair Brief worker. Not public — requires the
+`x-cron-secret` header to match `CRON_SECRET`. The same endpoint is
+called internally by the 45-second post-startup kickoff and by the
+4-hour `setInterval`.
+
+**Headers:**
+- `x-cron-secret: <CRON_SECRET>` — required.
+
+Also supports `?secret=<CRON_SECRET>` query param for shells that
+can't easily set headers.
+
+**Response 200 OK:**
+```json
+{ "status": "ok", "briefsGenerated": 1, "briefsSkipped": 0, "errors": [], "durationMs": 15342 }
+```
+
+`status`: `ok` | `skipped` | `error`. `skipped` means every
+configured pair already had a brief for today's session (the
+existence check short-circuits before any AI call — no cost
+incurred).
+
+Companion cron endpoints (same auth pattern):
+
+- `POST /api/cron/signals` — drain VPS1 signal queue, persist
+  new signals.
+- `POST /api/cron/trade-events` — drain VPS1 trade-event queue
+  (copy-trade open/close notifications).
+- `POST /api/cron/research` — regenerate the weekly research recap
+  article from VPS1's weekly-recap data.
+
+---
+
 ## 7. Health Endpoint
 
 ### GET /api/health

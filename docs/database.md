@@ -539,6 +539,123 @@ model Article {
 
 ---
 
+### PairBrief (Pair Intelligence Brief)
+
+One row per `(pair, session, date)` combination — the unique unit of
+publication. See [pair-brief-system.md](./pair-brief-system.md) for
+the producer pipeline and [api-reference.md](./api-reference.md) for
+the tier-gated public endpoints.
+
+```prisma
+model PairBrief {
+  id                String             @id @default(cuid())
+  pair              String
+  session           TradingSession
+  date              DateTime           @db.Date
+  slug              String             @unique          // ${pair}-${date}-${session} lowercase kebab
+  supportLevels     Json               @default("[]")   // number[] (nearest-first descending)
+  resistanceLevels  Json               @default("[]")   // number[] (nearest-first ascending)
+  sndZones          Json               @default("[]")   // SndZone[]
+  confluenceScore   Decimal?           @db.Decimal(4, 2)
+  fundamentalBias   String?            // BULLISH | BEARISH | NEUTRAL
+  keyPatterns       Json               @default("[]")   // KeyPattern[]
+  fakeLiquidity     Json               @default("[]")   // FakeLiquiditySignal[]
+  signalSnapshot    Json               @default("{}")   // { signalCount, signalIds, fetchedAt, hasMarketSnapshot, ... }
+  narrative         String                              // Bahasa Indonesia, 400-700 words Markdown
+  narrative_en      String?                             // English translation
+  tradeIdeas        Json               @default("[]")   // TradeIdeaRaw[]
+  accessTier        SubscriptionTier   @default(SIGNAL_BASIC)
+  aiModel           String?                             // e.g. openrouter/gemini-2.5-flash-lite
+  aiTokensUsed      Int                @default(0)
+  validationStatus  BriefValidation    @default(PENDING)// PENDING | PASSED | FAILED
+  validationErrors  Json               @default("[]")   // string[]
+  isPublished       Boolean            @default(false)  // true only if validationStatus=PASSED
+  publishedAt       DateTime?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  @@unique([pair, session, date])                       // prevents duplicate briefs
+  @@index([isPublished, publishedAt])                   // public list query
+  @@index([pair, date])                                 // per-pair historical lookup
+}
+
+enum BriefValidation {
+  PENDING
+  PASSED
+  FAILED
+}
+
+enum TradingSession {
+  ASIAN
+  LONDON
+  NEW_YORK
+}
+```
+
+### WorkerRun
+
+Persistent audit trail of every background-worker invocation. Used by
+`/api/public/status` to compute "Last run Xm ago" descriptions and
+to detect stalled workers.
+
+```prisma
+model WorkerRun {
+  id              String      @id @default(cuid())
+  worker          String                       // 'pair_brief' | 'research_ingester' | 'signals' | 'trade_events'
+  status          String                       // 'RUNNING' | 'OK' | 'PARTIAL' | 'ERROR'
+  startedAt       DateTime    @default(now())
+  finishedAt      DateTime?
+  itemsProcessed  Int         @default(0)
+  errorMessage    String?
+  metadata        Json?                        // worker-specific details (e.g. { session, date, skipped })
+
+  @@index([worker, startedAt])
+}
+```
+
+### ConsumerState
+
+One row per autonomous worker scope. Tracks the last run so consumers
+are idempotent across restarts and so the status page can surface a
+current health signal.
+
+```prisma
+model ConsumerState {
+  scope         String     @id              // 'pair_brief' | 'signals' | 'trade_events' | ...
+  lastRunAt     DateTime?
+  lastStatus    String?                      // 'ok' | 'SKIPPED' | 'ERROR' | 'NO_DATA' | ...
+  lastError     String?                      // cleared to null on success paths (see bug 2026-04-19.09)
+  runCount      Int        @default(0)
+  lastSeenId    BigInt     @default(0)       // progress marker for stream-style consumers (VPS1 signal IDs)
+  updatedAt     DateTime   @updatedAt
+}
+```
+
+### NotificationLog
+
+Outbound notification audit trail — used by the Pair Brief Telegram
+notifier and by email renewal reminders.
+
+```prisma
+model NotificationLog {
+  id             String    @id @default(cuid())
+  userId         String
+  channel        String                       // 'TELEGRAM' | 'EMAIL'
+  category       String                       // 'PAIR_BRIEF' | 'RENEWAL' | 'WELCOME' | ...
+  refId          String?                      // brief slug, subscription id, etc.
+  payload        Json                         // channel-specific metadata
+  status         String                       // 'SENT' | 'FAILED'
+  errorMessage   String?
+  deliveredAt    DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([userId, createdAt])
+  @@index([category, createdAt])
+}
+```
+
+---
+
 ## 4. Indexes
 
 | Model | Index Fields | Purpose |
@@ -553,6 +670,13 @@ model Article {
 | `Session` | `[userId]` | Active sessions per user |
 | `PageContent` | `slug` (unique) | CMS page lookup |
 | `Article` | `slug` (unique) | Article lookup by slug |
+| `PairBrief` | `slug` (unique) | Public brief lookup by slug |
+| `PairBrief` | `[pair, session, date]` (unique) | Prevents duplicate briefs for the same session |
+| `PairBrief` | `[isPublished, publishedAt]` | Public list query (newest-first, published-only) |
+| `PairBrief` | `[pair, date]` | Per-pair historical briefs |
+| `WorkerRun` | `[worker, startedAt]` | Worker run history, status page feed |
+| `NotificationLog` | `[userId, createdAt]` | User notification timeline |
+| `NotificationLog` | `[category, createdAt]` | Per-category notification volume |
 
 ---
 

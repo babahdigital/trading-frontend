@@ -7,7 +7,9 @@ import {
   LayoutDashboard,
   KeyRound,
   Server,
+  ServerCog,
   Users,
+  UserCheck,
   ScrollText,
   Zap,
   Settings,
@@ -29,6 +31,8 @@ import { AuthProvider, useAuth } from '@/lib/auth/auth-context';
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/admin/customers', label: 'Customers', icon: UserCheck },
+  { href: '/admin/vps-fleet', label: 'VPS Fleet', icon: ServerCog },
   { href: '/admin/licenses', label: 'Licenses', icon: KeyRound },
   { href: '/admin/vps', label: 'VPS Instances', icon: Server },
   { href: '/admin/users', label: 'Users', icon: Users },

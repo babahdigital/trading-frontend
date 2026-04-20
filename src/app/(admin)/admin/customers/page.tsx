@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,106 +9,71 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth/auth-context';
 import { Plus, Search } from 'lucide-react';
 
-interface User {
+interface Customer {
   id: string;
   email: string;
   name: string | null;
-  role: string;
   mt5Account: string | null;
   lastLoginAt: string | null;
-  _count: { licenses: number; subscriptions: number };
+  license: {
+    id: string;
+    licenseKey: string;
+    status: string;
+    type: string;
+    expiresAt: string | null;
+  } | null;
+  vps: {
+    id: string;
+    name: string;
+    status: string;
+    healthStatus: string | null;
+  } | null;
 }
 
-interface License {
-  id: string;
-  status: string;
-  type: string;
-  expiresAt: string | null;
-  user: { id: string; email: string; name: string | null };
-  vpsInstance: { id: string; name: string; status: string } | null;
-}
-
-interface VpsInstance {
-  id: string;
-  name: string;
-  status: string;
-  lastHealthStatus: string | null;
-}
-
-interface CustomerRow {
-  user: User;
-  license: License | null;
-  vps: VpsInstance | null;
-}
-
-type FilterStatus = 'all' | 'active' | 'expired';
+type FilterStatus = 'all' | 'ACTIVE' | 'EXPIRED';
 
 export default function CustomersPage() {
   const { getAuthHeaders } = useAuth();
-  const [customers, setCustomers] = useState<CustomerRow[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterStatus>('all');
+  const [page, setPage] = useState(1);
+  const limit = 20;
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const headers = getAuthHeaders();
-        const [usersRes, licensesRes, vpsRes] = await Promise.all([
-          fetch('/api/admin/users?limit=200', { headers }),
-          fetch('/api/admin/licenses?limit=200', { headers }),
-          fetch('/api/admin/vps?limit=200', { headers }),
-        ]);
+  const fetchCustomers = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+      if (filter !== 'all') params.set('status', filter);
+      if (search) params.set('search', search);
 
-        const usersData = usersRes.ok ? await usersRes.json() : { users: [] };
-        const licensesData = licensesRes.ok ? await licensesRes.json() : { licenses: [] };
-        const vpsData = vpsRes.ok ? await vpsRes.json() : { vpsInstances: [] };
-
-        const clientUsers: User[] = (usersData.users || []).filter((u: User) => u.role === 'CLIENT');
-        const licenses: License[] = licensesData.licenses || [];
-        const vpsInstances: VpsInstance[] = vpsData.vpsInstances || [];
-
-        // Build customer rows: join user → license → vps
-        const rows: CustomerRow[] = clientUsers.map((user) => {
-          const userLicense = licenses.find((l) => l.user.id === user.id) || null;
-          const vps = userLicense?.vpsInstance
-            ? vpsInstances.find((v) => v.id === userLicense.vpsInstance?.id) || null
-            : null;
-          return { user, license: userLicense, vps };
-        });
-
-        setCustomers(rows);
-      } catch { /* handled */ }
-      finally { setLoading(false); }
-    }
-    fetchData();
+      const res = await fetch(`/api/admin/customers?${params}`, { headers: getAuthHeaders() });
+      if (res.ok) {
+        const data = await res.json();
+        setCustomers(data.customers || []);
+        setTotal(data.total || 0);
+      }
+    } catch { /* handled */ }
+    finally { setLoading(false); }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [page, filter, search]);
 
-  const filtered = customers.filter((c) => {
-    // Search
-    if (search) {
-      const q = search.toLowerCase();
-      const match = c.user.email.toLowerCase().includes(q)
-        || (c.user.name || '').toLowerCase().includes(q)
-        || (c.user.mt5Account || '').includes(q);
-      if (!match) return false;
-    }
-    // Status filter
-    if (filter === 'active') {
-      return c.license?.status === 'ACTIVE';
-    }
-    if (filter === 'expired') {
-      return c.license?.status === 'EXPIRED' || !c.license;
-    }
-    return true;
-  });
+  useEffect(() => { fetchCustomers(); }, [fetchCustomers]);
+
+  // Debounce search
+  const [searchInput, setSearchInput] = useState('');
+  useEffect(() => {
+    const timer = setTimeout(() => { setSearch(searchInput); setPage(1); }, 400);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   function statusBadge(status?: string) {
-    if (!status) return { label: 'No License', cls: 'bg-slate-500/20 text-slate-400' };
+    if (!status) return { label: 'Tanpa Lisensi', cls: 'bg-slate-500/20 text-slate-400' };
     if (status === 'ACTIVE') return { label: 'Aktif', cls: 'bg-green-500/20 text-green-400' };
-    if (status === 'EXPIRED') return { label: 'Expired', cls: 'bg-red-500/20 text-red-400' };
-    if (status === 'SUSPENDED') return { label: 'Suspended', cls: 'bg-orange-500/20 text-orange-400' };
+    if (status === 'EXPIRED') return { label: 'Kedaluwarsa', cls: 'bg-red-500/20 text-red-400' };
+    if (status === 'SUSPENDED') return { label: 'Ditangguhkan', cls: 'bg-orange-500/20 text-orange-400' };
     return { label: status, cls: 'bg-yellow-500/20 text-yellow-400' };
   }
 
@@ -119,12 +84,14 @@ export default function CustomersPage() {
     return { label: status, cls: 'bg-yellow-500/20 text-yellow-400' };
   }
 
+  const totalPages = Math.ceil(total / limit);
+
   return (
     <div>
       <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Customers</h2>
-          <p className="text-muted-foreground">{filtered.length} customer{filtered.length !== 1 ? 's' : ''}</p>
+          <p className="text-muted-foreground">{total} customer terdaftar</p>
         </div>
         <Link href="/admin/customers/new">
           <Button>
@@ -136,9 +103,9 @@ export default function CustomersPage() {
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3 mb-6">
         <div className="flex items-center gap-1">
-          {(['all', 'active', 'expired'] as FilterStatus[]).map((f) => (
-            <Button key={f} variant={filter === f ? 'default' : 'outline'} size="sm" onClick={() => setFilter(f)}>
-              {f === 'all' ? 'Semua' : f === 'active' ? 'Aktif' : 'Expired'}
+          {([['all', 'Semua'], ['ACTIVE', 'Aktif'], ['EXPIRED', 'Kedaluwarsa']] as [FilterStatus, string][]).map(([f, label]) => (
+            <Button key={f} variant={filter === f ? 'default' : 'outline'} size="sm" onClick={() => { setFilter(f); setPage(1); }}>
+              {label}
             </Button>
           ))}
         </div>
@@ -146,8 +113,8 @@ export default function CustomersPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Cari nama, email, MT5..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
             className="pl-9 w-64 bg-background"
           />
         </div>
@@ -171,16 +138,16 @@ export default function CustomersPage() {
               <tbody>
                 {loading ? (
                   <tr><td colSpan={6} className="p-4 text-center text-muted-foreground">Memuat data...</td></tr>
-                ) : filtered.length === 0 ? (
+                ) : customers.length === 0 ? (
                   <tr><td colSpan={6} className="p-4 text-center text-muted-foreground">Tidak ada customer ditemukan</td></tr>
                 ) : (
-                  filtered.map((c) => {
+                  customers.map((c) => {
                     const lBadge = statusBadge(c.license?.status);
                     const vBadge = c.vps ? vpsBadge(c.vps.status) : null;
                     return (
-                      <tr key={c.user.id} className="border-b hover:bg-accent/50 transition-colors">
-                        <td className="p-4 font-medium">{c.user.name || '-'}</td>
-                        <td className="p-4">{c.user.email}</td>
+                      <tr key={c.id} className="border-b hover:bg-accent/50 transition-colors">
+                        <td className="p-4 font-medium">{c.name || '-'}</td>
+                        <td className="p-4">{c.email}</td>
                         <td className="p-4">
                           <span className={cn('px-2 py-1 rounded-full text-xs font-medium', lBadge.cls)}>
                             {lBadge.label}
@@ -206,7 +173,7 @@ export default function CustomersPage() {
                           )}
                         </td>
                         <td className="p-4 text-muted-foreground text-xs">
-                          {c.user.lastLoginAt ? new Date(c.user.lastLoginAt).toLocaleDateString('id-ID') : 'Belum pernah'}
+                          {c.lastLoginAt ? new Date(c.lastLoginAt).toLocaleDateString('id-ID') : 'Belum pernah'}
                         </td>
                       </tr>
                     );
@@ -222,25 +189,25 @@ export default function CustomersPage() {
       <div className="md:hidden space-y-3">
         {loading ? (
           <p className="text-muted-foreground text-sm text-center py-4">Memuat data...</p>
-        ) : filtered.length === 0 ? (
+        ) : customers.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">Tidak ada customer ditemukan</div>
         ) : (
-          filtered.map((c) => {
+          customers.map((c) => {
             const lBadge = statusBadge(c.license?.status);
             return (
-              <Card key={c.user.id}>
+              <Card key={c.id}>
                 <CardContent className="pt-4 pb-3">
                   <div className="flex items-center justify-between mb-2">
                     <div>
-                      <p className="font-medium text-sm">{c.user.name || c.user.email}</p>
-                      {c.user.name && <p className="text-xs text-muted-foreground">{c.user.email}</p>}
+                      <p className="font-medium text-sm">{c.name || c.email}</p>
+                      {c.name && <p className="text-xs text-muted-foreground">{c.email}</p>}
                     </div>
                     <span className={cn('px-2 py-1 rounded-full text-xs font-medium', lBadge.cls)}>
                       {lBadge.label}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{c.vps ? c.vps.name : 'No VPS'}</span>
+                    <span>{c.vps ? c.vps.name : 'Tanpa VPS'}</span>
                     <span>
                       {c.license?.expiresAt
                         ? `Exp: ${new Date(c.license.expiresAt).toLocaleDateString('id-ID')}`
@@ -253,6 +220,21 @@ export default function CustomersPage() {
           })
         )}
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 mt-6">
+          <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>
+            Sebelumnya
+          </Button>
+          <span className="text-sm text-muted-foreground">
+            Halaman {page} dari {totalPages}
+          </span>
+          <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
+            Selanjutnya
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

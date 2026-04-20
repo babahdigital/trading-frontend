@@ -7,22 +7,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth/auth-context';
-import { ArrowLeft, Activity, Globe, KeyRound, Server, Shield, Wifi } from 'lucide-react';
+import { ArrowLeft, Activity, Globe, KeyRound, Shield, Wifi } from 'lucide-react';
 
-interface FleetVps {
+interface HealthCheck {
   id: string;
-  name: string;
-  host: string;
-  status: string;
-  lastHealthCheckAt: string | null;
-  lastHealthStatus: string | null;
-  codeVersion: string | null;
-  isUpToDate: boolean | null;
-  lastSyncStatus: string | null;
-  lastSyncAt: string | null;
-  hasSeedChecksum: boolean;
-  hasSyncToken: boolean;
-  licenseCount: number;
+  checkedAt: string;
+  httpStatus: number | null;
+  responseTimeMs: number | null;
+  zmqConnected: boolean | null;
+  dbOk: boolean | null;
+  lastTickAge: number | null;
 }
 
 interface License {
@@ -34,39 +28,55 @@ interface License {
   user: { id: string; email: string; name: string | null };
 }
 
+interface VpsDetail {
+  id: string;
+  name: string;
+  host: string;
+  port: number;
+  backendBaseUrl: string;
+  status: string;
+  lastHealthCheckAt: string | null;
+  lastHealthStatus: string | null;
+  codeVersion: string | null;
+  isUpToDate: boolean | null;
+  lastSyncStatus: string | null;
+  lastSyncAt: string | null;
+  hasSeedChecksum: boolean;
+  hasSyncToken: boolean;
+  customerCode: string | null;
+  notes: string | null;
+  licenseCount: number;
+  healthChecks: HealthCheck[];
+  licenses: License[];
+}
+
 export default function VpsFleetDetailPage() {
   const { getAuthHeaders } = useAuth();
   const params = useParams();
   const vpsId = params.id as string;
 
-  const [vps, setVps] = useState<FleetVps | null>(null);
-  const [licenses, setLicenses] = useState<License[]>([]);
+  const [vps, setVps] = useState<VpsDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const headers = getAuthHeaders();
-        const [fleetRes, licensesRes] = await Promise.all([
-          fetch('/api/admin/vps/fleet-status', { headers }),
-          fetch('/api/admin/licenses?limit=200', { headers }),
-        ]);
-
-        if (fleetRes.ok) {
-          const data = await fleetRes.json();
-          const match = (data.fleet || []).find((v: FleetVps) => v.id === vpsId);
-          if (match) setVps(match);
+        const res = await fetch(`/api/admin/vps/${vpsId}`, { headers: getAuthHeaders() });
+        if (res.status === 401) {
+          window.location.href = '/login';
+          return;
         }
-
-        if (licensesRes.ok) {
-          const data = await licensesRes.json();
-          const linked = (data.licenses || []).filter(
-            (l: { vpsInstance?: { id: string } | null }) => l.vpsInstance?.id === vpsId
-          );
-          setLicenses(linked);
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || 'Gagal memuat data VPS');
         }
-      } catch { /* handled */ }
-      finally { setLoading(false); }
+        setVps(await res.json());
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Koneksi error');
+      } finally {
+        setLoading(false);
+      }
     }
     fetchData();
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -80,15 +90,15 @@ export default function VpsFleetDetailPage() {
   }
 
   function healthBadge(health: string | null) {
-    if (!health) return { label: 'Unknown', cls: 'bg-slate-500/20 text-slate-400' };
-    if (health === 'ok') return { label: 'Healthy', cls: 'bg-green-500/20 text-green-400' };
-    if (health === 'degraded') return { label: 'Degraded', cls: 'bg-yellow-500/20 text-yellow-400' };
-    return { label: 'Unreachable', cls: 'bg-red-500/20 text-red-400' };
+    if (!health) return { label: 'Tidak diketahui', cls: 'bg-slate-500/20 text-slate-400' };
+    if (health === 'ok') return { label: 'Sehat', cls: 'bg-green-500/20 text-green-400' };
+    if (health === 'degraded') return { label: 'Terganggu', cls: 'bg-yellow-500/20 text-yellow-400' };
+    return { label: 'Tidak terjangkau', cls: 'bg-red-500/20 text-red-400' };
   }
 
   function licenseBadge(status: string) {
     if (status === 'ACTIVE') return { label: 'Aktif', cls: 'bg-green-500/20 text-green-400' };
-    if (status === 'EXPIRED') return { label: 'Expired', cls: 'bg-red-500/20 text-red-400' };
+    if (status === 'EXPIRED') return { label: 'Kedaluwarsa', cls: 'bg-red-500/20 text-red-400' };
     return { label: status, cls: 'bg-yellow-500/20 text-yellow-400' };
   }
 
@@ -99,23 +109,25 @@ export default function VpsFleetDetailPage() {
           <Link href="/admin/vps-fleet">
             <Button variant="ghost" size="sm"><ArrowLeft className="w-4 h-4 mr-1" /> Kembali</Button>
           </Link>
-          <h2 className="text-3xl font-bold tracking-tight">VPS Detail</h2>
+          <h2 className="text-3xl font-bold tracking-tight">Detail VPS</h2>
         </div>
         <p className="text-muted-foreground text-sm">Memuat data...</p>
       </div>
     );
   }
 
-  if (!vps) {
+  if (error || !vps) {
     return (
       <div>
         <div className="flex items-center gap-3 mb-8">
           <Link href="/admin/vps-fleet">
             <Button variant="ghost" size="sm"><ArrowLeft className="w-4 h-4 mr-1" /> Kembali</Button>
           </Link>
-          <h2 className="text-3xl font-bold tracking-tight">VPS Detail</h2>
+          <h2 className="text-3xl font-bold tracking-tight">Detail VPS</h2>
         </div>
-        <div className="text-center py-12 text-muted-foreground">VPS tidak ditemukan</div>
+        <div className="text-center py-12 text-muted-foreground">
+          {error || 'VPS tidak ditemukan'}
+        </div>
       </div>
     );
   }
@@ -138,7 +150,7 @@ export default function VpsFleetDetailPage() {
                 {sBadge.label}
               </span>
             </div>
-            <p className="text-muted-foreground font-mono">{vps.host}</p>
+            <p className="text-muted-foreground font-mono">{vps.host}:{vps.port}</p>
           </div>
         </div>
       </div>
@@ -153,8 +165,11 @@ export default function VpsFleetDetailPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             <DetailRow label="Host" value={vps.host} mono />
-            <DetailRow label="Status" value={vps.status} />
-            <DetailRow label="Licenses" value={String(vps.licenseCount)} />
+            <DetailRow label="Port" value={String(vps.port)} mono />
+            <DetailRow label="Backend URL" value={vps.backendBaseUrl} mono />
+            <DetailRow label="Customer Code" value={vps.customerCode || '-'} mono />
+            <DetailRow label="Jumlah Lisensi" value={String(vps.licenseCount)} />
+            {vps.notes && <DetailRow label="Catatan" value={vps.notes} />}
           </CardContent>
         </Card>
 
@@ -175,6 +190,27 @@ export default function VpsFleetDetailPage() {
                 ? new Date(vps.lastHealthCheckAt).toLocaleString('id-ID')
                 : 'Belum pernah'
             } />
+            {/* Recent health checks */}
+            {vps.healthChecks.length > 0 && (
+              <div className="pt-2 space-y-2">
+                <p className="text-xs font-medium text-muted-foreground">Riwayat Cek Terakhir</p>
+                {vps.healthChecks.map((hc) => (
+                  <div key={hc.id} className="flex items-center justify-between text-xs p-2 rounded border">
+                    <span className="text-muted-foreground">
+                      {new Date(hc.checkedAt).toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      {hc.responseTimeMs !== null && <span className="font-mono">{hc.responseTimeMs}ms</span>}
+                      <span className={cn('px-1.5 py-0.5 rounded',
+                        hc.httpStatus === 200 ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                      )}>
+                        {hc.httpStatus || '?'}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -187,10 +223,10 @@ export default function VpsFleetDetailPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             <DetailRow label="Versi Kode" value={vps.codeVersion || '-'} mono badge={
-              vps.isUpToDate === false ? { label: 'Outdated', cls: 'bg-orange-500/20 text-orange-400' } :
-              vps.isUpToDate === true ? { label: 'Up to date', cls: 'bg-green-500/20 text-green-400' } : undefined
+              vps.isUpToDate === false ? { label: 'Perlu Update', cls: 'bg-orange-500/20 text-orange-400' } :
+              vps.isUpToDate === true ? { label: 'Terbaru', cls: 'bg-green-500/20 text-green-400' } : undefined
             } />
-            <DetailRow label="Sync Status" value={vps.lastSyncStatus || '-'} />
+            <DetailRow label="Status Sync" value={vps.lastSyncStatus || '-'} />
             <DetailRow label="Sync Terakhir" value={
               vps.lastSyncAt ? new Date(vps.lastSyncAt).toLocaleString('id-ID') : '-'
             } />
@@ -199,7 +235,7 @@ export default function VpsFleetDetailPage() {
           </CardContent>
         </Card>
 
-        {/* Quick Actions placeholder */}
+        {/* Connectivity */}
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -208,7 +244,16 @@ export default function VpsFleetDetailPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             <DetailRow label="Status VPS" value={vps.status} />
-            <DetailRow label="Health" value={vps.lastHealthStatus || 'Unknown'} />
+            <DetailRow label="Kesehatan" value={vps.lastHealthStatus || 'Tidak diketahui'} />
+            {vps.healthChecks[0] && (
+              <>
+                <DetailRow label="ZMQ" value={vps.healthChecks[0].zmqConnected ? 'Terhubung' : 'Terputus'} />
+                <DetailRow label="Database" value={vps.healthChecks[0].dbOk ? 'OK' : 'Error'} />
+                {vps.healthChecks[0].lastTickAge !== null && (
+                  <DetailRow label="Last Tick Age" value={`${vps.healthChecks[0].lastTickAge}s`} mono />
+                )}
+              </>
+            )}
             <div className="pt-2 text-xs text-muted-foreground">
               Health check otomatis setiap 5 menit.
             </div>
@@ -220,11 +265,11 @@ export default function VpsFleetDetailPage() {
       <Card className="mt-6">
         <CardHeader>
           <CardTitle className="text-sm font-medium flex items-center gap-2">
-            <KeyRound className="w-4 h-4" /> Lisensi Terhubung ({licenses.length})
+            <KeyRound className="w-4 h-4" /> Lisensi Terhubung ({vps.licenses.length})
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {licenses.length === 0 ? (
+          {vps.licenses.length === 0 ? (
             <p className="text-muted-foreground text-sm text-center py-4">Tidak ada lisensi terhubung</p>
           ) : (
             <div className="overflow-x-auto">
@@ -239,7 +284,7 @@ export default function VpsFleetDetailPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {licenses.map((lic) => {
+                  {vps.licenses.map((lic) => {
                     const lBadge = licenseBadge(lic.status);
                     return (
                       <tr key={lic.id} className="border-b last:border-0">

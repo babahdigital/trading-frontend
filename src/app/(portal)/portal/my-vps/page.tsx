@@ -49,12 +49,15 @@ export default function MyVpsPage() {
   const [error, setError] = useState('');
   const [equityPeriod, setEquityPeriod] = useState('30D');
 
-  // Fetch status (polling)
+  // Fetch status (polling, pauses when tab hidden)
   useEffect(() => {
     let active = true;
+    let interval: ReturnType<typeof setInterval>;
     async function fetchStatus() {
+      if (document.hidden) return;
       try {
         const res = await fetch('/api/client/status', { headers: getAuthHeaders() });
+        if (res.status === 401) { window.location.href = '/login'; return; }
         if (!res.ok) throw new Error('Gagal memuat status VPS');
         const data = await res.json();
         if (active) { setStatus(data); setError(''); }
@@ -65,8 +68,13 @@ export default function MyVpsPage() {
       }
     }
     fetchStatus();
-    const interval = setInterval(fetchStatus, 5000);
-    return () => { active = false; clearInterval(interval); };
+    interval = setInterval(fetchStatus, 5000);
+
+    const onVisChange = () => {
+      if (!document.hidden) fetchStatus();
+    };
+    document.addEventListener('visibilitychange', onVisChange);
+    return () => { active = false; clearInterval(interval); document.removeEventListener('visibilitychange', onVisChange); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -168,7 +176,11 @@ export default function MyVpsPage() {
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <span className={cn('inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium', botSt.bg, botSt.color)}>
-            <span className={cn('w-1.5 h-1.5 rounded-full', botSt.color === 'text-green-400' ? 'bg-green-400' : botSt.color === 'text-red-400' ? 'bg-red-400' : 'bg-yellow-400')} />
+            <span className={cn('w-1.5 h-1.5 rounded-full',
+              botSt.color === 'text-green-400' ? 'bg-green-400' :
+              botSt.color === 'text-red-400' ? 'bg-red-400' :
+              botSt.color === 'text-orange-400' ? 'bg-orange-400' : 'bg-yellow-400'
+            )} />
             Bot: {botSt.label}
           </span>
           {license && (

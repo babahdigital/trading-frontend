@@ -7,11 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth/auth-context';
-import { ArrowLeft, Check, ChevronRight, KeyRound, Server, User } from 'lucide-react';
+import { ArrowLeft, Check, ChevronRight, KeyRound, Server, User, AlertTriangle } from 'lucide-react';
 
 const STEPS = [
   { label: 'Buat Akun', icon: User },
-  { label: 'Buat License', icon: KeyRound },
+  { label: 'Buat Lisensi', icon: KeyRound },
   { label: 'Register VPS', icon: Server },
   { label: 'Selesai', icon: Check },
 ];
@@ -24,6 +24,7 @@ export default function NewCustomerPage() {
   const { getAuthHeaders } = useAuth();
   const [step, setStep] = useState(0);
   const [error, setError] = useState('');
+  const [warnings, setWarnings] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
   // Step 1: User
@@ -59,6 +60,7 @@ export default function NewCustomerPage() {
           mt5Account: userForm.mt5Account || undefined,
         }),
       });
+      if (res.status === 401) { window.location.href = '/login'; return; }
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Gagal membuat akun');
       setCreatedUser({ id: data.id, email: data.email, name: data.name });
@@ -87,8 +89,9 @@ export default function NewCustomerPage() {
           autoRenew: licenseForm.autoRenew,
         }),
       });
+      if (res.status === 401) { window.location.href = '/login'; return; }
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Gagal membuat license');
+      if (!res.ok) throw new Error(data.error || 'Gagal membuat lisensi');
       setCreatedLicense({ id: data.id, licenseKey: data.licenseKey, type: data.type, expiresAt: data.expiresAt });
       setStep(2);
     } catch (err: unknown) {
@@ -102,7 +105,9 @@ export default function NewCustomerPage() {
     e.preventDefault();
     setSubmitting(true);
     setError('');
+    setWarnings([]);
     try {
+      // Step 3a: Create VPS
       const res = await fetch('/api/admin/vps', {
         method: 'POST',
         headers: getAuthHeaders(),
@@ -114,17 +119,26 @@ export default function NewCustomerPage() {
           adminToken: vpsForm.adminToken,
         }),
       });
+      if (res.status === 401) { window.location.href = '/login'; return; }
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Gagal register VPS');
       setCreatedVps({ id: data.id, name: data.name, host: data.host });
 
-      // Link license to VPS if both exist
+      // Step 3b: Link license to VPS (non-blocking but show warning on failure)
       if (createdLicense) {
-        await fetch('/api/admin/licenses', {
-          method: 'PATCH',
-          headers: getAuthHeaders(),
-          body: JSON.stringify({ id: createdLicense.id, vpsInstanceId: data.id }),
-        }).catch(() => { /* best effort */ });
+        try {
+          const linkRes = await fetch('/api/admin/licenses', {
+            method: 'PATCH',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ id: createdLicense.id, vpsInstanceId: data.id }),
+          });
+          if (!linkRes.ok) {
+            const linkErr = await linkRes.json().catch(() => ({}));
+            setWarnings((w) => [...w, `Lisensi belum ter-link ke VPS: ${linkErr.error || 'Error'}. Silakan link manual di halaman Licenses.`]);
+          }
+        } catch {
+          setWarnings((w) => [...w, 'Gagal menghubungkan lisensi ke VPS. Silakan link manual di halaman Licenses.']);
+        }
       }
 
       setStep(3);
@@ -132,7 +146,21 @@ export default function NewCustomerPage() {
       setError(err instanceof Error ? err.message : 'Error');
     } finally {
       setSubmitting(false);
+      // Clear sensitive data from state
+      setVpsForm((prev) => ({ ...prev, adminToken: '' }));
     }
+  }
+
+  function resetWizard() {
+    setStep(0);
+    setCreatedUser(null);
+    setCreatedLicense(null);
+    setCreatedVps(null);
+    setUserForm({ email: '', password: '', name: '', mt5Account: '' });
+    setLicenseForm({ type: 'VPS_INSTALLATION', startsAt: new Date().toISOString().split('T')[0], expiresAt: '', autoRenew: false });
+    setVpsForm({ name: '', host: '', port: '8000', backendBaseUrl: '', adminToken: '' });
+    setError('');
+    setWarnings([]);
   }
 
   return (
@@ -176,6 +204,16 @@ export default function NewCustomerPage() {
         <div className="rounded-md bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-400 mb-6">{error}</div>
       )}
 
+      {/* Already-created resources notice when retrying after failure */}
+      {step > 0 && step < 3 && (
+        <div className="rounded-md bg-blue-500/10 border border-blue-500/20 p-3 text-sm text-blue-400 mb-6">
+          <p className="font-medium mb-1">Resource yang sudah dibuat:</p>
+          {createdUser && <p>• Akun: {createdUser.email} (ID: {createdUser.id.slice(0, 8)}...)</p>}
+          {createdLicense && <p>• Lisensi: {createdLicense.licenseKey}</p>}
+          <p className="mt-2 text-xs">Jika proses gagal, resource di atas tetap tersimpan. Anda bisa melanjutkan atau mengelolanya di halaman masing-masing.</p>
+        </div>
+      )}
+
       {/* Step 1: Create User */}
       {step === 0 && (
         <Card>
@@ -191,7 +229,7 @@ export default function NewCustomerPage() {
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Password *</label>
-                  <Input type="password" value={userForm.password} onChange={(e) => setUserForm({ ...userForm, password: e.target.value })} placeholder="Min 8 karakter" required />
+                  <Input type="password" autoComplete="new-password" value={userForm.password} onChange={(e) => setUserForm({ ...userForm, password: e.target.value })} placeholder="Min 8 karakter" required />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Nama</label>
@@ -214,20 +252,17 @@ export default function NewCustomerPage() {
       {step === 1 && (
         <Card>
           <CardHeader>
-            <CardTitle>Langkah 2: Buat License</CardTitle>
+            <CardTitle>Langkah 2: Buat Lisensi</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="mb-4 p-3 rounded-md bg-accent/50 text-sm">
-              Akun dibuat: <span className="font-mono font-medium">{createdUser?.email}</span>
-            </div>
             <form onSubmit={handleStep2} className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Tipe License *</label>
+                  <label className="text-sm font-medium text-muted-foreground">Tipe Lisensi *</label>
                   <select
                     value={licenseForm.type}
                     onChange={(e) => setLicenseForm({ ...licenseForm, type: e.target.value })}
-                    aria-label="License type"
+                    aria-label="Tipe lisensi"
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     <option value="VPS_INSTALLATION">VPS Installation</option>
@@ -236,7 +271,7 @@ export default function NewCustomerPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Auto Renew</label>
+                  <label className="text-sm font-medium text-muted-foreground">Perpanjang Otomatis</label>
                   <div className="flex items-center gap-2 h-10">
                     <input
                       type="checkbox"
@@ -259,7 +294,7 @@ export default function NewCustomerPage() {
               <div className="flex gap-3">
                 <Button variant="outline" type="button" onClick={() => setStep(0)}>Kembali</Button>
                 <Button type="submit" disabled={submitting}>
-                  {submitting ? 'Membuat...' : 'Buat License & Lanjut'}
+                  {submitting ? 'Membuat...' : 'Buat Lisensi & Lanjut'}
                 </Button>
               </div>
             </form>
@@ -274,9 +309,6 @@ export default function NewCustomerPage() {
             <CardTitle>Langkah 3: Register VPS</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="mb-4 p-3 rounded-md bg-accent/50 text-sm">
-              License: <span className="font-mono font-medium">{createdLicense?.licenseKey}</span> ({createdLicense?.type})
-            </div>
             <form onSubmit={handleStep3} className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
@@ -297,7 +329,7 @@ export default function NewCustomerPage() {
                 </div>
                 <div className="md:col-span-2">
                   <label className="text-sm font-medium text-muted-foreground">Admin Token *</label>
-                  <Input type="password" value={vpsForm.adminToken} onChange={(e) => setVpsForm({ ...vpsForm, adminToken: e.target.value })} placeholder="Token autentikasi VPS backend" required />
+                  <Input type="password" autoComplete="off" value={vpsForm.adminToken} onChange={(e) => setVpsForm({ ...vpsForm, adminToken: e.target.value })} placeholder="Token autentikasi VPS backend" required />
                 </div>
               </div>
               <div className="flex gap-3">
@@ -319,11 +351,19 @@ export default function NewCustomerPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
+              {warnings.length > 0 && (
+                <div className="rounded-md bg-yellow-500/10 border border-yellow-500/20 p-3 text-sm text-yellow-400">
+                  <div className="flex items-center gap-2 font-medium mb-1">
+                    <AlertTriangle className="w-4 h-4" /> Peringatan
+                  </div>
+                  {warnings.map((w, i) => <p key={i}>• {w}</p>)}
+                </div>
+              )}
               <SummarySection title="Akun Customer" items={[
                 { label: 'Email', value: createdUser?.email || '-' },
                 { label: 'Nama', value: createdUser?.name || '-' },
               ]} />
-              <SummarySection title="License" items={[
+              <SummarySection title="Lisensi" items={[
                 { label: 'Key', value: createdLicense?.licenseKey || '-' },
                 { label: 'Tipe', value: createdLicense?.type || '-' },
                 { label: 'Berakhir', value: createdLicense?.expiresAt ? new Date(createdLicense.expiresAt).toLocaleDateString('id-ID') : '-' },
@@ -336,16 +376,7 @@ export default function NewCustomerPage() {
                 <Link href="/admin/customers">
                   <Button>Kembali ke Daftar Customer</Button>
                 </Link>
-                <Button variant="outline" onClick={() => {
-                  setStep(0);
-                  setCreatedUser(null);
-                  setCreatedLicense(null);
-                  setCreatedVps(null);
-                  setUserForm({ email: '', password: '', name: '', mt5Account: '' });
-                  setLicenseForm({ type: 'VPS_INSTALLATION', startsAt: new Date().toISOString().split('T')[0], expiresAt: '', autoRenew: false });
-                  setVpsForm({ name: '', host: '', port: '8000', backendBaseUrl: '', adminToken: '' });
-                  setError('');
-                }}>
+                <Button variant="outline" onClick={resetWizard}>
                   Tambah Customer Lain
                 </Button>
               </div>

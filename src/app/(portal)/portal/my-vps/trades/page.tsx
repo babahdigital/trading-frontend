@@ -84,14 +84,25 @@ export default function MyVpsTradesPage() {
     });
   })();
 
+  function csvEscape(val: string | number): string {
+    const s = String(val);
+    // Prefix formula-triggering characters to prevent Excel injection
+    const needsPrefix = /^[=+\-@\t\r]/.test(s);
+    const escaped = s.includes('"') || s.includes(',') || s.includes('\n') || needsPrefix
+      ? `"${needsPrefix ? "'" : ''}${s.replace(/"/g, '""')}"`
+      : s;
+    return escaped;
+  }
+
   function exportCsv() {
     if (filtered.length === 0) return;
     const headers = ['Tanggal', 'Pair', 'Arah', 'Hasil (USD)', 'Durasi', 'Strategi', 'Alasan Tutup'];
     const rows = filtered.map((t) => [
-      t.date, t.pair, t.type, t.pnl, t.duration || '', genericSetup(t.setup), t.close_reason || '',
+      csvEscape(t.date), csvEscape(t.pair), csvEscape(t.type), csvEscape(t.pnl),
+      csvEscape(t.duration || ''), csvEscape(genericSetup(t.setup)), csvEscape(t.close_reason || ''),
     ]);
     const csv = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;

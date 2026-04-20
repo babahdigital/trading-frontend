@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth/auth-context';
-import { Activity, ArrowRight, Server, Shield, Wifi, WifiOff } from 'lucide-react';
+import { Activity, AlertTriangle, ArrowRight, Server, Wifi, WifiOff } from 'lucide-react';
 
 interface FleetVps {
   id: string;
@@ -41,9 +41,12 @@ export default function VpsFleetPage() {
 
   useEffect(() => {
     let active = true;
+    let interval: ReturnType<typeof setInterval>;
     async function fetchFleet() {
+      if (document.hidden) return;
       try {
         const res = await fetch('/api/admin/vps/fleet-status', { headers: getAuthHeaders() });
+        if (res.status === 401) { window.location.href = '/login'; return; }
         if (res.ok) {
           const data = await res.json();
           if (active) {
@@ -55,8 +58,13 @@ export default function VpsFleetPage() {
       finally { if (active) setLoading(false); }
     }
     fetchFleet();
-    const interval = setInterval(fetchFleet, 15000);
-    return () => { active = false; clearInterval(interval); };
+    interval = setInterval(fetchFleet, 15000);
+
+    const onVisChange = () => {
+      if (!document.hidden) fetchFleet();
+    };
+    document.addEventListener('visibilitychange', onVisChange);
+    return () => { active = false; clearInterval(interval); document.removeEventListener('visibilitychange', onVisChange); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -68,10 +76,10 @@ export default function VpsFleetPage() {
   }
 
   function healthBadge(health: string | null) {
-    if (!health) return { label: 'Unknown', cls: 'bg-slate-500/20 text-slate-400' };
-    if (health === 'ok') return { label: 'Healthy', cls: 'bg-green-500/20 text-green-400' };
-    if (health === 'degraded') return { label: 'Degraded', cls: 'bg-yellow-500/20 text-yellow-400' };
-    return { label: 'Unreachable', cls: 'bg-red-500/20 text-red-400' };
+    if (!health) return { label: 'Tidak diketahui', cls: 'bg-slate-500/20 text-slate-400' };
+    if (health === 'ok') return { label: 'Sehat', cls: 'bg-green-500/20 text-green-400' };
+    if (health === 'degraded') return { label: 'Terganggu', cls: 'bg-yellow-500/20 text-yellow-400' };
+    return { label: 'Tidak terjangkau', cls: 'bg-red-500/20 text-red-400' };
   }
 
   return (
@@ -87,9 +95,9 @@ export default function VpsFleetPage() {
           <KpiCard label="Total" value={summary.total} icon={<Server className="w-4 h-4" />} />
           <KpiCard label="Online" value={summary.online} icon={<Wifi className="w-4 h-4 text-green-400" />} color="text-green-400" />
           <KpiCard label="Offline" value={summary.offline} icon={<WifiOff className="w-4 h-4 text-red-400" />} color="text-red-400" />
-          <KpiCard label="Degraded" value={summary.degraded} icon={<Activity className="w-4 h-4 text-yellow-400" />} color="text-yellow-400" />
+          <KpiCard label="Terganggu" value={summary.degraded} icon={<Activity className="w-4 h-4 text-yellow-400" />} color="text-yellow-400" />
           {summary.outdated !== null && (
-            <KpiCard label="Outdated" value={summary.outdated} icon={<Shield className="w-4 h-4 text-orange-400" />} color="text-orange-400" />
+            <KpiCard label="Perlu Update" value={summary.outdated} icon={<AlertTriangle className="w-4 h-4 text-orange-400" />} color="text-orange-400" />
           )}
         </div>
       )}
@@ -120,18 +128,18 @@ export default function VpsFleetPage() {
                   <InfoLine label="Host" value={vps.host} mono />
                   <InfoLine label="Status" value={vps.status} />
                   <InfoLine label="Versi" value={vps.codeVersion || '-'} mono badge={
-                    vps.isUpToDate === false ? { label: 'Outdated', cls: 'bg-orange-500/20 text-orange-400' } : undefined
+                    vps.isUpToDate === false ? { label: 'Perlu Update', cls: 'bg-orange-500/20 text-orange-400' } : undefined
                   } />
-                  <InfoLine label="Licenses" value={String(vps.licenseCount)} />
+                  <InfoLine label="Lisensi" value={String(vps.licenseCount)} />
                   <InfoLine
-                    label="Health Check"
+                    label="Cek Terakhir"
                     value={vps.lastHealthCheckAt
                       ? new Date(vps.lastHealthCheckAt).toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
                       : 'Belum pernah'}
                   />
                   <div className="pt-2">
                     <Link href={`/admin/vps-fleet/${vps.id}`} className="text-xs text-primary hover:underline flex items-center gap-1">
-                      Detail <ArrowRight className="w-3 h-3" />
+                      Lihat Detail <ArrowRight className="w-3 h-3" />
                     </Link>
                   </div>
                 </CardContent>

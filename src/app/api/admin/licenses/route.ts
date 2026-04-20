@@ -45,6 +45,48 @@ function generateLicenseKey(): string {
   return `TRAD-${segments.join('-')}`;
 }
 
+export async function PATCH(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { id, vpsInstanceId, status, expiresAt, autoRenew } = body;
+
+    if (!id) {
+      return NextResponse.json({ error: 'Missing license id' }, { status: 400 });
+    }
+
+    const existing = await prisma.license.findUnique({ where: { id } });
+    if (!existing) {
+      return NextResponse.json({ error: 'License not found' }, { status: 404 });
+    }
+
+    const data: Record<string, unknown> = {};
+    if (vpsInstanceId !== undefined) data.vpsInstanceId = vpsInstanceId;
+    if (status !== undefined) data.status = status;
+    if (expiresAt !== undefined) data.expiresAt = new Date(expiresAt);
+    if (autoRenew !== undefined) data.autoRenew = autoRenew;
+
+    const updated = await prisma.license.update({
+      where: { id },
+      data,
+      include: { user: { select: { id: true, email: true, name: true } }, vpsInstance: { select: { id: true, name: true, status: true } } },
+    });
+
+    await prisma.auditLog.create({
+      data: {
+        userId: request.headers.get('x-user-id'),
+        licenseId: id,
+        action: 'license_updated',
+        metadata: { vpsInstanceId, status, expiresAt, autoRenew },
+      },
+    });
+
+    return NextResponse.json(updated);
+  } catch (error) {
+    log.error('Update license error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();

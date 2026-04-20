@@ -12,7 +12,11 @@ function getMasterKey(): Buffer {
     return Buffer.from(raw, 'hex');
   }
   if (raw.length >= 32) {
-    return Buffer.from(raw.slice(0, 32), 'utf8');
+    const buf = Buffer.from(raw, 'utf8');
+    if (buf.length < 32) {
+      throw new Error('LICENSE_MW_MASTER_KEY must encode to at least 32 bytes');
+    }
+    return buf.slice(0, 32);
   }
   throw new Error(
     'LICENSE_MW_MASTER_KEY must be 64 hex chars (preferred) or at least 32 ASCII chars'

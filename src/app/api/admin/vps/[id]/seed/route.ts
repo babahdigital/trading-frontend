@@ -36,7 +36,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        customer_vps_id: id,
+        customer_id: vps.customerCode || vps.name || id,
         days_market_history: daysMarketHistory,
         days_ai_baseline: daysAiBaseline,
       }),

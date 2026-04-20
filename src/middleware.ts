@@ -235,14 +235,14 @@ export async function middleware(request: NextRequest) {
       }
     }
 
-    // Pass user info to downstream via headers
-    const response = NextResponse.next();
-    response.headers.set('x-user-id', payload.sub as string);
-    response.headers.set('x-user-role', payload.role as string);
-    if (payload.licenseId) response.headers.set('x-license-id', payload.licenseId as string);
-    if (payload.vpsInstanceId) response.headers.set('x-vps-instance-id', payload.vpsInstanceId as string);
-    if (payload.subscriptionId) response.headers.set('x-subscription-id', payload.subscriptionId as string);
-    return response;
+    // Pass user info to downstream via request headers
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set('x-user-id', payload.sub as string);
+    requestHeaders.set('x-user-role', payload.role as string);
+    if (payload.licenseId) requestHeaders.set('x-license-id', payload.licenseId as string);
+    if (payload.vpsInstanceId) requestHeaders.set('x-vps-instance-id', payload.vpsInstanceId as string);
+    if (payload.subscriptionId) requestHeaders.set('x-subscription-id', payload.subscriptionId as string);
+    return NextResponse.next({ request: { headers: requestHeaders } });
   } catch {
     if (pathname.startsWith('/api/')) {
       return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 });

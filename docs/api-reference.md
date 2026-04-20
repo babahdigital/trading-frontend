@@ -383,6 +383,150 @@ Note: `adminToken` is never returned in responses. It is encrypted and stored as
 
 ---
 
+### GET /api/admin/vps/fleet-status
+
+Aggregate fleet health + sync status across all VPS instances.
+
+**Response 200 OK:**
+```json
+{
+  "summary": {
+    "total": 3,
+    "online": 2,
+    "offline": 1,
+    "provisioning": 0,
+    "suspended": 0,
+    "healthy": 2,
+    "degraded": 0,
+    "unreachable": 1,
+    "outdated": 1
+  },
+  "fleet": [
+    {
+      "id": "clxxx...",
+      "name": "VPS-CUST-1001",
+      "host": "...",
+      "status": "ONLINE",
+      "lastHealthStatus": "ok",
+      "codeVersion": "v1.6.51",
+      "isUpToDate": true,
+      "lastSyncStatus": "synced",
+      "lastSyncAt": "2026-04-20T04:00:00Z",
+      "hasSeedChecksum": true,
+      "hasSyncToken": true,
+      "licenseCount": 1
+    }
+  ],
+  "latestVersion": "v1.6.51"
+}
+```
+
+---
+
+### POST /api/admin/vps/[id]/token
+
+Mint a new sync token for a VPS instance. Encrypts with AES-256-GCM.
+
+**Request Body:**
+```json
+{ "syncToken": "plain_text_sync_token" }
+```
+
+**Response 200 OK:**
+```json
+{ "success": true, "message": "Sync token minted for VPS-CUST-1001" }
+```
+
+---
+
+### DELETE /api/admin/vps/[id]/token
+
+Revoke the sync token from a VPS instance.
+
+**Response 200 OK:**
+```json
+{ "success": true, "message": "Sync token revoked for VPS-CUST-1001" }
+```
+
+---
+
+### GET /api/admin/vps/[id]/token
+
+Check sync token status (does NOT expose the token).
+
+**Response 200 OK:**
+```json
+{
+  "vpsInstanceId": "clxxx...",
+  "name": "VPS-CUST-1001",
+  "hasSyncToken": true,
+  "tokenValid": true
+}
+```
+
+---
+
+### POST /api/admin/vps/[id]/seed
+
+Trigger seed dump on VPS1 master for the target customer VPS.
+
+**Request Body (optional):**
+```json
+{
+  "days_market_history": 90,
+  "days_ai_baseline": 30
+}
+```
+
+**Response 200 OK:**
+```json
+{
+  "success": true,
+  "seedUrl": "https://r2.example.com/seeds/...",
+  "checksum": "sha256hex...",
+  "sizeMb": 42.3,
+  "expiresAt": "2026-04-21T04:00:00Z"
+}
+```
+
+---
+
+### GET /api/admin/vps/[id]/seed
+
+Return stored seed metadata (URL + checksum).
+
+**Response 200 OK:**
+```json
+{
+  "vpsInstanceId": "clxxx...",
+  "name": "VPS-CUST-1001",
+  "seedChecksum": "sha256hex...",
+  "seedUrl": "https://...",
+  "seedUrlExpiresAt": "2026-04-21T04:00:00Z",
+  "isExpired": false,
+  "hasSeed": true
+}
+```
+
+---
+
+### GET /api/admin/vps/[id]/code-version
+
+Poll the customer VPS for its code version and compare against latest.
+
+**Response 200 OK:**
+```json
+{
+  "vpsInstanceId": "clxxx...",
+  "name": "VPS-CUST-1001",
+  "codeVersion": "v1.6.51",
+  "latestVersion": "v1.6.51",
+  "isUpToDate": true
+}
+```
+
+---
+
 ### GET /api/admin/audit
 
 Retrieve audit log entries with filtering.
@@ -554,9 +698,10 @@ All client endpoints require `CLIENT` or `ADMIN` role. CLIENT role additionally 
 
 ### GET /api/client/status
 
-Bot status, open positions summary, and license info. Proxies to `/api/scalping/status` on VPS1.
+Bot status, open positions summary, and license info.
 
-**Filtered fields removed:** `entry_matrix`, `last_reasoning`, `prompt_tokens`, `model_config`
+- **Model A (VPS_INSTALLATION):** Proxies to `/api/scalping/status` on customer VPS. Filtered fields: `entry_matrix`, `last_reasoning`, `prompt_tokens`, `model_config`.
+- **Model B (PAMM/SIGNAL):** Proxies to `/api/pamm/master-status` on VPS1 (scope: `pamm`). Pre-filtered at source.
 
 **Response 200 OK:**
 ```json
@@ -603,9 +748,10 @@ Bot status, open positions summary, and license info. Proxies to `/api/scalping/
 
 ### GET /api/client/positions
 
-Open positions. Proxies to `/api/positions` on VPS1.
+Open positions.
 
-**Filtered fields removed:** `lot_audit`, `entry_commission_usd`, `confluence_score`, `signal_data`
+- **Model A:** Proxies to `/api/positions` on customer VPS. Filtered fields: `lot_audit`, `entry_commission_usd`, `confluence_score`, `signal_data`.
+- **Model B:** Proxies to `/api/pamm/master-status` on VPS1 (scope: `pamm`), returns `open_positions` array.
 
 **Response 200 OK:**
 ```json
@@ -628,7 +774,10 @@ Open positions. Proxies to `/api/positions` on VPS1.
 
 ### GET /api/client/equity
 
-Equity history snapshots. Proxies to `/api/equity/history` on VPS1 (pass-through, no filtering).
+Equity history snapshots.
+
+- **Model A:** Proxies to `/api/equity/history` on customer VPS (pass-through, no filtering).
+- **Model B:** Proxies to `/api/pamm/master-equity-curve?days=N` on VPS1 (scope: `pamm`).
 
 **Query Parameters:**
 
@@ -656,9 +805,10 @@ Equity history snapshots. Proxies to `/api/equity/history` on VPS1 (pass-through
 
 ### GET /api/client/trades
 
-Trade history. Proxies to `/api/trades/history` on VPS1.
+Trade history.
 
-**Filtered fields removed:** `signal_data`, `commission_usd`, `confluence_detail`
+- **Model A:** Proxies to `/api/trades/history` on customer VPS. Filtered fields: `signal_data`, `commission_usd`, `confluence_detail`.
+- **Model B:** Proxies to `/api/pamm/trade-history?limit=N&reliable_only=true` on VPS1 (scope: `pamm`). Pre-filtered at source.
 
 **Query Parameters:**
 
@@ -697,7 +847,10 @@ Trade history. Proxies to `/api/trades/history` on VPS1.
 
 ### GET /api/client/performance
 
-Performance summary. Proxies to `/api/performance/summary` on VPS1 (pass-through).
+Performance summary.
+
+- **Model A:** Proxies to `/api/performance/summary` on customer VPS (pass-through).
+- **Model B:** Proxies to `/api/stats/performance?period_days=N` on VPS1 (scope: `stats`).
 
 **Response 200 OK:**
 ```json
@@ -722,11 +875,10 @@ Performance summary. Proxies to `/api/performance/summary` on VPS1 (pass-through
 
 ### GET /api/client/scanner
 
-Currency pair scanner status. Proxies to `/api/scanner/status` on VPS1.
+Currency pair scanner status.
 
-**Filtered fields removed:** `smc_score`, `wyckoff_score`, `qm_score`, `ao_score`, `confluence_detail`, `raw_indicators`
-
-**Replacement:** Each pair receives a `status_label` field (`AKTIF`, `STANDBY`, or `OFF`) based on `total_score`.
+- **Model A:** Proxies to `/api/scanner/status` on customer VPS. Filtered fields: `smc_score`, `wyckoff_score`, `qm_score`, `ao_score`, `confluence_detail`, `raw_indicators`. Each pair gets a `status_label` field (`AKTIF`, `STANDBY`, or `OFF`).
+- **Model B:** Proxies to `/api/scanner/status` on VPS1 (scope: `scanner`, falls back to admin token). Same filter applied.
 
 **Response 200 OK:**
 ```json
@@ -756,7 +908,10 @@ Currency pair scanner status. Proxies to `/api/scanner/status` on VPS1.
 
 ### GET /api/client/reports
 
-Daily report. Proxies to `/api/report/today` on VPS1 (pass-through).
+Daily report.
+
+- **Model A:** Proxies to `/api/report/today` on customer VPS (pass-through).
+- **Model B:** Proxies to `/api/research/latest?limit=10` on VPS1 (scope: `research`).
 
 **Response 200 OK:**
 ```json
@@ -779,7 +934,10 @@ Daily report. Proxies to `/api/report/today` on VPS1 (pass-through).
 
 ### GET /api/client/calendar
 
-Monthly calendar data. Proxies to `/api/calendar` on VPS1 (pass-through).
+Monthly calendar data.
+
+- **Model A:** Not applicable (calendar is shared data).
+- **Model B:** Proxies to `/api/research/calendar` on VPS1 (scope: `research`).
 
 **Query Parameters:**
 

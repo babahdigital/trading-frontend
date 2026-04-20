@@ -292,6 +292,7 @@ Represents a Python trading bot backend server.
 model VpsInstance {
   id                   String      @id @default(cuid())
   name                 String
+  customerCode         String?     @unique
   host                 String
   port                 Int         @default(8000)
   backendBaseUrl       String
@@ -305,6 +306,18 @@ model VpsInstance {
   lastHealthCheckAt    DateTime?
   lastHealthStatus     String?
   notes                String?
+
+  // VPS fleet management fields
+  syncTokenCiphertext  String?
+  syncTokenIv          String?
+  syncTokenTag         String?
+  codeVersion          String?
+  lastSyncStatus       String?
+  lastSyncAt           DateTime?
+  seedChecksum         String?
+  seedUrl              String?
+  seedUrlExpiresAt     DateTime?
+
   licenses             License[]
   healthChecks         HealthCheck[]
   createdAt            DateTime    @default(now())
@@ -313,12 +326,20 @@ model VpsInstance {
 
 | Field | Type | Description |
 |---|---|---|
+| `customerCode` | String? | Unique human-readable customer ID (e.g. `CUST-1001`) for VPS1 integration |
 | `backendBaseUrl` | String | Full HTTP base URL e.g. `http://147.93.156.218:8000` |
 | `adminTokenCiphertext` | String | AES-256-GCM encrypted admin token (hex) |
 | `adminTokenIv` | String | 12-byte random IV (hex) — unique per encryption |
 | `adminTokenTag` | String | 16-byte GCM auth tag (hex) — detects tampering |
 | `sshHost/sshPort/sshUser` | String?/Int?/String? | SSH connection details for admin reference |
 | `lastHealthStatus` | String? | Last returned health status string from VPS |
+| `syncTokenCiphertext/Iv/Tag` | String? | AES-256-GCM encrypted sync token for VPS1 integration |
+| `codeVersion` | String? | Last polled code version from the customer VPS |
+| `lastSyncStatus` | String? | Last sync status polled from customer VPS |
+| `lastSyncAt` | DateTime? | Timestamp of last successful sync poll |
+| `seedChecksum` | String? | SHA-256 checksum of the last generated seed |
+| `seedUrl` | String? | Pre-signed URL to download the seed bundle |
+| `seedUrlExpiresAt` | DateTime? | Expiry time of the seed download URL |
 
 ---
 

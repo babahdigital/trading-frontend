@@ -68,6 +68,8 @@ cp .env.example .env
 | `VPS1_TOKEN_RESEARCH` | Yes | 64-char hex | Scoped token for `/api/research/*` (required for Pair Brief worker) |
 | `VPS1_TOKEN_PAMM` | Yes | 64-char hex | Scoped token for `/api/pamm/*` |
 | `VPS1_TOKEN_STATS` | Yes | 64-char hex | Scoped token for `/api/stats/*` |
+| `VPS1_TOKEN_SCANNER` | Optional | 64-char hex | Scoped token for `/api/scanner/*` — falls back to `VPS1_ADMIN_TOKEN` if not set |
+| `VPS_LATEST_CODE_VERSION` | Optional | e.g. `v1.6.51` | Expected code version for fleet outdated check |
 | `OPENROUTER_API_KEY` | Yes | `sk-or-v1-…` | Single AI provider credential — powers Pair Briefs, translations, Babah chat, admin i18n. See [ai-integration.md](./ai-integration.md) |
 | `CRON_SECRET` | Yes | 64-char hex | Protects `/api/cron/*` manual trigger endpoints |
 | `ENABLE_SIGNAL_CONSUMER` | Optional | `1` | Enables 30s signal-consumer interval |

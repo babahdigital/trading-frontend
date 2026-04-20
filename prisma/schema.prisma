@@ -71,6 +71,7 @@ enum LicenseStatus {
 model VpsInstance {
   id                    String      @id @default(cuid())
   name                  String
+  customerCode          String?     @unique
   host                  String
   port                  Int         @default(8000)
   backendBaseUrl        String

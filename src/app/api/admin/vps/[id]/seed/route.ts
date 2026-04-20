@@ -32,7 +32,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const daysAiBaseline = (body as Record<string, unknown>).days_ai_baseline ?? 30;
 
     // Call VPS1 master to generate seed (NOT the customer VPS)
-    const resp = await proxyToMasterBackend('pamm', '/api/admin/customer-support/seed/dump', {
+    const resp = await proxyToMasterBackend('admin', '/api/admin/customer-support/seed/dump', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const seedUrl = (result.seed_url as string) || null;
     const checksum = (result.checksum_sha256 as string) || (result.checksum as string) || null;
     const sizeMb = (result.size_mb as number) || null;
-    const expiresAt = (result.expires_at as string) ? new Date(result.expires_at as string) : null;
+    const expiresAt = (result.seed_url_expires_at as string) ? new Date(result.seed_url_expires_at as string) : null;
 
     await prisma.vpsInstance.update({
       where: { id },

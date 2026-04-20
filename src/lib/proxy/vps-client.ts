@@ -88,7 +88,7 @@ export async function proxyToVpsBackend(
 }
 
 // Scoped token mapping — least-privilege access to VPS 1 commercial endpoints
-type MasterScope = 'signals' | 'trade_events' | 'research' | 'pamm' | 'stats' | 'scanner';
+type MasterScope = 'signals' | 'trade_events' | 'research' | 'pamm' | 'stats' | 'scanner' | 'admin';
 
 const SCOPE_TOKEN_MAP: Record<MasterScope, string> = {
   signals: 'VPS1_TOKEN_SIGNALS',
@@ -97,6 +97,7 @@ const SCOPE_TOKEN_MAP: Record<MasterScope, string> = {
   pamm: 'VPS1_TOKEN_PAMM',
   stats: 'VPS1_TOKEN_STATS',
   scanner: 'VPS1_TOKEN_SCANNER',
+  admin: 'VPS1_ADMIN_TOKEN',
 };
 
 export async function proxyToMasterBackend(

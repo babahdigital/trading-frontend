@@ -1,0 +1,23 @@
+# Customer VPS Backend — overlay on VPS1 trading backend image
+# Source: ghcr.io/babahdigital/trading-backend:v1.6.51
+FROM ghcr.io/babahdigital/trading-backend:v1.6.51
+
+# Customer-specific environment
+ENV CUSTOMER_MODE=true
+ENV LOG_LEVEL=INFO
+ENV ENABLE_COMMERCIAL_ENDPOINTS=true
+
+# Copy customer-specific config (if any)
+# COPY config/customer-override.yml /app/config/customer-override.yml
+
+# Customer data volume (persisted)
+VOLUME /app/data
+
+# Healthcheck (override if different from base image)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD curl -f http://localhost:8000/health || exit 1
+
+# Expose port
+EXPOSE 8000
+
+# Default command inherited from base image

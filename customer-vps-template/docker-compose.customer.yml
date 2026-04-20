@@ -1,0 +1,159 @@
+# ─────────────────────────────────────────────────
+# Customer VPS Docker Compose
+# Deployed per customer, isolated environment
+# 6 services: db, redis, backend, license-mw, telegram-bot, nginx
+# ─────────────────────────────────────────────────
+
+services:
+  trading-db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-trader}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME:-trading}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./seeds:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-trader}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - customer-network
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - customer-network
+
+  trading-backend:
+    image: ghcr.io/babahdigital/trading-backend:${CODE_VERSION:-v1.6.51}
+    restart: unless-stopped
+    environment:
+      # Database
+      DATABASE_URL: postgresql://${DB_USER:-trader}:${DB_PASSWORD}@trading-db:5432/${DB_NAME:-trading}
+
+      # Redis
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
+
+      # Customer identity
+      CUSTOMER_ID: ${CUSTOMER_ID}
+      CUSTOMER_MODE: "true"
+      CUSTOMER_LOCALE: ${CUSTOMER_LOCALE:-id}
+      TIER: ${TIER:-TRADER}
+
+      # API auth
+      API_ADMIN_TOKEN: ${ADMIN_TOKEN}
+
+      # VPS1 sync
+      VPS1_BASE_URL: ${VPS1_BASE_URL:-https://api.babahalgo.com}
+      VPS1_SYNC_TOKEN: ${SYNC_TOKEN}
+      SYNC_INTERVAL_HOURS: ${SYNC_INTERVAL_HOURS:-24}
+
+      # OpenRouter (AI)
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+
+      # MT5 Bridge
+      MT5_ZMQ_HOST: ${MT5_ZMQ_HOST:-host.docker.internal}
+      MT5_ZMQ_COMMAND_PORT: ${MT5_ZMQ_COMMAND_PORT:-5555}
+      MT5_ZMQ_DATA_PORT: ${MT5_ZMQ_DATA_PORT:-5556}
+
+      # Feature flags per tier (details in .env)
+      FAKE_LIQ_SHADOW_ENABLED: ${FAKE_LIQ_SHADOW_ENABLED:-true}
+      CONFLUENCE_TRACKING_ENABLED: ${CONFLUENCE_TRACKING_ENABLED:-true}
+      ADVISOR_DAILY_LESSONS_ENABLED: ${ADVISOR_DAILY_LESSONS_ENABLED:-true}
+    depends_on:
+      trading-db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - backend-logs:/app/logs
+      - backend-data:/app/data
+    networks:
+      - customer-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  license-middleware:
+    image: ghcr.io/babahdigital/customer-license-mw:${LICENSE_MW_VERSION:-latest}
+    restart: unless-stopped
+    environment:
+      CUSTOMER_ID: ${CUSTOMER_ID}
+      VPS2_LICENSE_URL: ${VPS2_LICENSE_URL:-https://babahalgo.com/api/license/check}
+      LICENSE_HMAC_SECRET: ${LICENSE_HMAC_SECRET}
+      BACKEND_URL: http://trading-backend:8000
+      BACKEND_TOKEN: ${ADMIN_TOKEN}
+      CHECK_INTERVAL_MIN: ${LICENSE_CHECK_INTERVAL_MIN:-15}
+      GRACE_PERIOD_HOURS: ${GRACE_PERIOD_HOURS:-72}
+    depends_on:
+      trading-backend:
+        condition: service_healthy
+    networks:
+      - customer-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 60s
+      timeout: 10s
+      retries: 2
+
+  customer-telegram-bot:
+    image: ghcr.io/babahdigital/customer-telegram-bot:${BOT_VERSION:-latest}
+    restart: unless-stopped
+    environment:
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      CUSTOMER_ID: ${CUSTOMER_ID}
+      REGISTRATION_CODE: ${REGISTRATION_CODE}
+      CUSTOMER_LOCALE: ${CUSTOMER_LOCALE:-id}
+      BACKEND_URL: http://trading-backend:8000
+      BACKEND_TOKEN: ${ADMIN_TOKEN}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
+    depends_on:
+      trading-backend:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - bot-data:/data
+    networks:
+      - customer-network
+
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - certbot-etc:/etc/letsencrypt
+      - certbot-var:/var/lib/letsencrypt
+    depends_on:
+      - trading-backend
+    networks:
+      - customer-network
+
+networks:
+  customer-network:
+    driver: bridge
+
+volumes:
+  pgdata:
+  backend-logs:
+  backend-data:
+  bot-data:
+  certbot-etc:
+  certbot-var:

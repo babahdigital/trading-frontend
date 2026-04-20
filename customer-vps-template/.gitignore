@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+
+# Env (never commit filled env files)
+.env
+.env.customer
+.env.*.local
+
+# Local seed bundles
+seeds/
+
+# OS
+.DS_Store
+Thumbs.db

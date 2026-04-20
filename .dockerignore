@@ -7,5 +7,7 @@ node_modules
 *.md
 dev/
 scripts/
+customer-vps-template/
+docs/
 .gitignore
 .eslintrc.json

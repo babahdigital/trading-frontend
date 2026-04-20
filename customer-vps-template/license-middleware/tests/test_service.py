@@ -95,7 +95,7 @@ async def test_network_error_no_pause():
         mock_pause.assert_not_called()
 
 
-def test_config_from_env_missing_vars(monkeypatch):
+def test_config_from_env_missing_vars(monkeypatch: pytest.MonkeyPatch):
     """Config.from_env raises ValueError when required vars missing."""
     from config import Config
 
@@ -108,7 +108,7 @@ def test_config_from_env_missing_vars(monkeypatch):
         Config.from_env()
 
 
-def test_config_from_env_happy_path(monkeypatch):
+def test_config_from_env_happy_path(monkeypatch: pytest.MonkeyPatch):
     """Config.from_env succeeds with all required vars set."""
     from config import Config
 

@@ -17,7 +17,7 @@ def test_sign_verify_roundtrip():
 
 def test_tampered_signature_fails():
     secret = 'secret-key-32chars-abcdefghijkl'
-    signature, timestamp = sign_request('CUST-001', secret)
+    _, timestamp = sign_request('CUST-001', secret)
     bad_signature = 'a' * 64
     assert not verify_signature('CUST-001', timestamp, bad_signature, secret)
 

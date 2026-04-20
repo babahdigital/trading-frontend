@@ -15,7 +15,8 @@ Base URL: `https://babahalgo.com`
 5. [Client Endpoints](#5-client-endpoints)
 6. [Public Endpoints](#6-public-endpoints)
 7. [Health Endpoint](#7-health-endpoint)
-8. [Error Responses](#8-error-responses)
+8. [License Check Endpoint](#7b-license-check-endpoint-customer-vps--vps2)
+9. [Error Responses](#8-error-responses)
 9. [Rate Limits](#9-rate-limits)
 10. [JWT Token Structure](#10-jwt-token-structure)
 
@@ -468,7 +469,7 @@ Check sync token status (does NOT expose the token).
 
 ### POST /api/admin/vps/[id]/seed
 
-Trigger seed dump on VPS1 master for the target customer VPS.
+Trigger seed dump on VPS1 master for the target customer VPS. Internally uses the `admin` scope (VPS1_ADMIN_TOKEN) — VPS1 admin endpoints reject scoped tokens.
 
 **Request Body (optional):**
 ```json
@@ -1270,6 +1271,51 @@ Public endpoint for Docker health checks and uptime monitoring.
   "version": "1.0.0"
 }
 ```
+
+---
+
+## 7b. License Check Endpoint (Customer VPS → VPS2)
+
+### GET /api/license/check
+
+HMAC-authenticated endpoint called by the customer VPS license middleware to verify license validity.
+
+**Query Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `customer_id` | string | Yes | Customer code matching `VpsInstance.customerCode` |
+
+**Required Headers:**
+
+| Header | Type | Description |
+|--------|------|-------------|
+| `X-Signature` | string | HMAC-SHA256 hex digest of `{customer_id}:{timestamp}` |
+| `X-Timestamp` | string | Current time in milliseconds (5-min replay window) |
+
+**Response 200 OK:**
+```json
+{
+  "valid": true,
+  "expires_at": "2026-06-20T00:00:00.000Z",
+  "in_grace_period": false,
+  "grace_expires_at": "2026-06-23T00:00:00.000Z",
+  "tier": "VPS_INSTALLATION",
+  "enabled_flags": {}
+}
+```
+
+**Error Responses:**
+
+| Status | Error Code | Cause |
+|--------|------------|-------|
+| 400 | `MISSING_PARAMS` | Missing customer_id, X-Signature, or X-Timestamp |
+| 401 | `TIMESTAMP_EXPIRED` | Timestamp outside 5-minute window |
+| 401 | `INVALID_SIGNATURE` | HMAC signature mismatch |
+| 404 | `LICENSE_NOT_FOUND` | No VPS or active license found for customer_id |
+| 500 | `SERVER_CONFIG_ERROR` | LICENSE_HMAC_SECRET not configured |
+
+**Env var required:** `LICENSE_HMAC_SECRET` (shared secret with customer VPS)
 
 ---
 

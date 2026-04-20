@@ -3,9 +3,10 @@
 Polls VPS2 every 15 min:
 - If license valid: log success, continue
 - If license expired + in grace period: log warning, continue
-- If license expired + past grace: POST emergency_pause to backend
+- If license expired + past grace: POST /api/scalper/stop to backend
 """
 import asyncio
+import logging
 import sys
 
 from client import check_license, notify_backend_pause
@@ -13,7 +14,7 @@ from config import Config
 from logger import setup_logger
 
 
-async def run_license_check_loop(config: Config, logger):
+async def run_license_check_loop(config: Config, logger: logging.Logger):
     """Main polling loop."""
     logger.info(f"License middleware started — customer: {config.customer_id}")
     logger.info(f"Check interval: {config.check_interval_seconds}s")

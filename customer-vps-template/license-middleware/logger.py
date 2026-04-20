@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 
 
 class JSONFormatter(logging.Formatter):
-    def format(self, record):
+    def format(self, record: logging.LogRecord) -> str:
         log_data = {
             'timestamp': datetime.now(timezone.utc).isoformat(),
             'level': record.levelname,

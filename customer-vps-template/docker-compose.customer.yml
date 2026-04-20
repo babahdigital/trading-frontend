@@ -1,7 +1,8 @@
 # ─────────────────────────────────────────────────
 # Customer VPS Docker Compose
 # Deployed per customer, isolated environment
-# 6 services: db, redis, backend, license-mw, telegram-bot, nginx
+# 5 default services: db, redis, backend, license-mw, nginx
+# telegram-bot: optional (Phase 3) — enable with --profile telegram
 # ─────────────────────────────────────────────────
 
 services:
@@ -113,6 +114,8 @@ services:
   customer-telegram-bot:
     image: ghcr.io/babahdigital/customer-telegram-bot:${BOT_VERSION:-latest}
     restart: unless-stopped
+    profiles:
+      - telegram  # Phase 3 — only starts with: docker compose --profile telegram up
     environment:
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
       CUSTOMER_ID: ${CUSTOMER_ID}

@@ -16,8 +16,8 @@ class LicenseCheckResult:
     in_grace_period: bool
     grace_expires_at: str | None
     tier: str | None
-    enabled_flags: dict | None
-    raw_response: dict
+    enabled_flags: dict[str, object] | None
+    raw_response: dict[str, object]
     http_status: int
     error: str | None = None
 
@@ -71,11 +71,11 @@ async def check_license(
 
 
 async def notify_backend_pause(backend_url: str, token: str, reason: str) -> bool:
-    """Tell trading-backend to emergency pause."""
+    """Tell trading-backend to stop (reuse existing /api/scalper/stop endpoint)."""
     try:
         async with httpx.AsyncClient(timeout=5) as client:
             response = await client.post(
-                f"{backend_url}/api/scalper/emergency_pause",
+                f"{backend_url}/api/scalper/stop",
                 headers={'X-API-Token': token},
                 json={'reason': reason},
             )

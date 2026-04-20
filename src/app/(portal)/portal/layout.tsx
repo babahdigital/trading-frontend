@@ -14,6 +14,7 @@ import {
   LogOut,
   ScrollText,
   BookOpen,
+  Server,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ResponsiveSidebar } from '@/components/layout/responsive-sidebar';
@@ -28,6 +29,7 @@ const navItems = [
   { href: '/portal/signal-audit', label: 'Signal Audit', icon: ScrollText },
   { href: '/portal/pair-briefs', label: 'Pair Briefs', icon: BookOpen },
   { href: '/portal/reports', label: 'Reports', icon: FileText },
+  { href: '/portal/my-vps', label: 'VPS Saya', icon: Server },
   { href: '/portal/account', label: 'Account', icon: User },
 ];
 

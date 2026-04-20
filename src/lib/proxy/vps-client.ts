@@ -4,13 +4,19 @@ import { prisma } from '@/lib/db/prisma';
 const ALGORITHM = 'aes-256-gcm';
 
 function getMasterKey(): Buffer {
-  const key = process.env.LICENSE_MW_MASTER_KEY;
-  if (!key || key.length < 32) {
-    throw new Error('LICENSE_MW_MASTER_KEY must be at least 32 hex chars');
+  const raw = process.env.LICENSE_MW_MASTER_KEY;
+  if (!raw) {
+    throw new Error('LICENSE_MW_MASTER_KEY not set');
   }
-  return Buffer.from(key.slice(0, 32), 'hex').length === 16
-    ? Buffer.from(key.slice(0, 64), 'hex')
-    : Buffer.from(key.padEnd(32, '0'));
+  if (/^[0-9a-fA-F]{64}$/.test(raw)) {
+    return Buffer.from(raw, 'hex');
+  }
+  if (raw.length >= 32) {
+    return Buffer.from(raw.slice(0, 32), 'utf8');
+  }
+  throw new Error(
+    'LICENSE_MW_MASTER_KEY must be 64 hex chars (preferred) or at least 32 ASCII chars'
+  );
 }
 
 export function encryptAdminToken(plaintext: string): {
@@ -78,7 +84,7 @@ export async function proxyToVpsBackend(
 }
 
 // Scoped token mapping — least-privilege access to VPS 1 commercial endpoints
-type MasterScope = 'signals' | 'trade_events' | 'research' | 'pamm' | 'stats';
+type MasterScope = 'signals' | 'trade_events' | 'research' | 'pamm' | 'stats' | 'scanner';
 
 const SCOPE_TOKEN_MAP: Record<MasterScope, string> = {
   signals: 'VPS1_TOKEN_SIGNALS',
@@ -86,6 +92,7 @@ const SCOPE_TOKEN_MAP: Record<MasterScope, string> = {
   research: 'VPS1_TOKEN_RESEARCH',
   pamm: 'VPS1_TOKEN_PAMM',
   stats: 'VPS1_TOKEN_STATS',
+  scanner: 'VPS1_TOKEN_SCANNER',
 };
 
 export async function proxyToMasterBackend(

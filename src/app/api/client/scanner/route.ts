@@ -39,8 +39,8 @@ export async function GET(request: NextRequest) {
         method: 'GET',
       });
     } else if (subscriptionId) {
-      // Model B — scanner uses research scope
-      response = await proxyToMasterBackend('research', '/api/scanner/status', {
+      // Model B — scanner needs dedicated scope (falls back to admin token)
+      response = await proxyToMasterBackend('scanner', '/api/scanner/status', {
         method: 'GET',
       });
     } else {

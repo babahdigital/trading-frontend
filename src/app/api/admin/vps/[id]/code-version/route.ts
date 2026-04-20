@@ -40,7 +40,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       vps.adminTokenTag
     );
 
-    const resp = await fetch(`${vps.backendBaseUrl}/code-version`, {
+    const resp = await fetch(`${vps.backendBaseUrl}/api/admin/customer-support/code-version`, {
       headers: {
         'X-API-Token': adminToken,
         'User-Agent': 'vps2-fleet-manager/1.0',

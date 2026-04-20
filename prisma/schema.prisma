@@ -93,6 +93,8 @@ model VpsInstance {
   lastSyncStatus        String?
   lastSyncAt            DateTime?
   seedChecksum          String?
+  seedUrl               String?
+  seedUrlExpiresAt      DateTime?
 
   licenses              License[]
   healthChecks          HealthCheck[]

@@ -2,9 +2,8 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createHash } from 'crypto';
 import { prisma } from '@/lib/db/prisma';
-import { decryptAdminToken } from '@/lib/proxy/vps-client';
+import { proxyToMasterBackend } from '@/lib/proxy/vps-client';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('api/admin/vps/seed');
@@ -14,74 +13,83 @@ interface RouteParams {
 }
 
 /**
- * POST /api/admin/vps/[id]/seed — Trigger seed generation on the customer VPS
+ * POST /api/admin/vps/[id]/seed — Trigger seed dump on VPS1 master
  *
- * Calls the VPS backend `/api/admin/seed/generate` then stores the checksum.
+ * Calls VPS1 `/api/admin/customer-support/seed/dump` to generate a seed
+ * package for the target customer VPS. Stores checksum + seed_url metadata.
  */
 export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
+    const body = await request.json().catch(() => ({}));
 
     const vps = await prisma.vpsInstance.findUnique({ where: { id } });
     if (!vps) {
       return NextResponse.json({ error: 'VPS instance not found' }, { status: 404 });
     }
 
-    if (vps.status !== 'ONLINE') {
-      return NextResponse.json(
-        { error: 'VPS is not online', status: vps.status },
-        { status: 503 }
-      );
-    }
+    const daysMarketHistory = (body as Record<string, unknown>).days_market_history ?? 90;
+    const daysAiBaseline = (body as Record<string, unknown>).days_ai_baseline ?? 30;
 
-    const adminToken = decryptAdminToken(
-      vps.adminTokenCiphertext,
-      vps.adminTokenIv,
-      vps.adminTokenTag
-    );
-
-    // Trigger seed generation on the customer VPS
-    const resp = await fetch(`${vps.backendBaseUrl}/api/admin/seed/generate`, {
+    // Call VPS1 master to generate seed (NOT the customer VPS)
+    const resp = await proxyToMasterBackend('pamm', '/api/admin/customer-support/seed/dump', {
       method: 'POST',
-      headers: {
-        'X-API-Token': adminToken,
-        'User-Agent': 'vps2-fleet-manager/1.0',
-      },
-      signal: AbortSignal.timeout(30_000),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        customer_vps_id: id,
+        days_market_history: daysMarketHistory,
+        days_ai_baseline: daysAiBaseline,
+      }),
     });
 
     if (!resp.ok) {
       const errBody = await resp.text();
-      log.error(`Seed generation failed for ${vps.name}: ${resp.status} ${errBody}`);
+      log.error(`Seed dump failed for ${vps.name}: ${resp.status} ${errBody}`);
       return NextResponse.json(
-        { error: 'Seed generation failed on VPS', detail: errBody },
+        { error: 'Seed dump failed on VPS1 master', detail: errBody },
         { status: resp.status }
       );
     }
 
-    const result = await resp.json();
+    const result = await resp.json() as Record<string, unknown>;
 
-    // Store checksum if returned
-    if (result.checksum) {
-      await prisma.vpsInstance.update({
-        where: { id },
-        data: { seedChecksum: result.checksum },
-      });
-    }
+    // Store seed metadata
+    const seedUrl = (result.seed_url as string) || null;
+    const checksum = (result.checksum_sha256 as string) || (result.checksum as string) || null;
+    const sizeMb = (result.size_mb as number) || null;
+    const expiresAt = (result.expires_at as string) ? new Date(result.expires_at as string) : null;
+
+    await prisma.vpsInstance.update({
+      where: { id },
+      data: {
+        seedChecksum: checksum,
+        seedUrl,
+        seedUrlExpiresAt: expiresAt,
+      },
+    });
 
     await prisma.auditLog.create({
       data: {
         userId: request.headers.get('x-user-id'),
         action: 'vps_seed_generated',
-        metadata: { vpsInstanceId: id, vpsName: vps.name, checksum: result.checksum ?? null },
+        metadata: {
+          vpsInstanceId: id,
+          vpsName: vps.name,
+          checksum,
+          sizeMb,
+          seedUrl: seedUrl ? '(stored)' : null,
+        },
       },
     });
 
-    log.info(`Seed generated for VPS ${vps.name} (${id})`);
+    log.info(`Seed generated for VPS ${vps.name} (${id}), checksum=${checksum}`);
 
     return NextResponse.json({
       success: true,
-      checksum: result.checksum ?? null,
+      seedUrl,
+      checksum,
+      sizeMb,
+      expiresAt,
       message: `Seed generated for ${vps.name}`,
     });
   } catch (error) {
@@ -91,82 +99,45 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 }
 
 /**
- * GET /api/admin/vps/[id]/seed — Proxy download the seed file from customer VPS
+ * GET /api/admin/vps/[id]/seed — Return stored seed metadata (URL + checksum)
  *
- * Streams the seed binary from VPS backend and verifies SHA-256 checksum.
+ * Returns the seed_url for admin to download directly.
+ * Does NOT proxy the binary — seed_url points to VPS1/R2 pre-signed URL.
  */
 export async function GET(_request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
 
-    const vps = await prisma.vpsInstance.findUnique({ where: { id } });
+    const vps = await prisma.vpsInstance.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        seedChecksum: true,
+        seedUrl: true,
+        seedUrlExpiresAt: true,
+      },
+    });
+
     if (!vps) {
       return NextResponse.json({ error: 'VPS instance not found' }, { status: 404 });
     }
 
-    if (vps.status !== 'ONLINE') {
-      return NextResponse.json(
-        { error: 'VPS is not online', status: vps.status },
-        { status: 503 }
-      );
-    }
+    const isExpired = vps.seedUrlExpiresAt
+      ? new Date() > vps.seedUrlExpiresAt
+      : null;
 
-    const adminToken = decryptAdminToken(
-      vps.adminTokenCiphertext,
-      vps.adminTokenIv,
-      vps.adminTokenTag
-    );
-
-    // Proxy download from VPS backend
-    const resp = await fetch(`${vps.backendBaseUrl}/api/admin/seed/download`, {
-      headers: {
-        'X-API-Token': adminToken,
-        'User-Agent': 'vps2-fleet-manager/1.0',
-      },
-      signal: AbortSignal.timeout(60_000),
+    return NextResponse.json({
+      vpsInstanceId: vps.id,
+      name: vps.name,
+      seedChecksum: vps.seedChecksum,
+      seedUrl: vps.seedUrl,
+      seedUrlExpiresAt: vps.seedUrlExpiresAt,
+      isExpired,
+      hasSeed: !!(vps.seedUrl && vps.seedChecksum),
     });
-
-    if (!resp.ok) {
-      return NextResponse.json(
-        { error: 'Seed download failed from VPS' },
-        { status: resp.status }
-      );
-    }
-
-    const seedBuffer = Buffer.from(await resp.arrayBuffer());
-
-    // Compute SHA-256 checksum for verification
-    const computedChecksum = createHash('sha256').update(seedBuffer).digest('hex');
-
-    // Verify against stored checksum if available
-    let checksumMatch: boolean | null = null;
-    if (vps.seedChecksum) {
-      checksumMatch = computedChecksum === vps.seedChecksum;
-      if (!checksumMatch) {
-        log.error(`Seed checksum mismatch for ${vps.name}: expected ${vps.seedChecksum}, got ${computedChecksum}`);
-      }
-    }
-
-    // Update stored checksum
-    await prisma.vpsInstance.update({
-      where: { id },
-      data: { seedChecksum: computedChecksum },
-    });
-
-    const headers = new Headers({
-      'Content-Type': 'application/octet-stream',
-      'Content-Disposition': `attachment; filename="seed-${vps.name}.bin"`,
-      'Content-Length': String(seedBuffer.byteLength),
-      'X-Seed-Checksum': computedChecksum,
-    });
-
-    if (checksumMatch !== null) {
-      headers.set('X-Checksum-Verified', String(checksumMatch));
-    }
-
-    return new Response(seedBuffer, { status: 200, headers });
   } catch (error) {
-    log.error('Seed download error:', error);
+    log.error('Seed info error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -76,7 +76,7 @@ export async function runHealthCheckCron() {
         };
 
         // Poll sync-status
-        const syncResp = await fetch(`${vps.backendBaseUrl}/sync-status`, {
+        const syncResp = await fetch(`${vps.backendBaseUrl}/api/admin/customer-support/sync-status`, {
           headers,
           signal: AbortSignal.timeout(5_000),
         });
@@ -87,7 +87,7 @@ export async function runHealthCheckCron() {
         }
 
         // Poll code-version
-        const versionResp = await fetch(`${vps.backendBaseUrl}/code-version`, {
+        const versionResp = await fetch(`${vps.backendBaseUrl}/api/admin/customer-support/code-version`, {
           headers,
           signal: AbortSignal.timeout(5_000),
         });

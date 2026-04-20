@@ -8,7 +8,7 @@ export async function GET(_request: NextRequest) {
 
   try {
     // Use VPS-specific or master backend
-    const resp = await proxyToMasterBackend('research', '/api/calendar');
+    const resp = await proxyToMasterBackend('research', '/api/research/calendar');
 
     if (!resp.ok) {
       return NextResponse.json({ events: [] });

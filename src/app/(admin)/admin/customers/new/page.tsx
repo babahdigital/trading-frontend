@@ -96,6 +96,17 @@ export default function NewCustomerPage() {
       setStep(2);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Error');
+      // Rollback: delete orphan user
+      if (createdUser) {
+        try {
+          await fetch(`/api/admin/users?id=${createdUser.id}`, { method: 'DELETE', headers: getAuthHeaders() });
+          setCreatedUser(null);
+          setStep(0);
+          setWarnings((w) => [...w, 'Akun customer telah di-rollback karena pembuatan lisensi gagal.']);
+        } catch {
+          setWarnings((w) => [...w, `Rollback gagal: akun ${createdUser.email} tetap tersimpan. Hapus manual di halaman Users.`]);
+        }
+      }
     } finally {
       setSubmitting(false);
     }
@@ -144,6 +155,31 @@ export default function NewCustomerPage() {
       setStep(3);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Error');
+      // Rollback: delete orphan license and user
+      const rollbackWarnings: string[] = [];
+      if (createdLicense) {
+        try {
+          await fetch(`/api/admin/licenses?id=${createdLicense.id}`, { method: 'DELETE', headers: getAuthHeaders() });
+          setCreatedLicense(null);
+        } catch {
+          rollbackWarnings.push(`Rollback gagal: lisensi ${createdLicense.licenseKey} tetap tersimpan. Hapus manual di halaman Licenses.`);
+        }
+      }
+      if (createdUser) {
+        try {
+          await fetch(`/api/admin/users?id=${createdUser.id}`, { method: 'DELETE', headers: getAuthHeaders() });
+          setCreatedUser(null);
+          setStep(0);
+        } catch {
+          rollbackWarnings.push(`Rollback gagal: akun ${createdUser.email} tetap tersimpan. Hapus manual di halaman Users.`);
+        }
+      }
+      if (rollbackWarnings.length > 0) {
+        setWarnings((w) => [...w, ...rollbackWarnings]);
+      } else {
+        setWarnings((w) => [...w, 'Resource telah di-rollback karena registrasi VPS gagal. Silakan coba lagi.']);
+        setStep(0);
+      }
     } finally {
       setSubmitting(false);
       // Clear sensitive data from state

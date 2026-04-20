@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { randomBytes } from 'crypto';
 import { createLogger } from '@/lib/logger';
+import { z } from 'zod';
 
 const log = createLogger('api/admin/licenses');
 
@@ -45,19 +46,45 @@ function generateLicenseKey(): string {
   return `TRAD-${segments.join('-')}`;
 }
 
+const patchSchema = z.object({
+  id: z.string().min(1, 'Missing license id'),
+  vpsInstanceId: z.string().optional(),
+  status: z.enum(['ACTIVE', 'SUSPENDED', 'EXPIRED']).optional(),
+  expiresAt: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Invalid date format for expiresAt' }).optional(),
+  autoRenew: z.boolean().optional(),
+});
+
 export async function PATCH(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { id, vpsInstanceId, status, expiresAt, autoRenew } = body;
-
-    if (!id) {
-      return NextResponse.json({ error: 'Missing license id' }, { status: 400 });
+    const contentType = request.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      return NextResponse.json({ error: 'Content-Type must be application/json' }, { status: 400 });
     }
+
+    const body = await request.json().catch(() => null);
+    if (!body) {
+      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    }
+
+    const parsed = patchSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.errors[0].message }, { status: 400 });
+    }
+
+    const { id, vpsInstanceId, status, expiresAt, autoRenew } = parsed.data;
 
     const existing = await prisma.license.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ error: 'License not found' }, { status: 404 });
     }
+
+    // Snapshot before-values for audit
+    const beforeSnapshot = {
+      vpsInstanceId: existing.vpsInstanceId,
+      status: existing.status,
+      expiresAt: existing.expiresAt?.toISOString() ?? null,
+      autoRenew: existing.autoRenew,
+    };
 
     const data: Record<string, unknown> = {};
     if (vpsInstanceId !== undefined) data.vpsInstanceId = vpsInstanceId;
@@ -76,7 +103,7 @@ export async function PATCH(request: NextRequest) {
         userId: request.headers.get('x-user-id'),
         licenseId: id,
         action: 'license_updated',
-        metadata: { vpsInstanceId, status, expiresAt, autoRenew },
+        metadata: { before: beforeSnapshot, after: { vpsInstanceId, status, expiresAt, autoRenew } },
       },
     });
 
@@ -123,6 +150,37 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(license, { status: 201 });
   } catch (error) {
     log.error('Create license error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json({ error: 'Missing license id' }, { status: 400 });
+    }
+
+    const existing = await prisma.license.findUnique({ where: { id } });
+    if (!existing) {
+      return NextResponse.json({ error: 'License not found' }, { status: 404 });
+    }
+
+    await prisma.license.delete({ where: { id } });
+
+    await prisma.auditLog.create({
+      data: {
+        userId: request.headers.get('x-user-id'),
+        action: 'license_deleted',
+        metadata: { deletedLicenseId: id, licenseKey: existing.licenseKey },
+      },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    log.error('Delete license error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

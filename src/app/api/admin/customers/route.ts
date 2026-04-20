@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
       where.OR = [
         { email: { contains: search, mode: 'insensitive' } },
         { name: { contains: search, mode: 'insensitive' } },
-        { mt5Account: { contains: search } },
+        { mt5Account: { contains: search, mode: 'insensitive' } },
       ];
     }
 

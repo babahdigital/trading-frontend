@@ -67,6 +67,7 @@ export default function MyVpsSupportPage() {
           package: 'VPS_LICENSE',
         }),
       });
+      if (res.status === 401) { window.location.href = '/login'; return; }
       if (!res.ok) throw new Error('Gagal mengirim pesan');
       setSent(true);
       setForm({ name: '', email: '', message: '' });

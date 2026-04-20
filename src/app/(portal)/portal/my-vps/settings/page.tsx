@@ -29,6 +29,7 @@ export default function MyVpsSettingsPage() {
     async function fetchStatus() {
       try {
         const res = await fetch('/api/client/status', { headers: getAuthHeaders() });
+        if (res.status === 401) { window.location.href = '/login'; return; }
         if (res.ok) setStatus(await res.json());
       } catch { /* handled */ }
       finally { setLoading(false); }

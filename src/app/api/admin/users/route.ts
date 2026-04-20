@@ -80,3 +80,41 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json({ error: 'Missing user id' }, { status: 400 });
+    }
+
+    const existing = await prisma.user.findUnique({ where: { id } });
+    if (!existing) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    // Only allow deleting CLIENT users (safety guard)
+    if (existing.role !== 'CLIENT') {
+      return NextResponse.json({ error: 'Can only delete CLIENT users' }, { status: 403 });
+    }
+
+    // Delete dependent licenses first, then user
+    await prisma.license.deleteMany({ where: { userId: id } });
+    await prisma.user.delete({ where: { id } });
+
+    await prisma.auditLog.create({
+      data: {
+        userId: request.headers.get('x-user-id'),
+        action: 'user_deleted',
+        metadata: { deletedUserId: id, email: existing.email },
+      },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    log.error('Delete user error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}

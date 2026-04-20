@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { CumulativePnl } from '@/components/charts/cumulative-pnl';
 import { useAuth } from '@/lib/auth/auth-context';
+import { csvEscape } from '@/lib/csv';
 import { ArrowLeft, Download } from 'lucide-react';
 
 interface Trade {
@@ -52,6 +53,7 @@ export default function MyVpsTradesPage() {
     setLoading(true);
     try {
       const res = await fetch(`/api/client/trades?days=${d}`, { headers: getAuthHeaders() });
+      if (res.status === 401) { window.location.href = '/login'; return; }
       if (!res.ok) throw new Error('Gagal memuat riwayat trade');
       const data = await res.json();
       setTrades(Array.isArray(data) ? data : data.trades || []);
@@ -83,16 +85,6 @@ export default function MyVpsTradesPage() {
       return { trade: i + 1, pnl: Math.round(cum * 100) / 100 };
     });
   })();
-
-  function csvEscape(val: string | number): string {
-    const s = String(val);
-    // Prefix formula-triggering characters to prevent Excel injection
-    const needsPrefix = /^[=+\-@\t\r]/.test(s);
-    const escaped = s.includes('"') || s.includes(',') || s.includes('\n') || needsPrefix
-      ? `"${needsPrefix ? "'" : ''}${s.replace(/"/g, '""')}"`
-      : s;
-    return escaped;
-  }
 
   function exportCsv() {
     if (filtered.length === 0) return;

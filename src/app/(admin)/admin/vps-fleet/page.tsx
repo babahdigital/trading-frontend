@@ -93,8 +93,8 @@ export default function VpsFleetPage() {
       {summary && (
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
           <KpiCard label="Total" value={summary.total} icon={<Server className="w-4 h-4" />} />
-          <KpiCard label="Online" value={summary.online} icon={<Wifi className="w-4 h-4 text-green-400" />} color="text-green-400" />
-          <KpiCard label="Offline" value={summary.offline} icon={<WifiOff className="w-4 h-4 text-red-400" />} color="text-red-400" />
+          <KpiCard label="Aktif" value={summary.online} icon={<Wifi className="w-4 h-4 text-green-400" />} color="text-green-400" />
+          <KpiCard label="Mati" value={summary.offline} icon={<WifiOff className="w-4 h-4 text-red-400" />} color="text-red-400" />
           <KpiCard label="Terganggu" value={summary.degraded} icon={<Activity className="w-4 h-4 text-yellow-400" />} color="text-yellow-400" />
           {summary.outdated !== null && (
             <KpiCard label="Perlu Update" value={summary.outdated} icon={<AlertTriangle className="w-4 h-4 text-orange-400" />} color="text-orange-400" />

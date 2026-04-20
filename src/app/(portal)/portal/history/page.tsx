@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { CumulativePnl } from '@/components/charts/cumulative-pnl';
 import { useAuth } from '@/lib/auth/auth-context';
+import { csvEscape } from '@/lib/csv';
 
 interface Trade {
   date: string;
@@ -50,12 +51,13 @@ export default function HistoryPage() {
     setLoading(true);
     try {
       const res = await fetch(`/api/client/trades?days=${d}`, { headers: getAuthHeaders() });
-      if (!res.ok) throw new Error('Failed to fetch trades');
+      if (res.status === 401) { window.location.href = '/login'; return; }
+      if (!res.ok) throw new Error('Gagal memuat riwayat trade');
       const data = await res.json();
       setTrades(Array.isArray(data) ? data : data.trades || []);
       setError('');
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Connection error');
+      setError(err instanceof Error ? err.message : 'Koneksi error');
     } finally {
       setLoading(false);
     }
@@ -79,18 +81,9 @@ export default function HistoryPage() {
     });
   })();
 
-  function csvEscape(val: string | number): string {
-    const s = String(val);
-    const needsPrefix = /^[=+\-@\t\r]/.test(s);
-    const escaped = s.includes('"') || s.includes(',') || s.includes('\n') || needsPrefix
-      ? `"${needsPrefix ? "'" : ''}${s.replace(/"/g, '""')}"`
-      : s;
-    return escaped;
-  }
-
   function exportCsv() {
     if (filtered.length === 0) return;
-    const headers = ['Date', 'Pair', 'Type', 'P&L', 'Duration', 'Strategy', 'Close Reason'];
+    const headers = ['Tanggal', 'Pair', 'Arah', 'Hasil (USD)', 'Durasi', 'Strategi', 'Alasan Tutup'];
     const rows = filtered.map((t) => [
       csvEscape(t.date), csvEscape(t.pair), csvEscape(t.type), csvEscape(t.pnl),
       csvEscape(t.duration || ''), csvEscape(genericSetup(t.setup)), csvEscape(t.close_reason || ''),
@@ -100,7 +93,7 @@ export default function HistoryPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `trade-history-${days}d.csv`;
+    a.download = `riwayat-trade-${days}hari.csv`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -119,11 +112,11 @@ export default function HistoryPage() {
         <CardContent className="pt-6">
           <div className="flex items-center gap-6">
             <div>
-              <p className="text-sm text-muted-foreground">Total Trades</p>
+              <p className="text-sm text-muted-foreground">Total Trade</p>
               <p className="text-xl font-bold font-mono">{filtered.length}</p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Total P&L</p>
+              <p className="text-sm text-muted-foreground">Total PnL</p>
               <p className={cn('text-xl font-bold font-mono', totalPnl >= 0 ? 'text-green-400' : 'text-red-400')}>
                 {totalPnl >= 0 ? '+' : ''}${totalPnl.toFixed(2)}
               </p>
@@ -137,12 +130,12 @@ export default function HistoryPage() {
         <div className="flex items-center gap-1">
           {[7, 30, 90].map((d) => (
             <Button key={d} variant={days === d ? 'default' : 'outline'} size="sm" onClick={() => setDays(d)}>
-              {d}D
+              {d}H
             </Button>
           ))}
         </div>
         <Input
-          placeholder="Filter pair..."
+          placeholder="Cari pair..."
           value={pairFilter}
           onChange={(e) => setPairFilter(e.target.value)}
           className="w-48 bg-background"
@@ -156,13 +149,13 @@ export default function HistoryPage() {
       {/* Table */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-medium">Trades</CardTitle>
+          <CardTitle className="text-sm font-medium">Daftar Trade</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <p className="text-muted-foreground text-sm">Loading...</p>
+            <p className="text-muted-foreground text-sm">Memuat data...</p>
           ) : filtered.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">No trades found</div>
+            <div className="text-center py-12 text-muted-foreground">Tidak ada trade ditemukan</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -213,7 +206,7 @@ export default function HistoryPage() {
       {cumulativeData.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium">Cumulative PnL</CardTitle>
+            <CardTitle className="text-sm font-medium">PnL Kumulatif</CardTitle>
           </CardHeader>
           <CardContent>
             <CumulativePnl data={cumulativeData} height={200} />

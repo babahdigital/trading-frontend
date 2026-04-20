@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth/auth-context';
-import { ArrowLeft, Activity, Globe, KeyRound, Shield, Wifi } from 'lucide-react';
+import { ArrowLeft, Activity, Globe, KeyRound, RefreshCw, Wifi } from 'lucide-react';
 
 interface HealthCheck {
   id: string;
@@ -218,7 +218,7 @@ export default function VpsFleetDetailPage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Shield className="w-4 h-4" /> Sinkronisasi
+              <RefreshCw className="w-4 h-4" /> Sinkronisasi
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">

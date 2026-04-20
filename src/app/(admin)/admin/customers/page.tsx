@@ -50,6 +50,7 @@ export default function CustomersPage() {
       if (search) params.set('search', search);
 
       const res = await fetch(`/api/admin/customers?${params}`, { headers: getAuthHeaders() });
+      if (res.status === 401) { window.location.href = '/login'; return; }
       if (res.ok) {
         const data = await res.json();
         setCustomers(data.customers || []);

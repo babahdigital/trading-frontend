@@ -21,6 +21,7 @@ export default function MyVpsTelegramPage() {
     async function fetchProfile() {
       try {
         const res = await fetch('/api/client/profile', { headers: getAuthHeaders() });
+        if (res.status === 401) { window.location.href = '/login'; return; }
         if (res.ok) setProfile(await res.json());
       } catch { /* handled */ }
       finally { setLoading(false); }

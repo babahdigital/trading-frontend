@@ -37,9 +37,12 @@ export async function GET(request: NextRequest) {
     let response: Response;
 
     if (vpsInstanceId) {
+      // Model A — VPS_INSTALLATION: legacy endpoint
       response = await proxyToVpsBackend(vpsInstanceId, path, { method: 'GET' });
     } else if (subscriptionId) {
-      response = await proxyToMasterBackend(path, { method: 'GET' });
+      // Model B — PAMM/SIGNAL: commercial endpoint
+      const days = searchParams.get('days') || '30';
+      response = await proxyToMasterBackend('pamm', `/api/pamm/master-equity-curve?days=${days}`, { method: 'GET' });
     } else {
       return NextResponse.json(
         { error: 'No VPS instance or subscription found' },

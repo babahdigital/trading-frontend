@@ -35,25 +35,26 @@ export async function GET(request: NextRequest) {
     const queryString = searchParams.toString();
     const path = `/api/trades/history${queryString ? `?${queryString}` : ''}`;
 
-    let response: Response;
-
     if (vpsInstanceId) {
-      response = await proxyToVpsBackend(vpsInstanceId, path, { method: 'GET' });
+      // Model A — VPS_INSTALLATION: legacy endpoint + filter
+      const response = await proxyToVpsBackend(vpsInstanceId, path, { method: 'GET' });
+      const data = await response.json();
+      const filtered = Array.isArray(data)
+        ? data.map(filterTradeHistory)
+        : { ...data, trades: (data.trades || []).map(filterTradeHistory) };
+      return NextResponse.json(filtered);
     } else if (subscriptionId) {
-      response = await proxyToMasterBackend(path, { method: 'GET' });
+      // Model B — PAMM/SIGNAL: commercial endpoint (pre-filtered at source)
+      const limit = searchParams.get('limit') || '100';
+      const response = await proxyToMasterBackend('pamm', `/api/pamm/trade-history?limit=${limit}&reliable_only=true`, { method: 'GET' });
+      const data = await response.json();
+      return NextResponse.json(data);
     } else {
       return NextResponse.json(
         { error: 'No VPS instance or subscription found' },
         { status: 400 }
       );
     }
-
-    const data = await response.json();
-    const filtered = Array.isArray(data)
-      ? data.map(filterTradeHistory)
-      : { ...data, trades: (data.trades || []).map(filterTradeHistory) };
-
-    return NextResponse.json(filtered);
   } catch (error) {
     log.error('Client trades error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

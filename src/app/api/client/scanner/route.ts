@@ -34,11 +34,13 @@ export async function GET(request: NextRequest) {
     let response: Response;
 
     if (vpsInstanceId) {
+      // Model A — VPS_INSTALLATION: legacy endpoint + filter
       response = await proxyToVpsBackend(vpsInstanceId, '/api/scanner/status', {
         method: 'GET',
       });
     } else if (subscriptionId) {
-      response = await proxyToMasterBackend('/api/scanner/status', {
+      // Model B — scanner uses research scope
+      response = await proxyToMasterBackend('research', '/api/scanner/status', {
         method: 'GET',
       });
     } else {

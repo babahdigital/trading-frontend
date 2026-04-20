@@ -33,11 +33,13 @@ export async function GET(request: NextRequest) {
     let response: Response;
 
     if (vpsInstanceId) {
+      // Model A — VPS_INSTALLATION: legacy endpoint
       response = await proxyToVpsBackend(vpsInstanceId, '/api/report/today', {
         method: 'GET',
       });
     } else if (subscriptionId) {
-      response = await proxyToMasterBackend('/api/report/today', {
+      // Model B — PAMM/SIGNAL: commercial endpoint
+      response = await proxyToMasterBackend('research', '/api/research/latest?limit=10', {
         method: 'GET',
       });
     } else {

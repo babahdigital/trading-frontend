@@ -31,27 +31,26 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    let response: Response;
-
     if (vpsInstanceId) {
-      response = await proxyToVpsBackend(vpsInstanceId, '/api/scalping/status', {
+      // Model A — VPS_INSTALLATION: legacy endpoint + filter
+      const response = await proxyToVpsBackend(vpsInstanceId, '/api/scalping/status', {
         method: 'GET',
       });
+      const data = await response.json();
+      return NextResponse.json(filterScalpingStatus(data));
     } else if (subscriptionId) {
-      response = await proxyToMasterBackend('/api/scalping/status', {
+      // Model B — PAMM/SIGNAL: commercial endpoint (pre-filtered at source)
+      const response = await proxyToMasterBackend('pamm', '/api/pamm/master-status', {
         method: 'GET',
       });
+      const data = await response.json();
+      return NextResponse.json(data);
     } else {
       return NextResponse.json(
         { error: 'No VPS instance or subscription found' },
         { status: 400 }
       );
     }
-
-    const data = await response.json();
-    const filtered = filterScalpingStatus(data);
-
-    return NextResponse.json(filtered);
   } catch (error) {
     log.error('Client status error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

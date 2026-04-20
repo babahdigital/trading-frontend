@@ -84,6 +84,16 @@ model VpsInstance {
   lastHealthCheckAt     DateTime?
   lastHealthStatus      String?
   notes                 String?
+
+  // VPS fleet management fields (Phase B)
+  syncTokenCiphertext   String?
+  syncTokenIv           String?
+  syncTokenTag          String?
+  codeVersion           String?
+  lastSyncStatus        String?
+  lastSyncAt            DateTime?
+  seedChecksum          String?
+
   licenses              License[]
   healthChecks          HealthCheck[]
   createdAt             DateTime    @default(now())

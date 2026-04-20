@@ -37,9 +37,12 @@ export async function GET(request: NextRequest) {
     let response: Response;
 
     if (vpsInstanceId) {
+      // Model A — VPS_INSTALLATION: legacy endpoint
       response = await proxyToVpsBackend(vpsInstanceId, path, { method: 'GET' });
     } else if (subscriptionId) {
-      response = await proxyToMasterBackend(path, { method: 'GET' });
+      // Model B — PAMM/SIGNAL: commercial endpoint
+      const periodDays = searchParams.get('period_days') || '30';
+      response = await proxyToMasterBackend('stats', `/api/stats/performance?period_days=${periodDays}`, { method: 'GET' });
     } else {
       return NextResponse.json(
         { error: 'No VPS instance or subscription found' },

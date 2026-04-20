@@ -77,17 +77,29 @@ export async function proxyToVpsBackend(
   return response;
 }
 
-// Proxy to master backend (Model B PAMM) using env-based token
+// Scoped token mapping — least-privilege access to VPS 1 commercial endpoints
+type MasterScope = 'signals' | 'trade_events' | 'research' | 'pamm' | 'stats';
+
+const SCOPE_TOKEN_MAP: Record<MasterScope, string> = {
+  signals: 'VPS1_TOKEN_SIGNALS',
+  trade_events: 'VPS1_TOKEN_TRADE_EVENTS',
+  research: 'VPS1_TOKEN_RESEARCH',
+  pamm: 'VPS1_TOKEN_PAMM',
+  stats: 'VPS1_TOKEN_STATS',
+};
+
 export async function proxyToMasterBackend(
+  scope: MasterScope,
   path: string,
   init: RequestInit = {}
 ): Promise<Response> {
   const baseUrl = process.env.VPS1_BACKEND_URL;
-  const token = process.env.VPS1_ADMIN_TOKEN;
+  const scopedToken = process.env[SCOPE_TOKEN_MAP[scope]];
+  const token = scopedToken || process.env.VPS1_ADMIN_TOKEN;
 
   if (!baseUrl || !token) {
     return new Response(
-      JSON.stringify({ error: 'Master backend not configured' }),
+      JSON.stringify({ error: `Master backend scope "${scope}" not configured` }),
       { status: 503, headers: { 'Content-Type': 'application/json' } }
     );
   }
@@ -98,7 +110,7 @@ export async function proxyToMasterBackend(
     headers: {
       ...Object.fromEntries(new Headers(init.headers as HeadersInit || {}).entries()),
       'X-API-Token': token,
-      'User-Agent': 'license-middleware/1.0',
+      'User-Agent': 'vps2-commercial/1.0',
     },
     signal: AbortSignal.timeout(15_000),
   });

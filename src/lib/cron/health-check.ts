@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db/prisma';
 import type { Prisma } from '@prisma/client';
+import { decryptAdminToken } from '@/lib/proxy/vps-client';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('health-check');
@@ -54,15 +55,57 @@ export async function runHealthCheckCron() {
       },
     });
 
-    // Update VPS status
+    // Poll sync-status and code-version from customer VPS (best-effort)
+    const fleetUpdate: Record<string, unknown> = {
+      lastHealthCheckAt: new Date(),
+      lastHealthStatus: healthStatus,
+    };
+
+    if (healthStatus !== 'unreachable') {
+      fleetUpdate.status = 'ONLINE';
+
+      try {
+        const adminToken = decryptAdminToken(
+          vps.adminTokenCiphertext,
+          vps.adminTokenIv,
+          vps.adminTokenTag
+        );
+        const headers = {
+          'X-API-Token': adminToken,
+          'User-Agent': 'vps2-fleet-manager/1.0',
+        };
+
+        // Poll sync-status
+        const syncResp = await fetch(`${vps.backendBaseUrl}/sync-status`, {
+          headers,
+          signal: AbortSignal.timeout(5_000),
+        });
+        if (syncResp.ok) {
+          const syncData = await syncResp.json() as Record<string, unknown>;
+          fleetUpdate.lastSyncStatus = (syncData.status as string) || 'unknown';
+          fleetUpdate.lastSyncAt = new Date();
+        }
+
+        // Poll code-version
+        const versionResp = await fetch(`${vps.backendBaseUrl}/code-version`, {
+          headers,
+          signal: AbortSignal.timeout(5_000),
+        });
+        if (versionResp.ok) {
+          const versionData = await versionResp.json() as Record<string, unknown>;
+          const version = (versionData.version as string) || (versionData.code_version as string) || null;
+          if (version) {
+            fleetUpdate.codeVersion = version;
+          }
+        }
+      } catch (err) {
+        log.warn(`Fleet polling failed for ${vps.name}: ${err instanceof Error ? err.message : 'unknown'}`);
+      }
+    }
+
     await prisma.vpsInstance.update({
       where: { id: vps.id },
-      data: {
-        lastHealthCheckAt: new Date(),
-        lastHealthStatus: healthStatus,
-        // Mark as OFFLINE if unreachable 3+ consecutive times
-        ...(healthStatus === 'unreachable' ? {} : { status: 'ONLINE' }),
-      },
+      data: fleetUpdate,
     });
 
     log.info(`${vps.name}: ${healthStatus} (${responseTimeMs}ms)`);

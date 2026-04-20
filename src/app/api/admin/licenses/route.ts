@@ -52,7 +52,7 @@ const patchSchema = z.object({
   status: z.enum(['ACTIVE', 'SUSPENDED', 'EXPIRED']).optional(),
   expiresAt: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Invalid date format for expiresAt' }).optional(),
   autoRenew: z.boolean().optional(),
-});
+}).strict();
 
 export async function PATCH(request: NextRequest) {
   try {
@@ -166,6 +166,15 @@ export async function DELETE(request: NextRequest) {
     const existing = await prisma.license.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ error: 'License not found' }, { status: 404 });
+    }
+
+    // Check for FK dependencies that would block deletion
+    const killSwitchCount = await prisma.killSwitchEvent.count({ where: { licenseId: id } });
+    if (killSwitchCount > 0) {
+      return NextResponse.json(
+        { error: `Lisensi memiliki ${killSwitchCount} kill-switch event terkait. Hapus event tersebut terlebih dahulu atau nonaktifkan lisensi.` },
+        { status: 409 }
+      );
     }
 
     await prisma.license.delete({ where: { id } });

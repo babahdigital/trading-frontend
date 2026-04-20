@@ -99,10 +99,15 @@ export default function NewCustomerPage() {
       // Rollback: delete orphan user
       if (createdUser) {
         try {
-          await fetch(`/api/admin/users?id=${createdUser.id}`, { method: 'DELETE', headers: getAuthHeaders() });
-          setCreatedUser(null);
-          setStep(0);
-          setWarnings((w) => [...w, 'Akun customer telah di-rollback karena pembuatan lisensi gagal.']);
+          const delRes = await fetch(`/api/admin/users?id=${createdUser.id}`, { method: 'DELETE', headers: getAuthHeaders() });
+          if (delRes.status === 401) { window.location.href = '/login'; return; }
+          if (delRes.ok) {
+            setCreatedUser(null);
+            setStep(0);
+            setWarnings((w) => [...w, 'Akun customer telah di-rollback karena pembuatan lisensi gagal.']);
+          } else {
+            setWarnings((w) => [...w, `Rollback gagal: akun ${createdUser.email} tetap tersimpan. Hapus manual di halaman Users.`]);
+          }
         } catch {
           setWarnings((w) => [...w, `Rollback gagal: akun ${createdUser.email} tetap tersimpan. Hapus manual di halaman Users.`]);
         }
@@ -159,17 +164,27 @@ export default function NewCustomerPage() {
       const rollbackWarnings: string[] = [];
       if (createdLicense) {
         try {
-          await fetch(`/api/admin/licenses?id=${createdLicense.id}`, { method: 'DELETE', headers: getAuthHeaders() });
-          setCreatedLicense(null);
+          const delLicRes = await fetch(`/api/admin/licenses?id=${createdLicense.id}`, { method: 'DELETE', headers: getAuthHeaders() });
+          if (delLicRes.status === 401) { window.location.href = '/login'; return; }
+          if (delLicRes.ok) {
+            setCreatedLicense(null);
+          } else {
+            rollbackWarnings.push(`Rollback gagal: lisensi ${createdLicense.licenseKey} tetap tersimpan. Hapus manual di halaman Licenses.`);
+          }
         } catch {
           rollbackWarnings.push(`Rollback gagal: lisensi ${createdLicense.licenseKey} tetap tersimpan. Hapus manual di halaman Licenses.`);
         }
       }
       if (createdUser) {
         try {
-          await fetch(`/api/admin/users?id=${createdUser.id}`, { method: 'DELETE', headers: getAuthHeaders() });
-          setCreatedUser(null);
-          setStep(0);
+          const delUserRes = await fetch(`/api/admin/users?id=${createdUser.id}`, { method: 'DELETE', headers: getAuthHeaders() });
+          if (delUserRes.status === 401) { window.location.href = '/login'; return; }
+          if (delUserRes.ok) {
+            setCreatedUser(null);
+            setStep(0);
+          } else {
+            rollbackWarnings.push(`Rollback gagal: akun ${createdUser.email} tetap tersimpan. Hapus manual di halaman Users.`);
+          }
         } catch {
           rollbackWarnings.push(`Rollback gagal: akun ${createdUser.email} tetap tersimpan. Hapus manual di halaman Users.`);
         }

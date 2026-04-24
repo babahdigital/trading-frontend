@@ -5,6 +5,7 @@ import { runTradeEventsConsumer } from '@/lib/consumers/trade-events';
 import { runResearchIngester } from '@/lib/ingesters/research';
 import { runPairBriefWorker } from '@/lib/workers/pair-brief';
 import { runBlogArticleGenerator } from '@/lib/workers/blog-article-generator';
+import { runDailyResearch } from '@/lib/workers/daily-research';
 import { expireSubscriptions } from '@/lib/subscription/lifecycle';
 import { createLogger } from '@/lib/logger';
 
@@ -90,6 +91,24 @@ export function initCronJobs() {
     log.info(`Blog article generator enabled (${Math.round(intervalMs / 3600000)}h interval, kickoff +60s, auto-seed on empty catalog)`);
   } else if (!openRouterConfigured) {
     log.info('Blog article generator idle — OPENROUTER_API_KEY not configured');
+  }
+
+  // Daily research auto-pipeline — once per 24h, day-of-week rotation
+  // (Mon=recap, Tue=AI lesson, Wed=case study, Thu=correlation,
+  // Fri=risk, Sat=strategy, Sun=preview). Auto-enabled when
+  // OPENROUTER_API_KEY present; explicit ENABLE_DAILY_RESEARCH="0"
+  // disables. Slug pattern `daily-{YYYY-MM-DD}-{type}` makes it
+  // idempotent on same-day re-trigger.
+  const dailyFlag = process.env.ENABLE_DAILY_RESEARCH;
+  const dailyEnabled = dailyFlag === undefined
+    ? openRouterConfigured
+    : dailyFlag === '1' || dailyFlag.toLowerCase() === 'true';
+  if (dailyEnabled) {
+    setInterval(async () => {
+      try { await runDailyResearch(); } catch (err) { log.error('Daily research error:', err); }
+    }, 24 * 60 * 60 * 1000);
+    setTimeout(() => runDailyResearch().catch((err) => log.error('Daily research startup error:', err)), 90_000);
+    log.info('Daily research enabled (24h interval, kickoff +90s, day-of-week rotation)');
   }
 
   // Subscription expiry — every hour (expire + send renewal reminders)

@@ -18,11 +18,18 @@ import { createLogger } from '@/lib/logger';
 const log = createLogger('ai-image-generator');
 
 const DEFAULT_MODEL = 'black-forest-labs/flux-1-schnell';
+
+/**
+ * Brand style suffix. Pitched as educational technical diagram, NOT
+ * decorative magazine cover — the image should EXPLAIN a concept to a
+ * trader reading the article.
+ */
 const BRAND_PROMPT_SUFFIX =
-  'Style: institutional financial magazine cover, minimalist, dark navy (#0B1220) background, '
-  + 'amber (#F5B547) accent highlights, sophisticated, clean, quant-finance aesthetic, '
-  + 'professional, editorial photography quality, no text, no typography, no logos, '
-  + 'no watermarks, landscape 16:9 composition.';
+  'Style: clean educational technical diagram, financial chart illustration, '
+  + 'annotated candlestick chart OR conceptual data visualization, dark navy (#0B1220) background, '
+  + 'amber (#F5B547) highlights on key elements, green and red candles, gridlines subtle, '
+  + 'professional trading terminal aesthetic, no text labels, no typography, no watermarks, '
+  + 'landscape 16:9 composition, high detail, photorealistic chart rendering.';
 
 export interface ImageGenerationOptions {
   /** Override the default model (e.g. 'black-forest-labs/flux-1.1-pro') */
@@ -33,35 +40,77 @@ export interface ImageGenerationOptions {
   keywords?: string[];
   /** Category for stylistic hinting */
   category?: string;
+  /** Topic slug — unlocks per-topic visualisation subject mapping */
+  slug?: string;
   /** Abort signal */
   signal?: AbortSignal;
 }
 
+/**
+ * Topic-slug → concrete visualisation subject mapping.
+ *
+ * Each entry describes WHAT the image should depict for that specific
+ * topic, not generic decoration. Example: the Wyckoff article image
+ * shows the 4-phase Wyckoff cycle, not abstract fortress art.
+ *
+ * Slugs not in this map fall back to `CATEGORY_HINTS` and title words.
+ */
+const SLUG_SUBJECTS: Record<string, string> = {
+  'mengapa-90-persen-trader-retail-gagal':
+    'dual-pane chart comparison: left shows retail trader erratic entries at local tops and bottoms with red losing candles, right shows institutional systematic entries at structural levels with green winning candles',
+  'half-kelly-vs-full-kelly-jane-street':
+    'equity growth curve line chart comparing three strategies: Full Kelly (highest peak but deepest drawdowns), Half Kelly (smoother growth), Quarter Kelly (steadiest ascent), with x-axis time and y-axis capital',
+  'smc-order-block-panduan-visual-indonesia':
+    'candlestick chart showing a Smart Money Concept order block — rectangular highlighted zone marking the last bearish candle before bullish impulsive move, price returning to zone and rejecting with bullish reaction arrow',
+  'correlation-guard-portfolio-diversified-1-bet':
+    'correlation heatmap matrix of 7x7 currency pairs (EURUSD, GBPUSD, AUDUSD, etc.) with color gradient from red (strong positive correlation) to green (negative correlation), highlighting clusters',
+  'atr-adaptive-trailing-stop-renaissance-pattern':
+    'candlestick chart with dynamic trailing stop line that adjusts distance based on ATR volatility bands, visible in both low-volatility tight trail and high-volatility wide trail segments',
+  'case-study-bot-babahalgo-nfp-januari-2026':
+    'candlestick chart showing EURUSD price action across an NFP news event: quiet pre-event range, sharp 80-pip spike spike on release, subsequent consolidation, with vertical marker at the release moment',
+  'mengapa-kami-pecah-9-microservices':
+    'technical architecture diagram: central monolith splitting into nine interconnected service nodes arranged in a hexagonal cluster, each node labeled with distinct icon for news, signals, indicators, market data, etc., connected by data flow arrows',
+  'biaya-hidden-signal-service-slippage-commission-swap':
+    'stacked bar chart visualization showing the true cost breakdown of a signal service: small sign-up fee at bottom, larger layers above for slippage, commission, spread, swap, revealing total cost several times higher than the advertised fee',
+  'shariah-compliant-algorithmic-trading-panduan':
+    'clean split-screen conceptual chart: left side shows a candlestick chart with a green checkmark labeled halal attributes (no swap, moderate leverage, systematic), right side shows the same pair with red X markers on haram attributes (overnight interest, excessive leverage, pure speculation)',
+  'roi-calculator-signal-copy-dedicated':
+    'comparison dashboard: three columns showing ROI projection curves over 12 months for Signal Service, Copy Trade, and Dedicated VPS, with break-even markers and capital bracket annotations',
+};
+
 const CATEGORY_HINTS: Record<string, string> = {
-  STRATEGY: 'abstract geometric chart patterns, golden ratio, elegant mathematical precision',
-  RISK: 'protective barriers, fortress, shield motifs, orderly defensive posture',
-  EDUCATION: 'open book, graduation element, knowledge transfer atmosphere',
-  CASE_STUDY: 'magnifying glass over market charts, investigative analytical mood',
-  COMPLIANCE: 'classical justice scales, formal columns, authoritative presence',
-  OPERATIONS: 'blueprint, interconnected network nodes, technical precision',
-  RESEARCH: 'laboratory instruments, data visualization, scholarly atmosphere',
-  EXECUTION: 'precision machinery, speed trails, systematic flow',
-  MARKET_ANALYSIS: 'financial cityscape, analytical charts, market overview',
+  STRATEGY: 'annotated candlestick pattern chart with structural markings, entries, and target zones',
+  RISK: 'risk-return scatter plot or drawdown curve chart with safety threshold lines',
+  EDUCATION: 'step-by-step annotated diagram with numbered labels showing concept flow',
+  CASE_STUDY: 'real event candlestick chart with pre-event, event, post-event markers',
+  COMPLIANCE: 'regulatory framework flowchart with checkmark and cross iconography',
+  OPERATIONS: 'system architecture diagram with nodes and data flow connections',
+  RESEARCH: 'multi-panel data visualization with charts, histograms, and metrics',
+  EXECUTION: 'latency timeline chart or order flow visualization',
+  MARKET_ANALYSIS: 'multi-timeframe candlestick chart with support/resistance levels',
 };
 
 export function buildImagePrompt(
   subject: string,
-  options: { category?: string; keywords?: string[] } = {},
+  options: { category?: string; keywords?: string[]; slug?: string } = {},
 ): string {
-  const { category, keywords } = options;
+  const { category, keywords, slug } = options;
+  // Priority 1: topic-specific visualisation (known slug)
+  const slugSubject = slug && SLUG_SUBJECTS[slug] ? SLUG_SUBJECTS[slug] : null;
+  // Priority 2: category-based visualisation hint
   const categoryHint = category && CATEGORY_HINTS[category] ? CATEGORY_HINTS[category] : '';
+  // Priority 3: subject keywords
   const keywordHint = keywords && keywords.length > 0
-    ? `Incorporating visual motifs of ${keywords.slice(0, 3).join(', ')}.`
+    ? `Visual motifs representing ${keywords.slice(0, 3).join(', ')}.`
     : '';
+
+  const subjectLine = slugSubject
+    ? `Technical illustration depicting: ${slugSubject}.`
+    : `Technical illustration explaining the concept: "${subject}". ${categoryHint}`;
+
   return [
-    `Professional hero illustration for a financial research article titled: "${subject}".`,
-    categoryHint,
-    keywordHint,
+    subjectLine,
+    !slugSubject ? keywordHint : '',
     BRAND_PROMPT_SUFFIX,
   ]
     .filter(Boolean)
@@ -94,7 +143,7 @@ export async function generateArticleImage(
 
   const model = options.model ?? DEFAULT_MODEL;
   const size = options.size ?? '1024x1024';
-  const prompt = buildImagePrompt(subject, { category: options.category, keywords: options.keywords });
+  const prompt = buildImagePrompt(subject, { category: options.category, keywords: options.keywords, slug: options.slug });
 
   try {
     const res = await fetch('https://openrouter.ai/api/v1/images/generations', {

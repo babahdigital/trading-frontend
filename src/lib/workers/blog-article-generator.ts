@@ -245,11 +245,15 @@ async function generateOneTopic(topic: BlogTopic): Promise<{ articleId: string }
   const body = markdown.trim();
   const readTime = Math.max(3, Math.ceil(body.split(/\s+/).length / 220));
 
-  // Generate hero image — graceful failure (null imageUrl is fine)
+  // Generate hero image — graceful failure (null imageUrl is fine).
+  // Image is concept-illustrative (e.g. Wyckoff phase chart, order
+  // block pattern) not decorative. Topic slug unlocks per-topic
+  // visualisation subjects in SLUG_SUBJECTS map.
   const keywordsArr = Array.isArray(topic.keywords) ? (topic.keywords as string[]) : [];
   const imageResult = await generateArticleImage(topic.titleEn, {
     category: topic.category,
     keywords: keywordsArr,
+    slug: topic.slug,
   });
   if (imageResult) {
     log.info(`Generated hero image for ${topic.slug} (${Math.round(imageResult.sizeBytes / 1024)} KB, ${imageResult.model})`);

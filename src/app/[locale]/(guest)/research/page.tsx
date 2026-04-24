@@ -1,10 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLocale } from 'next-intl';
 import Link from 'next/link';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
+import { Pagination } from '@/components/ui/pagination';
+
+const PER_PAGE = 9;
 
 interface Article {
   slug: string;
@@ -35,6 +38,7 @@ export default function ResearchPage() {
   const isEn = locale === 'en';
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     async function loadArticles() {
@@ -53,6 +57,16 @@ export default function ResearchPage() {
     }
     loadArticles();
   }, []);
+
+  const visibleArticles = useMemo(() => {
+    const start = (page - 1) * PER_PAGE;
+    return articles.slice(start, start + PER_PAGE);
+  }, [articles, page]);
+
+  function handlePageChange(next: number) {
+    setPage(next);
+    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -122,35 +136,60 @@ export default function ResearchPage() {
                 </p>
               </div>
             ) : (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {articles.map((article) => {
-                  const title = (isEn && article.title_en) ? article.title_en : article.title;
-                  const excerpt = (isEn && article.excerpt_en) ? article.excerpt_en : article.excerpt;
+              <>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {visibleArticles.map((article) => {
+                    const title = (isEn && article.title_en) ? article.title_en : article.title;
+                    const excerpt = (isEn && article.excerpt_en) ? article.excerpt_en : article.excerpt;
 
-                  return (
-                    <Link
-                      key={article.slug}
-                      href={`/${locale}/research/${article.slug}`}
-                      className="card-enterprise flex flex-col group cursor-pointer hover:border-amber-500/20 transition-colors"
-                    >
-                      <p className="t-eyebrow mb-3">{article.category}</p>
-                      <h2 className="text-lg font-medium mb-3 line-clamp-2 group-hover:text-amber-400 transition-colors">
-                        {title}
-                      </h2>
-                      <p className="t-body-sm text-foreground/60 leading-relaxed line-clamp-3 mb-6 flex-1">
-                        {excerpt}
-                      </p>
-                      <div className="flex items-center gap-3 text-xs text-foreground/40 pt-4 border-t border-white/[0.04]">
-                        <span>{article.author}</span>
-                        <span className="w-1 h-1 rounded-full bg-foreground/20" />
-                        <span>{formatDate(article.publishedAt, locale)}</span>
-                        <span className="w-1 h-1 rounded-full bg-foreground/20" />
-                        <span>{article.readTime} min {isEn ? 'read' : 'baca'}</span>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
+                    return (
+                      <Link
+                        key={article.slug}
+                        href={`/${locale}/research/${article.slug}`}
+                        className="card-enterprise flex flex-col group cursor-pointer hover:border-amber-500/20 transition-colors overflow-hidden"
+                      >
+                        {article.imageUrl && (
+                          <div className="relative w-full aspect-[16/9] bg-white/[0.03] -mx-6 -mt-6 mb-4 overflow-hidden">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={article.imageUrl}
+                              alt=""
+                              loading="lazy"
+                              className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500"
+                            />
+                          </div>
+                        )}
+                        <p className="t-eyebrow mb-3">{article.category}</p>
+                        <h2 className="text-lg font-medium mb-3 line-clamp-2 group-hover:text-amber-400 transition-colors">
+                          {title}
+                        </h2>
+                        <p className="t-body-sm text-foreground/60 leading-relaxed line-clamp-3 mb-6 flex-1">
+                          {excerpt}
+                        </p>
+                        <div className="flex items-center gap-3 text-xs text-foreground/40 pt-4 border-t border-white/[0.04]">
+                          <span>{article.author}</span>
+                          <span className="w-1 h-1 rounded-full bg-foreground/20" />
+                          <span>{formatDate(article.publishedAt, locale)}</span>
+                          <span className="w-1 h-1 rounded-full bg-foreground/20" />
+                          <span>{article.readTime} min {isEn ? 'read' : 'baca'}</span>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+                <Pagination
+                  page={page}
+                  total={articles.length}
+                  perPage={PER_PAGE}
+                  onPageChange={handlePageChange}
+                  labels={{
+                    prev: isEn ? 'Prev' : 'Sebelumnya',
+                    next: isEn ? 'Next' : 'Berikutnya',
+                    page: isEn ? 'Page' : 'Halaman',
+                    of: isEn ? 'of' : 'dari',
+                  }}
+                />
+              </>
             )}
           </div>
         </section>

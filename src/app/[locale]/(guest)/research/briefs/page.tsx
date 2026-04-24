@@ -1,10 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLocale } from 'next-intl';
 import Link from 'next/link';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
+import { Pagination } from '@/components/ui/pagination';
+
+const PER_PAGE = 9;
 
 interface BriefPreview {
   id: string;
@@ -62,11 +65,12 @@ export default function PairBriefsPage() {
   const [briefs, setBriefs] = useState<BriefPreview[]>([]);
   const [access, setAccess] = useState<string>('preview');
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch('/api/public/pair-briefs?limit=20');
+        const res = await fetch('/api/public/pair-briefs?limit=100');
         if (!res.ok) return;
         const data = await res.json();
         if (Array.isArray(data.briefs)) {
@@ -81,6 +85,16 @@ export default function PairBriefsPage() {
     }
     load();
   }, []);
+
+  const visibleBriefs = useMemo(() => {
+    const start = (page - 1) * PER_PAGE;
+    return briefs.slice(start, start + PER_PAGE);
+  }, [briefs, page]);
+
+  function handlePageChange(next: number) {
+    setPage(next);
+    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -135,8 +149,9 @@ export default function PairBriefsPage() {
                 </p>
               </div>
             ) : (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {briefs.map((brief) => (
+              <>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {visibleBriefs.map((brief) => (
                   <Link
                     key={brief.slug}
                     href={`/${locale}/research/briefs/${brief.slug}`}
@@ -195,7 +210,20 @@ export default function PairBriefsPage() {
                     </div>
                   </Link>
                 ))}
-              </div>
+                </div>
+                <Pagination
+                  page={page}
+                  total={briefs.length}
+                  perPage={PER_PAGE}
+                  onPageChange={handlePageChange}
+                  labels={{
+                    prev: isEn ? 'Prev' : 'Sebelumnya',
+                    next: isEn ? 'Next' : 'Berikutnya',
+                    page: isEn ? 'Page' : 'Halaman',
+                    of: isEn ? 'of' : 'dari',
+                  }}
+                />
+              </>
             )}
           </div>
         </section>

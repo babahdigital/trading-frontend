@@ -414,6 +414,40 @@ simultaneous runs and catches `P2002` unique-constraint violations on
 `PairBrief.create()` gracefully, in case a concurrent process slips
 past the existence check.
 
+### Trading UI Components (2026-04-25 sprint)
+
+New primitives in `src/lib/` + `src/components/trading/` that unblock
+customer-facing trading UX per FRONTEND_DEVELOPMENT_GUIDE:
+
+| Module | Purpose | Guide Section |
+|---|---|---|
+| `src/lib/api/idempotency.ts` | Generate/validate Idempotency-Key, enforce 8-128 char regex, wrap RequestInit | §4.3 / ADR-009 |
+| `src/lib/timezone/util.ts` | DEFAULT_TIMEZONE, resolveTimezone (explicit>stored>detected>default), withTimezoneHeader | §4.5 |
+| `src/lib/api/client-fetch.ts` | `apiFetch()` wrapper — auto-injects Accept-Timezone + optional Idempotency-Key + observes X-RateLimit-* | §4.3 + §4.5 + §5.5 |
+| `src/lib/api/error-envelope.ts` | ApiError class + parseApiErrorResponse + renderApiError(err, t) with next-intl | §4.4 |
+| `src/lib/api/websocket.ts` + `use-websocket.ts` | BabahalgoWS client + React hook — handshake auth, exponential backoff reconnect, subscription replay | §4.6 |
+| `src/lib/trading/symbols.ts` | STATIC_SYMBOL_CATALOG + fetchSymbols fallback + canonical resolver | ADR-013 |
+| `src/components/trading/symbol-selector.tsx` | Filterable dropdown grouped by asset class; enforces canonical form on submit | §5.1 |
+| `src/components/trading/price-chart.tsx` | Lightweight-charts candlestick with Midnight theme | §5.2 |
+| `src/components/trading/paper-mode-badge.tsx` | ADR-014 paper mode indicator | §5.3 |
+| `src/components/trading/news-widget.tsx` | Polling news feed with sentiment + impact | §5.4 |
+| `src/components/trading/rate-limit-status.tsx` + `rate-limit-bus.ts` | Singleton bus consumed by observeRateLimit + UI widget | §5.5 |
+| `src/components/trading/timezone-selector.tsx` | User timezone picker with localStorage persistence | §4.5 |
+
+Adapter routes (`src/app/api/client/*`) provide graceful-degradation
+proxy to VPS1 scoped endpoints. Each route returns
+`{ source: 'backend' | 'empty' | 'static', ...payload }` so UI can
+render correct state (live vs fallback vs loading).
+
+### Admin Observability Endpoint
+
+`GET /api/admin/system-info` aggregates Prisma + process.env signals
+for the `/admin/settings` dashboard. Read-only, admin-guarded, parallel
+query fan-out — application info, DB latency, session counts, feature
+flag states, secrets presence (no values), recent WorkerRun +
+worker summary, 7-day AiCallLog aggregate, license/VPS/blog-topic
+status counts.
+
 ### Blog Article Generator
 
 ```

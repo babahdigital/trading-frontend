@@ -24,6 +24,7 @@ import { prisma } from '@/lib/db/prisma';
 import { getOpenRouter, DEFAULT_MODEL } from '@/lib/ai/openrouter';
 import { translateText } from '@/lib/ai/content';
 import { generateArticleImage } from '@/lib/ai/image-generator';
+import { generateSeoMeta } from '@/lib/ai/seo-meta';
 import { proxyToMasterBackend } from '@/lib/proxy/vps-client';
 import { createLogger } from '@/lib/logger';
 import { TOPIC_CATALOG, topicSpecToPrismaCreate } from '@/lib/blog/topic-catalog';
@@ -269,6 +270,15 @@ async function generateOneTopic(topic: BlogTopic): Promise<{ articleId: string }
     log.info(`Generated hero image for ${topic.slug} (${Math.round(imageResult.sizeBytes / 1024)} KB, ${imageResult.model})`);
   }
 
+  // Generate SEO meta (Indonesian) — graceful failure
+  const seoMetaId = await generateSeoMeta({
+    title: topic.titleId,
+    excerpt: topic.excerptId,
+    category: topic.category,
+    keywords: keywordsArr,
+    language: 'id',
+  });
+
   const article = await prisma.article.upsert({
     where: { slug: topic.slug },
     create: {
@@ -282,6 +292,9 @@ async function generateOneTopic(topic: BlogTopic): Promise<{ articleId: string }
       author: 'BabahAlgo Research Desk',
       readTime,
       imageUrl: imageResult?.dataUri ?? null,
+      metaTitle: seoMetaId?.metaTitle ?? null,
+      metaDescription: seoMetaId?.metaDescription ?? null,
+      keywords: keywordsArr as Prisma.InputJsonValue,
       isPublished: topic.autoPublish,
       publishedAt: topic.autoPublish ? new Date() : null,
     },
@@ -294,22 +307,36 @@ async function generateOneTopic(topic: BlogTopic): Promise<{ articleId: string }
       category: topic.category,
       readTime,
       ...(imageResult ? { imageUrl: imageResult.dataUri } : {}),
+      ...(seoMetaId ? { metaTitle: seoMetaId.metaTitle, metaDescription: seoMetaId.metaDescription } : {}),
+      keywords: keywordsArr as Prisma.InputJsonValue,
       isPublished: topic.autoPublish,
       publishedAt: topic.autoPublish ? new Date() : null,
     },
   });
 
-  // Auto-translate body to EN (non-blocking — article already live in ID)
+  // Auto-translate body to EN + EN SEO meta (non-blocking)
   try {
-    const body_en = await translateText(body);
-    if (body_en) {
+    const [body_en, seoMetaEn] = await Promise.all([
+      translateText(body),
+      generateSeoMeta({
+        title: topic.titleEn,
+        excerpt: topic.excerptEn,
+        category: topic.category,
+        keywords: keywordsArr,
+        language: 'en',
+      }),
+    ]);
+    if (body_en || seoMetaEn) {
       await prisma.article.update({
         where: { id: article.id },
-        data: { body_en },
+        data: {
+          ...(body_en ? { body_en } : {}),
+          ...(seoMetaEn ? { metaTitle_en: seoMetaEn.metaTitle, metaDescription_en: seoMetaEn.metaDescription } : {}),
+        },
       });
     }
   } catch (translateErr) {
-    log.warn(`Translation failed for ${topic.slug}: ${translateErr instanceof Error ? translateErr.message : 'unknown'}`);
+    log.warn(`Translation/SEO failed for ${topic.slug}: ${translateErr instanceof Error ? translateErr.message : 'unknown'}`);
   }
 
   await prisma.blogTopic.update({

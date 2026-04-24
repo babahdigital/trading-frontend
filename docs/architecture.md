@@ -414,6 +414,39 @@ simultaneous runs and catches `P2002` unique-constraint violations on
 `PairBrief.create()` gracefully, in case a concurrent process slips
 past the existence check.
 
+### Blog Article Generator
+
+```
+File:     src/lib/workers/blog-article-generator.ts
+Interval: 12h (configurable via BLOG_GENERATOR_INTERVAL_MS) + 60s startup
+Flag:     ENABLE_BLOG_GENERATOR
+```
+
+Zero-touch AI-powered article generator. Reads the `BlogTopic` catalog,
+picks eligible topics (status PENDING/FAILED, scheduledWeek ≤ currentWeek
+relative to `BLOG_LAUNCH_EPOCH_ISO_WEEK`), fetches each topic's data
+sources (VPS1 scoped endpoints via `proxyToMasterBackend`, local DB
+queries, or inline static values), builds prompt by substituting
+`{{DATA_JSON}}` + `{{TARGET_WORDS}}`, calls OpenRouter
+`google/gemini-2.5-flash-lite`, validates output (word count, heading
+structure, disclaimer presence), upserts an `Article`, then auto-
+translates body to English non-blocking.
+
+**Observability:**
+- Each run: one `WorkerRun` row (status OK/PARTIAL/ERROR).
+- Each AI call: one `AiCallLog` row (input/output tokens, latency).
+- Per topic: `BlogTopic.status + lastGeneratedAt + lastError + aiTokensUsed`.
+
+**Admin controls:**
+- Seed catalog once: `POST /api/cron/seed-blog-topics`.
+- Regenerate single topic: `POST /api/admin/blog-topics/:id/regenerate`
+  (synchronous — for manual refresh).
+- Force-regenerate via cron: `GET /api/cron/blog-articles?slug=X&force=1`.
+- CRUD via `/admin/cms/blog-topics` UI.
+
+**Crypto-ready:** `BlogTopic.assetClass` enum includes CRYPTO. Future
+Binance integration adds new topics without worker code changes.
+
 ### Subscription Lifecycle
 
 ```

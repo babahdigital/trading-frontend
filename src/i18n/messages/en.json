@@ -182,5 +182,23 @@
     "try_again": "Try Again",
     "back": "Back",
     "language": "Language"
+  },
+  "trading": {
+    "paper_mode_badge": "Paper",
+    "paper_mode_banner": "Paper Mode — simulated execution, no real funds on MT5. Fill behavior, slippage, and swap are estimated.",
+    "rate_limit_label": "API quota",
+    "rate_limit_reset": "reset in {seconds}",
+    "rate_limit_exhausted": "API quota exhausted — retry in {seconds} seconds"
+  },
+  "blog": {
+    "category_research": "Research",
+    "category_strategy": "Strategy",
+    "category_execution": "Execution",
+    "category_risk": "Risk Management",
+    "category_operations": "Operations",
+    "category_market_analysis": "Market Analysis",
+    "category_education": "Education",
+    "category_case_study": "Case Study",
+    "category_compliance": "Compliance"
   }
 }

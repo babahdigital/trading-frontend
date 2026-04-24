@@ -182,5 +182,23 @@
     "try_again": "Coba Lagi",
     "back": "Kembali",
     "language": "Bahasa"
+  },
+  "trading": {
+    "paper_mode_badge": "Paper",
+    "paper_mode_banner": "Paper Mode — eksekusi simulasi, tidak ada dana riil di MT5. Perilaku fill, slippage, dan swap diperkirakan.",
+    "rate_limit_label": "Kuota API",
+    "rate_limit_reset": "reset dalam {seconds}",
+    "rate_limit_exhausted": "Kuota API habis — coba lagi dalam {seconds} detik"
+  },
+  "blog": {
+    "category_research": "Riset",
+    "category_strategy": "Strategi",
+    "category_execution": "Eksekusi",
+    "category_risk": "Risk Management",
+    "category_operations": "Operasional",
+    "category_market_analysis": "Analisa Pasar",
+    "category_education": "Edukasi",
+    "category_case_study": "Studi Kasus",
+    "category_compliance": "Kepatuhan"
   }
 }

@@ -677,6 +677,80 @@ model NotificationLog {
 
 ---
 
+### BlogTopic
+
+Dynamic, DB-backed catalog of AI-generated blog topics. The
+`blog-article-generator` worker reads prompt templates + data source
+specs from this table, so admins can add new topics (including future
+`CRYPTO` assetClass) without code changes.
+
+```prisma
+model BlogTopic {
+  id                String          @id @default(cuid())
+  slug              String          @unique
+  titleId           String
+  titleEn           String
+  excerptId         String          @db.Text
+  excerptEn         String          @db.Text
+  promptTemplate    String          @db.Text
+  dataSources       Json            @default("[]")
+  keywords          Json            @default("[]")
+  category          ArticleCategory @default(EDUCATION)
+  assetClass        AssetClass      @default(FOREX)
+  targetLengthWords Int             @default(1500)
+  scheduledWeek     Int             @default(1)
+  priority          Int             @default(0)
+  status            BlogTopicStatus @default(PENDING)
+  lastGeneratedAt   DateTime?
+  lastError         String?         @db.Text
+  aiModel           String?
+  aiTokensUsed      Int             @default(0)
+  articleId         String?         @unique
+  article           Article?        @relation(fields: [articleId], references: [id], onDelete: SetNull)
+  isActive          Boolean         @default(true)
+  autoPublish       Boolean         @default(true)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  @@index([status, scheduledWeek])
+  @@index([isActive, priority])
+  @@index([assetClass, isActive])
+}
+
+enum AssetClass {
+  FOREX
+  CRYPTO
+  MULTI
+}
+
+enum BlogTopicStatus {
+  PENDING
+  GENERATING
+  GENERATED
+  PUBLISHED
+  FAILED
+  DISABLED
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `slug` | String (unique) | Also used as Article slug on upsert |
+| `promptTemplate` | Text | AI prompt with `{{DATA_JSON}}` + `{{TARGET_WORDS}}` placeholders |
+| `dataSources` | JSON | Array of `{ type, path?, scope?, model?, value? }` — fetched at generation time |
+| `assetClass` | AssetClass | FOREX (current), CRYPTO (future Binance), MULTI (cross-asset topics) |
+| `scheduledWeek` | Int | ISO week offset from launch epoch — controls release cadence |
+| `priority` | Int | Higher runs first when multiple topics eligible |
+| `autoPublish` | Boolean | True = worker sets Article.isPublished on success; false = needs admin review |
+| `articleId` | FK | Unique — one topic maps to at most one Article |
+
+**Composite indexes:**
+- `[status, scheduledWeek]` — worker candidate query
+- `[isActive, priority]` — admin list ordering
+- `[assetClass, isActive]` — crypto vs forex filter
+
+---
+
 ## 4. Indexes
 
 | Model | Index Fields | Purpose |
@@ -698,6 +772,11 @@ model NotificationLog {
 | `WorkerRun` | `[worker, startedAt]` | Worker run history, status page feed |
 | `NotificationLog` | `[userId, createdAt]` | User notification timeline |
 | `NotificationLog` | `[category, createdAt]` | Per-category notification volume |
+| `BlogTopic` | `slug` (unique) | Lookup by slug for upsert + regenerate |
+| `BlogTopic` | `articleId` (unique) | Back-reference from generated Article |
+| `BlogTopic` | `[status, scheduledWeek]` | Worker candidate query |
+| `BlogTopic` | `[isActive, priority]` | Admin list ordering |
+| `BlogTopic` | `[assetClass, isActive]` | Asset-class filter (crypto vs forex) |
 
 ---
 

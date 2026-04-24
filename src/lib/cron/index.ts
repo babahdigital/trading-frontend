@@ -4,6 +4,7 @@ import { runSignalConsumer } from '@/lib/consumers/signal';
 import { runTradeEventsConsumer } from '@/lib/consumers/trade-events';
 import { runResearchIngester } from '@/lib/ingesters/research';
 import { runPairBriefWorker } from '@/lib/workers/pair-brief';
+import { runBlogArticleGenerator } from '@/lib/workers/blog-article-generator';
 import { expireSubscriptions } from '@/lib/subscription/lifecycle';
 import { createLogger } from '@/lib/logger';
 
@@ -66,6 +67,19 @@ export function initCronJobs() {
     }, 4 * 60 * 60 * 1000);
     setTimeout(() => runPairBriefWorker().catch((err) => log.error('Pair brief worker startup error:', err)), 45_000);
     log.info('Pair brief worker enabled (4h interval, kickoff +45s)');
+  }
+
+  // Blog article generator — every 12 hours (feature-flagged)
+  // Reads BlogTopic table, generates articles via OpenRouter, auto-publishes
+  // if autoPublish=true. Safe to over-trigger — idempotent on already-PUBLISHED
+  // topics unless force=true is passed.
+  if (bool('ENABLE_BLOG_GENERATOR', false)) {
+    const intervalMs = parseInt(process.env.BLOG_GENERATOR_INTERVAL_MS || '', 10) || 12 * 60 * 60 * 1000;
+    setInterval(async () => {
+      try { await runBlogArticleGenerator(); } catch (err) { log.error('Blog generator error:', err); }
+    }, intervalMs);
+    setTimeout(() => runBlogArticleGenerator().catch((err) => log.error('Blog generator startup error:', err)), 60_000);
+    log.info(`Blog article generator enabled (${Math.round(intervalMs / 3600000)}h interval, kickoff +60s)`);
   }
 
   // Subscription expiry — every hour (expire + send renewal reminders)

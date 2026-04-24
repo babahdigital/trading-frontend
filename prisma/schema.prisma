@@ -440,7 +440,7 @@ model BlogTopic {
   promptTemplate    String          @db.Text
   dataSources       Json            @default("[]")
   keywords          Json            @default("[]")
-  category          ArticleCategory @default(EDUCATION)
+  category          ArticleCategory @default(RESEARCH)
   assetClass        AssetClass      @default(FOREX)
   targetLengthWords Int             @default(1500)
   scheduledWeek     Int             @default(1)

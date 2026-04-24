@@ -20,7 +20,7 @@ CREATE TABLE "BlogTopic" (
     "promptTemplate" TEXT NOT NULL,
     "dataSources" JSONB NOT NULL DEFAULT '[]',
     "keywords" JSONB NOT NULL DEFAULT '[]',
-    "category" "ArticleCategory" NOT NULL DEFAULT 'EDUCATION',
+    "category" "ArticleCategory" NOT NULL DEFAULT 'RESEARCH',
     "assetClass" "AssetClass" NOT NULL DEFAULT 'FOREX',
     "targetLengthWords" INTEGER NOT NULL DEFAULT 1500,
     "scheduledWeek" INTEGER NOT NULL DEFAULT 1,

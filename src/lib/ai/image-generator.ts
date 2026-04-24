@@ -17,7 +17,16 @@ import { createLogger } from '@/lib/logger';
 
 const log = createLogger('ai-image-generator');
 
-const DEFAULT_MODEL = 'black-forest-labs/flux-1-schnell';
+/**
+ * Image generation provider.
+ *
+ * Pollinations.ai is the default: free, no API key, supports Flux,
+ * returns PNG binary directly via URL. Reliable for MVP throughput
+ * (10-100 images/day). Migrate to paid provider (fal.ai / Replicate)
+ * when free tier rate-limits hit.
+ */
+const POLLINATIONS_BASE = 'https://image.pollinations.ai/prompt';
+const DEFAULT_MODEL = 'flux'; // Pollinations model name
 
 /**
  * Brand style suffix. Pitched as educational technical diagram, NOT
@@ -32,16 +41,18 @@ const BRAND_PROMPT_SUFFIX =
   + 'landscape 16:9 composition, high detail, photorealistic chart rendering.';
 
 export interface ImageGenerationOptions {
-  /** Override the default model (e.g. 'black-forest-labs/flux-1.1-pro') */
+  /** Pollinations model name: 'flux' | 'turbo' (flux = highest quality default) */
   model?: string;
-  /** Image size; flux-schnell best at 1024x1024 */
-  size?: '512x512' | '768x512' | '1024x1024' | '1280x720';
+  /** Image size; flux best at 1280x720 landscape */
+  size?: '1024x1024' | '1280x720' | '1920x1080';
   /** Additional context keywords (topic keywords[] array) */
   keywords?: string[];
   /** Category for stylistic hinting */
   category?: string;
   /** Topic slug — unlocks per-topic visualisation subject mapping */
   slug?: string;
+  /** Deterministic seed (same seed + same prompt = same image) */
+  seed?: number;
   /** Abort signal */
   signal?: AbortSignal;
 }
@@ -128,82 +139,70 @@ export interface ImageGenerationResult {
 
 /**
  * Generate a hero image for an article subject. Returns null on any
- * failure (no API key, HTTP error, malformed response). Safe to call
- * without try/catch in the caller — it never throws.
+ * failure — safe to call without try/catch; never throws.
+ *
+ * Provider: Pollinations.ai (free, no key, Flux model). Returns image
+ * as PNG binary via URL; we fetch + base64 encode for storage in
+ * Article.imageUrl as data URI.
  */
 export async function generateArticleImage(
   subject: string,
   options: ImageGenerationOptions = {},
 ): Promise<ImageGenerationResult | null> {
-  const apiKey = process.env.OPENROUTER_API_KEY;
-  if (!apiKey) {
-    log.warn('OPENROUTER_API_KEY missing, skipping image generation');
-    return null;
-  }
-
   const model = options.model ?? DEFAULT_MODEL;
-  const size = options.size ?? '1024x1024';
+  const size = options.size ?? '1280x720';
+  const [widthStr, heightStr] = size.split('x');
+  const width = parseInt(widthStr, 10);
+  const height = parseInt(heightStr, 10);
+  const seed = options.seed ?? Math.floor(Math.random() * 1_000_000);
+
   const prompt = buildImagePrompt(subject, { category: options.category, keywords: options.keywords, slug: options.slug });
 
+  // Pollinations accepts prompt in URL path (encoded). Query params
+  // control size, seed, model, nologo (strip watermark).
+  const url = new URL(`${POLLINATIONS_BASE}/${encodeURIComponent(prompt)}`);
+  url.searchParams.set('width', String(width));
+  url.searchParams.set('height', String(height));
+  url.searchParams.set('seed', String(seed));
+  url.searchParams.set('model', model);
+  url.searchParams.set('nologo', 'true');
+  url.searchParams.set('enhance', 'true');
+
   try {
-    const res = await fetch('https://openrouter.ai/api/v1/images/generations', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://babahalgo.com',
-        'X-Title': 'BabahAlgo',
-      },
-      body: JSON.stringify({
-        model,
-        prompt,
-        n: 1,
-        size,
-        response_format: 'b64_json',
-      }),
+    const res = await fetch(url.toString(), {
+      method: 'GET',
       signal: options.signal,
+      headers: { Accept: 'image/*' },
     });
 
     if (!res.ok) {
-      const errBody = await res.text().catch(() => '');
-      log.warn(`Image gen HTTP ${res.status} for "${subject.slice(0, 40)}": ${errBody.slice(0, 200)}`);
+      log.warn(`Image gen HTTP ${res.status} for "${subject.slice(0, 40)}"`);
       return null;
     }
 
-    const body = (await res.json()) as {
-      data?: Array<{ b64_json?: string; url?: string }>;
-    };
-
-    const first = body?.data?.[0];
-    if (!first) {
-      log.warn(`Image gen empty data for "${subject.slice(0, 40)}"`);
+    const contentType = res.headers.get('content-type') ?? 'image/png';
+    if (!contentType.startsWith('image/')) {
+      log.warn(`Image gen unexpected content-type ${contentType} for "${subject.slice(0, 40)}"`);
       return null;
     }
 
-    let base64: string | null = null;
-    if (first.b64_json) {
-      base64 = first.b64_json;
-    } else if (first.url) {
-      // Some providers return URL only — fetch + encode.
-      const imgRes = await fetch(first.url, { signal: options.signal });
-      if (!imgRes.ok) {
-        log.warn(`Image URL fetch failed ${imgRes.status} for "${subject.slice(0, 40)}"`);
-        return null;
-      }
-      const buf = await imgRes.arrayBuffer();
-      base64 = Buffer.from(buf).toString('base64');
-    }
-
-    if (!base64) {
-      log.warn(`Image gen returned neither b64_json nor url for "${subject.slice(0, 40)}"`);
+    const buf = await res.arrayBuffer();
+    if (buf.byteLength < 1000) {
+      // Pollinations sometimes returns a tiny error image; guard against
+      log.warn(`Image gen suspiciously small (${buf.byteLength} bytes) for "${subject.slice(0, 40)}"`);
       return null;
     }
 
-    const dataUri = `data:image/png;base64,${base64}`;
+    const base64 = Buffer.from(buf).toString('base64');
+    const ext = contentType.includes('jpeg') ? 'jpeg' : contentType.includes('webp') ? 'webp' : 'png';
+    const dataUri = `data:${contentType.split(';')[0]};base64,${base64}`;
+
+    log.info(`Generated image ${ext} ${buf.byteLength} bytes via pollinations/${model} for "${subject.slice(0, 40)}"`);
+
     return {
       dataUri,
-      sizeBytes: base64.length,
-      model,
+      sizeBytes: buf.byteLength,
+      model: `pollinations/${model}`,
     };
   } catch (err) {
     log.warn(`Image gen error for "${subject.slice(0, 40)}": ${err instanceof Error ? err.message : 'unknown'}`);

@@ -200,5 +200,29 @@
     "category_education": "Edukasi",
     "category_case_study": "Studi Kasus",
     "category_compliance": "Kepatuhan"
+  },
+  "errors": {
+    "auth": {
+      "invalid_token": "Sesi Anda telah habis. Silakan login ulang.",
+      "product_not_subscribed": "Produk ini tidak termasuk dalam langganan Anda.",
+      "forbidden": "Anda tidak memiliki izin untuk aksi ini."
+    },
+    "idempotency": {
+      "conflict": "Aksi sebelumnya sudah diproses dengan parameter berbeda.",
+      "key_required": "Header Idempotency-Key wajib untuk endpoint ini."
+    },
+    "rate_limit": {
+      "exceeded": "Terlalu banyak permintaan. Silakan tunggu dan coba lagi dalam {retryAfter} detik."
+    },
+    "validation": {
+      "invalid_input": "Data tidak valid.",
+      "required_field": "Field {field} wajib diisi."
+    },
+    "server": {
+      "internal": "Terjadi kesalahan internal. Tim kami sudah diberi tahu.",
+      "unavailable": "Layanan tidak tersedia saat ini. Coba lagi dalam beberapa saat."
+    },
+    "not_found": "Data tidak ditemukan.",
+    "unknown": "Terjadi kesalahan yang tidak diketahui."
   }
 }

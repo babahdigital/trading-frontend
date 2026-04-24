@@ -200,5 +200,29 @@
     "category_education": "Education",
     "category_case_study": "Case Study",
     "category_compliance": "Compliance"
+  },
+  "errors": {
+    "auth": {
+      "invalid_token": "Your session has expired. Please log in again.",
+      "product_not_subscribed": "You are not subscribed to this product.",
+      "forbidden": "You do not have permission for this action."
+    },
+    "idempotency": {
+      "conflict": "This action was already processed with different parameters.",
+      "key_required": "Idempotency-Key header is required for this endpoint."
+    },
+    "rate_limit": {
+      "exceeded": "Too many requests. Please wait {retryAfter} seconds and try again."
+    },
+    "validation": {
+      "invalid_input": "Invalid input.",
+      "required_field": "Field {field} is required."
+    },
+    "server": {
+      "internal": "An internal error occurred. Our team has been notified.",
+      "unavailable": "The service is unavailable right now. Please try again shortly."
+    },
+    "not_found": "Resource not found.",
+    "unknown": "An unknown error occurred."
   }
 }

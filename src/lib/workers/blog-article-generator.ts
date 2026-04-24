@@ -237,12 +237,22 @@ async function generateOneTopic(topic: BlogTopic): Promise<{ articleId: string }
     },
   });
 
-  const validation = validateMarkdown(markdown, topic);
+  // Self-heal: auto-append disclaimer if AI omitted it (common failure)
+  // before validation. Validator then re-checks the healed markdown.
+  const DISCLAIMER = 'Konten edukasi — bukan saran investasi. Trading forex melibatkan risiko kehilangan modal.';
+  let healed = markdown.trim();
+  const hasDisclaimer = /bukan saran investasi|risiko kehilangan|not investment advice/i.test(healed);
+  if (!hasDisclaimer) {
+    healed = `${healed}\n\n_${DISCLAIMER}_`;
+    log.info(`Auto-appended disclaimer for ${topic.slug}`);
+  }
+
+  const validation = validateMarkdown(healed, topic);
   if (!validation.ok) {
     throw new Error(`Validation failed: ${validation.errors.join('; ')}`);
   }
 
-  const body = markdown.trim();
+  const body = healed;
   const readTime = Math.max(3, Math.ceil(body.split(/\s+/).length / 220));
 
   // Generate hero image — graceful failure (null imageUrl is fine).

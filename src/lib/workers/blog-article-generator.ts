@@ -23,6 +23,7 @@
 import { prisma } from '@/lib/db/prisma';
 import { getOpenRouter, DEFAULT_MODEL } from '@/lib/ai/openrouter';
 import { translateText } from '@/lib/ai/content';
+import { generateArticleImage } from '@/lib/ai/image-generator';
 import { proxyToMasterBackend } from '@/lib/proxy/vps-client';
 import { createLogger } from '@/lib/logger';
 import { TOPIC_CATALOG, topicSpecToPrismaCreate } from '@/lib/blog/topic-catalog';
@@ -244,6 +245,16 @@ async function generateOneTopic(topic: BlogTopic): Promise<{ articleId: string }
   const body = markdown.trim();
   const readTime = Math.max(3, Math.ceil(body.split(/\s+/).length / 220));
 
+  // Generate hero image — graceful failure (null imageUrl is fine)
+  const keywordsArr = Array.isArray(topic.keywords) ? (topic.keywords as string[]) : [];
+  const imageResult = await generateArticleImage(topic.titleEn, {
+    category: topic.category,
+    keywords: keywordsArr,
+  });
+  if (imageResult) {
+    log.info(`Generated hero image for ${topic.slug} (${Math.round(imageResult.sizeBytes / 1024)} KB, ${imageResult.model})`);
+  }
+
   const article = await prisma.article.upsert({
     where: { slug: topic.slug },
     create: {
@@ -256,6 +267,7 @@ async function generateOneTopic(topic: BlogTopic): Promise<{ articleId: string }
       category: topic.category,
       author: 'BabahAlgo Research Desk',
       readTime,
+      imageUrl: imageResult?.dataUri ?? null,
       isPublished: topic.autoPublish,
       publishedAt: topic.autoPublish ? new Date() : null,
     },
@@ -267,6 +279,7 @@ async function generateOneTopic(topic: BlogTopic): Promise<{ articleId: string }
       body,
       category: topic.category,
       readTime,
+      ...(imageResult ? { imageUrl: imageResult.dataUri } : {}),
       isPublished: topic.autoPublish,
       publishedAt: topic.autoPublish ? new Date() : null,
     },

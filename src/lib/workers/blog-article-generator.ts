@@ -25,6 +25,7 @@ import { getOpenRouter, DEFAULT_MODEL } from '@/lib/ai/openrouter';
 import { translateText } from '@/lib/ai/content';
 import { proxyToMasterBackend } from '@/lib/proxy/vps-client';
 import { createLogger } from '@/lib/logger';
+import { TOPIC_CATALOG, topicSpecToPrismaCreate } from '@/lib/blog/topic-catalog';
 import { generateText } from 'ai';
 import type { BlogTopic, Prisma } from '@prisma/client';
 
@@ -114,6 +115,20 @@ export async function runBlogArticleGenerator(options: BlogGenOptions = {}): Pro
         },
       });
       return { ...result, status: 'skipped', durationMs: Date.now() - start };
+    }
+
+    // Self-healing: auto-seed the catalog if BlogTopic table is empty.
+    // Removes the need for admin to manually curl /api/cron/seed-blog-topics.
+    const existingCount = await prisma.blogTopic.count();
+    if (existingCount === 0 && !options.topicSlug) {
+      log.info(`BlogTopic table empty — auto-seeding ${TOPIC_CATALOG.length} topics from catalog`);
+      for (const spec of TOPIC_CATALOG) {
+        try {
+          await prisma.blogTopic.create({ data: topicSpecToPrismaCreate(spec) });
+        } catch (err) {
+          log.warn(`Auto-seed failed for ${spec.slug}: ${err instanceof Error ? err.message : 'unknown'}`);
+        }
+      }
     }
 
     const currentWeek = currentScheduleWeek();

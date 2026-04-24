@@ -69,17 +69,27 @@ export function initCronJobs() {
     log.info('Pair brief worker enabled (4h interval, kickoff +45s)');
   }
 
-  // Blog article generator — every 12 hours (feature-flagged)
-  // Reads BlogTopic table, generates articles via OpenRouter, auto-publishes
-  // if autoPublish=true. Safe to over-trigger — idempotent on already-PUBLISHED
-  // topics unless force=true is passed.
-  if (bool('ENABLE_BLOG_GENERATOR', false)) {
+  // Blog article generator — every 12 hours, zero-touch.
+  //
+  // Auto-enabled by default when OPENROUTER_API_KEY is configured
+  // (required for AI calls). Admin can force-disable with
+  // ENABLE_BLOG_GENERATOR="0". Worker auto-seeds the BlogTopic catalog
+  // on first run if the table is empty, so no admin curl is needed
+  // post-deploy.
+  const openRouterConfigured = !!process.env.OPENROUTER_API_KEY;
+  const blogFlag = process.env.ENABLE_BLOG_GENERATOR;
+  const blogGenEnabled = blogFlag === undefined
+    ? openRouterConfigured
+    : blogFlag === '1' || blogFlag.toLowerCase() === 'true';
+  if (blogGenEnabled) {
     const intervalMs = parseInt(process.env.BLOG_GENERATOR_INTERVAL_MS || '', 10) || 12 * 60 * 60 * 1000;
     setInterval(async () => {
       try { await runBlogArticleGenerator(); } catch (err) { log.error('Blog generator error:', err); }
     }, intervalMs);
     setTimeout(() => runBlogArticleGenerator().catch((err) => log.error('Blog generator startup error:', err)), 60_000);
-    log.info(`Blog article generator enabled (${Math.round(intervalMs / 3600000)}h interval, kickoff +60s)`);
+    log.info(`Blog article generator enabled (${Math.round(intervalMs / 3600000)}h interval, kickoff +60s, auto-seed on empty catalog)`);
+  } else if (!openRouterConfigured) {
+    log.info('Blog article generator idle — OPENROUTER_API_KEY not configured');
   }
 
   // Subscription expiry — every hour (expire + send renewal reminders)

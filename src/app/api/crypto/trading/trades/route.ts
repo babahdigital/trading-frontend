@@ -13,13 +13,10 @@ export async function GET(request: NextRequest) {
   const gate = await requireCryptoEligible(request, { allowPaused: true });
   if (!gate.ok) return gate.response;
 
-  const limit = Math.min(parseInt(request.nextUrl.searchParams.get('limit') ?? '50', 10) || 50, 200);
-  const from = request.nextUrl.searchParams.get('from') ?? '';
-  const to = request.nextUrl.searchParams.get('to') ?? '';
-  const market = request.nextUrl.searchParams.get('market') ?? '';
-  const tenantId = gate.subscription.cryptoTenantId;
+  const limit = Math.min(Math.max(parseInt(request.nextUrl.searchParams.get('limit') ?? '50', 10) || 50, 1), 500);
+  const symbol = request.nextUrl.searchParams.get('symbol') ?? '';
 
-  if (!cryptoBackendConfigured() || !tenantId) {
+  if (!cryptoBackendConfigured()) {
     const items = mockTrades().slice(0, limit);
     return NextResponse.json({ source: 'mock', items, count: items.length });
   }
@@ -27,13 +24,10 @@ export async function GET(request: NextRequest) {
   try {
     const qs = new URLSearchParams();
     qs.set('limit', String(limit));
-    if (from) qs.set('from', from);
-    if (to) qs.set('to', to);
-    if (market) qs.set('market', market);
-
+    if (symbol) qs.set('symbol', symbol);
     const res = await proxyToCryptoBackend({
       scope: 'trades',
-      path: `/api/trading/${encodeURIComponent(tenantId)}/trades?${qs}`,
+      path: `/api/trades?${qs}`,
       forwardUserId: gate.userId,
     });
     if (!res.ok) {

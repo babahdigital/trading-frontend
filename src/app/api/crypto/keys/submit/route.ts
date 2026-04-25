@@ -32,15 +32,14 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Audit attempt (don't log raw key)
   const auditMeta = {
     testnet: body.testnet,
     key_prefix: body.api_key.slice(0, 6) + '…',
     submitted_at: new Date().toISOString(),
   };
 
+  // Mock fallback when backend not configured
   if (!cryptoBackendConfigured()) {
-    // Mock path: simulate happy outcome locally so onboarding flow can be demo'd
     await prisma.cryptoBotSubscription.update({
       where: { id: gate.subscription.id },
       data: {
@@ -71,14 +70,24 @@ export async function POST(request: NextRequest) {
     });
   }
 
+  // Backend path: requires existing tenant_id (provisioned earlier via admin onboarding)
+  const tenantId = gate.subscription.cryptoTenantId;
+  if (!tenantId) {
+    return NextResponse.json(
+      {
+        error: 'tenant_not_provisioned',
+        message: 'Tenant crypto Anda belum disiapkan. Hubungi support untuk provisioning awal.',
+      },
+      { status: 409 },
+    );
+  }
+
   try {
     const res = await proxyToCryptoBackend({
       scope: 'keys',
-      path: '/api/keys/submit',
+      path: `/api/tenants/${encodeURIComponent(tenantId)}/keys`,
       method: 'POST',
       body: {
-        babahalgo_user_id: gate.userId,
-        tier: gate.subscription.tier,
         api_key: body.api_key,
         api_secret: body.api_secret,
         testnet: body.testnet,
@@ -96,7 +105,7 @@ export async function POST(request: NextRequest) {
         data: {
           subscriptionId: gate.subscription.id,
           action: 'key_submit_failed',
-          metadata: { ...auditMeta, status: res.status, error_code: payload.error ?? null },
+          metadata: { ...auditMeta, status: res.status, error_code: payload.detail ?? null },
           ipAddress: request.headers.get('x-forwarded-for')?.split(',')[0] ?? null,
           userAgent: request.headers.get('user-agent') ?? null,
         },
@@ -104,14 +113,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'submit_failed', status: res.status, ...payload }, { status: res.status });
     }
 
-    const tenantId = String(payload.tenant_id ?? '');
-    const uidHash = String(payload.binance_uid_hash ?? '');
-
     await prisma.cryptoBotSubscription.update({
       where: { id: gate.subscription.id },
       data: {
-        cryptoTenantId: tenantId || gate.subscription.cryptoTenantId,
-        binanceUidHash: uidHash || gate.subscription.binanceUidHash,
         apiKeyConnected: true,
         apiKeyVerifiedAt: new Date(),
         status: 'ACTIVE',
@@ -123,13 +127,13 @@ export async function POST(request: NextRequest) {
       data: {
         subscriptionId: gate.subscription.id,
         action: 'key_submit_ok',
-        metadata: { ...auditMeta, tenant_id: tenantId, uid_hash_prefix: uidHash.slice(0, 12) + '…' },
+        metadata: auditMeta,
         ipAddress: request.headers.get('x-forwarded-for')?.split(',')[0] ?? null,
         userAgent: request.headers.get('user-agent') ?? null,
       },
     });
 
-    return NextResponse.json({ source: 'backend', ok: true, ...payload });
+    return NextResponse.json({ source: 'backend', ok: true, verified: true, ...payload });
   } catch (err) {
     log.error(`Key submit error: ${err instanceof Error ? err.message : 'unknown'}`);
     return NextResponse.json({ error: 'backend_unreachable' }, { status: 503 });

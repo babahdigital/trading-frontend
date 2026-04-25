@@ -9,24 +9,25 @@ import { createLogger } from '@/lib/logger';
 
 const log = createLogger('api/crypto/trading/positions');
 
+/**
+ * Live positions — backend auto-filters by tenant context, so we just
+ * forward `status` query (open|closing|closed|closed_external|close_failed).
+ */
 export async function GET(request: NextRequest) {
   const gate = await requireCryptoEligible(request, { allowPaused: true });
   if (!gate.ok) return gate.response;
 
-  const market = request.nextUrl.searchParams.get('market_type') ?? '';
-  const tenantId = gate.subscription.cryptoTenantId;
+  const status = request.nextUrl.searchParams.get('status') ?? 'open';
 
-  if (!cryptoBackendConfigured() || !tenantId) {
-    let items = mockPositions();
-    if (market === 'spot' || market === 'futures') items = items.filter((p) => p.market_type === market);
-    return NextResponse.json({ source: 'mock', items, count: items.length });
+  if (!cryptoBackendConfigured()) {
+    return NextResponse.json({ source: 'mock', items: mockPositions(), count: mockPositions().length });
   }
 
   try {
-    const qs = market ? `?market_type=${encodeURIComponent(market)}` : '';
+    const qs = status ? `?status=${encodeURIComponent(status)}` : '';
     const res = await proxyToCryptoBackend({
       scope: 'trades',
-      path: `/api/trading/${encodeURIComponent(tenantId)}/positions${qs}`,
+      path: `/api/positions${qs}`,
       forwardUserId: gate.userId,
     });
     if (!res.ok) {

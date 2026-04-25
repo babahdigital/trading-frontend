@@ -41,7 +41,7 @@ export async function DELETE(request: NextRequest) {
   try {
     const res = await proxyToCryptoBackend({
       scope: 'keys',
-      path: `/api/keys/${encodeURIComponent(tenantId)}`,
+      path: `/api/tenants/${encodeURIComponent(tenantId)}/keys`,
       method: 'DELETE',
       forwardUserId: gate.userId,
     });

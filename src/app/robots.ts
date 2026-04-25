@@ -2,6 +2,9 @@ import type { MetadataRoute } from 'next';
 
 const BASE_URL = 'https://babahalgo.com';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 /**
  * Dynamic robots.txt per Next.js Metadata API.
  *

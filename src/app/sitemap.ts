@@ -4,7 +4,11 @@ import { locales, defaultLocale } from '@/i18n/config';
 
 const BASE_URL = 'https://babahalgo.com';
 
-export const revalidate = 3600; // regenerate hourly so daily articles get indexed
+// Force dynamic rendering — sitemap reflects current DB state on every
+// request. Cloudflare CDN + crawler request frequency naturally bound
+// the actual DB query rate.
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 const STATIC_PAGES: { path: string; priority: number; changeFrequency: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never' }[] = [
   { path: '/', priority: 1.0, changeFrequency: 'daily' },

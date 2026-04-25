@@ -15,6 +15,7 @@ import {
   ScrollText,
   BookOpen,
   Server,
+  Zap,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ResponsiveSidebar } from '@/components/layout/responsive-sidebar';
@@ -22,6 +23,7 @@ import { AuthProvider, useAuth } from '@/lib/auth/auth-context';
 
 const navItems = [
   { href: '/portal', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/portal/signals', label: 'My Signals', icon: Zap },
   { href: '/portal/positions', label: 'Open Positions', icon: TrendingUp },
   { href: '/portal/history', label: 'Trade History', icon: History },
   { href: '/portal/performance', label: 'Performance', icon: BarChart3 },

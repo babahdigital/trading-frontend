@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';
-import { Menu, X, ChevronDown, ArrowRight, BookOpen, Users, FileCheck, ShieldCheck, Scale, Library, FileText } from 'lucide-react';
+import { Menu, X, ChevronDown, ArrowRight, BookOpen, Users, FileCheck, ShieldCheck, Scale, Library, FileText, Bitcoin, TrendingUp, Sparkles } from 'lucide-react';
 import Image from 'next/image';
 import { STRATEGY_ICONS } from '@/components/icons/strategy-icons';
 
@@ -34,19 +34,21 @@ const PLATFORM_MENU = {
 };
 
 const SOLUTIONS_MENU = {
-  individuals: [
-    { href: '/solutions/signal', label: 'Signal Service', desc: 'Starting $49/mo' },
+  forex: [
+    { href: '/solutions/signal', label: 'Signal Service', desc: 'Real-time forex signals · from $49/mo', icon: TrendingUp },
+    { href: '/solutions/pamm', label: 'PAMM Account', desc: 'Bot kelola dana · 20-30% profit share', icon: TrendingUp },
+    { href: '/solutions/license', label: 'VPS License', desc: 'Bot di VPS pribadi · from $3,000', icon: TrendingUp },
+    { href: '/solutions/institutional', label: 'Managed Account', desc: 'Custom institutional mandate', icon: Sparkles },
   ],
-  professionals: [
-    { href: '/solutions/pamm', label: 'PAMM Account', desc: 'From 20% profit share' },
-    { href: '/solutions/license', label: 'VPS License', desc: 'From $3,000' },
-  ],
-  institutions: [
-    { href: '/solutions/institutional', label: 'Managed Account', desc: 'Custom mandate' },
+  crypto: [
+    { href: '/solutions/crypto-basic', label: 'Crypto Basic', desc: '3 pair · 5x leverage · $49/mo', icon: Bitcoin },
+    { href: '/solutions/crypto-pro', label: 'Crypto Pro', desc: '8 pair · 10x leverage · $199/mo', icon: Bitcoin },
+    { href: '/solutions/crypto-hnwi', label: 'Crypto HNWI', desc: '12 pair + custom · $499/mo', icon: Bitcoin },
   ],
   register: [
-    { href: '/register/signal', label: 'Register Signal', desc: 'Self-serve signup' },
+    { href: '/register/signal', label: 'Register Signal', desc: 'Self-serve forex signup' },
     { href: '/register/pamm', label: 'Register PAMM', desc: 'Open managed account' },
+    { href: '/register/crypto', label: 'Register Crypto', desc: 'Connect Binance + activate bot' },
     { href: '/register/institutional', label: 'Institutional Inquiry', desc: 'Schedule a briefing' },
   ],
 };
@@ -247,11 +249,46 @@ export function EnterpriseNav() {
       {activeMenu === 'solutions' && (
         <div className="mega-menu" role="menu">
           <div className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-12 gap-8">
-            <div className="col-span-3">
-              <MegaMenuHeading>For Individuals</MegaMenuHeading>
+            {/* Forex column */}
+            <div className="col-span-4">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="inline-flex h-7 w-7 rounded-md bg-amber-500/15 border border-amber-500/30 items-center justify-center">
+                  <TrendingUp className="h-3.5 w-3.5 text-amber-400" />
+                </span>
+                <MegaMenuHeading className="!mb-0">Forex Products</MegaMenuHeading>
+              </div>
               <div className="space-y-0.5">
-                {SOLUTIONS_MENU.individuals.map((item) => (
-                  <MegaMenuLink key={item.href} {...item} onClick={() => setActiveMenu(null)} />
+                {SOLUTIONS_MENU.forex.map((item) => (
+                  <MegaMenuIconLink
+                    key={item.href}
+                    href={item.href}
+                    label={item.label}
+                    desc={item.desc}
+                    icon={item.icon}
+                    onClick={() => setActiveMenu(null)}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Crypto column */}
+            <div className="col-span-4">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="inline-flex h-7 w-7 rounded-md bg-violet-500/15 border border-violet-500/30 items-center justify-center">
+                  <Bitcoin className="h-3.5 w-3.5 text-violet-300" />
+                </span>
+                <MegaMenuHeading className="!mb-0">Crypto Products</MegaMenuHeading>
+              </div>
+              <div className="space-y-0.5">
+                {SOLUTIONS_MENU.crypto.map((item) => (
+                  <MegaMenuIconLink
+                    key={item.href}
+                    href={item.href}
+                    label={item.label}
+                    desc={item.desc}
+                    icon={item.icon}
+                    onClick={() => setActiveMenu(null)}
+                  />
                 ))}
               </div>
               <Link
@@ -259,26 +296,12 @@ export function EnterpriseNav() {
                 className="inline-flex items-center gap-1 mt-4 text-xs text-amber-400 hover:text-amber-300 transition-colors"
                 onClick={() => setActiveMenu(null)}
               >
-                Compare all plans <ArrowRight className="w-3 h-3" />
+                Bandingkan semua paket <ArrowRight className="w-3 h-3" />
               </Link>
             </div>
-            <div className="col-span-3">
-              <MegaMenuHeading>For Professionals</MegaMenuHeading>
-              <div className="space-y-0.5">
-                {SOLUTIONS_MENU.professionals.map((item) => (
-                  <MegaMenuLink key={item.href} {...item} onClick={() => setActiveMenu(null)} />
-                ))}
-              </div>
-            </div>
-            <div className="col-span-3">
-              <MegaMenuHeading>For Institutions</MegaMenuHeading>
-              <div className="space-y-0.5">
-                {SOLUTIONS_MENU.institutions.map((item) => (
-                  <MegaMenuLink key={item.href} {...item} onClick={() => setActiveMenu(null)} />
-                ))}
-              </div>
-            </div>
-            <div className="col-span-3 pl-8 border-l border-white/8">
+
+            {/* Get Started column */}
+            <div className="col-span-4 pl-8 border-l border-white/8">
               <MegaMenuHeading>Get Started</MegaMenuHeading>
               <div className="space-y-0.5">
                 {SOLUTIONS_MENU.register.map((item) => (
@@ -357,11 +380,30 @@ export function EnterpriseNav() {
 
             <div className="border-t border-border" />
 
-            {/* Solutions */}
+            {/* Solutions — Forex */}
             <div>
-              <MegaMenuHeading>Solutions</MegaMenuHeading>
+              <div className="flex items-center gap-2 mb-3">
+                <TrendingUp className="h-4 w-4 text-amber-400" />
+                <MegaMenuHeading className="!mb-0">Forex</MegaMenuHeading>
+              </div>
               <div className="space-y-2 pl-2">
-                {[...SOLUTIONS_MENU.individuals, ...SOLUTIONS_MENU.professionals, ...SOLUTIONS_MENU.institutions].map((item) => (
+                {SOLUTIONS_MENU.forex.map((item) => (
+                  <Link key={item.href} href={item.href} className="block py-1.5" onClick={() => setMobileOpen(false)}>
+                    <div className="text-sm">{item.label}</div>
+                    <div className="text-xs text-muted-foreground">{item.desc}</div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            {/* Solutions — Crypto */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Bitcoin className="h-4 w-4 text-violet-300" />
+                <MegaMenuHeading className="!mb-0">Crypto</MegaMenuHeading>
+              </div>
+              <div className="space-y-2 pl-2">
+                {SOLUTIONS_MENU.crypto.map((item) => (
                   <Link key={item.href} href={item.href} className="block py-1.5" onClick={() => setMobileOpen(false)}>
                     <div className="text-sm">{item.label}</div>
                     <div className="text-xs text-muted-foreground">{item.desc}</div>
@@ -470,17 +512,20 @@ function MegaMenuLink({ href, label, desc, onClick }: { href: string; label: str
   );
 }
 
-function MegaMenuIconLink({ href, label, icon: Icon, onClick }: { href: string; label: string; icon: React.ComponentType<{ className?: string }>; onClick: () => void }) {
+function MegaMenuIconLink({ href, label, desc, icon: Icon, onClick }: { href: string; label: string; desc?: string; icon: React.ComponentType<{ className?: string }>; onClick: () => void }) {
   return (
     <Link
       href={href}
-      className="flex items-center gap-3 py-2.5 px-3 -mx-3 rounded-md hover:bg-white/[0.04] transition-colors group"
+      className="flex items-start gap-3 py-2.5 px-3 -mx-3 rounded-md hover:bg-white/[0.04] transition-colors group"
       onClick={onClick}
     >
-      <span className="w-8 h-8 rounded-md bg-white/[0.04] border border-white/8 flex items-center justify-center shrink-0 group-hover:border-amber-500/30 group-hover:bg-amber-500/[0.08] transition-all">
+      <span className="w-9 h-9 rounded-md bg-white/[0.04] border border-white/8 flex items-center justify-center shrink-0 group-hover:border-amber-500/30 group-hover:bg-amber-500/[0.08] transition-all mt-0.5">
         <Icon className="w-4 h-4 text-foreground/50 group-hover:text-amber-400 transition-colors" />
       </span>
-      <span className="text-sm text-foreground group-hover:text-amber-400 transition-colors">{label}</span>
+      <span className="flex flex-col min-w-0">
+        <span className="text-sm text-foreground group-hover:text-amber-400 transition-colors leading-tight">{label}</span>
+        {desc && <span className="text-xs text-foreground/40 mt-0.5 leading-snug">{desc}</span>}
+      </span>
     </Link>
   );
 }

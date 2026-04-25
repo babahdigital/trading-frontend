@@ -1,8 +1,11 @@
 import { prisma } from '@/lib/db/prisma';
 import { getPageMetadata } from '@/lib/seo';
+import { createLogger } from '@/lib/logger';
 import { RegisterClient } from './register-client';
 
 export const dynamic = 'force-dynamic';
+
+const log = createLogger('app/register/page');
 
 export async function generateMetadata() {
   return getPageMetadata('/register', {
@@ -23,7 +26,10 @@ export default async function RegisterPage() {
       slug: t.slug, name: t.name, price: t.price, subtitle: t.subtitle,
       features: t.features, note: t.note, ctaLabel: t.ctaLabel, ctaLink: t.ctaLink,
     }));
-  } catch {}
+  } catch (err) {
+    // Falls back to RegisterClient's translated tier definitions when DB read fails
+    log.warn(`Pricing tiers fetch failed, using fallback: ${err instanceof Error ? err.message : 'unknown'}`);
+  }
 
   return <RegisterClient packages={packages} />;
 }

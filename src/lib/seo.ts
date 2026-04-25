@@ -1,5 +1,8 @@
 import { prisma } from '@/lib/db/prisma';
+import { createLogger } from '@/lib/logger';
 import type { Metadata } from 'next';
+
+const log = createLogger('lib/seo');
 
 interface PageMetaResult {
   metadata: Metadata;
@@ -28,6 +31,8 @@ export async function getPageMetadataWithStructuredData(path: string, fallback: 
         structuredData: meta.structuredData as Record<string, unknown> | undefined,
       };
     }
-  } catch {}
+  } catch (err) {
+    log.warn(`PageMeta read failed for ${path}: ${err instanceof Error ? err.message : 'unknown'}`);
+  }
   return { metadata: fallback };
 }

@@ -42,9 +42,10 @@ const SOLUTIONS_MENU = {
     { href: '/solutions/institutional', label: 'Managed Account', desc: 'Custom institutional mandate', icon: Sparkles },
   ],
   crypto: [
-    { href: '/solutions/crypto-basic', label: 'Crypto Basic', desc: '3 pair · 5x leverage · $49/mo', icon: Bitcoin },
-    { href: '/solutions/crypto-pro', label: 'Crypto Pro', desc: '8 pair · 10x leverage · $199/mo', icon: Bitcoin },
-    { href: '/solutions/crypto-hnwi', label: 'Crypto HNWI', desc: '12 pair + custom · $499/mo', icon: Bitcoin },
+    { href: '/solutions/crypto', label: 'Crypto Bot Overview', desc: 'Binance Futures · 6 strategi · 24/7', icon: Bitcoin },
+    { href: '/solutions/crypto#basic', label: 'Crypto Basic', desc: '3 pair · 5x leverage · $49/mo', icon: Bitcoin },
+    { href: '/solutions/crypto#pro', label: 'Crypto Pro', desc: '8 pair · 10x leverage · $199/mo', icon: Bitcoin },
+    { href: '/solutions/crypto#hnwi', label: 'Crypto HNWI', desc: '12 pair + custom · $499/mo', icon: Bitcoin },
   ],
   register: [
     { href: '/register/signal', label: 'Register Signal', desc: 'Self-serve forex signup' },

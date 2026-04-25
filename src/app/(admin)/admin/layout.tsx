@@ -53,6 +53,7 @@ const cmsNavItems = [
   { href: '/admin/cms/pages', label: 'Page Content', icon: Layers },
   { href: '/admin/cms/articles', label: 'Articles', icon: BookOpen },
   { href: '/admin/cms/blog-topics', label: 'Blog Topics (AI)', icon: Sparkles },
+  { href: '/admin/cms/site-settings', label: 'Site Settings', icon: Settings },
   { href: '/admin/cms/changelog', label: 'Changelog', icon: ScrollText },
   { href: '/admin/cms/inquiries', label: 'Inquiries', icon: Inbox },
 ];

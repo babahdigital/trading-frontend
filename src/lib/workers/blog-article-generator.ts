@@ -25,6 +25,8 @@ import { getOpenRouter, DEFAULT_MODEL } from '@/lib/ai/openrouter';
 import { translateText } from '@/lib/ai/content';
 import { generateArticleImage } from '@/lib/ai/image-generator';
 import { generateSeoMeta } from '@/lib/ai/seo-meta';
+import { applyAffiliateLinks } from '@/lib/blog/affiliate-links';
+import { injectInternalLinks, invalidateInternalLinkCache } from '@/lib/blog/internal-links';
 import { proxyToMasterBackend } from '@/lib/proxy/vps-client';
 import { createLogger } from '@/lib/logger';
 import { TOPIC_CATALOG, topicSpecToPrismaCreate } from '@/lib/blog/topic-catalog';
@@ -238,8 +240,7 @@ async function generateOneTopic(topic: BlogTopic): Promise<{ articleId: string }
     },
   });
 
-  // Self-heal: auto-append disclaimer if AI omitted it (common failure)
-  // before validation. Validator then re-checks the healed markdown.
+  // Self-heal: auto-append disclaimer if AI omitted it (common failure).
   const DISCLAIMER = 'Konten edukasi — bukan saran investasi. Trading forex melibatkan risiko kehilangan modal.';
   let healed = markdown.trim();
   const hasDisclaimer = /bukan saran investasi|risiko kehilangan|not investment advice/i.test(healed);
@@ -253,7 +254,18 @@ async function generateOneTopic(topic: BlogTopic): Promise<{ articleId: string }
     throw new Error(`Validation failed: ${validation.errors.join('; ')}`);
   }
 
-  const body = healed;
+  // Post-process: affiliate link injection (Exness etc.) + internal
+  // article linking (SEO juice via cross-references). Both functions
+  // protect existing markdown links + code blocks from double-wrapping.
+  healed = await applyAffiliateLinks(healed);
+  const { body: linkedBody, linkedSlugs } = await injectInternalLinks(healed, {
+    ownSlug: topic.slug,
+    maxLinks: 5,
+  });
+  if (linkedSlugs.length > 0) {
+    log.info(`Internal links added for ${topic.slug}: ${linkedSlugs.join(', ')}`);
+  }
+  const body = linkedBody;
   const readTime = Math.max(3, Math.ceil(body.split(/\s+/).length / 220));
 
   // Generate hero image — graceful failure (null imageUrl is fine).
@@ -350,6 +362,10 @@ async function generateOneTopic(topic: BlogTopic): Promise<{ articleId: string }
       lastError: null,
     },
   });
+
+  // Invalidate internal-link candidate cache so future articles see
+  // this one as a potential cross-reference target.
+  invalidateInternalLinkCache();
 
   log.info(`Generated article ${article.slug} (${inputTokens}+${outputTokens} tokens)`);
   return { articleId: article.id };

@@ -26,6 +26,8 @@ import { getOpenRouter, DEFAULT_MODEL } from '@/lib/ai/openrouter';
 import { translateText } from '@/lib/ai/content';
 import { generateArticleImage } from '@/lib/ai/image-generator';
 import { generateSeoMeta } from '@/lib/ai/seo-meta';
+import { applyAffiliateLinks } from '@/lib/blog/affiliate-links';
+import { injectInternalLinks, invalidateInternalLinkCache } from '@/lib/blog/internal-links';
 import { proxyToMasterBackend } from '@/lib/proxy/vps-client';
 import { createLogger } from '@/lib/logger';
 import { generateText } from 'ai';
@@ -252,6 +254,17 @@ export async function runDailyResearch(): Promise<DailyResearchResult> {
 
     const readTime = Math.max(3, Math.ceil(wordCount / 220));
 
+    // Post-process: affiliate links + internal cross-references
+    body = await applyAffiliateLinks(body);
+    const { body: linkedBody, linkedSlugs } = await injectInternalLinks(body, {
+      ownSlug: slug,
+      maxLinks: 5,
+    });
+    if (linkedSlugs.length > 0) {
+      log.info(`Internal links added for ${slug}: ${linkedSlugs.join(', ')}`);
+    }
+    body = linkedBody;
+
     // Generate hero image (concept-illustrative via slug hint)
     const imageResult = await generateArticleImage(built.titleEn, {
       category: config.category,
@@ -323,6 +336,8 @@ export async function runDailyResearch(): Promise<DailyResearchResult> {
     } catch (translateErr) {
       log.warn(`EN translation failed for ${slug}: ${translateErr instanceof Error ? translateErr.message : 'unknown'}`);
     }
+
+    invalidateInternalLinkCache();
 
     await prisma.workerRun.update({
       where: { id: run.id },

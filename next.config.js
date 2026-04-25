@@ -8,6 +8,18 @@ const nextConfig = {
   experimental: {
     instrumentationHook: true,
   },
+  async redirects() {
+    return [
+      // Locale-prefixed auth/admin/portal routes redirect to root
+      // (these surfaces are locale-agnostic — they read locale from cookie/UI).
+      { source: '/en/login', destination: '/login', permanent: false },
+      { source: '/id/login', destination: '/login', permanent: false },
+      { source: '/en/admin/:path*', destination: '/admin/:path*', permanent: false },
+      { source: '/id/admin/:path*', destination: '/admin/:path*', permanent: false },
+      { source: '/en/portal/:path*', destination: '/portal/:path*', permanent: false },
+      { source: '/id/portal/:path*', destination: '/portal/:path*', permanent: false },
+    ];
+  },
 };
 
 const withIntl = withNextIntl(nextConfig);

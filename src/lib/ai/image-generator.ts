@@ -29,22 +29,27 @@ const POLLINATIONS_BASE = 'https://image.pollinations.ai/prompt';
 const DEFAULT_MODEL = 'flux'; // Pollinations model name
 
 /**
- * Brand style suffix. Pitched as educational technical diagram, NOT
- * decorative magazine cover — the image should EXPLAIN a concept to a
- * trader reading the article.
+ * Brand style suffix. Pitched as a professional Bloomberg / Reuters
+ * terminal aesthetic — the image should look like an institutional
+ * trading desk hero photograph, not a generic AI render.
  */
 const BRAND_PROMPT_SUFFIX =
-  'Style: clean educational technical diagram, financial chart illustration, '
-  + 'annotated candlestick chart OR conceptual data visualization, dark navy (#0B1220) background, '
-  + 'amber (#F5B547) highlights on key elements, green and red candles, gridlines subtle, '
-  + 'professional trading terminal aesthetic, no text labels, no typography, no watermarks, '
-  + 'landscape 16:9 composition, high detail, photorealistic chart rendering.';
+  'Style: ultra-detailed professional financial trading terminal photography, '
+  + 'institutional Wall Street aesthetic, Bloomberg-grade visual quality, '
+  + 'dark navy (#0B1220) background with subtle blue gradient depth, '
+  + 'amber (#F5B547) accent highlights on key data points, '
+  + 'green and red candlesticks with crisp wicks and clean bodies, '
+  + 'subtle horizontal gridlines, depth-of-field focus, cinematic lighting, '
+  + '8k resolution, editorial-quality composition, high contrast, sharp details, '
+  + 'volumetric atmosphere, premium quant-finance magazine cover aesthetic, '
+  + 'no logos, no watermarks, photorealistic rendering. '
+  + 'Format: 16:9 cinematic landscape composition.';
 
 export interface ImageGenerationOptions {
-  /** Pollinations model name: 'flux' | 'turbo' (flux = highest quality default) */
+  /** Pollinations model: 'flux' (default, best quality) | 'turbo' (faster, lower quality) */
   model?: string;
-  /** Image size; flux best at 1280x720 landscape */
-  size?: '1024x1024' | '1280x720' | '1920x1080';
+  /** Image size; default upgraded to 1920x1080 for premium quality */
+  size?: '1024x1024' | '1280x720' | '1536x864' | '1920x1080';
   /** Additional context keywords (topic keywords[] array) */
   keywords?: string[];
   /** Category for stylistic hinting */
@@ -53,6 +58,8 @@ export interface ImageGenerationOptions {
   slug?: string;
   /** Deterministic seed (same seed + same prompt = same image) */
   seed?: number;
+  /** If true, requests private (uncached) generation */
+  private?: boolean;
   /** Abort signal */
   signal?: AbortSignal;
 }
@@ -150,7 +157,9 @@ export async function generateArticleImage(
   options: ImageGenerationOptions = {},
 ): Promise<ImageGenerationResult | null> {
   const model = options.model ?? DEFAULT_MODEL;
-  const size = options.size ?? '1280x720';
+  // Default upgraded to 1536x864 — premium quality without massive bandwidth.
+  // Articles with high-impact slugs may override to 1920x1080.
+  const size = options.size ?? '1536x864';
   const [widthStr, heightStr] = size.split('x');
   const width = parseInt(widthStr, 10);
   const height = parseInt(heightStr, 10);
@@ -159,7 +168,7 @@ export async function generateArticleImage(
   const prompt = buildImagePrompt(subject, { category: options.category, keywords: options.keywords, slug: options.slug });
 
   // Pollinations accepts prompt in URL path (encoded). Query params
-  // control size, seed, model, nologo (strip watermark).
+  // control size, seed, model, nologo, enhance (prompt expansion via LLM).
   const url = new URL(`${POLLINATIONS_BASE}/${encodeURIComponent(prompt)}`);
   url.searchParams.set('width', String(width));
   url.searchParams.set('height', String(height));
@@ -167,6 +176,7 @@ export async function generateArticleImage(
   url.searchParams.set('model', model);
   url.searchParams.set('nologo', 'true');
   url.searchParams.set('enhance', 'true');
+  if (options.private) url.searchParams.set('private', 'true');
 
   try {
     const res = await fetch(url.toString(), {

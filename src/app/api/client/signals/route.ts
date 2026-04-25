@@ -4,6 +4,7 @@ export const runtime = 'nodejs';
 import { NextRequest, NextResponse } from 'next/server';
 import { proxyToMasterBackend } from '@/lib/proxy/vps-client';
 import { prisma } from '@/lib/db/prisma';
+import { requireSignalEligible } from '@/lib/auth/client-eligibility';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('api/client/signals');
@@ -23,37 +24,8 @@ const log = createLogger('api/client/signals');
  * (graceful degradation — customer still sees recent history during outage).
  */
 export async function GET(request: NextRequest) {
-  const userId = request.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-  // Resolve user tier — read from User + active Subscription/License
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    include: {
-      subscriptions: { where: { status: 'ACTIVE' }, orderBy: { startsAt: 'desc' }, take: 1 },
-      licenses: { where: { status: 'ACTIVE' }, orderBy: { startsAt: 'desc' }, take: 1 },
-    },
-  });
-  if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
-
-  const role = request.headers.get('x-user-role');
-  const isAdmin = role === 'ADMIN';
-  const subscriptionTier = user.subscriptions[0]?.tier ?? null;
-  const licenseType = user.licenses[0]?.type ?? null;
-
-  // Eligibility: ADMIN bypass OR has Signal/PAMM subscription OR has VPS_INSTALLATION license
-  const eligible = isAdmin
-    || (subscriptionTier && /^SIGNAL_|^PAMM_/i.test(subscriptionTier))
-    || licenseType === 'VPS_INSTALLATION'
-    || licenseType === 'SIGNAL_SUBSCRIBER';
-
-  if (!eligible) {
-    return NextResponse.json({
-      error: 'Subscription required',
-      message: 'Berlangganan Signal Service untuk mengakses sinyal real-time.',
-      ctaUrl: '/register/signal',
-    }, { status: 403 });
-  }
+  const gate = await requireSignalEligible(request);
+  if (!gate.ok) return gate.response;
 
   // Forward query params (since_id, limit, min_confidence, pair)
   const sinceId = request.nextUrl.searchParams.get('since_id') ?? '';
@@ -78,7 +50,7 @@ export async function GET(request: NextRequest) {
         source: 'backend',
         items,
         count: items.length,
-        tier: subscriptionTier ?? licenseType ?? 'FREE',
+        tier: gate.effectiveTier,
       });
     }
     log.warn(`Signals backend HTTP ${res.status}`);
@@ -107,7 +79,7 @@ export async function GET(request: NextRequest) {
       source: 'local-fallback',
       items: items.map((i) => ({ ...i, sourceId: i.sourceId.toString() })),
       count: items.length,
-      tier: subscriptionTier ?? licenseType ?? 'FREE',
+      tier: gate.effectiveTier,
     });
   } catch (err) {
     log.error(`Signals fallback error: ${err instanceof Error ? err.message : 'unknown'}`);

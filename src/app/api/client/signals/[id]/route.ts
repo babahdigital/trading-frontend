@@ -4,6 +4,7 @@ export const runtime = 'nodejs';
 import { NextRequest, NextResponse } from 'next/server';
 import { proxyToMasterBackend } from '@/lib/proxy/vps-client';
 import { prisma } from '@/lib/db/prisma';
+import { requireSignalEligible } from '@/lib/auth/client-eligibility';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('api/client/signals/detail');
@@ -16,30 +17,11 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const userId = request.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const gate = await requireSignalEligible(request);
+  if (!gate.ok) return gate.response;
 
   const { id } = await params;
   if (!id) return NextResponse.json({ error: 'Signal ID required' }, { status: 400 });
-
-  // Eligibility check (mirror of list endpoint)
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    include: {
-      subscriptions: { where: { status: 'ACTIVE' }, take: 1 },
-      licenses: { where: { status: 'ACTIVE' }, take: 1 },
-    },
-  });
-  if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
-
-  const role = request.headers.get('x-user-role');
-  const tierOk = role === 'ADMIN'
-    || /^SIGNAL_|^PAMM_/i.test(user.subscriptions[0]?.tier ?? '')
-    || ['VPS_INSTALLATION', 'SIGNAL_SUBSCRIBER'].includes(user.licenses[0]?.type ?? '');
-
-  if (!tierOk) {
-    return NextResponse.json({ error: 'Subscription required' }, { status: 403 });
-  }
 
   // Try master backend
   try {

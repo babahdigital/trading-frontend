@@ -252,7 +252,10 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
+  // Exclude SEO files (sitemap.xml, robots.txt) + Next.js static assets
+  // from the middleware so next-intl doesn't rewrite them under /id/.
+  // Sitemap + robots must be served at root regardless of locale.
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    '/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|manifest.json|logo/).*)',
   ],
 };

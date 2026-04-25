@@ -11,27 +11,45 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+function safeLocalGet(key: string): string {
+  if (typeof window === 'undefined') return '';
+  try {
+    return window.localStorage.getItem(key) ?? '';
+  } catch {
+    return '';
+  }
+}
+
+function safeLocalRemove(key: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.removeItem(key);
+  } catch { /* storage disabled (private mode) — non-fatal */ }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   const getAuthHeaders = useCallback((): HeadersInit => {
     return {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${typeof window !== 'undefined' ? localStorage.getItem('access_token') ?? '' : ''}`,
+      Authorization: `Bearer ${safeLocalGet('access_token')}`,
     };
   }, []);
 
   const getAuthToken = useCallback((): HeadersInit => {
     return {
-      Authorization: `Bearer ${typeof window !== 'undefined' ? localStorage.getItem('access_token') ?? '' : ''}`,
+      Authorization: `Bearer ${safeLocalGet('access_token')}`,
     };
   }, []);
 
   const logout = useCallback(() => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('user');
-    document.cookie = 'access_token=; path=/; max-age=0';
+    safeLocalRemove('access_token');
+    safeLocalRemove('refresh_token');
+    safeLocalRemove('user');
+    if (typeof document !== 'undefined') {
+      document.cookie = 'access_token=; path=/; max-age=0';
+    }
     router.push('/login');
   }, [router]);
 

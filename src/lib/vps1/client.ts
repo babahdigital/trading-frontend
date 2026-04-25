@@ -22,7 +22,11 @@ function tokenFor(scope: Scope): string | undefined {
 }
 
 function baseUrl(): string {
-  return process.env.VPS1_BACKEND_URL || 'http://127.0.0.1:18000';
+  const url = process.env.VPS1_BACKEND_URL;
+  if (!url) {
+    throw new Vps1Error(503, 'VPS1_BACKEND_URL not configured — backend forex tidak dapat dijangkau.');
+  }
+  return url;
 }
 
 export class Vps1Error extends Error {

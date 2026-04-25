@@ -110,6 +110,18 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const host = request.headers.get('host') ?? '';
 
+  // Locale-prefixed app surfaces (auth/admin/portal) → strip prefix.
+  // These pages are locale-agnostic — they read locale from cookie/UI,
+  // not URL. Without this redirect, /en/login 404s because no
+  // [locale]/login route exists.
+  const localeStripMatch = pathname.match(/^\/(en|id)(\/(login|admin|portal)(\/.*)?$)/);
+  if (localeStripMatch) {
+    const stripped = localeStripMatch[2]; // /login or /admin/... or /portal/...
+    const url = request.nextUrl.clone();
+    url.pathname = stripped;
+    return NextResponse.redirect(url, 308);
+  }
+
   // api.babahalgo.com subdomain → rewrite to /api/* routes
   if (host.startsWith('api.')) {
     // Health check at root

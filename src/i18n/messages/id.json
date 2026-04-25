@@ -224,5 +224,56 @@
     },
     "not_found": "Data tidak ditemukan.",
     "unknown": "Terjadi kesalahan yang tidak diketahui."
+  },
+  "auth": {
+    "welcome_back": "Selamat datang kembali.",
+    "sign_in_subtitle": "Masuk untuk melanjutkan.",
+    "mode_admin": "Admin / PAMM",
+    "mode_license": "License Key",
+    "email": "Email",
+    "email_placeholder": "anda@perusahaan.com",
+    "license_key": "License Key",
+    "license_placeholder": "TRAD-XXXX-XXXX-XXXX-XXXX",
+    "mt5_account": "Akun MT5",
+    "mt5_placeholder": "12345678",
+    "password": "Password",
+    "password_placeholder": "Masukkan password",
+    "sign_in": "Masuk",
+    "signing_in": "Memproses…",
+    "forgot_password": "Lupa password?",
+    "need_access": "Butuh akses? Hubungi kami",
+    "tagline_quote": "Disiplin bukan strategi. Ia adalah fondasi tempat setiap strategi harus berjalan.",
+    "tagline_attribution": "— Manifesto BabahAlgo",
+    "login_failed": "Login gagal",
+    "network_error": "Gangguan jaringan. Coba lagi."
+  },
+  "register": {
+    "title": "Pilih Paket yang Sesuai",
+    "subtitle": "Tiga model layanan untuk berbagai profil trader institusional.",
+    "tier_signal_name": "Signal Subscriber",
+    "tier_signal_desc": "Sinyal real-time dari bot BabahAlgo dengan transparansi penuh.",
+    "tier_pamm_name": "PAMM Account",
+    "tier_pamm_desc": "Bot mengelola dana Anda di akun broker dengan profit share.",
+    "tier_vps_name": "VPS License",
+    "tier_vps_desc": "Bot terinstal di VPS pribadi Anda — kontrol penuh, satu kali bayar.",
+    "tier_crypto_name": "Crypto Bot",
+    "tier_crypto_desc": "Trading otomatis Binance Futures dengan strategi institusional.",
+    "starts_from": "Mulai dari",
+    "select_package": "Pilih Paket Ini",
+    "have_account": "Sudah punya akun?",
+    "sign_in_link": "Masuk di sini"
+  },
+  "kyc": {
+    "title": "Verifikasi Identitas",
+    "status_label": "Status",
+    "submit": "Submit untuk Review",
+    "view_form": "Lengkapi Formulir"
+  },
+  "crypto": {
+    "title": "Crypto Bot",
+    "subtitle": "Trading otomatis Binance Futures dengan strategi institusional, 24/7.",
+    "disclaimer": "Trading kripto sangat volatil. Kinerja masa lalu tidak menjamin hasil masa depan. Anda tetap memegang kendali penuh atas API key — kami tidak bisa withdraw dana Anda.",
+    "subscription_required": "Belum berlangganan",
+    "connect_binance": "Hubungkan Binance"
   }
 }

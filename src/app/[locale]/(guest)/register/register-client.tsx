@@ -1,7 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import Image from 'next/image';
+import { useTranslations } from 'next-intl';
+import { Check, ChevronRight, TrendingUp, Coins, Server, Bitcoin } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { LanguageSwitcher } from '@/components/ui/language-switcher';
+import { cn } from '@/lib/utils';
 
 interface PackageData {
   slug: string;
@@ -14,75 +19,160 @@ interface PackageData {
   ctaLink: string;
 }
 
-const FALLBACK_PACKAGES: PackageData[] = [
-  {
-    slug: 'signal', name: 'Signal Subscriber', price: '$49 - $149/bulan', subtitle: 'Terima sinyal trading otomatis ke dashboard Anda.',
-    features: ['Dashboard monitoring', 'Sinyal real-time', 'Laporan harian', 'Support via Telegram'],
-    note: null, ctaLabel: 'Daftar Sekarang', ctaLink: '/register/signal',
-  },
-  {
-    slug: 'pamm', name: 'PAMM Account', price: '20-30% profit share', subtitle: 'CopyTrade otomatis — dana dikelola oleh bot AI.',
-    features: ['CopyTrade otomatis', 'Dashboard monitoring', 'Laporan harian', 'Profit sharing transparan'],
-    note: null, ctaLabel: 'Daftar Sekarang', ctaLink: '/register/pamm',
-  },
-  {
-    slug: 'vps', name: 'VPS License', price: '$3,000 - $7,500 setup', subtitle: 'Dedicated VPS dengan full bot access.',
-    features: ['VPS dedicated', 'Full bot access', 'Priority support 24/7', 'Custom konfigurasi'],
-    note: '+ $150-300/bulan maintenance', ctaLabel: 'Konsultasi', ctaLink: '/register/vps',
-  },
-];
+const ICON_BY_SLUG: Record<string, typeof TrendingUp> = {
+  signal: TrendingUp,
+  'signal-basic': TrendingUp,
+  'signal-vip': TrendingUp,
+  pamm: Coins,
+  'pamm-basic': Coins,
+  'pamm-pro': Coins,
+  vps: Server,
+  'vps-license': Server,
+  crypto: Bitcoin,
+  'crypto-basic': Bitcoin,
+  'crypto-pro': Bitcoin,
+  'crypto-hnwi': Bitcoin,
+};
+
+function pickIcon(slug: string) {
+  const normalized = slug.toLowerCase();
+  for (const [key, Icon] of Object.entries(ICON_BY_SLUG)) {
+    if (normalized.includes(key)) return Icon;
+  }
+  return TrendingUp;
+}
 
 export function RegisterClient({ packages }: { packages: PackageData[] }) {
+  const t = useTranslations('register');
+
+  // Local fallback uses translations for resilience when DB empty.
+  const FALLBACK_PACKAGES: PackageData[] = [
+    {
+      slug: 'signal', name: t('tier_signal_name'), price: '$49 — $149 / bulan', subtitle: t('tier_signal_desc'),
+      features: ['Dashboard real-time', 'Sinyal Forex + Komoditas', 'Audit log + transparency', 'Telegram notification'],
+      note: null, ctaLabel: t('select_package'), ctaLink: '/register/signal',
+    },
+    {
+      slug: 'pamm', name: t('tier_pamm_name'), price: '20–30% profit share', subtitle: t('tier_pamm_desc'),
+      features: ['Bot kelola dana di akun Anda', 'Profit share transparan', 'Equity curve real-time', 'Withdraw kapan saja'],
+      note: null, ctaLabel: t('select_package'), ctaLink: '/register/pamm',
+    },
+    {
+      slug: 'vps', name: t('tier_vps_name'), price: '$3,000 — $7,500 setup', subtitle: t('tier_vps_desc'),
+      features: ['Dedicated VPS', 'Full bot access', 'Priority support 24/7', 'Konfigurasi kustom'],
+      note: '+ $150–300 / bulan maintenance', ctaLabel: t('select_package'), ctaLink: '/register/vps',
+    },
+    {
+      slug: 'crypto', name: t('tier_crypto_name'), price: '$49 — $499 / bulan', subtitle: t('tier_crypto_desc'),
+      features: ['Binance Futures bot', 'SMC + Wyckoff strategy', 'Risk management institusional', 'Kill switch ekstrem'],
+      note: '+ profit share 10–20%', ctaLabel: t('select_package'), ctaLink: '/register/crypto',
+    },
+  ];
+
   const displayPkgs = packages.length > 0 ? packages : FALLBACK_PACKAGES;
 
   return (
     <div className="min-h-screen bg-background">
-      <nav className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="text-lg font-bold text-primary">BabahAlgo</Link>
-          <Link href="/login" className="px-4 py-2 rounded-lg border border-border text-sm hover:bg-accent transition-colors">
-            Login
+      <nav className="sticky top-0 z-50 border-b border-white/10 bg-background/80 backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2">
+            <Image
+              src="/logo/babahalgo-horizontal-inverse.png"
+              alt="BabahAlgo"
+              width={130}
+              height={26}
+              className="h-6 sm:h-7 w-auto hidden dark:block"
+              priority
+            />
+            <Image
+              src="/logo/babahalgo-horizontal-dual.png"
+              alt="BabahAlgo"
+              width={130}
+              height={26}
+              className="h-6 sm:h-7 w-auto dark:hidden"
+              priority
+            />
           </Link>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <LanguageSwitcher />
+            <Link
+              href="/login"
+              className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg border border-white/15 text-xs sm:text-sm font-medium hover:bg-accent hover:border-amber-500/30 transition-colors"
+            >
+              {t('have_account')}
+            </Link>
+          </div>
         </div>
       </nav>
 
-      <div className="max-w-5xl mx-auto px-4 py-16">
-        <div className="text-center mb-12">
-          <h1 className="text-3xl md:text-4xl font-bold mb-4">Pilih Paket yang Sesuai</h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Tiga model layanan untuk kebutuhan yang berbeda. Mulai dari sinyal trading hingga dedicated VPS.
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-16 lg:py-20">
+        <div className="text-center mb-10 sm:mb-14 max-w-3xl mx-auto">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4 leading-tight">
+            {t('title')}
+          </h1>
+          <p className="text-muted-foreground text-base sm:text-lg leading-relaxed">
+            {t('subtitle')}
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
           {displayPkgs.map((pkg) => {
-            const features = Array.isArray(pkg.features) ? pkg.features as string[] : [];
+            const features = Array.isArray(pkg.features) ? (pkg.features as string[]) : [];
+            const Icon = pickIcon(pkg.slug);
             return (
-              <Card key={pkg.slug} className="flex flex-col">
-                <CardHeader>
-                  <CardTitle>{pkg.name}</CardTitle>
-                  <CardDescription>{pkg.subtitle}</CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1 flex flex-col">
-                  <div className="text-2xl font-bold text-primary mb-4">{pkg.price}</div>
-                  <div className="flex-1 space-y-2 mb-6">
-                    {features.map((f) => (
-                      <div key={String(f)} className="flex items-center gap-2 text-sm">
-                        <span className="text-green-400">&#10003;</span> {String(f)}
-                      </div>
-                    ))}
+              <Card
+                key={pkg.slug}
+                className={cn(
+                  'flex flex-col group transition-all duration-200',
+                  'hover:border-amber-500/40 hover:shadow-lg hover:-translate-y-0.5',
+                )}
+              >
+                <CardContent className="p-5 sm:p-6 flex flex-col flex-1">
+                  <div className="flex items-center gap-3 mb-4">
+                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400">
+                      <Icon className="h-5 w-5" />
+                    </span>
+                    <h2 className="font-bold text-lg leading-tight">{pkg.name}</h2>
                   </div>
-                  {pkg.note && <p className="text-xs text-muted-foreground mb-4">* {pkg.note}</p>}
+
+                  {pkg.subtitle && (
+                    <p className="text-sm text-muted-foreground mb-4 leading-relaxed">{pkg.subtitle}</p>
+                  )}
+
+                  <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">{t('starts_from')}</div>
+                  <div className="text-xl sm:text-2xl font-bold font-mono mb-5 text-amber-300">{pkg.price}</div>
+
+                  <ul className="flex-1 space-y-2.5 mb-6">
+                    {features.map((f, idx) => (
+                      <li key={idx} className="flex items-start gap-2 text-sm">
+                        <Check className="h-4 w-4 text-green-400 shrink-0 mt-0.5" />
+                        <span className="text-foreground/80">{String(f)}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  {pkg.note && (
+                    <p className="text-[11px] text-muted-foreground/70 mb-4 leading-relaxed">* {pkg.note}</p>
+                  )}
+
                   <Link
                     href={pkg.ctaLink}
-                    className="block text-center px-4 py-3 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
+                    className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 active:scale-[0.98] transition-all group-hover:gap-3"
                   >
                     {pkg.ctaLabel}
+                    <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                   </Link>
                 </CardContent>
               </Card>
             );
           })}
+        </div>
+
+        <div className="mt-12 text-center text-sm text-muted-foreground">
+          {t('have_account')}{' '}
+          <Link href="/login" className="text-amber-400 hover:underline font-medium">
+            {t('sign_in_link')}
+          </Link>
         </div>
       </div>
     </div>

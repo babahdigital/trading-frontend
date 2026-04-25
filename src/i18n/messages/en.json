@@ -224,5 +224,56 @@
     },
     "not_found": "Resource not found.",
     "unknown": "An unknown error occurred."
+  },
+  "auth": {
+    "welcome_back": "Welcome back.",
+    "sign_in_subtitle": "Sign in to continue.",
+    "mode_admin": "Admin / PAMM",
+    "mode_license": "License Key",
+    "email": "Email",
+    "email_placeholder": "you@company.com",
+    "license_key": "License Key",
+    "license_placeholder": "TRAD-XXXX-XXXX-XXXX-XXXX",
+    "mt5_account": "MT5 Account",
+    "mt5_placeholder": "12345678",
+    "password": "Password",
+    "password_placeholder": "Enter password",
+    "sign_in": "Sign In",
+    "signing_in": "Signing in…",
+    "forgot_password": "Forgot password?",
+    "need_access": "Need access? Contact us",
+    "tagline_quote": "Discipline isn't a strategy. It's the substrate every strategy must run on.",
+    "tagline_attribution": "— From the BabahAlgo manifesto",
+    "login_failed": "Login failed",
+    "network_error": "Network error. Please try again."
+  },
+  "register": {
+    "title": "Choose the right package",
+    "subtitle": "Three service models for different institutional trader profiles.",
+    "tier_signal_name": "Signal Subscriber",
+    "tier_signal_desc": "Real-time signals from the BabahAlgo bot with full transparency.",
+    "tier_pamm_name": "PAMM Account",
+    "tier_pamm_desc": "Our bot manages your funds in your broker account on a profit-share basis.",
+    "tier_vps_name": "VPS License",
+    "tier_vps_desc": "Bot installed on your private VPS — full control, one-time payment.",
+    "tier_crypto_name": "Crypto Bot",
+    "tier_crypto_desc": "Automated Binance Futures trading with institutional strategies.",
+    "starts_from": "Starts from",
+    "select_package": "Choose This Package",
+    "have_account": "Already have an account?",
+    "sign_in_link": "Sign in here"
+  },
+  "kyc": {
+    "title": "Identity Verification",
+    "status_label": "Status",
+    "submit": "Submit for Review",
+    "view_form": "Complete Form"
+  },
+  "crypto": {
+    "title": "Crypto Bot",
+    "subtitle": "Automated Binance Futures trading with institutional strategies, 24/7.",
+    "disclaimer": "Crypto assets are highly volatile. Past performance does not guarantee future results. You retain full control over your API key — we cannot withdraw your funds.",
+    "subscription_required": "No active subscription",
+    "connect_binance": "Connect Binance"
   }
 }

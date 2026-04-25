@@ -2,11 +2,15 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { AuthLocaleSwitcher } from '@/components/ui/auth-locale-switcher';
 import Image from 'next/image';
 
 export default function LoginPage() {
+  const t = useTranslations('auth');
+  const tErr = useTranslations('errors');
   const router = useRouter();
   const [mode, setMode] = useState<'admin' | 'license'>('admin');
   const [loading, setLoading] = useState(false);
@@ -36,7 +40,7 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || 'Login failed');
+        setError(data.error || t('login_failed'));
         return;
       }
 
@@ -52,16 +56,24 @@ export default function LoginPage() {
         router.push('/portal');
       }
     } catch {
-      setError('Network error. Please try again.');
+      setError(t('network_error'));
     } finally {
       setLoading(false);
     }
   }
 
+  // Suppress unused t for translations; namespace lookup
+  void tErr;
+
   return (
     <div className="min-h-screen grid lg:grid-cols-5">
       {/* Left — Form (60%) */}
-      <div className="col-span-3 flex flex-col justify-center px-6 sm:px-12 lg:px-20 py-12">
+      <div className="col-span-3 flex flex-col justify-center px-6 sm:px-12 lg:px-20 py-12 relative">
+        {/* Locale switcher (top-right of form panel) */}
+        <div className="absolute top-6 right-6 sm:top-8 sm:right-8">
+          <AuthLocaleSwitcher />
+        </div>
+
         <div className="w-full max-w-md mx-auto lg:mx-0">
           {/* Logo */}
           <Image
@@ -70,6 +82,7 @@ export default function LoginPage() {
             width={140}
             height={28}
             className="h-7 w-auto mb-12 hidden dark:block"
+            priority
           />
           <Image
             src="/logo/babahalgo-horizontal-dual.png"
@@ -77,10 +90,11 @@ export default function LoginPage() {
             width={140}
             height={28}
             className="h-7 w-auto mb-12 dark:hidden"
+            priority
           />
 
-          <h1 className="t-display-sub mb-2">Welcome back.</h1>
-          <p className="t-body text-foreground/60 mb-10">Sign in to continue.</p>
+          <h1 className="t-display-sub mb-2">{t('welcome_back')}</h1>
+          <p className="t-body text-foreground/60 mb-10">{t('sign_in_subtitle')}</p>
 
           {/* Mode toggle */}
           <div className="tab-bar mb-8">
@@ -89,81 +103,90 @@ export default function LoginPage() {
               onClick={() => setMode('admin')}
               className={`tab-btn ${mode === 'admin' ? 'active' : ''}`}
             >
-              Admin / PAMM
+              {t('mode_admin')}
             </button>
             <button
               type="button"
               onClick={() => setMode('license')}
               className={`tab-btn ${mode === 'license' ? 'active' : ''}`}
             >
-              License Key
+              {t('mode_license')}
             </button>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {mode === 'admin' ? (
               <div>
-                <label className="t-eyebrow mb-2 block">Email</label>
+                <label className="t-eyebrow mb-2 block" htmlFor="email-input">{t('email')}</label>
                 <Input
+                  id="email-input"
                   type="email"
-                  placeholder="you@company.com"
+                  placeholder={t('email_placeholder')}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="font-mono"
                   required
+                  autoComplete="email"
                 />
               </div>
             ) : (
               <>
                 <div>
-                  <label className="t-eyebrow mb-2 block">License Key</label>
+                  <label className="t-eyebrow mb-2 block" htmlFor="license-input">{t('license_key')}</label>
                   <Input
-                    placeholder="TRAD-XXXX-XXXX-XXXX-XXXX"
+                    id="license-input"
+                    placeholder={t('license_placeholder')}
                     value={licenseKey}
                     onChange={(e) => setLicenseKey(e.target.value)}
                     className="font-mono"
                     required
+                    autoComplete="off"
                   />
                 </div>
                 <div>
-                  <label className="t-eyebrow mb-2 block">MT5 Account</label>
+                  <label className="t-eyebrow mb-2 block" htmlFor="mt5-input">{t('mt5_account')}</label>
                   <Input
-                    placeholder="12345678"
+                    id="mt5-input"
+                    placeholder={t('mt5_placeholder')}
                     value={mt5Account}
                     onChange={(e) => setMt5Account(e.target.value)}
                     className="font-mono"
+                    autoComplete="off"
+                    inputMode="numeric"
                   />
                 </div>
               </>
             )}
 
             <div>
-              <label className="t-eyebrow mb-2 block">Password</label>
+              <label className="t-eyebrow mb-2 block" htmlFor="password-input">{t('password')}</label>
               <Input
+                id="password-input"
                 type="password"
-                placeholder="Enter password"
+                placeholder={t('password_placeholder')}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                autoComplete="current-password"
               />
             </div>
 
             {error && (
-              <div className="text-sm text-red-400 bg-red-400/10 p-3 rounded-md">
+              <div className="text-sm text-red-400 bg-red-400/10 p-3 rounded-md" role="alert">
                 {error}
               </div>
             )}
 
             <Button type="submit" className="btn-primary w-full h-12 text-sm font-medium" disabled={loading}>
-              {loading ? 'Signing in...' : 'Sign In'}
+              {loading ? t('signing_in') : t('sign_in')}
             </Button>
 
-            <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center justify-between text-sm flex-wrap gap-2">
               <a href="/contact" className="text-foreground/50 hover:text-amber-400 transition-colors">
-                Forgot password?
+                {t('forgot_password')}
               </a>
               <a href="/contact" className="text-foreground/50 hover:text-amber-400 transition-colors">
-                Need access? Contact us
+                {t('need_access')}
               </a>
             </div>
           </form>
@@ -174,8 +197,8 @@ export default function LoginPage() {
       <div
         className="hidden lg:flex col-span-2 flex-col justify-center items-center px-12 relative"
         style={{ background: 'var(--brand-midnight)' }}
+        aria-hidden="true"
       >
-        {/* Subtle texture overlay */}
         <div className="absolute inset-0 opacity-[0.03]" style={{
           backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.3) 1px, transparent 0)',
           backgroundSize: '24px 24px',
@@ -184,10 +207,10 @@ export default function LoginPage() {
         <div className="relative max-w-sm text-center">
           <div className="w-12 h-px bg-amber-500/40 mx-auto mb-8" />
           <blockquote className="font-display text-[28px] leading-snug italic text-foreground/80 mb-8">
-            &ldquo;Discipline isn&rsquo;t a strategy. It&rsquo;s the substrate every strategy must run on.&rdquo;
+            &ldquo;{t('tagline_quote')}&rdquo;
           </blockquote>
           <p className="t-body-sm text-foreground/40 tracking-wide">
-            From the BabahAlgo manifesto
+            {t('tagline_attribution')}
           </p>
           <div className="w-12 h-px bg-amber-500/40 mx-auto mt-8" />
         </div>

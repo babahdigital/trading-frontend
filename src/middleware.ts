@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
 import createIntlMiddleware from 'next-intl/middleware';
 import { locales, defaultLocale } from '@/i18n/config';
+import { resolveCountryByIp } from '@/lib/geoip/fallback';
 
 const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 
@@ -40,11 +41,18 @@ const intlMiddleware = createIntlMiddleware({
 });
 
 /**
- * Detect preferred locale from Cloudflare CF-IPCountry header.
- * Indonesian IPs → 'id', all others → 'en'.
- * Only redirects on first visit (no locale cookie yet, no explicit locale prefix).
+ * Detect preferred locale from CF-IPCountry header (Cloudflare) with
+ * graceful fallback to ipapi.co Geo-IP lookup when header is missing.
+ *
+ * Strategy:
+ * 1. Skip if URL already has explicit locale prefix or user already has NEXT_LOCALE cookie.
+ * 2. Read CF-IPCountry → fast path, no outbound call.
+ * 3. Else, ask resolveCountryByIp (cached, 1.5s timeout).
+ * 4. If still unknown → safe default = 'en' (international visitor most likely).
+ *
+ * Always sets NEXT_LOCALE cookie so subsequent requests skip detection (flicker-free).
  */
-function detectGeoLocale(request: NextRequest): NextResponse | null {
+async function detectGeoLocale(request: NextRequest): Promise<NextResponse | null> {
   const { pathname } = request.nextUrl;
 
   // Skip if user already has a locale prefix in URL (explicit choice)
@@ -56,15 +64,40 @@ function detectGeoLocale(request: NextRequest): NextResponse | null {
   // Skip if user already has NEXT_LOCALE cookie (returning visitor with preference)
   if (request.cookies.get('NEXT_LOCALE')) return null;
 
-  // Read Cloudflare country header
-  const country = request.headers.get('cf-ipcountry')?.toUpperCase();
+  // 1. Cloudflare header (fast path)
+  let country = request.headers.get('cf-ipcountry')?.toUpperCase() ?? null;
 
-  // If from Indonesia (or unknown/localhost), serve default locale (id) — no redirect needed
-  if (!country || country === 'ID' || country === 'XX' || country === 'T1') {
-    return null;
+  // 2. Fallback to ipapi.co (cached + timeout-bounded) if missing
+  if (!country || country === 'XX' || country === 'T1') {
+    const clientIp =
+      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+      request.headers.get('x-real-ip') ||
+      '';
+    if (clientIp) {
+      try {
+        country = await resolveCountryByIp(clientIp);
+      } catch {
+        country = null;
+      }
+    }
   }
 
-  // Non-Indonesian IP without locale prefix → redirect to /en
+  // 3. Decide locale: 'id' for Indonesia, 'en' for everyone else (incl. unknown)
+  const targetLocale: 'id' | 'en' = country === 'ID' ? 'id' : 'en';
+
+  if (targetLocale === 'id') {
+    // ID is the platform default — no URL rewrite needed; just lock the cookie so
+    // subsequent requests don't re-run detection.
+    const response = NextResponse.next();
+    response.cookies.set('NEXT_LOCALE', 'id', {
+      maxAge: 365 * 24 * 60 * 60,
+      path: '/',
+      sameSite: 'lax',
+    });
+    return response;
+  }
+
+  // Non-ID → redirect to /en{pathname} and set cookie
   const url = request.nextUrl.clone();
   url.pathname = `/en${pathname}`;
   const response = NextResponse.redirect(url);
@@ -192,9 +225,37 @@ export async function middleware(request: NextRequest) {
 
   // For guest pages (not admin/portal/auth/api), run GeoIP detection + i18n middleware
   if (!isNonGuestPath(pathname)) {
-    // GeoIP redirect: non-Indonesian IPs → /en on first visit
-    const geoRedirect = detectGeoLocale(request);
-    if (geoRedirect) return geoRedirect;
+    // GeoIP detection: CF-IPCountry → ipapi.co fallback → cookie lock (flicker-free)
+    let geoResponse: NextResponse | null = null;
+    try {
+      geoResponse = await detectGeoLocale(request);
+    } catch {
+      // Geo-IP failure must never break navigation — fall through to intl middleware
+      geoResponse = null;
+    }
+    if (geoResponse) {
+      // If detection chose ID and locked the cookie via NextResponse.next(),
+      // we still need next-intl to handle the request — let intl take over.
+      // For redirect responses (non-ID), return immediately.
+      const status = geoResponse.status;
+      if (status >= 300 && status < 400) {
+        return geoResponse;
+      }
+      // Cookie was set on a `.next()` response — let intl middleware run with it
+      // and merge cookies into the eventual response.
+      const intlResponse = intlMiddleware(request);
+      // Copy the geo cookie onto intl response (cookie set on .next() doesn't
+      // automatically forward through intlMiddleware)
+      const cookie = geoResponse.cookies.get('NEXT_LOCALE');
+      if (cookie) {
+        intlResponse.cookies.set('NEXT_LOCALE', cookie.value, {
+          maxAge: 365 * 24 * 60 * 60,
+          path: '/',
+          sameSite: 'lax',
+        });
+      }
+      return intlResponse;
+    }
 
     return intlMiddleware(request);
   }

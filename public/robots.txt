@@ -1,7 +1,0 @@
-User-agent: *
-Allow: /
-Disallow: /admin
-Disallow: /api/admin
-Disallow: /portal
-
-Sitemap: https://babahalgo.com/sitemap.xml

@@ -1,27 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from '@/i18n/navigation';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { EquityCurve } from '@/components/charts/equity-curve';
 import { AnimatedSection } from '@/components/ui/animated-section';
 import { ArrowRight, ArrowUpRight, Shield, Zap, Brain, ChevronDown, Check } from 'lucide-react';
-
-// ─── Demo equity data generator ───
-function generateDemoEquity(): { time: string; value: number }[] {
-  const data: { time: string; value: number }[] = [];
-  let value = 10000;
-  const now = new Date();
-  for (let i = 90; i >= 0; i--) {
-    const d = new Date(now);
-    d.setDate(d.getDate() - i);
-    value += (Math.random() - 0.38) * 110;
-    if (value < 8500) value = 8500 + Math.random() * 200;
-    data.push({ time: d.toISOString().split('T')[0], value: Math.round(value * 100) / 100 });
-  }
-  return data;
-}
 
 // ─── Types ───
 interface LandingClientProps {
@@ -123,10 +108,21 @@ const FAQ_ITEMS = [
 ];
 
 export function LandingClient({ sections, testimonials, faqs }: LandingClientProps) {
-  const [equityData] = useState(generateDemoEquity);
+  const [equityData, setEquityData] = useState<{ time: string; value: number }[]>([]);
   const [equityPeriod, setEquityPeriod] = useState('90D');
   const [pricingTab, setPricingTab] = useState('retail');
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    fetch('/api/public/performance')
+      .then((r) => r.ok ? r.json() : null)
+      .then((body: { equity?: { time: string; value: number }[] } | null) => {
+        if (active && body?.equity) setEquityData(body.equity);
+      })
+      .catch(() => { /* leave empty — UI handles no-data state */ });
+    return () => { active = false; };
+  }, []);
 
   const filteredEquity = (() => {
     const days = equityPeriod === '30D' ? 30 : equityPeriod === '7D' ? 7 : 90;

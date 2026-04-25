@@ -171,18 +171,28 @@ export default async function PlatformPage() {
               <div className="card-enterprise">
                 <h3 className="text-lg font-medium mb-2">Methodology PDF</h3>
                 <p className="t-body-sm text-foreground/60 leading-relaxed mb-4">
-                  Complete description of strategy logic, entry/exit criteria, backtesting
-                  methodology, and walk-forward validation results.
+                  Deskripsi lengkap logika strategi, kriteria entry/exit, metodologi backtesting,
+                  dan hasil walk-forward validation.
                 </p>
-                <span className="text-sm text-foreground/30">Coming soon</span>
+                <Link
+                  href="/contact?subject=methodology-request"
+                  className="inline-flex items-center gap-1.5 text-sm text-amber-400 hover:text-amber-300 font-medium"
+                >
+                  Request akses dokumen <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
               </div>
               <div className="card-enterprise">
                 <h3 className="text-lg font-medium mb-2">Technical Whitepaper</h3>
                 <p className="t-body-sm text-foreground/60 leading-relaxed mb-4">
-                  Infrastructure architecture, security model, execution latency benchmarks,
-                  and risk framework formal specification.
+                  Arsitektur infrastruktur, security model, benchmark latency eksekusi,
+                  dan spesifikasi formal risk framework.
                 </p>
-                <span className="text-sm text-foreground/30">Coming soon</span>
+                <Link
+                  href="/contact?subject=whitepaper-request"
+                  className="inline-flex items-center gap-1.5 text-sm text-amber-400 hover:text-amber-300 font-medium"
+                >
+                  Request akses dokumen <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
               </div>
             </div>
           </div>

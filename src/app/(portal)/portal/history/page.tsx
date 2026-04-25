@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { CumulativePnl } from '@/components/charts/cumulative-pnl';
 import { useAuth } from '@/lib/auth/auth-context';
 import { csvEscape } from '@/lib/csv';
+import { strategyDisplayName, isStrategyObfuscationEnabled } from '@/lib/trading/strategy-names';
 
 interface Trade {
   date: string;
@@ -19,14 +20,8 @@ interface Trade {
   close_reason?: string;
 }
 
-// Map technical strategy names to generic labels for client
 function genericSetup(setup?: string): string {
-  if (!setup) return '-';
-  const map: Record<string, string> = {
-    smc: 'Strategi A', wyckoff: 'Strategi B', momentum: 'Strategi C',
-    oil_gas: 'Strategi D', astronacci: 'Strategi E', swing: 'Strategi F',
-  };
-  return map[setup.toLowerCase()] || setup;
+  return strategyDisplayName(setup, isStrategyObfuscationEnabled());
 }
 
 function closeReasonBadge(reason?: string) {

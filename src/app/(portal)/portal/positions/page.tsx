@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth/auth-context';
+import { strategyDisplayName, isStrategyObfuscationEnabled } from '@/lib/trading/strategy-names';
 
 interface Position {
   symbol: string;
@@ -15,14 +16,8 @@ interface Position {
   status?: string;
 }
 
-// Generic labels for client
 function genericSetup(setup?: string): string {
-  if (!setup) return '-';
-  const map: Record<string, string> = {
-    smc: 'Strategi A', wyckoff: 'Strategi B', momentum: 'Strategi C',
-    oil_gas: 'Strategi D', astronacci: 'Strategi E', swing: 'Strategi F',
-  };
-  return map[setup.toLowerCase()] || setup;
+  return strategyDisplayName(setup, isStrategyObfuscationEnabled());
 }
 
 export default function PositionsPage() {

@@ -9,6 +9,7 @@ import { WinRateBar } from '@/components/charts/win-rate-bar';
 import { HourlyHeatmap } from '@/components/charts/hourly-heatmap';
 import { MonthlyCalendar } from '@/components/charts/monthly-calendar';
 import { useAuth } from '@/lib/auth/auth-context';
+import { strategyDisplayName, isStrategyObfuscationEnabled } from '@/lib/trading/strategy-names';
 
 interface PairBreakdown {
   pair: string;
@@ -42,13 +43,8 @@ interface PerformanceData {
 
 const STRATEGY_COLORS = ['#22c55e', '#3b82f6', '#8b5cf6', '#f97316', '#06b6d4', '#ec4899'];
 
-// Generic labels for client
 function genericSetup(setup: string): string {
-  const map: Record<string, string> = {
-    smc: 'Strategi A', wyckoff: 'Strategi B', momentum: 'Strategi C',
-    oil_gas: 'Strategi D', astronacci: 'Strategi E', swing: 'Strategi F',
-  };
-  return map[setup.toLowerCase()] || setup;
+  return strategyDisplayName(setup, isStrategyObfuscationEnabled());
 }
 
 export default function PerformancePage() {

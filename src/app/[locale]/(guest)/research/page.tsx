@@ -25,12 +25,23 @@ interface Article {
 function formatDate(dateStr: string | undefined, locale: string): string {
   if (!dateStr) return '';
   try {
-    return new Date(dateStr).toLocaleDateString(locale === 'id' ? 'id-ID' : 'en-US', {
-      year: 'numeric', month: 'short', day: 'numeric',
-    });
+    const d = new Date(dateStr);
+    if (locale === 'id') {
+      // id: dd MMM yyyy (e.g., "26 Apr 2026")
+      return d.toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: '2-digit' });
+    }
+    // en: MMM dd, yyyy (e.g., "Apr 26, 2026")
+    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: '2-digit' });
   } catch {
     return dateStr;
   }
+}
+
+function shortAuthor(raw: string | undefined, isEn: boolean): string {
+  if (!raw) return isEn ? 'Research' : 'Riset';
+  // "BabahAlgo Research Desk" → "Research" / "Riset"
+  if (/research/i.test(raw)) return isEn ? 'Research' : 'Riset';
+  return raw;
 }
 
 export default function ResearchPage() {
@@ -74,7 +85,7 @@ export default function ResearchPage() {
       <main id="main-content">
         {/* Hero */}
         <section className="section-padding border-b border-white/8">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">Research</p>
             <h1 className="t-display-page mb-6">
               {isEn ? 'Research & Insights' : 'Riset & Analisis'}
@@ -89,7 +100,7 @@ export default function ResearchPage() {
 
         {/* Pair Intelligence Briefs CTA */}
         <section className="section-padding border-b border-white/8">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <Link
               href={`/${locale}/research/briefs`}
               className="block card-enterprise group hover:border-amber-500/20 transition-colors"
@@ -116,7 +127,7 @@ export default function ResearchPage() {
 
         {/* Articles Grid */}
         <section className="section-padding border-b border-white/8">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             {loading ? (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[1, 2, 3].map((i) => (
@@ -166,12 +177,14 @@ export default function ResearchPage() {
                         <p className="t-body-sm text-foreground/60 leading-relaxed line-clamp-3 mb-6 flex-1">
                           {excerpt}
                         </p>
-                        <div className="flex items-center gap-3 text-xs text-foreground/40 pt-4 border-t border-white/[0.04]">
-                          <span>{article.author}</span>
-                          <span className="w-1 h-1 rounded-full bg-foreground/20" />
+                        <div className="flex items-center gap-2 text-[11px] text-muted-foreground pt-4 border-t border-border/40 whitespace-nowrap overflow-hidden">
+                          <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/30 font-mono uppercase tracking-wider text-[10px]">
+                            {shortAuthor(article.author, isEn)}
+                          </span>
+                          <span className="text-foreground/30">·</span>
                           <span>{formatDate(article.publishedAt, locale)}</span>
-                          <span className="w-1 h-1 rounded-full bg-foreground/20" />
-                          <span>{article.readTime} min {isEn ? 'read' : 'baca'}</span>
+                          <span className="text-foreground/30">·</span>
+                          <span>{article.readTime} {isEn ? 'min read' : 'min baca'}</span>
                         </div>
                       </Link>
                     );
@@ -196,7 +209,7 @@ export default function ResearchPage() {
 
         {/* Newsletter */}
         <section className="section-padding">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <div className="max-w-xl mx-auto text-center">
               <p className="t-eyebrow mb-3">{isEn ? 'Stay Informed' : 'Tetap Terinformasi'}</p>
               <h2 className="t-display-sub mb-3">

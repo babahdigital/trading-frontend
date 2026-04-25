@@ -112,7 +112,7 @@ export default async function LicensePage() {
       <main id="main-content">
         {/* Hero */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">VPS License</p>
             <h1 className="t-display-page mb-6">
               Dedicated bot infrastructure for professional traders.
@@ -126,7 +126,7 @@ export default async function LicensePage() {
 
         {/* Technical Specs Table */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-3">Infrastructure</p>
             <h2 className="t-display-sub mb-4">Technical specifications</h2>
             <p className="t-body text-foreground/60 mb-10 max-w-xl">
@@ -159,7 +159,7 @@ export default async function LicensePage() {
 
         {/* Who it's for */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">Eligibility</p>
             <h2 className="t-display-sub mb-8">Who it is for</h2>
             <ul className="space-y-4 text-foreground/60 max-w-2xl">
@@ -181,7 +181,7 @@ export default async function LicensePage() {
 
         {/* Features — alternating left-right sections */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">Capabilities</p>
             <h2 className="t-display-sub mb-14">What you get</h2>
             <div className="space-y-16">
@@ -214,7 +214,7 @@ export default async function LicensePage() {
 
         {/* Pricing */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">Pricing</p>
             <h2 className="t-display-sub mb-12">Pricing</h2>
             <div className="card-enterprise max-w-xl">
@@ -247,7 +247,7 @@ export default async function LicensePage() {
 
         {/* Onboarding */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">Process</p>
             <h2 className="t-display-sub mb-12">Onboarding process</h2>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
@@ -267,7 +267,7 @@ export default async function LicensePage() {
 
         {/* FAQ */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <div className="grid lg:grid-cols-5 gap-12">
               <div className="lg:col-span-2">
                 <p className="t-eyebrow mb-4">FAQ</p>
@@ -287,7 +287,7 @@ export default async function LicensePage() {
 
         {/* CTA */}
         <section className="section-padding">
-          <div className="container-default px-6 text-center">
+          <div className="container-default px-4 sm:px-6 text-center">
             <p className="t-eyebrow mb-4">Get Started</p>
             <h2 className="t-display-sub mb-4">Ready to discuss your setup?</h2>
             <p className="text-foreground/60 mb-8 max-w-lg mx-auto">

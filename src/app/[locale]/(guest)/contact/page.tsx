@@ -13,7 +13,7 @@ export default async function ContactPage() {
       <main id="main-content">
         {/* Hero */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">Contact</p>
             <h1 className="t-display-page mb-6">Talk to us.</h1>
             <p className="t-lead text-foreground/60 max-w-2xl">
@@ -25,7 +25,7 @@ export default async function ContactPage() {
 
         {/* Schedule a Call */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-3">Book a Call</p>
             <h2 className="t-display-sub mb-2">Schedule a briefing</h2>
             <p className="t-body-sm text-foreground/50 mb-8">
@@ -39,7 +39,7 @@ export default async function ContactPage() {
 
         {/* Two Columns: Form + Direct Channels */}
         <section className="section-padding">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <div className="grid lg:grid-cols-5 gap-16 lg:gap-20">
               {/* Left: Contact Form (60%) */}
               <div className="lg:col-span-3">

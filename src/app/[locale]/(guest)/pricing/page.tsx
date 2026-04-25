@@ -47,7 +47,7 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
       <main id="main-content">
         {/* Hero */}
         <section className="section-padding border-b border-white/8">
-          <div className="container-default px-6 text-center">
+          <div className="container-default px-4 sm:px-6 text-center">
             <p className="t-eyebrow mb-4">Pricing</p>
             <h1 className="t-display-page mb-4">{t('title')}</h1>
             <p className="t-lead text-foreground/60 max-w-2xl mx-auto">{t('subtitle')}</p>
@@ -56,7 +56,7 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
 
         {/* 3 Audience Columns */}
         <section className="section-padding border-b border-white/8">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <div className="grid lg:grid-cols-3 gap-6">
               {/* Individual */}
               <div className="card-enterprise flex flex-col">
@@ -123,7 +123,7 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
 
         {/* Comparison table */}
         <section className="section-padding border-b border-white/8">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-3">Comparison</p>
             <h2 className="t-display-sub mb-12">Feature comparison</h2>
             <div className="table-enterprise-wrapper">
@@ -159,7 +159,7 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
         {/* CMS tiers */}
         {tiers.length > 0 && (
           <section className="section-padding border-b border-white/8">
-            <div className="container-default px-6">
+            <div className="container-default px-4 sm:px-6">
               <p className="t-eyebrow mb-3">Plans</p>
               <h2 className="t-display-sub mb-12">All plans</h2>
               <div className="grid md:grid-cols-3 gap-6">
@@ -186,7 +186,7 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
 
         {/* Downloads */}
         <section className="section-padding">
-          <div className="container-default px-6 text-center">
+          <div className="container-default px-4 sm:px-6 text-center">
             <p className="t-body-sm text-foreground/50 mb-6">Download detailed factsheets for each product.</p>
             <div className="flex flex-wrap justify-center gap-6">
               <FactsheetLink label="Signal Factsheet" />

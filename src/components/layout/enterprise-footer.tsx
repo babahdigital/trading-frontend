@@ -14,15 +14,15 @@ const FOOTER_LINKS = {
   ],
   solutions: [
     { href: '/solutions/signal', label: 'Forex Signal' },
-    { href: '/solutions/pamm', label: 'PAMM Account' },
-    { href: '/solutions/license', label: 'VPS License' },
     { href: '/solutions/crypto', label: 'Crypto Bot' },
+    { href: '/solutions/license', label: 'VPS License' },
     { href: '/solutions/institutional', label: 'Institutional' },
+    { href: '/demo', label: 'Try Demo (Free)' },
   ],
   getStarted: [
     { href: '/register/signal', label: 'Daftar Signal' },
     { href: '/register/crypto', label: 'Daftar Crypto Bot' },
-    { href: '/register/pamm', label: 'Daftar PAMM' },
+    { href: '/register/vps', label: 'Daftar VPS License' },
     { href: '/register/institutional', label: 'Institutional Inquiry' },
     { href: '/contact', label: 'Schedule Briefing' },
   ],
@@ -80,7 +80,7 @@ export function EnterpriseFooter() {
 
   return (
     <footer className="border-t border-border/60 bg-card/40">
-      <div className="container-default px-6 pt-20 pb-8">
+      <div className="container-default px-4 sm:px-6 pt-20 pb-8">
         {/* Top section — Link columns */}
         <div className="grid grid-cols-2 md:grid-cols-7 gap-8 mb-16">
           {/* Brand column */}

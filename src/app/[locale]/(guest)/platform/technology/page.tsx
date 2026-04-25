@@ -14,7 +14,7 @@ export default async function TechnologyPage() {
 
         {/* Hero */}
         <section className="section-padding border-b border-white/8">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <Link
               href="/platform"
               className="inline-flex items-center gap-1.5 text-sm text-amber-400 hover:text-amber-400/80 transition-colors mb-8"
@@ -40,7 +40,7 @@ export default async function TechnologyPage() {
 
         {/* Stats Bar */}
         <section className="border-b border-white/8">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-white/8">
               <div className="py-8 md:py-10 px-6 text-center">
                 <p className="font-mono text-2xl md:text-3xl text-amber-400 mb-1">&lt; 50ms</p>
@@ -64,7 +64,7 @@ export default async function TechnologyPage() {
 
         {/* AI Advisor */}
         <section className="section-padding border-b border-white/8">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">Analysis Engine</p>
             <h2 className="t-display-sub mb-4">AI Advisor</h2>
             <div className="card-enterprise">
@@ -107,7 +107,7 @@ export default async function TechnologyPage() {
 
         {/* Execution */}
         <section className="section-padding border-b border-white/8">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">Order Routing</p>
             <h2 className="t-display-sub mb-4">Execution pipeline</h2>
             <div className="card-enterprise mb-6">
@@ -160,7 +160,7 @@ export default async function TechnologyPage() {
 
         {/* Infrastructure */}
         <section className="section-padding border-b border-white/8">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">System Architecture</p>
             <h2 className="t-display-sub mb-4">Infrastructure</h2>
             <div className="space-y-6">
@@ -210,7 +210,7 @@ export default async function TechnologyPage() {
 
         {/* Monitoring */}
         <section className="section-padding">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">Operations</p>
             <h2 className="t-display-sub mb-4">Monitoring</h2>
             <div className="space-y-6">

@@ -42,7 +42,7 @@ export default async function AboutPage() {
       <main id="main-content">
         {/* Hero */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">About</p>
             <h1 className="t-display-page mb-6">About BabahAlgo</h1>
             <p className="t-lead text-foreground/60 max-w-2xl">
@@ -53,7 +53,7 @@ export default async function AboutPage() {
 
         {/* Philosophy — Editorial prose */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <div className="grid lg:grid-cols-5 gap-16">
               <div className="lg:col-span-2">
                 <p className="t-eyebrow mb-3">Philosophy</p>
@@ -84,7 +84,7 @@ export default async function AboutPage() {
 
         {/* Principles */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-3">Principles</p>
             <h2 className="t-display-sub mb-12">What we believe</h2>
             <div className="grid md:grid-cols-3 gap-8">
@@ -100,7 +100,7 @@ export default async function AboutPage() {
 
         {/* Timeline */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-3">Journey</p>
             <h2 className="t-display-sub mb-12">Milestones</h2>
             <div className="hidden md:flex items-start justify-between gap-4">
@@ -138,7 +138,7 @@ export default async function AboutPage() {
 
         {/* Navigation cards */}
         <section className="section-padding">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <div className="grid md:grid-cols-2 gap-6 max-w-3xl">
               <Link href="/about/team" className="card-enterprise group">
                 <h3 className="text-lg font-medium mb-2 group-hover:text-amber-400 transition-colors">Our team</h3>

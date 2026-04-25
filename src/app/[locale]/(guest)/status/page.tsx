@@ -98,7 +98,7 @@ export default function StatusPage() {
       <main id="main-content" className="pb-16">
         {/* ── Header ── */}
         <section className="border-b border-border/60 py-10">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs uppercase tracking-widest text-foreground/50 mb-2">Status Sistem</p>
@@ -115,7 +115,7 @@ export default function StatusPage() {
 
         {/* ── Overall Banner ── */}
         <section className="py-4">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             {error ? (
               <div role="alert" className="rounded-lg bg-rose-500/10 border border-rose-500/30 px-5 py-3 text-sm text-rose-300">
                 Gagal memuat status: {error}
@@ -133,7 +133,7 @@ export default function StatusPage() {
 
         {/* ── Components ── */}
         <section className="py-4">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <div className="rounded-lg border border-border/60 overflow-hidden divide-y divide-white/6">
               {(data?.components ?? []).map((c) => {
                 const meta = STATUS_META[c.status];
@@ -159,7 +159,7 @@ export default function StatusPage() {
 
         {/* ── Worker Details (collapsible) ── */}
         <section className="py-4">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <button
               onClick={() => setExpandWorkers(!expandWorkers)}
               className="w-full rounded-lg border border-border/60 px-5 py-3 flex items-center justify-between hover:bg-muted/30 transition-colors text-left"
@@ -226,7 +226,7 @@ export default function StatusPage() {
         {/* ── Health Checks (collapsible, hidden if empty) ── */}
         {(hasHealthChecks || data === null) && (
           <section className="py-4">
-            <div className="container-default px-6">
+            <div className="container-default px-4 sm:px-6">
               <button
                 onClick={() => setExpandHealth(!expandHealth)}
                 className="w-full rounded-lg border border-border/60 px-5 py-3 flex items-center justify-between hover:bg-muted/30 transition-colors text-left"

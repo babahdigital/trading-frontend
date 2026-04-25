@@ -121,7 +121,7 @@ export default function BriefDetailPage() {
       <main id="main-content">
         {loading ? (
           <section className="section-padding">
-            <div className="container-default px-6 max-w-4xl mx-auto">
+            <div className="container-default px-4 sm:px-6 max-w-4xl mx-auto">
               <div className="animate-pulse space-y-4">
                 <div className="h-4 w-24 bg-white/10 rounded" />
                 <div className="h-8 w-3/4 bg-white/10 rounded" />
@@ -137,7 +137,7 @@ export default function BriefDetailPage() {
           </section>
         ) : error || !brief ? (
           <section className="section-padding">
-            <div className="container-default px-6 max-w-4xl mx-auto text-center py-16">
+            <div className="container-default px-4 sm:px-6 max-w-4xl mx-auto text-center py-16">
               <h1 className="text-2xl font-bold mb-4">
                 {isEn ? 'Brief not found' : 'Laporan tidak ditemukan'}
               </h1>
@@ -150,7 +150,7 @@ export default function BriefDetailPage() {
           <>
             {/* Header */}
             <section className="section-padding border-b border-white/8">
-              <div className="container-default px-6 max-w-4xl mx-auto">
+              <div className="container-default px-4 sm:px-6 max-w-4xl mx-auto">
                 <Link
                   href={`/${locale}/research/briefs`}
                   className="inline-flex items-center gap-2 text-sm text-foreground/40 hover:text-amber-400 transition-colors mb-6"
@@ -183,7 +183,7 @@ export default function BriefDetailPage() {
 
             {/* Key Levels — always visible */}
             <section className="section-padding border-b border-white/8">
-              <div className="container-default px-6 max-w-4xl mx-auto">
+              <div className="container-default px-4 sm:px-6 max-w-4xl mx-auto">
                 <h2 className="text-xl font-semibold mb-6 text-amber-400/90">
                   {isEn ? 'Key Levels' : 'Level Kunci'}
                 </h2>
@@ -224,7 +224,7 @@ export default function BriefDetailPage() {
                 {/* SND Zones */}
                 {brief.sndZones && brief.sndZones.length > 0 && (
                   <section className="section-padding border-b border-white/8">
-                    <div className="container-default px-6 max-w-4xl mx-auto">
+                    <div className="container-default px-4 sm:px-6 max-w-4xl mx-auto">
                       <h2 className="text-xl font-semibold mb-6 text-amber-400/90">
                         {isEn ? 'Supply & Demand Zones' : 'Zona Supply & Demand'}
                       </h2>
@@ -250,7 +250,7 @@ export default function BriefDetailPage() {
                 {/* Trade Ideas */}
                 {brief.tradeIdeas && brief.tradeIdeas.length > 0 && (
                   <section className="section-padding border-b border-white/8">
-                    <div className="container-default px-6 max-w-4xl mx-auto">
+                    <div className="container-default px-4 sm:px-6 max-w-4xl mx-auto">
                       <h2 className="text-xl font-semibold mb-6 text-amber-400/90">
                         {isEn ? 'Trade Ideas' : 'Ide Trading'}
                       </h2>
@@ -283,7 +283,7 @@ export default function BriefDetailPage() {
 
                 {/* Narrative */}
                 <section className="section-padding border-b border-white/8">
-                  <div className="container-default px-6 max-w-4xl mx-auto">
+                  <div className="container-default px-4 sm:px-6 max-w-4xl mx-auto">
                     <h2 className="text-xl font-semibold mb-6 text-amber-400/90">
                       {isEn ? 'Analysis' : 'Analisis'}
                     </h2>
@@ -301,7 +301,7 @@ export default function BriefDetailPage() {
             ) : access === 'preview' ? (
               /* Subscribe CTA for non-subscribers */
               <section className="section-padding border-b border-white/8">
-                <div className="container-default px-6 max-w-4xl mx-auto text-center py-12">
+                <div className="container-default px-4 sm:px-6 max-w-4xl mx-auto text-center py-12">
                   <div className="max-w-lg mx-auto">
                     <h2 className="text-xl font-semibold mb-4">
                       {isEn ? 'Full Analysis Available for Subscribers' : 'Analisis Lengkap Tersedia untuk Subscriber'}
@@ -321,7 +321,7 @@ export default function BriefDetailPage() {
 
             {/* Disclaimer */}
             <section className="section-padding">
-              <div className="container-default px-6 max-w-4xl mx-auto">
+              <div className="container-default px-4 sm:px-6 max-w-4xl mx-auto">
                 <div className="p-4 rounded-lg bg-white/[0.02] border border-white/[0.06]">
                   <p className="text-xs text-foreground/40 leading-relaxed">
                     {isEn
@@ -334,7 +334,7 @@ export default function BriefDetailPage() {
 
             {/* Back link */}
             <section className="pb-16">
-              <div className="container-default px-6 max-w-4xl mx-auto">
+              <div className="container-default px-4 sm:px-6 max-w-4xl mx-auto">
                 <Link
                   href={`/${locale}/research/briefs`}
                   className="inline-flex items-center gap-2 text-sm text-foreground/40 hover:text-amber-400 transition-colors"

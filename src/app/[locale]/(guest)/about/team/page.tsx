@@ -69,7 +69,7 @@ export default function TeamPage() {
       <main id="main-content">
         {/* Hero */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <Link
               href="/about"
               className="t-body-sm text-foreground/60 hover:text-foreground transition-colors mb-4 inline-block"
@@ -88,7 +88,7 @@ export default function TeamPage() {
 
         {/* Team Grid */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">The People</p>
             <div className="grid md:grid-cols-2 gap-8">
               {team.map((member) => (
@@ -109,7 +109,7 @@ export default function TeamPage() {
 
         {/* Note */}
         <section className="section-padding">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <div className="max-w-2xl">
               <p className="text-foreground/60 leading-relaxed">
                 We are a small team by design. In quantitative trading, the quality of decisions matters

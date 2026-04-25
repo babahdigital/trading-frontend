@@ -25,30 +25,43 @@ CRYPTO BOT (live, separate backend trading-crypto on Binance Futures)
 - Mandatory: API key permissions Read+Trade ONLY, withdraw must be DISABLED
 - Risk: per-tier leverage caps, max concurrent positions, daily loss limit, kill switch
 
+BUSINESS MODEL — AFFILIATE-FIRST (per 2026-04-26 update)
+- Customer ALWAYS holds their own capital — di akun broker (Forex) atau Binance (Crypto). Kami TIDAK custody dana sama sekali.
+- Forex revenue: subscription fee (Signal Basic/VIP, VPS License) + affiliate fee dari partner broker (Exness, IC Markets, dll). Customer dapat discount commission lewat link affiliate kami.
+- Crypto revenue: monthly fee + profit share (10-20%).
+- PAMM model SUDAH DIHENTIKAN — kami tidak lagi kelola dana di nama klien. Untuk managed exposure, gunakan VPS License (bot di VPS pribadi customer) atau Institutional mandate.
+
 ENGAGEMENT MODELS
 
-Forex Individuals
-- Signal Basic ($49/mo) — AI signals, dashboard, daily reports
-- Signal VIP ($149/mo) — real-time signals, VIP Telegram, priority alerts
+Free Demo (beta)
+- Signal Demo (gratis) — preview signal harian + akun MT5 demo + indicator confluence; tidak masuk public track record; expired 30 hari.
+- Indicator Free (gratis beta) — SMC + Wyckoff confluence overlay untuk discretionary trader, tanpa eksekusi otomatis.
+
+Forex Individuals (paid)
+- Signal Basic ($49/mo) — AI signals, dashboard, daily reports + affiliate broker discount
+- Signal VIP ($149/mo) — real-time signals, VIP Telegram, priority alerts + affiliate broker discount
 
 Forex Professionals
-- PAMM Basic (20% profit share, min deposit $500)
-- PAMM Pro (30% profit share, min $5,000, priority support)
-- VPS License ($3,000-7,500 setup + $150-300/mo maintenance) — dedicated VPS, full bot access
+- VPS License ($3,000 one-time setup + $150/mo maintenance) — bot terinstal di VPS pribadi customer, kontrol penuh, multi-broker bridge
+- VPS Premium ($7,500 + $300/mo) — multi-broker, multi-akun paralel, priority support 24/7
 
 Crypto subscribers
-- Basic / Pro / HNWI as above
+- CRYPTO_BASIC ($49/mo + 20% profit share) — 3 pair, 5x leverage
+- CRYPTO_PRO ($199/mo + 15% profit share) — 8 pair, 10x leverage, 4 strategi
+- CRYPTO_HNWI ($499/mo + 10% profit share) — 12 pair custom, 15x leverage, dedicated manager
 
-Institutions (Forex)
-- Managed Account: custom mandate, AUM $250K minimum
+Institutions
+- Managed Account: custom mandate, AUM $250K minimum (tetap di account broker klien)
 - API Access: integration with existing infra
 - White-label: BabahAlgo tech under client brand
 - Process: Briefing → Discovery → Proposal → IMA → Funding
 
 ONBOARDING PATHS
-- Forex Signal/PAMM → /register/signal or /register/pamm (self-serve, KYC required)
+- Free Demo → /demo (no payment, email-verified)
+- Forex Signal → /register/signal (self-serve, KYC required for live)
 - Crypto Bot → /register/crypto → /pricing → payment → /portal/crypto/connect (Binance API key)
 - VPS License & Institutional → /contact (consultative, high-touch)
+- PAMM (DEPRECATED) — redirect to /register/signal
 
 KEY PAGES
 - Track record: /performance

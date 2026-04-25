@@ -177,7 +177,7 @@ export default function CryptoBotSolutionPage() {
       <main id="main-content">
         {/* Hero */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <div className="max-w-3xl">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-xs font-mono uppercase tracking-wider text-amber-300 mb-6">
                 <Bitcoin className="w-3.5 h-3.5" />
@@ -210,7 +210,7 @@ export default function CryptoBotSolutionPage() {
 
         {/* Features */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-3">Mengapa Crypto Bot</p>
             <h2 className="t-display-section mb-12 max-w-2xl">
               Otomasi institusional, transparansi penuh.
@@ -231,7 +231,7 @@ export default function CryptoBotSolutionPage() {
 
         {/* Strategies */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-3">Strategi yang dijalankan</p>
             <h2 className="t-display-section mb-3 max-w-2xl">6 strategi, satu engine.</h2>
             <p className="t-body text-foreground/60 max-w-2xl mb-12">
@@ -262,7 +262,7 @@ export default function CryptoBotSolutionPage() {
 
         {/* Pricing */}
         <section id="pricing" className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-3">Pricing</p>
             <h2 className="t-display-section mb-3 max-w-2xl">Pilih tier sesuai capital Anda.</h2>
             <p className="t-body text-foreground/60 max-w-2xl mb-12">
@@ -316,7 +316,7 @@ export default function CryptoBotSolutionPage() {
 
         {/* Steps */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-3">Cara mulai</p>
             <h2 className="t-display-section mb-12 max-w-2xl">4 langkah, kurang dari 24 jam.</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -333,7 +333,7 @@ export default function CryptoBotSolutionPage() {
 
         {/* FAQ */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-3">FAQ</p>
             <h2 className="t-display-section mb-12 max-w-2xl">Pertanyaan umum.</h2>
             <div className="grid md:grid-cols-2 gap-x-10 gap-y-8 max-w-5xl">
@@ -349,7 +349,7 @@ export default function CryptoBotSolutionPage() {
 
         {/* CTA */}
         <section className="section-padding">
-          <div className="container-default px-6 text-center max-w-3xl mx-auto">
+          <div className="container-default px-4 sm:px-6 text-center max-w-3xl mx-auto">
             <h2 className="t-display-section mb-4">Siap aktivasi bot Anda?</h2>
             <p className="t-body text-foreground/60 mb-8">
               Onboarding lengkap dengan KYC, payment, dan koneksi Binance dapat selesai dalam 24 jam kerja.

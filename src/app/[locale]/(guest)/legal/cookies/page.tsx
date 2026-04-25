@@ -37,7 +37,7 @@ export default function CookiePolicyPage() {
       <main id="main-content">
         {/* Hero */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">Legal</p>
             <h1 className="t-display-page mb-2">Cookie Policy</h1>
             <p className="t-body-sm text-foreground/60">Last updated: April 1, 2026</p>
@@ -46,7 +46,7 @@ export default function CookiePolicyPage() {
 
         {/* Content */}
         <section className="section-padding">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             {cmsBody ? (
               <div
                 className="container-prose space-y-10 text-foreground/60"
@@ -244,7 +244,7 @@ export default function CookiePolicyPage() {
 
         {/* Related Documents */}
         <section className="section-padding border-t border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">Related Documents</p>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {LEGAL_LINKS.map((doc) => (

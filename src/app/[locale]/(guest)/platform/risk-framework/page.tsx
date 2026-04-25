@@ -100,7 +100,7 @@ export default async function RiskFrameworkPage() {
 
         {/* Hero */}
         <section className="section-padding border-b border-white/8">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <Link
               href="/platform"
               className="inline-flex items-center gap-1.5 text-sm text-amber-400 hover:text-amber-400/80 transition-colors mb-8"
@@ -123,7 +123,7 @@ export default async function RiskFrameworkPage() {
 
         {/* Layers — alternating left-right with connecting line */}
         <section className="section-padding">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">Protection Layers</p>
             <h2 className="t-display-sub mb-14">All 12 layers</h2>
 

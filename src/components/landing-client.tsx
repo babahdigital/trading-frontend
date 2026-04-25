@@ -40,9 +40,10 @@ const RISK_LAYERS = {
 
 // ─── Pricing Data ───
 const PRICING_TABS = [
+  { id: 'demo', label: 'Free Demo' },
   { id: 'forex', label: 'Forex Signal' },
   { id: 'crypto', label: 'Crypto Bot' },
-  { id: 'pamm', label: 'PAMM' },
+  { id: 'vps', label: 'VPS License' },
   { id: 'institutional', label: 'Institutional' },
 ];
 
@@ -51,6 +52,21 @@ const PRICING_PLANS: Record<string, Array<{
   tagline: string; features: string[]; cta: { label: string; href: string };
   popular?: boolean;
 }>> = {
+  demo: [
+    {
+      name: 'Signal Demo', tier: 'DEMO', price: 'Gratis', period: 'beta',
+      tagline: 'Coba sinyal Forex tanpa biaya — akun MT5 demo',
+      features: ['Akses preview signal harian', 'MT5 demo account terhubung', 'Dashboard read-only', 'Tidak masuk track record live', 'Upgrade kapan saja'],
+      cta: { label: 'Mulai Demo Gratis', href: '/demo' },
+    },
+    {
+      name: 'Indicator Free', tier: 'INDICATOR', price: 'Gratis', period: 'beta',
+      tagline: 'Indikator confluence + 12-layer risk preview',
+      features: ['SMC + Wyckoff confluence overlay', '14 instrumen real-time', 'Risk score live', 'Tidak ada eksekusi otomatis', 'Untuk discretionary trader'],
+      cta: { label: 'Aktifkan Indicator', href: '/demo?product=indicator' },
+      popular: true,
+    },
+  ],
   forex: [
     {
       name: 'Signal Basic', tier: 'SIGNAL', price: '$49', period: '/bulan',
@@ -87,18 +103,18 @@ const PRICING_PLANS: Record<string, Array<{
       cta: { label: 'Konsultasi HNWI', href: '/contact?subject=crypto-hnwi' },
     },
   ],
-  pamm: [
+  vps: [
     {
-      name: 'PAMM Basic', tier: 'PAMM', price: '20%', period: 'profit share',
-      tagline: 'Managed account dengan track record terverifikasi',
-      features: ['Bot kelola dana di akun broker Anda', 'Verified track record', 'Monthly statement', 'Withdraw kapan saja', 'Account manager'],
-      cta: { label: 'Daftar PAMM', href: '/register/pamm' },
+      name: 'VPS License', tier: 'VPS', price: '$3,000', period: 'one-time setup',
+      tagline: 'Bot terinstal di VPS pribadi Anda — kontrol penuh',
+      features: ['Dedicated VPS broker-level', 'Full bot access + risk parameter', 'Affiliate broker discount', 'Konfigurasi kustom', 'Maintenance $150/bulan'],
+      cta: { label: 'Konsultasi Setup', href: '/register/vps' },
     },
     {
-      name: 'PAMM Pro', tier: 'PAMM PRO', price: '30%', period: 'profit share',
-      tagline: 'Allocation premium dengan reporting harian',
-      features: ['Semua fitur Basic', 'Daily performance update', 'Custom risk parameter', 'Akses langsung tim quant', 'Quarterly review call'],
-      cta: { label: 'Daftar Pro', href: '/register/pamm' },
+      name: 'VPS Premium', tier: 'VPS PRO', price: '$7,500', period: 'one-time setup',
+      tagline: 'Multi-broker, multi-akun, dedicated support',
+      features: ['Multi-broker bridge (MT4 + MT5)', 'Up to 3 akun paralel', 'Custom strategy parameter', 'Priority support 24/7', 'Maintenance $300/bulan'],
+      cta: { label: 'Konsultasi Setup', href: '/register/vps' },
       popular: true,
     },
   ],
@@ -120,13 +136,14 @@ const PRICING_PLANS: Record<string, Array<{
 
 // ─── FAQ Data ───
 const FAQ_ITEMS = [
-  { q: 'How can I verify your track record?', a: 'Our equity statements are independently verified and available on request. We use live production accounts with partner brokers. You can schedule a briefing to review our complete audit trail, including trade-by-trade history.' },
-  { q: 'Is BabahAlgo regulated?', a: 'CV Babah Digital is a registered technology company in Indonesia. We are a technology provider — not a broker, financial advisor, or asset manager. All trading is executed through regulated partner brokers. We operate with full transparency and provide audit reports on request.' },
-  { q: 'What happens during a flash crash or black swan event?', a: 'Our 12-layer risk framework includes a catastrophic breaker that automatically shuts down all trading when drawdown exceeds a critical threshold. Combined with the kill-switch (manual override) and news blackout system, capital is protected even in extreme market conditions.' },
-  { q: 'Can I withdraw my capital at any time?', a: 'Yes. For PAMM accounts, withdrawal requests are processed within your broker\'s standard timeline (typically 1-3 business days). There are no lock-up periods. For signal subscriptions, you can cancel anytime — your capital remains in your own broker account at all times.' },
-  { q: 'What is the difference between Signal Standard and Pro?', a: 'Signal Standard provides daily trading signals with weekly reports. Signal Pro adds real-time alerts, a dedicated VIP Telegram group with live commentary, daily detailed reports, and priority support. Both include dashboard access.' },
-  { q: 'Can I see live positions from the bot?', a: 'PAMM and VPS License clients have real-time dashboard access showing live positions, equity curve, and all risk metrics. Signal clients receive alerts at entry and exit points.' },
-  { q: 'How do you handle slippage and rejected orders?', a: 'Our ZeroMQ execution bridge operates with sub-2ms latency to minimize slippage. Each trade includes a deterministic slippage budget — if slippage exceeds the threshold, the order is automatically rejected. This is logged and auditable.' },
+  { q: 'Bagaimana cara verifikasi track record?', a: 'Equity statement kami diaudit secara independen dan tersedia atas permintaan. Kami menggunakan production account live di partner broker resmi. Anda dapat schedule briefing untuk meninjau audit trail lengkap termasuk trade-by-trade history.' },
+  { q: 'Apakah BabahAlgo diregulasi?', a: 'CV Babah Digital adalah perusahaan teknologi terdaftar di Indonesia. Kami adalah technology provider — bukan broker, bukan financial advisor, bukan asset manager. Eksekusi trading selalu lewat partner broker yang teregulasi. Transparansi penuh, audit report tersedia atas permintaan.' },
+  { q: 'Apakah ada free trial atau demo?', a: 'Ya. Signal Demo gratis untuk beta user — Anda dapat connect MT5 demo account dan lihat signal preview tanpa biaya. Indicator Free juga tersedia untuk discretionary trader. Demo tidak masuk public track record (per DEMO_UX_GUIDE).' },
+  { q: 'Apakah saya bisa cancel kapan saja?', a: 'Ya. Subscription Signal dan Crypto Bot bersifat month-to-month tanpa lock-in. Untuk VPS License (one-time setup), maintenance bisa dipause; bot tetap di VPS Anda. Modal selalu di akun broker/Binance Anda — bukan di kami.' },
+  { q: 'Bagaimana model affiliate broker bekerja?', a: 'Customer membuka akun di partner broker (Exness, IC Markets, dll) lewat link affiliate kami. Customer dapat discount commission/spread, kami dapat affiliate fee dari broker. Bot kami running di akun customer — modal tetap di broker, kami tidak custody dana sama sekali.' },
+  { q: 'Bagaimana skenario flash crash atau black swan?', a: '12-layer risk framework kami include catastrophic breaker yang otomatis shutdown semua trading saat drawdown melewati threshold kritis. Plus kill-switch manual override dan news blackout system. Modal terlindungi bahkan di kondisi pasar ekstrem.' },
+  { q: 'Apa beda Signal Basic vs Signal VIP?', a: 'Basic: signal harian + weekly report + dashboard. VIP: real-time alerts via Telegram VIP group dengan commentary live, daily detailed report, priority support, plus strategy deep-dive notes. Keduanya termasuk dashboard access.' },
+  { q: 'Bagaimana penanganan slippage dan rejected orders?', a: 'ZeroMQ execution bridge kami operasi sub-2ms untuk minimize slippage. Setiap trade punya deterministic slippage budget — kalau slippage melebihi threshold, order otomatis di-reject. Semua di-log dan auditable.' },
 ];
 
 interface PerfKpi {
@@ -304,7 +321,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
           SECTION 2 — TRACK RECORD
           ═══════════════════════════════════════════ */}
       <section className="section-padding border-t border-border/60">
-        <div className="container-default px-6">
+        <div className="container-default px-4 sm:px-6">
           <AnimatedSection>
             <div className="t-eyebrow mb-4">TRACK RECORD</div>
             <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-10">
@@ -381,7 +398,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
           SECTION 3 — THREE PILLARS
           ═══════════════════════════════════════════ */}
       <section className="section-padding border-t border-border/60">
-        <div className="container-default px-6">
+        <div className="container-default px-4 sm:px-6">
           <AnimatedSection>
             <div className="t-eyebrow mb-4">PLATFORM</div>
             <h2 className="t-display-section text-foreground mb-4">Built on three pillars.</h2>
@@ -423,7 +440,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
           SECTION 4 — RISK FRAMEWORK
           ═══════════════════════════════════════════ */}
       <section className="section-padding border-t border-border/60">
-        <div className="container-default px-6">
+        <div className="container-default px-4 sm:px-6">
           <AnimatedSection>
             <div className="t-eyebrow mb-4">RISK FRAMEWORK</div>
             <h2 className="t-display-section text-foreground mb-2">12 layers, every trade.</h2>
@@ -453,7 +470,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
           SECTION 5 — PRICING (Split layout)
           ═══════════════════════════════════════════ */}
       <section className="section-padding border-t border-border/60">
-        <div className="container-default px-6">
+        <div className="container-default px-4 sm:px-6">
           <div className="grid lg:grid-cols-12 gap-12 lg:gap-16">
             {/* Left column — heading, description, tabs */}
             <div className="lg:col-span-4 lg:sticky lg:top-28 lg:self-start">
@@ -574,7 +591,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
           ═══════════════════════════════════════════ */}
       {displayTestimonials.length > 0 && (
         <section className="section-padding border-t border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <AnimatedSection>
               <div className="t-eyebrow mb-4">CLIENTS</div>
               <h2 className="t-display-section text-foreground mb-16">What our partners say.</h2>
@@ -603,7 +620,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
           SECTION 7 — FAQ
           ═══════════════════════════════════════════ */}
       <section className="section-padding border-t border-border/60">
-        <div className="container-default px-6">
+        <div className="container-default px-4 sm:px-6">
           {/* Header row — heading left, CTA right */}
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-12">
             <AnimatedSection>
@@ -660,7 +677,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] rounded-full bg-amber-500/[0.04] blur-3xl" />
         </div>
 
-        <div className="container-prose px-6 text-center relative z-10">
+        <div className="container-prose px-4 sm:px-6 text-center relative z-10">
           <AnimatedSection>
             <div className="t-eyebrow mb-6">GET STARTED</div>
             <h2 className="t-display-section text-foreground mb-6">

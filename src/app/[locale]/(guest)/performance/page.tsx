@@ -71,7 +71,7 @@ export default function PerformancePage() {
       <main id="main-content">
         {/* Hero */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">Live Track Record</p>
             <h1 className="t-display-page mb-6">
               Verified production<br className="hidden sm:block" /> track record.
@@ -84,7 +84,7 @@ export default function PerformancePage() {
 
         {/* Equity Curve */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <div className="flex items-center justify-between mb-8">
               <h2 className="t-display-sub">Equity curve</h2>
               <div className="flex items-center gap-2">
@@ -124,7 +124,7 @@ export default function PerformancePage() {
 
         {/* KPI Grid */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-3">Key Metrics</p>
             <h2 className="t-display-sub mb-12">Key performance indicators</h2>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
@@ -141,7 +141,7 @@ export default function PerformancePage() {
 
         {/* Execution Stats — Enterprise Tables */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-3">Analytics</p>
             <h2 className="t-display-sub mb-12">Execution statistics</h2>
 
@@ -203,7 +203,7 @@ export default function PerformancePage() {
 
         {/* Independent Verification */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-3">Trust</p>
             <h2 className="t-display-sub mb-12">Independent verification</h2>
             <div className="grid md:grid-cols-3 gap-6">
@@ -245,7 +245,7 @@ export default function PerformancePage() {
 
         {/* Downloads */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-3">Documents</p>
             <h2 className="t-display-sub mb-8">Downloads</h2>
             <div className="grid sm:grid-cols-3 gap-4">
@@ -268,7 +268,7 @@ export default function PerformancePage() {
 
         {/* Disclaimer */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <div className="card-enterprise max-w-3xl">
               <p className="t-eyebrow mb-3">Important Disclaimer</p>
               <p className="text-xs text-foreground/50 leading-relaxed italic">
@@ -283,7 +283,7 @@ export default function PerformancePage() {
 
         {/* CTA */}
         <section className="section-padding text-center">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <h2 className="t-display-sub mb-4">Ready to see the full picture?</h2>
             <p className="t-body text-foreground/60 mb-8">Schedule a briefing to discuss our methodology and track record in detail.</p>
             <Link href="/contact" className="btn-primary">

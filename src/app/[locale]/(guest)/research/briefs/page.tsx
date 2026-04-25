@@ -102,7 +102,7 @@ export default function PairBriefsPage() {
       <main id="main-content">
         {/* Hero */}
         <section className="section-padding border-b border-white/8">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">Pair Intelligence</p>
             <h1 className="t-display-page mb-6">
               {isEn ? 'Pair Intelligence Briefs' : 'Laporan Intelijen Per Pair'}
@@ -127,7 +127,7 @@ export default function PairBriefsPage() {
 
         {/* Briefs Grid */}
         <section className="section-padding border-b border-white/8">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             {loading ? (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[1, 2, 3].map((i) => (
@@ -230,7 +230,7 @@ export default function PairBriefsPage() {
 
         {/* Back to Research */}
         <section className="section-padding">
-          <div className="container-default px-6 text-center">
+          <div className="container-default px-4 sm:px-6 text-center">
             <Link
               href={`/${locale}/research`}
               className="text-sm text-foreground/40 hover:text-foreground/60 transition-colors"

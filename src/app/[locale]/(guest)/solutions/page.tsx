@@ -44,7 +44,7 @@ export default async function SolutionsPage() {
 
         {/* Hero */}
         <section className="section-padding border-b border-white/8">
-          <div className="container-default px-6 text-center">
+          <div className="container-default px-4 sm:px-6 text-center">
             <p className="t-eyebrow mb-4">Solutions</p>
             <h1 className="t-display-page mb-6">
               Choose the model that fits your capital and involvement.
@@ -58,7 +58,7 @@ export default async function SolutionsPage() {
 
         {/* Solution Cards */}
         <section className="section-padding border-b border-white/8">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <div className="grid md:grid-cols-2 gap-8">
               {SOLUTIONS.map((solution) => (
                 <div
@@ -91,7 +91,7 @@ export default async function SolutionsPage() {
 
         {/* Bottom CTA */}
         <section className="section-padding">
-          <div className="container-default px-6 text-center">
+          <div className="container-default px-4 sm:px-6 text-center">
             <h2 className="t-display-sub mb-4">
               Not sure which model fits?
             </h2>

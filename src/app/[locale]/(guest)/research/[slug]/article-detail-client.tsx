@@ -28,12 +28,22 @@ export interface ArticleDetail {
 function formatDate(dateStr: string | null | undefined, locale: string): string {
   if (!dateStr) return '';
   try {
-    return new Date(dateStr).toLocaleDateString(locale === 'id' ? 'id-ID' : 'en-US', {
-      year: 'numeric', month: 'long', day: 'numeric',
-    });
+    const d = new Date(dateStr);
+    if (locale === 'id') {
+      // id: dd MMMM yyyy (contoh: "26 April 2026")
+      return d.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: '2-digit' });
+    }
+    // en: MMMM dd, yyyy (e.g., "April 26, 2026")
+    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: '2-digit' });
   } catch {
     return dateStr;
   }
+}
+
+function shortAuthor(raw: string | undefined, isEn: boolean): string {
+  if (!raw) return isEn ? 'Research' : 'Riset';
+  if (/research/i.test(raw)) return isEn ? 'Research' : 'Riset';
+  return raw;
 }
 
 /** Simple Markdown to HTML — handles headings, bold, italic, lists, tables, paragraphs. */
@@ -80,7 +90,7 @@ export function ArticleDetailClient({ article }: ArticleDetailClientProps) {
       <main id="main-content">
         {!article ? (
           <section className="section-padding">
-            <div className="container-default px-6 max-w-3xl mx-auto text-center py-16">
+            <div className="container-default px-4 sm:px-6 max-w-3xl mx-auto text-center py-16">
               <h1 className="text-2xl font-bold mb-4">
                 {isEn ? 'Article not found' : 'Artikel tidak ditemukan'}
               </h1>
@@ -95,7 +105,7 @@ export function ArticleDetailClient({ article }: ArticleDetailClientProps) {
         ) : (
           <>
             <section className="section-padding border-b border-white/8">
-              <div className="container-default px-6 max-w-3xl mx-auto">
+              <div className="container-default px-4 sm:px-6 max-w-3xl mx-auto">
                 <Link
                   href={`/${locale}/research`}
                   className="inline-flex items-center gap-2 text-sm text-foreground/40 hover:text-amber-400 transition-colors mb-6"
@@ -110,18 +120,20 @@ export function ArticleDetailClient({ article }: ArticleDetailClientProps) {
                 <h1 className="text-3xl md:text-4xl font-bold leading-tight mb-6">
                   {title}
                 </h1>
-                <div className="flex items-center gap-4 text-sm text-foreground/50">
-                  <span>{article.author}</span>
-                  <span className="w-1 h-1 rounded-full bg-foreground/20" />
-                  <span>{formatDate(article.publishedAt, locale)}</span>
-                  <span className="w-1 h-1 rounded-full bg-foreground/20" />
-                  <span>{article.readTime} min {isEn ? 'read' : 'baca'}</span>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm text-muted-foreground">
+                  <span className="px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/30 font-mono uppercase tracking-wider text-[11px]">
+                    {shortAuthor(article.author, isEn)}
+                  </span>
+                  <span className="text-foreground/30">·</span>
+                  <span className="whitespace-nowrap">{formatDate(article.publishedAt, locale)}</span>
+                  <span className="text-foreground/30">·</span>
+                  <span className="whitespace-nowrap">{article.readTime} {isEn ? 'min read' : 'min baca'}</span>
                 </div>
               </div>
             </section>
 
             <section className="section-padding">
-              <div className="container-default px-6 max-w-3xl mx-auto">
+              <div className="container-default px-4 sm:px-6 max-w-3xl mx-auto">
                 <div
                   className="prose-custom"
                   dangerouslySetInnerHTML={{ __html: renderMarkdown(body) }}
@@ -130,7 +142,7 @@ export function ArticleDetailClient({ article }: ArticleDetailClientProps) {
             </section>
 
             <section className="pb-16">
-              <div className="container-default px-6 max-w-3xl mx-auto">
+              <div className="container-default px-4 sm:px-6 max-w-3xl mx-auto">
                 <Link
                   href={`/${locale}/research`}
                   className="inline-flex items-center gap-2 text-sm text-foreground/40 hover:text-amber-400 transition-colors"

@@ -50,7 +50,7 @@ export default function RegisterVpsPage() {
 
       <main id="main-content">
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <div className="max-w-md mx-auto">
               {submitted ? (
                 <div className="card-enterprise text-center">

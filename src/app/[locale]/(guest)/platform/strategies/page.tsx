@@ -65,7 +65,7 @@ export default async function StrategiesPage() {
 
         {/* Hero */}
         <section className="section-padding border-b border-white/8">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">Strategy Framework</p>
             <h1 className="t-display-page mb-6">
               Strategy framework
@@ -81,7 +81,7 @@ export default async function StrategiesPage() {
 
         {/* Strategies list */}
         <section className="section-padding border-b border-white/8">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">Active Strategies</p>
             <div className="space-y-6">
               {STRATEGIES.map((strategy) => {

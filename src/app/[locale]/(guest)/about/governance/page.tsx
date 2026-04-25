@@ -11,7 +11,7 @@ export default async function GovernancePage() {
       <main id="main-content">
         {/* Hero */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <Link
               href="/about"
               className="t-body-sm text-foreground/60 hover:text-foreground transition-colors mb-4 inline-block"
@@ -30,7 +30,7 @@ export default async function GovernancePage() {
 
         {/* Legal Entity */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">Legal Structure</p>
             <h2 className="t-display-sub mb-8">Legal entity</h2>
             <div className="max-w-3xl space-y-4 text-foreground/60 leading-relaxed">
@@ -51,7 +51,7 @@ export default async function GovernancePage() {
 
         {/* Regulatory Status */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">Compliance</p>
             <h2 className="t-display-sub mb-8">Regulatory status</h2>
             <div className="max-w-3xl space-y-4 text-foreground/60 leading-relaxed">
@@ -77,7 +77,7 @@ export default async function GovernancePage() {
 
         {/* Partner Brokers */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">Broker Relations</p>
             <h2 className="t-display-sub mb-8">Partner brokers</h2>
             <div className="max-w-3xl space-y-4 text-foreground/60 leading-relaxed">
@@ -108,7 +108,7 @@ export default async function GovernancePage() {
 
         {/* Audit */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">Oversight</p>
             <h2 className="t-display-sub mb-8">Audit cadence</h2>
             <div className="max-w-3xl space-y-4 text-foreground/60 leading-relaxed">
@@ -147,7 +147,7 @@ export default async function GovernancePage() {
 
         {/* Conflict of Interest */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">Transparency</p>
             <h2 className="t-display-sub mb-8">Conflict of interest disclosure</h2>
             <div className="max-w-3xl space-y-4 text-foreground/60 leading-relaxed">
@@ -188,7 +188,7 @@ export default async function GovernancePage() {
 
         {/* Data Privacy */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">Data Protection</p>
             <h2 className="t-display-sub mb-8">Data privacy framework</h2>
             <div className="max-w-3xl space-y-4 text-foreground/60 leading-relaxed">
@@ -226,7 +226,7 @@ export default async function GovernancePage() {
 
         {/* Compliance Contact */}
         <section className="section-padding">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">Contact</p>
             <h2 className="t-display-sub mb-8">Compliance contact</h2>
             <div className="card-enterprise max-w-md">

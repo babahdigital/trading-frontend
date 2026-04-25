@@ -13,7 +13,7 @@ export default async function ExecutionPage() {
 
         {/* Hero */}
         <section className="section-padding border-b border-white/8">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <Link
               href="/platform"
               className="inline-flex items-center gap-1.5 text-sm text-amber-400 hover:text-amber-400/80 transition-colors mb-8"
@@ -35,7 +35,7 @@ export default async function ExecutionPage() {
 
         {/* Latency */}
         <section className="section-padding border-b border-white/8">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">Performance</p>
             <h2 className="t-display-sub mb-4">Latency architecture</h2>
             <div className="card-enterprise">
@@ -81,7 +81,7 @@ export default async function ExecutionPage() {
 
         {/* Broker Integration */}
         <section className="section-padding border-b border-white/8">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">Connectivity</p>
             <h2 className="t-display-sub mb-4">Broker integration</h2>
             <div className="card-enterprise">
@@ -112,7 +112,7 @@ export default async function ExecutionPage() {
 
         {/* VPS Infrastructure */}
         <section className="section-padding border-b border-white/8">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">Infrastructure</p>
             <h2 className="t-display-sub mb-4">VPS infrastructure</h2>
             <div className="space-y-6">
@@ -147,7 +147,7 @@ export default async function ExecutionPage() {
 
         {/* Monitoring and Failover */}
         <section className="section-padding">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">Operations</p>
             <h2 className="t-display-sub mb-4">Monitoring and failover</h2>
             <div className="space-y-6">

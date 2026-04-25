@@ -78,7 +78,7 @@ export default function SignalPage() {
       <main id="main-content">
         {/* Hero */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">Signal Service</p>
             <h1 className="t-display-page mb-6">
               Trading signals for<br className="hidden sm:block" /> retail traders.
@@ -100,7 +100,7 @@ export default function SignalPage() {
 
         {/* Pricing — prominent comparison table first */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-3">Pricing</p>
             <h2 className="t-display-sub mb-4">Choose your plan</h2>
             <p className="t-body text-foreground/60 mb-10 max-w-xl">
@@ -172,7 +172,7 @@ export default function SignalPage() {
 
         {/* Who it's for */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <div className="grid lg:grid-cols-5 gap-16">
               <div className="lg:col-span-2">
                 <p className="t-eyebrow mb-3">Audience</p>
@@ -198,7 +198,7 @@ export default function SignalPage() {
 
         {/* Features — 2-column icon grid */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-3">Features</p>
             <h2 className="t-display-sub mb-12">What you get</h2>
             <div className="grid md:grid-cols-2 gap-x-12 gap-y-10">
@@ -219,7 +219,7 @@ export default function SignalPage() {
 
         {/* Onboarding */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-3">Getting Started</p>
             <h2 className="t-display-sub mb-12">Three simple steps</h2>
             <div className="grid md:grid-cols-3 gap-8">
@@ -239,7 +239,7 @@ export default function SignalPage() {
 
         {/* FAQ */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <div className="grid lg:grid-cols-5 gap-16">
               <div className="lg:col-span-2">
                 <p className="t-eyebrow mb-3">FAQ</p>
@@ -259,7 +259,7 @@ export default function SignalPage() {
 
         {/* CTA */}
         <section className="section-padding text-center">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <h2 className="t-display-sub mb-4">Ready to start?</h2>
             <p className="t-body text-foreground/60 mb-8 max-w-lg mx-auto">
               Create your account, pick your plan, and receive your first signal within 24 hours.

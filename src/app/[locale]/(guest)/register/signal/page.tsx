@@ -51,7 +51,7 @@ export default function RegisterSignalPage() {
 
       <main id="main-content">
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <div className="max-w-md mx-auto">
               <p className="t-eyebrow mb-4">Register</p>
               <h1 className="t-display-sub mb-2">Signal Service Registration</h1>

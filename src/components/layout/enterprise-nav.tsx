@@ -36,10 +36,9 @@ const PLATFORM_MENU = {
 
 const SOLUTIONS_MENU = {
   forex: [
-    { href: '/solutions/signal', label: 'Signal Service', desc: 'Real-time forex signals · from $49/mo', icon: TrendingUp },
-    { href: '/solutions/pamm', label: 'PAMM Account', desc: 'Bot kelola dana · 20-30% profit share', icon: TrendingUp },
-    { href: '/solutions/license', label: 'VPS License', desc: 'Bot di VPS pribadi · from $3,000', icon: TrendingUp },
-    { href: '/solutions/institutional', label: 'Managed Account', desc: 'Custom institutional mandate', icon: Sparkles },
+    { href: '/solutions/signal', label: 'Signal Service', desc: 'Forex signals harian — Telegram + dashboard · dari $49/mo', icon: TrendingUp },
+    { href: '/solutions/license', label: 'VPS License', desc: 'Bot terinstal di VPS pribadi · setup $3,000+', icon: TrendingUp },
+    { href: '/solutions/institutional', label: 'Managed Account', desc: 'Mandate kustom · AUM minimum $250K', icon: Sparkles },
   ],
   crypto: [
     { href: '/solutions/crypto', label: 'Crypto Bot Overview', desc: 'Binance Futures · 6 strategi · 24/7', icon: Bitcoin },
@@ -48,9 +47,10 @@ const SOLUTIONS_MENU = {
     { href: '/solutions/crypto#hnwi', label: 'Crypto HNWI', desc: '12 pair + custom · $499/mo', icon: Bitcoin },
   ],
   register: [
+    { href: '/demo', label: 'Try Demo (Free)', desc: 'Akun MT5 demo + signal preview tanpa biaya' },
     { href: '/register/signal', label: 'Register Signal', desc: 'Self-serve forex signup' },
-    { href: '/register/pamm', label: 'Register PAMM', desc: 'Open managed account' },
     { href: '/register/crypto', label: 'Register Crypto', desc: 'Connect Binance + activate bot' },
+    { href: '/register/vps', label: 'Register VPS License', desc: 'Konsultasi setup VPS pribadi' },
     { href: '/register/institutional', label: 'Institutional Inquiry', desc: 'Schedule a briefing' },
   ],
 };
@@ -124,13 +124,13 @@ export function EnterpriseNav() {
       ref={menuRef}
       role="navigation"
       aria-label="Main navigation"
-      className={`sticky top-0 z-50 h-16 transition-all duration-200 ${
+      className={`sticky top-0 z-[60] h-16 transition-all duration-200 ${
         scrolled
           ? 'bg-background/95 backdrop-blur-xl border-b border-border'
           : 'bg-background border-b border-transparent'
       }`}
     >
-      <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-full flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 shrink-0" onClick={() => setActiveMenu(null)}>
           <Image
@@ -363,8 +363,8 @@ export function EnterpriseNav() {
 
       {/* ─── Mobile Menu ─── */}
       {mobileOpen && (
-        <div className="lg:hidden fixed inset-0 top-16 bg-background z-40 overflow-y-auto">
-          <div className="px-6 py-6 space-y-6">
+        <div className="lg:hidden fixed inset-0 top-16 bg-background z-[55] overflow-y-auto overscroll-contain">
+          <div className="px-4 sm:px-6 py-6 space-y-6">
             {/* Platform */}
             <div>
               <MegaMenuHeading>Platform</MegaMenuHeading>
@@ -522,15 +522,15 @@ function MegaMenuIconLink({ href, label, desc, icon: Icon, onClick }: { href: st
   return (
     <Link
       href={href}
-      className="flex items-start gap-3 py-2.5 px-3 -mx-3 rounded-md hover:bg-muted/50 transition-colors group"
+      className="flex items-center gap-3 py-2.5 px-3 -mx-3 rounded-md hover:bg-muted/50 transition-colors group"
       onClick={onClick}
     >
-      <span className="w-9 h-9 rounded-md bg-muted/50 border border-border/60 flex items-center justify-center shrink-0 group-hover:border-amber-500/30 group-hover:bg-amber-500/[0.08] transition-all mt-0.5">
-        <Icon className="w-4 h-4 text-foreground/50 group-hover:text-amber-400 transition-colors" />
+      <span className="inline-flex w-9 h-9 rounded-md bg-muted/50 border border-border/60 items-center justify-center shrink-0 group-hover:border-amber-500/30 group-hover:bg-amber-500/[0.08] transition-all">
+        <Icon className="w-4 h-4 text-foreground/60 group-hover:text-amber-400 transition-colors" />
       </span>
-      <span className="flex flex-col min-w-0">
-        <span className="text-sm text-foreground group-hover:text-amber-400 transition-colors leading-tight">{label}</span>
-        {desc && <span className="text-xs text-foreground/40 mt-0.5 leading-snug">{desc}</span>}
+      <span className="flex flex-col min-w-0 leading-tight">
+        <span className="text-sm font-medium text-foreground group-hover:text-amber-400 transition-colors">{label}</span>
+        {desc && <span className="text-xs text-foreground/50 mt-0.5 leading-snug">{desc}</span>}
       </span>
     </Link>
   );

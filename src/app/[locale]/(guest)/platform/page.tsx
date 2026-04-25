@@ -77,7 +77,7 @@ export default async function PlatformPage() {
       <main id="main-content">
         {/* Hero */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">Platform</p>
             <h1 className="t-display-page mb-6">
               The infrastructure behind<br className="hidden sm:block" /> every decision.
@@ -92,7 +92,7 @@ export default async function PlatformPage() {
 
         {/* Three Pillars */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-3">Foundation</p>
             <h2 className="t-display-sub mb-4">Three pillars</h2>
             <p className="t-body text-foreground/60 mb-12 max-w-2xl">
@@ -119,7 +119,7 @@ export default async function PlatformPage() {
 
         {/* Execution Pipeline */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-3">Architecture</p>
             <h2 className="t-display-sub mb-4">Execution pipeline</h2>
             <p className="t-body text-foreground/60 mb-12 max-w-2xl">
@@ -144,7 +144,7 @@ export default async function PlatformPage() {
 
         {/* Instruments */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-3">Coverage</p>
             <h2 className="t-display-sub mb-4">Instruments</h2>
             <p className="t-body text-foreground/60 mb-12 max-w-2xl">
@@ -181,7 +181,7 @@ export default async function PlatformPage() {
 
         {/* Documentation */}
         <section className="section-padding">
-          <div className="container-default px-6">
+          <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-3">Documents</p>
             <h2 className="t-display-sub mb-8">Documentation</h2>
             <div className="grid md:grid-cols-2 gap-6">

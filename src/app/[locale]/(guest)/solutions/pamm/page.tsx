@@ -75,7 +75,7 @@ export default function PAMMPage() {
       <EnterpriseNav />
       <main id="main-content">
         {/* Hero */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-4">PAMM Account</p>
             <h1 className="t-display-page mb-6">
@@ -97,7 +97,7 @@ export default function PAMMPage() {
         </section>
 
         {/* KPI Preview Strip */}
-        <section className="border-b border-white/8">
+        <section className="border-b border-border/60">
           <div className="container-default px-6">
             <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-white/8">
               {KPI_STATS.map((stat) => (
@@ -111,7 +111,7 @@ export default function PAMMPage() {
         </section>
 
         {/* How it works — vertical timeline */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-3">How It Works</p>
             <h2 className="t-display-sub mb-14">Getting started</h2>
@@ -138,7 +138,7 @@ export default function PAMMPage() {
         </section>
 
         {/* Who it's for */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <div className="grid lg:grid-cols-5 gap-16">
               <div className="lg:col-span-2">
@@ -164,7 +164,7 @@ export default function PAMMPage() {
         </section>
 
         {/* Features — 3-column cards */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-3">Features</p>
             <h2 className="t-display-sub mb-12">What you get</h2>
@@ -180,7 +180,7 @@ export default function PAMMPage() {
         </section>
 
         {/* Pricing */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-3">Pricing</p>
             <h2 className="t-display-sub mb-12">Choose your tier</h2>
@@ -214,7 +214,7 @@ export default function PAMMPage() {
         </section>
 
         {/* FAQ */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <div className="grid lg:grid-cols-5 gap-16">
               <div className="lg:col-span-2">
@@ -223,7 +223,7 @@ export default function PAMMPage() {
               </div>
               <div className="lg:col-span-3 space-y-8">
                 {faq.map((item) => (
-                  <div key={item.q} className="border-b border-white/[0.04] pb-8 last:border-b-0">
+                  <div key={item.q} className="border-b border-border/40 pb-8 last:border-b-0">
                     <h3 className="text-base font-medium mb-2">{item.q}</h3>
                     <p className="t-body-sm text-foreground/60 leading-relaxed">{item.a}</p>
                   </div>

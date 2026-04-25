@@ -36,7 +36,7 @@ export default function CookiePolicyPage() {
       <EnterpriseNav />
       <main id="main-content">
         {/* Hero */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-4">Legal</p>
             <h1 className="t-display-page mb-2">Cookie Policy</h1>
@@ -88,27 +88,27 @@ export default function CookiePolicyPage() {
                   secure areas. Without these cookies, the services you have asked for cannot be provided.
                   These cookies do not require your consent.
                 </p>
-                <div className="mt-3 border border-white/8 rounded-lg overflow-hidden text-sm">
+                <div className="mt-3 border border-border/60 rounded-lg overflow-hidden text-sm">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b border-white/8 bg-card">
+                      <tr className="border-b border-border/60 bg-card">
                         <th className="text-left p-3 font-medium text-foreground/60">Cookie</th>
                         <th className="text-left p-3 font-medium text-foreground/60">Purpose</th>
                         <th className="text-left p-3 font-medium text-foreground/60">Duration</th>
                       </tr>
                     </thead>
                     <tbody>
-                      <tr className="border-b border-white/8">
+                      <tr className="border-b border-border/60">
                         <td className="p-3 font-mono text-xs">session_token</td>
                         <td className="p-3">Authentication and session management</td>
                         <td className="p-3">Session</td>
                       </tr>
-                      <tr className="border-b border-white/8">
+                      <tr className="border-b border-border/60">
                         <td className="p-3 font-mono text-xs">csrf_token</td>
                         <td className="p-3">Cross-site request forgery protection</td>
                         <td className="p-3">Session</td>
                       </tr>
-                      <tr className="border-b border-white/8">
+                      <tr className="border-b border-border/60">
                         <td className="p-3 font-mono text-xs">locale</td>
                         <td className="p-3">Language preference</td>
                         <td className="p-3">1 year</td>
@@ -129,17 +129,17 @@ export default function CookiePolicyPage() {
                   popular pages, and improve the user experience. These cookies are only set with your
                   consent.
                 </p>
-                <div className="mt-3 border border-white/8 rounded-lg overflow-hidden text-sm">
+                <div className="mt-3 border border-border/60 rounded-lg overflow-hidden text-sm">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b border-white/8 bg-card">
+                      <tr className="border-b border-border/60 bg-card">
                         <th className="text-left p-3 font-medium text-foreground/60">Cookie</th>
                         <th className="text-left p-3 font-medium text-foreground/60">Purpose</th>
                         <th className="text-left p-3 font-medium text-foreground/60">Duration</th>
                       </tr>
                     </thead>
                     <tbody>
-                      <tr className="border-b border-white/8">
+                      <tr className="border-b border-border/60">
                         <td className="p-3 font-mono text-xs">_analytics_id</td>
                         <td className="p-3">Anonymous visitor identification for analytics</td>
                         <td className="p-3">2 years</td>
@@ -243,7 +243,7 @@ export default function CookiePolicyPage() {
         </section>
 
         {/* Related Documents */}
-        <section className="section-padding border-t border-white/8">
+        <section className="section-padding border-t border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-4">Related Documents</p>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">

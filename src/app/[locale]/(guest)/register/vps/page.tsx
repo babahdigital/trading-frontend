@@ -49,7 +49,7 @@ export default function RegisterVpsPage() {
       <EnterpriseNav />
 
       <main id="main-content">
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <div className="max-w-md mx-auto">
               {submitted ? (

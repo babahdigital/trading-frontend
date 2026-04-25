@@ -50,7 +50,7 @@ export default function RegisterSignalPage() {
       <EnterpriseNav />
 
       <main id="main-content">
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <div className="max-w-md mx-auto">
               <p className="t-eyebrow mb-4">Register</p>
@@ -65,7 +65,7 @@ export default function RegisterSignalPage() {
                   <div key={s} className="flex items-center gap-2">
                     <div
                       className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
-                        i <= step ? 'bg-amber-400 text-black' : 'bg-white/10 text-foreground/60'
+                        i <= step ? 'bg-amber-400 text-black' : 'bg-border text-foreground/60'
                       }`}
                     >
                       {i + 1}
@@ -145,7 +145,7 @@ export default function RegisterSignalPage() {
                             className={`border rounded-lg p-4 cursor-pointer transition-colors ${
                               form.tier === tier.value
                                 ? 'border-amber-400 bg-amber-400/5'
-                                : 'border-white/8 hover:border-amber-400/50'
+                                : 'border-border/60 hover:border-amber-400/50'
                             }`}
                             onClick={() => set('tier', tier.value)}
                           >
@@ -160,7 +160,7 @@ export default function RegisterSignalPage() {
                       <div className="flex gap-3">
                         <Button
                           variant="outline"
-                          className="flex-1 border-white/8 text-foreground/50 hover:text-amber-400"
+                          className="flex-1 border-border/60 text-foreground/50 hover:text-amber-400"
                           onClick={() => setStep(0)}
                         >
                           Back
@@ -174,7 +174,7 @@ export default function RegisterSignalPage() {
 
                   {step === 2 && (
                     <>
-                      <div className="border border-white/8 rounded-lg p-4 space-y-2 text-sm">
+                      <div className="border border-border/60 rounded-lg p-4 space-y-2 text-sm">
                         <div className="flex justify-between">
                           <span className="text-foreground/60">Name</span>
                           <span>{form.name}</span>
@@ -196,7 +196,7 @@ export default function RegisterSignalPage() {
                       <div className="flex gap-3">
                         <Button
                           variant="outline"
-                          className="flex-1 border-white/8 text-foreground/50 hover:text-amber-400"
+                          className="flex-1 border-border/60 text-foreground/50 hover:text-amber-400"
                           onClick={() => setStep(1)}
                         >
                           Back

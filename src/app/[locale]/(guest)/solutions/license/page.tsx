@@ -111,7 +111,7 @@ export default async function LicensePage() {
       <EnterpriseNav />
       <main id="main-content">
         {/* Hero */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-4">VPS License</p>
             <h1 className="t-display-page mb-6">
@@ -125,7 +125,7 @@ export default async function LicensePage() {
         </section>
 
         {/* Technical Specs Table */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-3">Infrastructure</p>
             <h2 className="t-display-sub mb-4">Technical specifications</h2>
@@ -136,7 +136,7 @@ export default async function LicensePage() {
               <div className="table-enterprise-wrapper min-w-[500px]">
               <table className="table-enterprise w-full">
                 <thead>
-                  <tr className="border-b border-white/8">
+                  <tr className="border-b border-border/60">
                     <th className="text-left px-6 py-3">Component</th>
                     <th className="text-left px-6 py-3">Specification</th>
                     <th className="text-left px-6 py-3 hidden md:table-cell">Notes</th>
@@ -144,7 +144,7 @@ export default async function LicensePage() {
                 </thead>
                 <tbody className="text-sm">
                   {SPECS.map((row) => (
-                    <tr key={row.spec} className="border-b border-white/8 last:border-0">
+                    <tr key={row.spec} className="border-b border-border/60 last:border-0">
                       <td className="px-6 py-3 font-medium text-foreground/80">{row.spec}</td>
                       <td className="px-6 py-3 font-mono text-amber-400">{row.value}</td>
                       <td className="px-6 py-3 text-foreground/50 hidden md:table-cell">{row.note}</td>
@@ -158,7 +158,7 @@ export default async function LicensePage() {
         </section>
 
         {/* Who it's for */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-4">Eligibility</p>
             <h2 className="t-display-sub mb-8">Who it is for</h2>
@@ -180,7 +180,7 @@ export default async function LicensePage() {
         </section>
 
         {/* Features — alternating left-right sections */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-4">Capabilities</p>
             <h2 className="t-display-sub mb-14">What you get</h2>
@@ -194,7 +194,7 @@ export default async function LicensePage() {
                 >
                   {/* Image placeholder */}
                   <div className={`${i % 2 === 1 ? 'md:[direction:ltr]' : ''}`}>
-                    <div className="aspect-[4/3] rounded-lg border border-white/8 bg-white/[0.02] flex items-center justify-center">
+                    <div className="aspect-[4/3] rounded-lg border border-border/60 bg-muted/30 flex items-center justify-center">
                       <div className="text-center">
                         <p className="font-mono text-6xl text-amber-500/10 font-bold">{String(i + 1).padStart(2, '0')}</p>
                         <p className="t-body-sm text-foreground/20 mt-2">{feature.title}</p>
@@ -213,7 +213,7 @@ export default async function LicensePage() {
         </section>
 
         {/* Pricing */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-4">Pricing</p>
             <h2 className="t-display-sub mb-12">Pricing</h2>
@@ -226,14 +226,14 @@ export default async function LicensePage() {
                     <span className="text-base text-foreground/60 font-normal ml-2">one-time</span>
                   </p>
                 </div>
-                <div className="border-t border-white/8 pt-6">
+                <div className="border-t border-border/60 pt-6">
                   <p className="t-eyebrow mb-1">Maintenance</p>
                   <p className="font-display text-4xl font-medium">
                     $150
                     <span className="text-base text-foreground/60 font-normal">/mo</span>
                   </p>
                 </div>
-                <div className="border-t border-white/8 pt-6">
+                <div className="border-t border-border/60 pt-6">
                   <p className="t-body-sm text-foreground/60 leading-relaxed">
                     Setup fee covers infrastructure provisioning, strategy configuration, paper-trading validation,
                     and training. Monthly maintenance covers hosting, monitoring, updates, and support.
@@ -246,7 +246,7 @@ export default async function LicensePage() {
         </section>
 
         {/* Onboarding */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-4">Process</p>
             <h2 className="t-display-sub mb-12">Onboarding process</h2>
@@ -266,7 +266,7 @@ export default async function LicensePage() {
         </section>
 
         {/* FAQ */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <div className="grid lg:grid-cols-5 gap-12">
               <div className="lg:col-span-2">

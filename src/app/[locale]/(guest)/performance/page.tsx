@@ -70,7 +70,7 @@ export default function PerformancePage() {
       <EnterpriseNav />
       <main id="main-content">
         {/* Hero */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-4">Live Track Record</p>
             <h1 className="t-display-page mb-6">
@@ -83,7 +83,7 @@ export default function PerformancePage() {
         </section>
 
         {/* Equity Curve */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <div className="flex items-center justify-between mb-8">
               <h2 className="t-display-sub">Equity curve</h2>
@@ -100,7 +100,7 @@ export default function PerformancePage() {
                       <span key={p} className="tab-btn opacity-40">{p}</span>
                     ))}
                   </div>
-                  <div className="flex-1 relative overflow-hidden rounded-md bg-white/[0.02]">
+                  <div className="flex-1 relative overflow-hidden rounded-md bg-muted/30">
                     <div className="absolute inset-0 shimmer" />
                   </div>
                 </div>
@@ -116,14 +116,14 @@ export default function PerformancePage() {
             </div>
             <div className="mt-6 flex items-center gap-6 text-xs text-foreground/40">
               <span>Audited by MyFxBook</span>
-              <span className="w-px h-3 bg-white/10" />
+              <span className="w-px h-3 bg-border" />
               <span>IC Markets Raw &middot; Partner verified</span>
             </div>
           </div>
         </section>
 
         {/* KPI Grid */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-3">Key Metrics</p>
             <h2 className="t-display-sub mb-12">Key performance indicators</h2>
@@ -140,7 +140,7 @@ export default function PerformancePage() {
         </section>
 
         {/* Execution Stats — Enterprise Tables */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-3">Analytics</p>
             <h2 className="t-display-sub mb-12">Execution statistics</h2>
@@ -202,7 +202,7 @@ export default function PerformancePage() {
         </section>
 
         {/* Independent Verification */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-3">Trust</p>
             <h2 className="t-display-sub mb-12">Independent verification</h2>
@@ -244,7 +244,7 @@ export default function PerformancePage() {
         </section>
 
         {/* Downloads */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-3">Documents</p>
             <h2 className="t-display-sub mb-8">Downloads</h2>
@@ -267,7 +267,7 @@ export default function PerformancePage() {
         </section>
 
         {/* Disclaimer */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <div className="card-enterprise max-w-3xl">
               <p className="t-eyebrow mb-3">Important Disclaimer</p>

@@ -12,7 +12,7 @@ export default async function ContactPage() {
       <EnterpriseNav />
       <main id="main-content">
         {/* Hero */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-4">Contact</p>
             <h1 className="t-display-page mb-6">Talk to us.</h1>
@@ -24,7 +24,7 @@ export default async function ContactPage() {
         </section>
 
         {/* Schedule a Call */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-3">Book a Call</p>
             <h2 className="t-display-sub mb-2">Schedule a briefing</h2>
@@ -78,7 +78,7 @@ export default async function ContactPage() {
                     value="@babahalgo"
                   />
 
-                  <div className="border-t border-white/8 pt-6">
+                  <div className="border-t border-border/60 pt-6">
                     <div className="flex items-start gap-3 mb-6">
                       <MapPin className="w-5 h-5 text-amber-400 mt-0.5 shrink-0" />
                       <div>
@@ -115,7 +115,7 @@ function ChannelCard({ icon, title, href, value }: { icon: React.ReactNode; titl
       href={href}
       target={href.startsWith('http') ? '_blank' : undefined}
       rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}
-      className="flex items-center gap-4 p-4 rounded-lg border border-white/8 bg-white/[0.02] hover:border-amber-500/30 hover:bg-white/[0.04] transition-all group"
+      className="flex items-center gap-4 p-4 rounded-lg border border-border/60 bg-muted/30 hover:border-amber-500/30 hover:bg-muted/50 transition-all group"
     >
       <div className="icon-container shrink-0">{icon}</div>
       <div>

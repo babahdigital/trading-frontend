@@ -36,7 +36,7 @@ export default function PrivacyPage() {
       <EnterpriseNav />
       <main id="main-content">
         {/* Hero */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-4">Legal</p>
             <h1 className="t-display-page mb-2">Privacy Policy</h1>
@@ -311,7 +311,7 @@ export default function PrivacyPage() {
         </section>
 
         {/* Related Documents */}
-        <section className="section-padding border-t border-white/8">
+        <section className="section-padding border-t border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-4">Related Documents</p>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">

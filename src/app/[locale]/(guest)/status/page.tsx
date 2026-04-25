@@ -97,7 +97,7 @@ export default function StatusPage() {
       <EnterpriseNav />
       <main id="main-content" className="pb-16">
         {/* ── Header ── */}
-        <section className="border-b border-white/8 py-10">
+        <section className="border-b border-border/60 py-10">
           <div className="container-default px-6">
             <div className="flex items-center justify-between">
               <div>
@@ -134,11 +134,11 @@ export default function StatusPage() {
         {/* ── Components ── */}
         <section className="py-4">
           <div className="container-default px-6">
-            <div className="rounded-lg border border-white/8 overflow-hidden divide-y divide-white/6">
+            <div className="rounded-lg border border-border/60 overflow-hidden divide-y divide-white/6">
               {(data?.components ?? []).map((c) => {
                 const meta = STATUS_META[c.status];
                 return (
-                  <div key={c.name} className="flex items-center justify-between px-5 py-3 hover:bg-white/[0.02] transition-colors">
+                  <div key={c.name} className="flex items-center justify-between px-5 py-3 hover:bg-muted/30 transition-colors">
                     <div className="flex items-center gap-3 min-w-0">
                       <span className={cn('h-2 w-2 rounded-full shrink-0', meta.dot)} />
                       <span className="font-medium text-sm truncate">{c.name}</span>
@@ -162,7 +162,7 @@ export default function StatusPage() {
           <div className="container-default px-6">
             <button
               onClick={() => setExpandWorkers(!expandWorkers)}
-              className="w-full rounded-lg border border-white/8 px-5 py-3 flex items-center justify-between hover:bg-white/[0.02] transition-colors text-left"
+              className="w-full rounded-lg border border-border/60 px-5 py-3 flex items-center justify-between hover:bg-muted/30 transition-colors text-left"
             >
               <div className="flex items-center gap-3">
                 <span className="text-sm font-medium">Proses Otomatis</span>
@@ -176,12 +176,12 @@ export default function StatusPage() {
             </button>
 
             {expandWorkers && (
-              <div className="mt-1 rounded-lg border border-white/8 overflow-hidden">
+              <div className="mt-1 rounded-lg border border-border/60 overflow-hidden">
                 {!hasWorkers ? (
                   <div className="px-5 py-4 text-sm text-foreground/40 text-center">Belum ada catatan proses.</div>
                 ) : (
                   <table className="w-full text-sm">
-                    <thead className="text-[11px] uppercase text-foreground/40 bg-white/[0.02]">
+                    <thead className="text-[11px] uppercase text-foreground/40 bg-muted/30">
                       <tr>
                         <th className="text-left py-2 px-4 font-medium">Proses</th>
                         <th className="text-left py-2 px-4 font-medium">Jalan Terakhir</th>
@@ -196,7 +196,7 @@ export default function StatusPage() {
                         const isErr = w.lastStatus === 'ERROR' || w.lastStatus === 'error';
                         const statusLabel = w.lastStatus ? (WORKER_STATUS_LABELS[w.lastStatus] ?? w.lastStatus) : 'Belum jalan';
                         return (
-                          <tr key={w.scope} className="hover:bg-white/[0.02]">
+                          <tr key={w.scope} className="hover:bg-muted/30">
                             <td className="py-2 px-4 font-medium">{WORKER_LABELS[w.scope] ?? w.scope}</td>
                             <td className="py-2 px-4 text-foreground/60">
                               {w.lastRunAt ? <RelativeTime iso={w.lastRunAt} /> : <span className="text-foreground/30">&mdash;</span>}
@@ -204,7 +204,7 @@ export default function StatusPage() {
                             <td className="py-2 px-4">
                               <span className={cn(
                                 'inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded',
-                                isOk ? 'text-emerald-400 bg-emerald-400/10' : isErr ? 'text-rose-400 bg-rose-400/10' : 'text-foreground/60 bg-white/5'
+                                isOk ? 'text-emerald-400 bg-emerald-400/10' : isErr ? 'text-rose-400 bg-rose-400/10' : 'text-foreground/60 bg-muted/40'
                               )}>
                                 <span className={cn('h-1.5 w-1.5 rounded-full', isOk ? 'bg-emerald-400' : isErr ? 'bg-rose-400' : 'bg-foreground/30')} />
                                 {statusLabel}
@@ -229,7 +229,7 @@ export default function StatusPage() {
             <div className="container-default px-6">
               <button
                 onClick={() => setExpandHealth(!expandHealth)}
-                className="w-full rounded-lg border border-white/8 px-5 py-3 flex items-center justify-between hover:bg-white/[0.02] transition-colors text-left"
+                className="w-full rounded-lg border border-border/60 px-5 py-3 flex items-center justify-between hover:bg-muted/30 transition-colors text-left"
               >
                 <div className="flex items-center gap-3">
                   <span className="text-sm font-medium">Pemeriksaan Kesehatan Terkini</span>
@@ -243,9 +243,9 @@ export default function StatusPage() {
               </button>
 
               {expandHealth && hasHealthChecks && (
-                <div className="mt-1 rounded-lg border border-white/8 overflow-x-auto">
+                <div className="mt-1 rounded-lg border border-border/60 overflow-x-auto">
                   <table className="w-full text-sm">
-                    <thead className="text-[11px] uppercase text-foreground/40 bg-white/[0.02]">
+                    <thead className="text-[11px] uppercase text-foreground/40 bg-muted/30">
                       <tr>
                         <th className="text-left py-2 px-4 font-medium">Instance</th>
                         <th className="text-left py-2 px-4 font-medium">Waktu</th>
@@ -257,7 +257,7 @@ export default function StatusPage() {
                     </thead>
                     <tbody className="divide-y divide-white/5">
                       {data!.recentHealthChecks.map((c, i) => (
-                        <tr key={i} className="hover:bg-white/[0.02]">
+                        <tr key={i} className="hover:bg-muted/30">
                           <td className="py-2 px-4 font-medium">{c.name}</td>
                           <td className="py-2 px-4 text-foreground/60"><RelativeTime iso={c.checkedAt} /></td>
                           <td className={cn('py-2 px-4 text-right tabular-nums', c.httpStatus && c.httpStatus < 400 ? 'text-emerald-400' : 'text-rose-400')}>

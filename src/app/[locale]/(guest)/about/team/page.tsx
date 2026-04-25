@@ -10,12 +10,22 @@ const TEAM_FALLBACK = [
   {
     name: 'Abdullah',
     role: 'Founder & Lead Quant',
-    bio: `Abdullah founded BabahAlgo after spending years developing and refining quantitative trading strategies across forex and commodities markets. With a background in software engineering and a deep interest in market microstructure, he designed the core strategy architecture, risk framework, and infrastructure that power the platform. He personally oversees all strategy development, system operations, and client relationships. His approach to trading is rooted in statistical rigor, operational discipline, and radical transparency.`,
+    bio: `Abdullah mendirikan BabahAlgo setelah bertahun-tahun mengembangkan dan menyempurnakan strategi trading kuantitatif untuk pasar forex dan komoditas. Berlatar belakang software engineering dengan minat dalam market microstructure, ia merancang arsitektur strategi inti, risk framework, dan infrastruktur yang menjalankan platform ini. Ia mengawasi langsung pengembangan strategi, operasi sistem, dan hubungan klien institusional. Pendekatannya berakar pada statistical rigor, disiplin operasional, dan transparansi penuh.`,
   },
   {
-    name: 'Operations Team',
-    role: 'Infrastructure & Client Operations',
-    bio: `Our operations team handles the day-to-day infrastructure management, monitoring, and client support that keeps BabahAlgo running around the clock. From server health monitoring during Asian session opens to onboarding new PAMM clients, the operations function ensures that every component of the system performs as designed. The team follows strict runbooks for incident response, deployment procedures, and client communication.`,
+    name: 'Quantitative Research',
+    role: 'Strategy R&D · Backtesting · Validation',
+    bio: `Tim quant research bertanggung jawab atas pengembangan strategi baru, backtesting walk-forward, dan validasi out-of-sample. Setiap strategi melewati minimum 3 tahun in-sample + 1 tahun out-of-sample sebelum di-deploy ke production. Tim juga mengelola monitoring strategy decay, regime detection, dan adjustment parameter berbasis Bayesian optimization. Output utama: laporan validasi bulanan dan signal rationale untuk setiap entry.`,
+  },
+  {
+    name: 'Infrastructure & SRE',
+    role: 'Platform Reliability · Cloud Operations',
+    bio: `Tim infrastructure menjaga uptime 99.95% di seluruh stack — dari MetaTrader 5 execution bridge sub-2ms, Postgres timeseries database, hingga Cloudflare Tunnel ingress. Mereka mengoperasikan playbook insiden lengkap (kill switch protocol, failover MT5, pg backup), monitoring 24/7 dengan alerting, dan runbook deployment untuk setiap perubahan production. Tim juga melakukan audit chain verification harian per ADR governance.`,
+  },
+  {
+    name: 'Client Success & Compliance',
+    role: 'Onboarding · KYC · Customer Operations',
+    bio: `Customer-facing function yang menangani onboarding KYC institusional, dukungan teknis pelanggan, billing, dan compliance reporting. Tim menjamin setiap PAMM/Signal/Crypto subscriber dilayani sesuai SLA tier-nya. Mereka juga mengelola review berkala dengan klien dedicated mandate dan menjadi kontak utama untuk audit eksternal serta query regulator.`,
   },
 ];
 
@@ -58,7 +68,7 @@ export default function TeamPage() {
       <EnterpriseNav />
       <main id="main-content">
         {/* Hero */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <Link
               href="/about"
@@ -77,13 +87,13 @@ export default function TeamPage() {
         </section>
 
         {/* Team Grid */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-4">The People</p>
             <div className="grid md:grid-cols-2 gap-8">
               {team.map((member) => (
                 <div key={member.name} className="card-enterprise">
-                  <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-6">
+                  <div className="w-16 h-16 rounded-full bg-muted/40 flex items-center justify-center mb-6">
                     <span className="font-mono text-lg text-foreground/50">
                       {member.name.charAt(0)}
                     </span>

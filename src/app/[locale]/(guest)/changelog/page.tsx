@@ -40,7 +40,7 @@ export default function ChangelogPage() {
     <div className="min-h-screen bg-background text-foreground">
       <EnterpriseNav />
       <main id="main-content">
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-4">What&apos;s new</p>
             <h1 className="t-display-page mb-6">Changelog</h1>

@@ -13,7 +13,7 @@ export default async function RegisterInstitutionalPage() {
 
       <main id="main-content">
         {/* Hero */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-4">Register</p>
             <h1 className="t-display-page mb-4">Institutional Engagement</h1>
@@ -25,7 +25,7 @@ export default async function RegisterInstitutionalPage() {
         </section>
 
         {/* Process steps */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <div className="grid md:grid-cols-4 gap-6">
               {[
@@ -45,7 +45,7 @@ export default async function RegisterInstitutionalPage() {
         </section>
 
         {/* Engagement Models */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <h2 className="t-display-sub mb-6">Engagement models</h2>
             <div className="grid md:grid-cols-3 gap-6">
@@ -75,13 +75,13 @@ export default async function RegisterInstitutionalPage() {
         </section>
 
         {/* Schedule Call */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <h2 className="t-display-sub mb-2">Schedule your briefing</h2>
             <p className="t-body-sm text-foreground/60 mb-8">
               All institutional conversations are confidential. NDA available upon request.
             </p>
-            <div className="border border-white/8 rounded-lg overflow-hidden bg-card">
+            <div className="border border-border/60 rounded-lg overflow-hidden bg-card">
               <CalEmbed calLink="babahalgo/institutional" />
             </div>
           </div>

@@ -76,7 +76,7 @@ export default async function PlatformPage() {
       <EnterpriseNav />
       <main id="main-content">
         {/* Hero */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-4">Platform</p>
             <h1 className="t-display-page mb-6">
@@ -91,7 +91,7 @@ export default async function PlatformPage() {
         </section>
 
         {/* Three Pillars */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-3">Foundation</p>
             <h2 className="t-display-sub mb-4">Three pillars</h2>
@@ -118,7 +118,7 @@ export default async function PlatformPage() {
         </section>
 
         {/* Execution Pipeline */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-3">Architecture</p>
             <h2 className="t-display-sub mb-4">Execution pipeline</h2>
@@ -128,7 +128,7 @@ export default async function PlatformPage() {
             <div className="card-enterprise p-8">
               <div className="space-y-0">
                 {PIPELINE_STEPS.map((s, i) => (
-                  <div key={s.step} className="flex items-start gap-4 py-4 border-b border-white/[0.04] last:border-b-0">
+                  <div key={s.step} className="flex items-start gap-4 py-4 border-b border-border/40 last:border-b-0">
                     <span className="font-mono text-amber-400 font-semibold text-sm w-6 shrink-0 mt-0.5">{s.step}.</span>
                     <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
                       <span className="font-mono text-sm text-foreground min-w-[140px]">{s.name}</span>
@@ -143,7 +143,7 @@ export default async function PlatformPage() {
         </section>
 
         {/* Instruments */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-3">Coverage</p>
             <h2 className="t-display-sub mb-4">Instruments</h2>

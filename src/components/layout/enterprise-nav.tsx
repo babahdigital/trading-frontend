@@ -230,11 +230,11 @@ export function EnterpriseNav() {
               </div>
             </div>
             {/* Featured card */}
-            <div className="col-span-5 pl-8 border-l border-white/8">
+            <div className="col-span-5 pl-8 border-l border-border/60">
               <MegaMenuHeading>Featured</MegaMenuHeading>
               <Link
                 href={PLATFORM_MENU.featured.href}
-                className="block p-5 rounded-lg bg-white/[0.03] border border-white/8 hover:border-amber-500/30 hover:bg-white/[0.05] transition-all group"
+                className="block p-5 rounded-lg bg-muted/40 border border-border/60 hover:border-amber-500/30 hover:bg-muted/60 transition-all group"
                 onClick={() => setActiveMenu(null)}
               >
                 <p className="text-sm font-medium text-foreground mb-1">{PLATFORM_MENU.featured.label}</p>
@@ -304,7 +304,7 @@ export function EnterpriseNav() {
             </div>
 
             {/* Get Started column */}
-            <div className="col-span-4 pl-8 border-l border-white/8">
+            <div className="col-span-4 pl-8 border-l border-border/60">
               <MegaMenuHeading>Get Started</MegaMenuHeading>
               <div className="space-y-0.5">
                 {SOLUTIONS_MENU.register.map((item) => (
@@ -344,10 +344,10 @@ export function EnterpriseNav() {
                 ))}
               </div>
             </div>
-            <div className="col-span-3 pl-8 border-l border-white/8 flex flex-col justify-center">
+            <div className="col-span-3 pl-8 border-l border-border/60 flex flex-col justify-center">
               <Link
                 href="/contact"
-                className="block p-5 rounded-lg bg-white/[0.03] border border-white/8 hover:border-amber-500/30 hover:bg-white/[0.05] transition-all group"
+                className="block p-5 rounded-lg bg-muted/40 border border-border/60 hover:border-amber-500/30 hover:bg-muted/60 transition-all group"
                 onClick={() => setActiveMenu(null)}
               >
                 <p className="text-sm font-medium text-foreground mb-1">Get in touch</p>
@@ -509,7 +509,7 @@ function MegaMenuLink({ href, label, desc, onClick }: { href: string; label: str
   return (
     <Link
       href={href}
-      className="block py-2 px-3 -mx-3 rounded-md hover:bg-white/[0.04] transition-colors group"
+      className="block py-2 px-3 -mx-3 rounded-md hover:bg-muted/50 transition-colors group"
       onClick={onClick}
     >
       <div className="text-sm text-foreground group-hover:text-amber-400 transition-colors">{label}</div>
@@ -522,10 +522,10 @@ function MegaMenuIconLink({ href, label, desc, icon: Icon, onClick }: { href: st
   return (
     <Link
       href={href}
-      className="flex items-start gap-3 py-2.5 px-3 -mx-3 rounded-md hover:bg-white/[0.04] transition-colors group"
+      className="flex items-start gap-3 py-2.5 px-3 -mx-3 rounded-md hover:bg-muted/50 transition-colors group"
       onClick={onClick}
     >
-      <span className="w-9 h-9 rounded-md bg-white/[0.04] border border-white/8 flex items-center justify-center shrink-0 group-hover:border-amber-500/30 group-hover:bg-amber-500/[0.08] transition-all mt-0.5">
+      <span className="w-9 h-9 rounded-md bg-muted/50 border border-border/60 flex items-center justify-center shrink-0 group-hover:border-amber-500/30 group-hover:bg-amber-500/[0.08] transition-all mt-0.5">
         <Icon className="w-4 h-4 text-foreground/50 group-hover:text-amber-400 transition-colors" />
       </span>
       <span className="flex flex-col min-w-0">

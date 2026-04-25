@@ -268,7 +268,7 @@ export function ChatWidget() {
             aria-modal="true"
             aria-label={copy.title}
             className={cn(
-              'fixed z-50 bg-background border border-white/10 rounded-2xl shadow-2xl',
+              'fixed z-50 bg-background border border-border rounded-2xl shadow-2xl',
               'flex flex-col overflow-hidden',
               'bottom-4 right-4 sm:bottom-6 sm:right-6',
               'w-[calc(100vw-2rem)] sm:w-[400px]',
@@ -276,7 +276,7 @@ export function ChatWidget() {
             )}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-card/80 backdrop-blur">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card/80 backdrop-blur">
               <div className="flex items-center gap-2.5 min-w-0">
                 <div className="w-9 h-9 rounded-full bg-amber-500/15 border border-amber-500/30 flex items-center justify-center shrink-0">
                   <Bot className="w-4 h-4 text-amber-400" />
@@ -298,7 +298,7 @@ export function ChatWidget() {
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="p-1.5 rounded-lg hover:bg-white/5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="p-1.5 rounded-lg hover:bg-muted/40 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 aria-label={copy.close_aria}
               >
                 <X className="w-4 h-4" />
@@ -335,7 +335,7 @@ export function ChatWidget() {
                       <div className="whitespace-pre-wrap break-words">{text}</div>
                     </div>
                     {isUser && (
-                      <div className="w-7 h-7 rounded-full bg-white/5 border border-white/10 flex-shrink-0 flex items-center justify-center mt-0.5">
+                      <div className="w-7 h-7 rounded-full bg-muted/40 border border-border flex-shrink-0 flex items-center justify-center mt-0.5">
                         <User className="w-3.5 h-3.5 text-foreground/70" />
                       </div>
                     )}
@@ -422,7 +422,7 @@ export function ChatWidget() {
                     key={qr.label}
                     onClick={() => handleQuickReply(qr.message)}
                     disabled={isLoading}
-                    className="flex-shrink-0 px-3 py-1.5 rounded-full border border-white/15 bg-white/[0.02] text-xs font-medium hover:bg-amber-500/10 hover:border-amber-500/30 hover:text-amber-300 transition-colors disabled:opacity-50"
+                    className="flex-shrink-0 px-3 py-1.5 rounded-full border border-white/15 bg-muted/30 text-xs font-medium hover:bg-amber-500/10 hover:border-amber-500/30 hover:text-amber-300 transition-colors disabled:opacity-50"
                   >
                     {qr.label}
                   </button>
@@ -433,7 +433,7 @@ export function ChatWidget() {
             {/* Input form */}
             <form
               onSubmit={handleSubmit}
-              className="flex items-center gap-2 px-3 py-3 border-t border-white/10 bg-card/80 backdrop-blur"
+              className="flex items-center gap-2 px-3 py-3 border-t border-border bg-card/80 backdrop-blur"
             >
               <input
                 ref={inputRef}
@@ -442,7 +442,7 @@ export function ChatWidget() {
                 placeholder={copy.placeholder}
                 disabled={isLoading || isServiceDown}
                 aria-label={copy.placeholder}
-                className="flex-1 rounded-xl border border-white/10 bg-background px-3.5 py-2.5
+                className="flex-1 rounded-xl border border-border bg-background px-3.5 py-2.5
                            text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/40
                            disabled:opacity-50 placeholder:text-muted-foreground/70"
               />
@@ -461,7 +461,7 @@ export function ChatWidget() {
             </form>
 
             {/* Footer */}
-            <div className="px-4 py-2 text-center border-t border-white/10 bg-card/40">
+            <div className="px-4 py-2 text-center border-t border-border bg-card/40">
               <p className="text-[10px] text-muted-foreground/70">{copy.footer}</p>
             </div>
           </motion.div>

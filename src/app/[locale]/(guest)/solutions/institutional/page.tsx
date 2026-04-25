@@ -100,7 +100,7 @@ export default async function InstitutionalPage() {
       <EnterpriseNav />
       <main id="main-content">
         {/* Hero */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-4">Institutional</p>
             <h1 className="t-display-page mb-6">
@@ -114,7 +114,7 @@ export default async function InstitutionalPage() {
         </section>
 
         {/* Who it's for */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-4">Eligibility</p>
             <h2 className="t-display-sub mb-8">Who it is for</h2>
@@ -136,7 +136,7 @@ export default async function InstitutionalPage() {
         </section>
 
         {/* What you get */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-4">Capabilities</p>
             <h2 className="t-display-sub mb-12">What you get</h2>
@@ -152,7 +152,7 @@ export default async function InstitutionalPage() {
         </section>
 
         {/* Pricing */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-4">Pricing</p>
             <h2 className="t-display-sub mb-12">Pricing</h2>
@@ -171,7 +171,7 @@ export default async function InstitutionalPage() {
         </section>
 
         {/* Onboarding */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-4">Process</p>
             <h2 className="t-display-sub mb-12">Onboarding process</h2>
@@ -191,7 +191,7 @@ export default async function InstitutionalPage() {
         </section>
 
         {/* FAQ */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <div className="grid lg:grid-cols-5 gap-12">
               <div className="lg:col-span-2">

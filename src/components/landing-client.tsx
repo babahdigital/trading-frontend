@@ -286,14 +286,14 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
 
           {/* Tech trust strip */}
           <AnimatedSection delay={0.45}>
-            <div className="mt-12 flex items-center gap-6 text-xs text-ink-400">
+            <div className="mt-12 flex items-center gap-6 text-xs text-muted-foreground">
               <span className="uppercase tracking-wider">Built on</span>
               <span className="font-mono">MetaTrader 5</span>
-              <span className="w-px h-3 bg-white/10" />
+              <span className="w-px h-3 bg-border" />
               <span className="font-mono">ZeroMQ</span>
-              <span className="w-px h-3 bg-white/10" />
+              <span className="w-px h-3 bg-border" />
               <span className="font-mono">PostgreSQL</span>
-              <span className="w-px h-3 bg-white/10" />
+              <span className="w-px h-3 bg-border" />
               <span className="font-mono">Cloudflare</span>
             </div>
           </AnimatedSection>
@@ -303,7 +303,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
       {/* ═══════════════════════════════════════════
           SECTION 2 — TRACK RECORD
           ═══════════════════════════════════════════ */}
-      <section className="section-padding border-t border-white/8">
+      <section className="section-padding border-t border-border/60">
         <div className="container-default px-6">
           <AnimatedSection>
             <div className="t-eyebrow mb-4">TRACK RECORD</div>
@@ -312,7 +312,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
                 <h2 className="t-display-section text-foreground mb-2">
                   {perf?.title || 'Real money. Real audits.'}
                 </h2>
-                <p className="t-body-sm text-ink-400">
+                <p className="t-body-sm text-muted-foreground">
                   Verified &middot; Production account &middot; Updated every 4 hours
                 </p>
               </div>
@@ -380,12 +380,12 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
       {/* ═══════════════════════════════════════════
           SECTION 3 — THREE PILLARS
           ═══════════════════════════════════════════ */}
-      <section className="section-padding border-t border-white/8">
+      <section className="section-padding border-t border-border/60">
         <div className="container-default px-6">
           <AnimatedSection>
             <div className="t-eyebrow mb-4">PLATFORM</div>
             <h2 className="t-display-section text-foreground mb-4">Built on three pillars.</h2>
-            <p className="t-lead text-ink-400 max-w-2xl mb-16">
+            <p className="t-lead text-muted-foreground max-w-2xl mb-16">
               Every trade passes through intelligence, execution, and risk control — in that order, every time.
             </p>
           </AnimatedSection>
@@ -422,12 +422,12 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
       {/* ═══════════════════════════════════════════
           SECTION 4 — RISK FRAMEWORK
           ═══════════════════════════════════════════ */}
-      <section className="section-padding border-t border-white/8">
+      <section className="section-padding border-t border-border/60">
         <div className="container-default px-6">
           <AnimatedSection>
             <div className="t-eyebrow mb-4">RISK FRAMEWORK</div>
             <h2 className="t-display-section text-foreground mb-2">12 layers, every trade.</h2>
-            <p className="t-lead text-ink-400 max-w-2xl mb-16">
+            <p className="t-lead text-muted-foreground max-w-2xl mb-16">
               Risk control isn&apos;t a feature — it&apos;s the substrate every strategy runs on.
             </p>
           </AnimatedSection>
@@ -452,7 +452,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
       {/* ═══════════════════════════════════════════
           SECTION 5 — PRICING (Split layout)
           ═══════════════════════════════════════════ */}
-      <section className="section-padding border-t border-white/8">
+      <section className="section-padding border-t border-border/60">
         <div className="container-default px-6">
           <div className="grid lg:grid-cols-12 gap-12 lg:gap-16">
             {/* Left column — heading, description, tabs */}
@@ -460,7 +460,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
               <AnimatedSection>
                 <div className="t-eyebrow mb-4">PRICING</div>
                 <h2 className="t-display-section text-foreground mb-4">Choose your path.</h2>
-                <p className="t-body text-ink-400 mb-8">
+                <p className="t-body text-muted-foreground mb-8">
                   Three engagement models, each designed for a different type of capital.
                 </p>
               </AnimatedSection>
@@ -475,7 +475,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
                       className={`text-left px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                         pricingTab === tab.id
                           ? 'bg-amber-500 text-black'
-                          : 'text-ink-400 hover:text-foreground hover:bg-white/[0.04]'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                       }`}
                       onClick={() => setPricingTab(tab.id)}
                     >
@@ -498,7 +498,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
                     <div className={`rounded-xl p-6 sm:p-8 transition-all duration-300 border ${
                       plan.popular
                         ? 'border-amber-500 ring-1 ring-amber-500'
-                        : 'border-white/8 hover:border-amber-500/30'
+                        : 'border-border/60 hover:border-amber-500/30'
                     }`}>
                       {/* Card header — horizontal layout */}
                       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
@@ -515,7 +515,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
                         </div>
                         <div className="flex items-baseline gap-1 sm:text-right shrink-0">
                           <span className="font-mono text-3xl font-semibold text-foreground">{plan.price}</span>
-                          <span className="t-body-sm text-ink-400">/{plan.period}</span>
+                          <span className="t-body-sm text-muted-foreground">/{plan.period}</span>
                         </div>
                       </div>
 
@@ -548,7 +548,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
                   <div className="mt-6 rounded-xl border border-amber-500/20 bg-amber-500/5 p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
                       <div className="font-medium text-foreground mb-1">Need a dedicated VPS deployment?</div>
-                      <div className="t-body-sm text-ink-400">Custom installation with private infrastructure. From $3,000.</div>
+                      <div className="t-body-sm text-muted-foreground">Custom installation with private infrastructure. From $3,000.</div>
                     </div>
                     <Link href="/solutions/license" className="btn-tertiary shrink-0">
                       Speak with our team
@@ -573,7 +573,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
           SECTION 6 — TESTIMONIALS (if available)
           ═══════════════════════════════════════════ */}
       {displayTestimonials.length > 0 && (
-        <section className="section-padding border-t border-white/8">
+        <section className="section-padding border-t border-border/60">
           <div className="container-default px-6">
             <AnimatedSection>
               <div className="t-eyebrow mb-4">CLIENTS</div>
@@ -587,9 +587,9 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
                     <blockquote className="t-lead text-foreground/90 italic flex-1 mb-6">
                       &ldquo;{t.content}&rdquo;
                     </blockquote>
-                    <div className="border-t border-white/8 pt-4">
+                    <div className="border-t border-border/60 pt-4">
                       <div className="font-medium text-foreground">{t.name}</div>
-                      {t.role && <div className="t-body-sm text-ink-400">{t.role}</div>}
+                      {t.role && <div className="t-body-sm text-muted-foreground">{t.role}</div>}
                     </div>
                   </div>
                 </AnimatedSection>
@@ -602,14 +602,14 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
       {/* ═══════════════════════════════════════════
           SECTION 7 — FAQ
           ═══════════════════════════════════════════ */}
-      <section className="section-padding border-t border-white/8">
+      <section className="section-padding border-t border-border/60">
         <div className="container-default px-6">
           {/* Header row — heading left, CTA right */}
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-12">
             <AnimatedSection>
               <div className="t-eyebrow mb-4">FAQ</div>
               <h2 className="t-display-section text-foreground mb-2">Common questions.</h2>
-              <p className="t-body text-ink-400">
+              <p className="t-body text-muted-foreground">
                 Can&apos;t find what you&apos;re looking for?
               </p>
             </AnimatedSection>
@@ -625,7 +625,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
           <div className="grid lg:grid-cols-2 gap-x-12">
             {displayFaqs.map((faq, i) => (
               <AnimatedSection key={i} delay={0.05 * i}>
-                <div className="py-5 border-b border-white/8">
+                <div className="py-5 border-b border-border/60">
                   <button
                     type="button"
                     className="w-full flex items-start justify-between gap-4 text-left"
@@ -636,11 +636,11 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
                       {faq.q}
                     </span>
                     <span className="shrink-0 mt-1">
-                      <ChevronDown className={`w-5 h-5 text-ink-400 transition-transform duration-200 ${openFaq === i ? 'rotate-180' : ''}`} />
+                      <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${openFaq === i ? 'rotate-180' : ''}`} />
                     </span>
                   </button>
                   {openFaq === i && (
-                    <div className="mt-3 t-body-sm text-ink-400 leading-relaxed">
+                    <div className="mt-3 t-body-sm text-muted-foreground leading-relaxed">
                       {faq.a}
                     </div>
                   )}
@@ -654,7 +654,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
       {/* ═══════════════════════════════════════════
           SECTION 8 — FINAL CTA
           ═══════════════════════════════════════════ */}
-      <section className="relative section-padding border-t border-white/8">
+      <section className="relative section-padding border-t border-border/60">
         {/* Subtle amber radial glow */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] rounded-full bg-amber-500/[0.04] blur-3xl" />
@@ -666,7 +666,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
             <h2 className="t-display-section text-foreground mb-6">
               The next step is a conversation.
             </h2>
-            <p className="t-lead text-ink-400 mb-12">
+            <p className="t-lead text-muted-foreground mb-12">
               A 30-minute briefing with our team to walk through the platform, framework, and fit for your capital.
             </p>
           </AnimatedSection>
@@ -682,7 +682,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
                 <ArrowUpRight className="w-4 h-4" />
               </Link>
             </div>
-            <p className="t-body-sm text-ink-400">
+            <p className="t-body-sm text-muted-foreground">
               No commitment. No fee. No high-pressure sales.
             </p>
           </AnimatedSection>
@@ -704,7 +704,7 @@ function KpiItem({ label, value, sublabel }: { label: string; value: string; sub
     <div>
       <div className="t-eyebrow mb-2">{label}</div>
       <div className="font-mono text-2xl md:text-3xl font-medium text-foreground tabular-nums">{value}</div>
-      <div className="t-body-sm text-ink-400 mt-1">{sublabel}</div>
+      <div className="t-body-sm text-muted-foreground mt-1">{sublabel}</div>
     </div>
   );
 }
@@ -742,14 +742,14 @@ function RiskPhase({ title, layers }: { title: string; layers: typeof RISK_LAYER
           {layers.map(l => (
             <div key={l.num} className="group/layer">
               <div className="flex items-start gap-3">
-                <span className="font-mono text-xs text-ink-400 mt-0.5 w-5 shrink-0">
+                <span className="font-mono text-xs text-muted-foreground mt-0.5 w-5 shrink-0">
                   {String(l.num).padStart(2, '0')}
                 </span>
                 <div>
                   <div className="text-sm font-medium text-foreground group-hover/layer:text-amber-400 transition-colors">
                     {l.name}
                   </div>
-                  <div className="text-xs text-ink-400 mt-0.5">{l.desc}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">{l.desc}</div>
                 </div>
               </div>
             </div>

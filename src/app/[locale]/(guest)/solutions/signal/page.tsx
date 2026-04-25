@@ -77,7 +77,7 @@ export default function SignalPage() {
       <EnterpriseNav />
       <main id="main-content">
         {/* Hero */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-4">Signal Service</p>
             <h1 className="t-display-page mb-6">
@@ -99,7 +99,7 @@ export default function SignalPage() {
         </section>
 
         {/* Pricing — prominent comparison table first */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-3">Pricing</p>
             <h2 className="t-display-sub mb-4">Choose your plan</h2>
@@ -112,7 +112,7 @@ export default function SignalPage() {
               <div className="table-enterprise-wrapper min-w-[600px]">
               <table className="table-enterprise w-full">
                 <thead>
-                  <tr className="border-b border-white/8">
+                  <tr className="border-b border-border/60">
                     <th className="text-left px-6 py-4 w-1/2">Feature</th>
                     <th className="text-center px-6 py-4">
                       <span className="block text-foreground/80">Standard</span>
@@ -135,7 +135,7 @@ export default function SignalPage() {
                     { feature: 'Support channel', standard: 'Email', pro: 'Priority WhatsApp' },
                     { feature: 'Early access to strategies', standard: false, pro: true },
                   ].map((row) => (
-                    <tr key={row.feature} className="border-b border-white/8 last:border-0">
+                    <tr key={row.feature} className="border-b border-border/60 last:border-0">
                       <td className="px-6 py-3 text-foreground/70">{row.feature}</td>
                       <td className="px-6 py-3 text-center">
                         {typeof row.standard === 'boolean'
@@ -171,7 +171,7 @@ export default function SignalPage() {
         </section>
 
         {/* Who it's for */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <div className="grid lg:grid-cols-5 gap-16">
               <div className="lg:col-span-2">
@@ -197,14 +197,14 @@ export default function SignalPage() {
         </section>
 
         {/* Features — 2-column icon grid */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-3">Features</p>
             <h2 className="t-display-sub mb-12">What you get</h2>
             <div className="grid md:grid-cols-2 gap-x-12 gap-y-10">
               {FEATURES.map((f) => (
                 <div key={f.title} className="flex items-start gap-5">
-                  <div className="w-11 h-11 rounded-lg border border-white/8 bg-white/[0.03] flex items-center justify-center shrink-0">
+                  <div className="w-11 h-11 rounded-lg border border-border/60 bg-muted/40 flex items-center justify-center shrink-0">
                     {FEATURE_ICONS[f.icon]}
                   </div>
                   <div>
@@ -218,7 +218,7 @@ export default function SignalPage() {
         </section>
 
         {/* Onboarding */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-3">Getting Started</p>
             <h2 className="t-display-sub mb-12">Three simple steps</h2>
@@ -238,7 +238,7 @@ export default function SignalPage() {
         </section>
 
         {/* FAQ */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <div className="grid lg:grid-cols-5 gap-16">
               <div className="lg:col-span-2">
@@ -247,7 +247,7 @@ export default function SignalPage() {
               </div>
               <div className="lg:col-span-3 space-y-8">
                 {faq.map((item) => (
-                  <div key={item.q} className="border-b border-white/[0.04] pb-8 last:border-b-0">
+                  <div key={item.q} className="border-b border-border/40 pb-8 last:border-b-0">
                     <h3 className="text-base font-medium mb-2">{item.q}</h3>
                     <p className="t-body-sm text-foreground/60 leading-relaxed">{item.a}</p>
                   </div>

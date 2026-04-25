@@ -10,7 +10,7 @@ export default async function GovernancePage() {
       <EnterpriseNav />
       <main id="main-content">
         {/* Hero */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <Link
               href="/about"
@@ -29,7 +29,7 @@ export default async function GovernancePage() {
         </section>
 
         {/* Legal Entity */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-4">Legal Structure</p>
             <h2 className="t-display-sub mb-8">Legal entity</h2>
@@ -50,7 +50,7 @@ export default async function GovernancePage() {
         </section>
 
         {/* Regulatory Status */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-4">Compliance</p>
             <h2 className="t-display-sub mb-8">Regulatory status</h2>
@@ -76,7 +76,7 @@ export default async function GovernancePage() {
         </section>
 
         {/* Partner Brokers */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-4">Broker Relations</p>
             <h2 className="t-display-sub mb-8">Partner brokers</h2>
@@ -95,7 +95,7 @@ export default async function GovernancePage() {
                 slippage, fund safety, and regulatory compliance. Exness meets and exceeds these standards
                 across all benchmarks.
               </p>
-              <p className="t-body-sm border-l-2 border-white/8 pl-4">
+              <p className="t-body-sm border-l-2 border-border/60 pl-4">
                 <strong className="text-foreground">Disclosure:</strong> BabahAlgo receives introducing
                 broker (IB) commissions from Exness for client referrals. These
                 arrangements are disclosed to clients during onboarding and do not affect the execution
@@ -107,7 +107,7 @@ export default async function GovernancePage() {
         </section>
 
         {/* Audit */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-4">Oversight</p>
             <h2 className="t-display-sub mb-8">Audit cadence</h2>
@@ -146,7 +146,7 @@ export default async function GovernancePage() {
         </section>
 
         {/* Conflict of Interest */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-4">Transparency</p>
             <h2 className="t-display-sub mb-8">Conflict of interest disclosure</h2>
@@ -187,7 +187,7 @@ export default async function GovernancePage() {
         </section>
 
         {/* Data Privacy */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-4">Data Protection</p>
             <h2 className="t-display-sub mb-8">Data privacy framework</h2>

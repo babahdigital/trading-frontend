@@ -41,7 +41,7 @@ export default async function AboutPage() {
       <EnterpriseNav />
       <main id="main-content">
         {/* Hero */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-4">About</p>
             <h1 className="t-display-page mb-6">About BabahAlgo</h1>
@@ -52,7 +52,7 @@ export default async function AboutPage() {
         </section>
 
         {/* Philosophy — Editorial prose */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <div className="grid lg:grid-cols-5 gap-16">
               <div className="lg:col-span-2">
@@ -83,7 +83,7 @@ export default async function AboutPage() {
         </section>
 
         {/* Principles */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-3">Principles</p>
             <h2 className="t-display-sub mb-12">What we believe</h2>
@@ -99,7 +99,7 @@ export default async function AboutPage() {
         </section>
 
         {/* Timeline */}
-        <section className="section-padding border-b border-white/8">
+        <section className="section-padding border-b border-border/60">
           <div className="container-default px-6">
             <p className="t-eyebrow mb-3">Journey</p>
             <h2 className="t-display-sub mb-12">Milestones</h2>
@@ -109,7 +109,7 @@ export default async function AboutPage() {
                   <div className="flex items-center mb-4">
                     <div className="w-3 h-3 rounded-full bg-amber-500 shrink-0" />
                     {i < MILESTONES.length - 1 && (
-                      <div className="h-px bg-white/10 flex-1" />
+                      <div className="h-px bg-border flex-1" />
                     )}
                   </div>
                   <p className="font-mono text-sm text-foreground/40 mb-1">{milestone.year}</p>
@@ -123,7 +123,7 @@ export default async function AboutPage() {
                 <div key={`${milestone.year}-${milestone.title}`} className="flex gap-4">
                   <div className="flex flex-col items-center">
                     <div className="w-3 h-3 rounded-full bg-amber-500 shrink-0" />
-                    <div className="w-px bg-white/10 flex-1 mt-2" />
+                    <div className="w-px bg-border flex-1 mt-2" />
                   </div>
                   <div className="pb-4">
                     <p className="font-mono text-sm text-foreground/40 mb-1">{milestone.year}</p>

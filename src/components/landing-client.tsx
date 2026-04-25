@@ -40,8 +40,9 @@ const RISK_LAYERS = {
 
 // ─── Pricing Data ───
 const PRICING_TABS = [
-  { id: 'retail', label: 'Retail Trader' },
-  { id: 'investor', label: 'Investor' },
+  { id: 'forex', label: 'Forex Signal' },
+  { id: 'crypto', label: 'Crypto Bot' },
+  { id: 'pamm', label: 'PAMM' },
   { id: 'institutional', label: 'Institutional' },
 ];
 
@@ -50,47 +51,68 @@ const PRICING_PLANS: Record<string, Array<{
   tagline: string; features: string[]; cta: { label: string; href: string };
   popular?: boolean;
 }>> = {
-  retail: [
+  forex: [
     {
-      name: 'Signal Standard', tier: 'SIGNAL', price: '$49', period: 'mo',
-      tagline: 'Daily trading signals with analysis',
-      features: ['Daily signal alerts', 'Weekly performance report', 'Client dashboard access', 'Email support'],
-      cta: { label: 'Start Signal', href: '/register/signal' },
+      name: 'Signal Basic', tier: 'SIGNAL', price: '$49', period: '/bulan',
+      tagline: 'Sinyal harian dengan analisa lengkap',
+      features: ['Daily signal alerts', 'Weekly performance report', 'Dashboard customer', 'Email support'],
+      cta: { label: 'Mulai Signal', href: '/register/signal' },
     },
     {
-      name: 'Signal Pro', tier: 'SIGNAL PRO', price: '$149', period: 'mo',
-      tagline: 'Real-time alerts with priority access',
-      features: ['Real-time signal alerts', 'Daily detailed reports', 'VIP Telegram group', 'Priority support', 'Strategy deep-dives'],
-      cta: { label: 'Start Pro', href: '/register/signal' },
+      name: 'Signal VIP', tier: 'SIGNAL VIP', price: '$149', period: '/bulan',
+      tagline: 'Real-time alerts + Telegram VIP',
+      features: ['Real-time signal alerts', 'Daily detailed reports', 'Telegram VIP group', 'Priority support', 'Strategy deep-dives'],
+      cta: { label: 'Mulai VIP', href: '/register/signal' },
       popular: true,
     },
   ],
-  investor: [
+  crypto: [
     {
-      name: 'PAMM Standard', tier: 'PAMM', price: '20%', period: 'profit share',
-      tagline: 'Managed account with verified performance',
-      features: ['Fully managed trading', 'Verified track record', 'Monthly statements', 'Capital withdrawal anytime', 'Dedicated account manager'],
-      cta: { label: 'Apply for PAMM', href: '/register/pamm' },
+      name: 'Crypto Basic', tier: 'CRYPTO', price: '$49', period: '/bulan + 20%',
+      tagline: 'Bot Binance Futures untuk trader pemula',
+      features: ['3 pair otomatis', 'Leverage maks 5x', 'Strategi scalping_momentum', 'Telegram + dashboard', 'Email support'],
+      cta: { label: 'Mulai Basic', href: '/register/crypto?tier=basic' },
     },
     {
-      name: 'PAMM Premier', tier: 'PAMM PRO', price: '30%', period: 'profit share',
-      tagline: 'Premium allocation with enhanced reporting',
-      features: ['All Standard features', 'Daily performance updates', 'Custom risk parameters', 'Direct line to quant team', 'Quarterly review calls'],
-      cta: { label: 'Apply Premier', href: '/register/pamm' },
+      name: 'Crypto Pro', tier: 'CRYPTO PRO', price: '$199', period: '/bulan + 15%',
+      tagline: 'Multi-strategi untuk trader aktif',
+      features: ['8 pair + 1 manual whitelist', 'Leverage maks 10x', '4 strategi (SMC, Wyckoff, Momentum, Mean Reversion)', 'Telegram VIP', 'Priority support'],
+      cta: { label: 'Mulai Pro', href: '/register/crypto?tier=pro' },
+      popular: true,
+    },
+    {
+      name: 'Crypto HNWI', tier: 'CRYPTO HNWI', price: '$499', period: '/bulan + 10%',
+      tagline: 'Capital besar dengan dedicated manager',
+      features: ['12 pair + custom whitelist/blacklist', 'Leverage maks 15x', 'Semua strategi + parameter tuning', 'Dedicated account manager', 'SLA 99.9%'],
+      cta: { label: 'Konsultasi HNWI', href: '/contact?subject=crypto-hnwi' },
+    },
+  ],
+  pamm: [
+    {
+      name: 'PAMM Basic', tier: 'PAMM', price: '20%', period: 'profit share',
+      tagline: 'Managed account dengan track record terverifikasi',
+      features: ['Bot kelola dana di akun broker Anda', 'Verified track record', 'Monthly statement', 'Withdraw kapan saja', 'Account manager'],
+      cta: { label: 'Daftar PAMM', href: '/register/pamm' },
+    },
+    {
+      name: 'PAMM Pro', tier: 'PAMM PRO', price: '30%', period: 'profit share',
+      tagline: 'Allocation premium dengan reporting harian',
+      features: ['Semua fitur Basic', 'Daily performance update', 'Custom risk parameter', 'Akses langsung tim quant', 'Quarterly review call'],
+      cta: { label: 'Daftar Pro', href: '/register/pamm' },
       popular: true,
     },
   ],
   institutional: [
     {
-      name: 'Managed Account', tier: 'INSTITUTIONAL', price: '$250K', period: 'minimum',
-      tagline: 'Dedicated mandate with custom parameters',
+      name: 'Managed Account', tier: 'INSTITUTIONAL', price: '$250K', period: 'AUM minimum',
+      tagline: 'Mandate kustom dengan parameter dedicated',
       features: ['Custom strategy allocation', 'Dedicated VPS deployment', 'Full audit trail access', 'Custom risk framework', 'SLA-backed uptime'],
       cta: { label: 'Schedule briefing', href: '/contact' },
     },
     {
       name: 'API Access', tier: 'API', price: 'Custom', period: 'usage-based',
-      tagline: 'Direct API integration for your infrastructure',
-      features: ['REST + WebSocket API', 'Signal streaming', 'Custom integration support', 'Dedicated engineering contact', 'White-label available'],
+      tagline: 'Integrasi API langsung ke infrastruktur Anda',
+      features: ['REST + WebSocket API', 'Signal streaming', 'Custom integration support', 'Dedicated engineering contact', 'White-label tersedia'],
       cta: { label: 'Speak with IR', href: '/register/institutional' },
     },
   ],
@@ -107,18 +129,45 @@ const FAQ_ITEMS = [
   { q: 'How do you handle slippage and rejected orders?', a: 'Our ZeroMQ execution bridge operates with sub-2ms latency to minimize slippage. Each trade includes a deterministic slippage budget — if slippage exceeds the threshold, the order is automatically rejected. This is logged and auditable.' },
 ];
 
+interface PerfKpi {
+  totalReturn: string;
+  sharpeRatio: string;
+  sortinoRatio: string;
+  profitFactor: string;
+  winRate: string;
+  maxDrawdown: string;
+  avgHoldTime: string;
+  recoveryFactor: string;
+}
+
+const EMPTY_KPI: PerfKpi = {
+  totalReturn: '—',
+  sharpeRatio: '—',
+  sortinoRatio: '—',
+  profitFactor: '—',
+  winRate: '—',
+  maxDrawdown: '—',
+  avgHoldTime: '—',
+  recoveryFactor: '—',
+};
+
 export function LandingClient({ sections, testimonials, faqs }: LandingClientProps) {
   const [equityData, setEquityData] = useState<{ time: string; value: number }[]>([]);
   const [equityPeriod, setEquityPeriod] = useState('90D');
-  const [pricingTab, setPricingTab] = useState('retail');
+  const [pricingTab, setPricingTab] = useState('forex');
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [kpi, setKpi] = useState<PerfKpi>(EMPTY_KPI);
+  const [perfSource, setPerfSource] = useState<string>('');
 
   useEffect(() => {
     let active = true;
     fetch('/api/public/performance')
       .then((r) => r.ok ? r.json() : null)
-      .then((body: { equity?: { time: string; value: number }[] } | null) => {
-        if (active && body?.equity) setEquityData(body.equity);
+      .then((body: { equity?: { time: string; value: number }[]; kpi?: PerfKpi; source?: string } | null) => {
+        if (!active) return;
+        if (body?.equity) setEquityData(body.equity);
+        if (body?.kpi) setKpi(body.kpi);
+        if (body?.source) setPerfSource(body.source);
       })
       .catch(() => { /* leave empty — UI handles no-data state */ });
     return () => { active = false; };
@@ -209,13 +258,13 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
                     periods={[]}
                     activePeriod="30D"
                   />
-                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/8">
+                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
                     <div>
-                      <div className="text-xs text-ink-400">Verified &middot; 90D</div>
+                      <div className="text-xs text-muted-foreground">Verified &middot; 90D</div>
                     </div>
                     <div className="text-right">
-                      <div className="font-mono text-lg font-medium text-amber-400">1.85</div>
-                      <div className="text-xs text-ink-400">Sharpe Ratio</div>
+                      <div className="font-mono text-lg font-medium text-amber-400">{kpi.sharpeRatio}</div>
+                      <div className="text-xs text-muted-foreground">Sharpe Ratio</div>
                     </div>
                   </div>
                 </div>
@@ -223,11 +272,11 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
             </div>
           </div>
 
-          {/* KPI Strip */}
+          {/* KPI Strip — live data dari /api/public/performance */}
           <AnimatedSection delay={0.4}>
-            <div className="mt-16 pt-12 border-t border-white/8">
+            <div className="mt-16 pt-12 border-t border-border">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-16">
-                <KpiItem label="YTD RETURN" value="+32.4%" sublabel="since Jan 2024" />
+                <KpiItem label="TOTAL RETURN" value={kpi.totalReturn} sublabel="sejak akun aktif" />
                 <KpiItem label="STRATEGIES DEPLOYED" value="6" sublabel="Multi-strategy confluence" />
                 <KpiItem label="EXECUTION LATENCY" value="<2ms" sublabel="ZeroMQ → MT5 bridge" />
                 <KpiItem label="UPTIME" value="99.95%" sublabel="Cloudflare Tunnel" />
@@ -289,39 +338,41 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
             </div>
           </AnimatedSection>
 
-          {/* KPI Grid */}
+          {/* KPI Grid — live dari /api/public/performance */}
           <AnimatedSection delay={0.2}>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-8">
               <div className="kpi-card">
-                <div className="t-eyebrow mb-3">NET RETURN</div>
-                <div className="t-data-kpi text-amber-400">+24.6%</div>
-                <div className="t-body-sm text-ink-400 mt-2">since Jan 2024</div>
+                <div className="t-eyebrow mb-3">TOTAL RETURN</div>
+                <div className="t-data-kpi text-amber-400">{kpi.totalReturn}</div>
+                <div className="t-body-sm text-muted-foreground mt-2">sejak akun aktif</div>
               </div>
               <div className="kpi-card">
                 <div className="t-eyebrow mb-3">MAX DRAWDOWN</div>
-                <div className="t-data-kpi text-data-negative">-8.3%</div>
-                <div className="t-body-sm text-ink-400 mt-2">peak-to-trough</div>
+                <div className="t-data-kpi text-data-negative">{kpi.maxDrawdown}</div>
+                <div className="t-body-sm text-muted-foreground mt-2">peak-to-trough</div>
               </div>
               <div className="kpi-card">
                 <div className="t-eyebrow mb-3">SHARPE RATIO</div>
-                <div className="t-data-kpi text-amber-400">1.85</div>
-                <div className="t-body-sm text-ink-400 mt-2">90D rolling</div>
+                <div className="t-data-kpi text-amber-400">{kpi.sharpeRatio}</div>
+                <div className="t-body-sm text-muted-foreground mt-2">rolling 1y</div>
               </div>
               <div className="kpi-card">
                 <div className="t-eyebrow mb-3">PROFIT FACTOR</div>
-                <div className="t-data-kpi text-amber-400">2.14</div>
-                <div className="t-body-sm text-ink-400 mt-2">wins / losses</div>
+                <div className="t-data-kpi text-amber-400">{kpi.profitFactor}</div>
+                <div className="t-body-sm text-muted-foreground mt-2">wins / losses</div>
               </div>
               <div className="kpi-card">
-                <div className="t-eyebrow mb-3">AVG HOLD</div>
-                <div className="t-data-kpi text-foreground">47m</div>
-                <div className="t-body-sm text-ink-400 mt-2">across 1,247 trades</div>
+                <div className="t-eyebrow mb-3">WIN RATE</div>
+                <div className="t-data-kpi text-foreground">{kpi.winRate}</div>
+                <div className="t-body-sm text-muted-foreground mt-2">closed trades</div>
               </div>
             </div>
           </AnimatedSection>
 
-          <div className="mt-6 text-xs text-ink-400 italic">
-            Past performance does not guarantee future results. Verified equity statements available on request.
+          <div className="mt-6 text-xs text-muted-foreground italic">
+            {perfSource === 'empty'
+              ? 'Data performa belum tersedia di environment ini. Past performance does not guarantee future results.'
+              : 'Past performance does not guarantee future results. Verified equity statements available on request.'}
           </div>
         </div>
       </section>

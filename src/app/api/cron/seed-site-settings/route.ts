@@ -14,6 +14,9 @@ const DEFAULTS: Array<{ key: string; value: string; type: string }> = [
   { key: 'exness_affiliate_url', value: '#', type: 'string' },
   { key: 'vps1_affiliate_url', value: '#', type: 'string' },
   { key: 'brevo_unsubscribe_url', value: 'https://babahalgo.com/unsubscribe', type: 'string' },
+  { key: 'contact_email', value: 'hello@babahalgo.com', type: 'string' },
+  { key: 'whatsapp_number', value: '#', type: 'string' },
+  { key: 'telegram_url', value: 'https://t.me/babahalgo', type: 'string' },
 ];
 
 function authorized(req: NextRequest): boolean {

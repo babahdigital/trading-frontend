@@ -2,8 +2,18 @@ import { Link } from '@/i18n/navigation';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { ArrowRight } from 'lucide-react';
+import { getPageMetadata } from '@/lib/seo';
+import { breadcrumbSchema, ldJson, organizationSchema } from '@/lib/seo-jsonld';
 
 export const dynamic = 'force-dynamic';
+
+export async function generateMetadata() {
+  return getPageMetadata('/about', {
+    title: 'Tentang BabahAlgo — Quantitative Trading Infrastructure | CV Babah Digital',
+    description:
+      'BabahAlgo dioperasikan oleh CV Babah Digital. Tim quant Indonesia membangun infrastruktur trading kuantitatif untuk Forex (SMC, Wyckoff) dan Crypto Bot Binance Futures. Track record terverifikasi.',
+  });
+}
 
 const MILESTONES = [
   { year: '2023', title: 'Research', description: 'Initial strategy research, backtesting, and validation across 5 years of tick data.' },
@@ -20,8 +30,14 @@ const PRINCIPLES = [
 ];
 
 export default async function AboutPage() {
+  const breadcrumb = breadcrumbSchema([
+    { name: 'Home', url: '/' },
+    { name: 'About', url: '/about' },
+  ]);
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(organizationSchema()) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(breadcrumb) }} />
       <EnterpriseNav />
       <main id="main-content">
         {/* Hero */}

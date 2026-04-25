@@ -1,6 +1,16 @@
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { Link } from '@/i18n/navigation';
+import { getPageMetadata } from '@/lib/seo';
+import { breadcrumbSchema, ldJson, organizationSchema, professionalServiceSchema } from '@/lib/seo-jsonld';
+
+export async function generateMetadata() {
+  return getPageMetadata('/platform', {
+    title: 'Platform Overview — Quantitative Trading Infrastructure | BabahAlgo',
+    description:
+      'Tiga pilar BabahAlgo: AI Confluence Engine, Sub-2ms ZeroMQ Bridge, 12-Layer Risk Framework. Multi-strategi (SMC, Wyckoff, Momentum) untuk Forex + Crypto.',
+  });
+}
 import { ArrowRight } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
@@ -54,8 +64,15 @@ const PIPELINE_STEPS = [
 ];
 
 export default async function PlatformPage() {
+  const breadcrumb = breadcrumbSchema([
+    { name: 'Home', url: '/' },
+    { name: 'Platform', url: '/platform' },
+  ]);
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(organizationSchema()) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(professionalServiceSchema()) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(breadcrumb) }} />
       <EnterpriseNav />
       <main id="main-content">
         {/* Hero */}

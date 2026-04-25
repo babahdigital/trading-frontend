@@ -1,35 +1,39 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import { Link } from '@/i18n/navigation';
 import Image from 'next/image';
 
 const FOOTER_LINKS = {
   platform: [
     { href: '/platform', label: 'Overview' },
-    { href: '/platform/strategies/smc', label: 'Strategies' },
-    { href: '/platform/technology', label: 'Technology' },
+    { href: '/platform/strategies/smc', label: 'Strategi' },
+    { href: '/platform/technology', label: 'Teknologi' },
     { href: '/platform/risk-framework', label: 'Risk Framework' },
-    { href: '/performance', label: 'Performance' },
+    { href: '/performance', label: 'Performa' },
   ],
   solutions: [
-    { href: '/solutions/signal', label: 'Signal Standard' },
-    { href: '/solutions/signal', label: 'Signal Pro' },
-    { href: '/solutions/pamm', label: 'PAMM Standard' },
-    { href: '/solutions/pamm', label: 'PAMM Premier' },
+    { href: '/solutions/signal', label: 'Forex Signal' },
+    { href: '/solutions/pamm', label: 'PAMM Account' },
+    { href: '/solutions/license', label: 'VPS License' },
+    { href: '/solutions/crypto', label: 'Crypto Bot' },
     { href: '/solutions/institutional', label: 'Institutional' },
   ],
   getStarted: [
-    { href: '/register/signal', label: 'Open Signal Account' },
-    { href: '/register/pamm', label: 'Apply for PAMM' },
+    { href: '/register/signal', label: 'Daftar Signal' },
+    { href: '/register/crypto', label: 'Daftar Crypto Bot' },
+    { href: '/register/pamm', label: 'Daftar PAMM' },
     { href: '/register/institutional', label: 'Institutional Inquiry' },
     { href: '/contact', label: 'Schedule Briefing' },
   ],
   company: [
-    { href: '/about', label: 'About' },
-    { href: '/about/team', label: 'Team' },
+    { href: '/about', label: 'Tentang Kami' },
+    { href: '/about/team', label: 'Tim' },
     { href: '/about/governance', label: 'Governance' },
     { href: '/research', label: 'Research' },
     { href: '/changelog', label: 'Changelog' },
     { href: '/status', label: 'Status' },
-    { href: '/contact', label: 'Contact' },
+    { href: '/contact', label: 'Kontak' },
   ],
   legal: [
     { href: '/legal/terms', label: 'Terms of Service' },
@@ -40,9 +44,42 @@ const FOOTER_LINKS = {
   ],
 };
 
+interface ContactInfo {
+  email: string;
+  whatsappUrl: string | null;
+  whatsappLabel: string | null;
+  telegramUrl: string | null;
+  exnessUrl: string | null;
+}
+
+const FALLBACK_CONTACT: ContactInfo = {
+  email: 'hello@babahalgo.com',
+  whatsappUrl: null,
+  whatsappLabel: null,
+  telegramUrl: 'https://t.me/babahalgo',
+  exnessUrl: null,
+};
+
 export function EnterpriseFooter() {
+  const [contact, setContact] = useState<ContactInfo>(FALLBACK_CONTACT);
+
+  useEffect(() => {
+    let active = true;
+    fetch('/api/public/contact-info')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: ContactInfo | null) => {
+        if (active && data) setContact(data);
+      })
+      .catch(() => {
+        /* keep fallback */
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   return (
-    <footer className="border-t border-white/8" style={{ background: 'var(--brand-midnight)' }}>
+    <footer className="border-t border-border/60 bg-card/40">
       <div className="container-default px-6 pt-20 pb-8">
         {/* Top section — Link columns */}
         <div className="grid grid-cols-2 md:grid-cols-7 gap-8 mb-16">
@@ -66,7 +103,7 @@ export function EnterpriseFooter() {
               Autonomous Intelligence.<br />
               Institutional Precision.
             </p>
-            <p className="t-body-sm text-ink-400">
+            <p className="t-body-sm text-muted-foreground">
               Quantitative trading infrastructure.<br />
               Operated by CV Babah Digital.
             </p>
@@ -81,35 +118,53 @@ export function EnterpriseFooter() {
         </div>
 
         {/* Legal entity + Contact */}
-        <div className="border-t border-white/8 pt-8 mb-8 flex flex-col md:flex-row md:items-start md:justify-between gap-6">
+        <div className="border-t border-border/60 pt-8 mb-8 flex flex-col md:flex-row md:items-start md:justify-between gap-6">
           <div>
-            <p className="t-body-sm text-ink-400 mb-2">
+            <p className="t-body-sm text-muted-foreground mb-2">
               CV Babah Digital &middot; Indonesia
             </p>
-            <div className="flex flex-wrap items-center gap-4 t-body-sm text-ink-400">
-              <a href="mailto:hello@babahalgo.com" className="hover:text-amber-400 transition-colors">
-                hello@babahalgo.com
+            <div className="flex flex-wrap items-center gap-4 t-body-sm text-muted-foreground">
+              <a href={`mailto:${contact.email}`} className="hover:text-amber-400 transition-colors">
+                {contact.email}
               </a>
-              <span className="w-px h-3 bg-white/10" />
-              <a href="https://wa.me/6281234567890" target="_blank" rel="noopener noreferrer" className="hover:text-amber-400 transition-colors">
-                WhatsApp
-              </a>
-              <span className="w-px h-3 bg-white/10" />
-              <a href="https://t.me/babahalgo" target="_blank" rel="noopener noreferrer" className="hover:text-amber-400 transition-colors">
-                Telegram
-              </a>
+              {contact.whatsappUrl && contact.whatsappLabel && (
+                <>
+                  <span aria-hidden="true" className="w-px h-3 bg-border" />
+                  <a
+                    href={contact.whatsappUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-amber-400 transition-colors"
+                  >
+                    {contact.whatsappLabel}
+                  </a>
+                </>
+              )}
+              {contact.telegramUrl && (
+                <>
+                  <span aria-hidden="true" className="w-px h-3 bg-border" />
+                  <a
+                    href={contact.telegramUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-amber-400 transition-colors"
+                  >
+                    Telegram
+                  </a>
+                </>
+              )}
             </div>
           </div>
-          <div className="flex items-center gap-4 text-xs text-ink-400">
-            <span className="uppercase tracking-wider">EN / ID</span>
+          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+            <span className="uppercase tracking-wider font-mono">EN / ID</span>
           </div>
         </div>
 
         {/* Risk Disclosure */}
-        <div className="border-t border-white/8 pt-8 mb-8">
+        <div className="border-t border-border/60 pt-8 mb-8">
           <div className="max-w-4xl">
-            <p className="t-eyebrow text-ink-400 mb-3">RISK DISCLOSURE</p>
-            <p className="text-xs text-ink-400 leading-relaxed italic">
+            <p className="t-eyebrow text-muted-foreground mb-3">RISK DISCLOSURE</p>
+            <p className="text-xs text-muted-foreground leading-relaxed italic">
               Trading instrumen finansial mengandung risiko substansial dan dapat mengakibatkan kerugian
               sebagian atau seluruh modal. Kinerja masa lalu tidak menjamin hasil di masa depan.
               BabahAlgo bukan financial advisor. Konsultasikan dengan penasihat keuangan berlisensi
@@ -120,20 +175,24 @@ export function EnterpriseFooter() {
         </div>
 
         {/* Bottom strip */}
-        <div className="border-t border-white/8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-foreground/40">
+        <div className="border-t border-border/60 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-xs text-muted-foreground">
             &copy; {new Date().getFullYear()} CV Babah Digital. All rights reserved.
           </p>
-          <p className="text-xs text-foreground/40">
-            Trading via{' '}
-            <a
-              href="#"
-              className="hover:text-amber-400 transition-colors underline underline-offset-2"
-            >
-              Exness
-            </a>{' '}
-            &mdash; Regulated Broker Partner
-          </p>
+          {contact.exnessUrl && (
+            <p className="text-xs text-muted-foreground">
+              Trading via{' '}
+              <a
+                href={contact.exnessUrl}
+                target="_blank"
+                rel="noopener noreferrer sponsored"
+                className="hover:text-amber-400 transition-colors underline underline-offset-2"
+              >
+                Exness
+              </a>{' '}
+              &mdash; Regulated Broker Partner
+            </p>
+          )}
         </div>
       </div>
     </footer>

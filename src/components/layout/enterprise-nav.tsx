@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { Menu, X, ChevronDown, ArrowRight, BookOpen, Users, FileCheck, ShieldCheck, Scale, Library, FileText, Bitcoin, TrendingUp, Sparkles } from 'lucide-react';
 import Image from 'next/image';
 import { STRATEGY_ICONS } from '@/components/icons/strategy-icons';
@@ -171,7 +172,8 @@ export function EnterpriseNav() {
         </div>
 
         {/* Right side */}
-        <div className="hidden lg:flex items-center gap-3">
+        <div className="hidden lg:flex items-center gap-2">
+          <ThemeToggle />
           <LanguageSwitcher />
           <Link
             href="/login"
@@ -454,7 +456,10 @@ export function EnterpriseNav() {
             <div className="border-t border-border" />
 
             <div className="space-y-3">
-              <LanguageSwitcher />
+              <div className="flex items-center gap-2">
+                <ThemeToggle />
+                <LanguageSwitcher />
+              </div>
               <Link
                 href="/login"
                 className="block text-center py-3 text-sm border border-border rounded-md"

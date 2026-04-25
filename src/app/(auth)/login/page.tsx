@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AuthLocaleSwitcher } from '@/components/ui/auth-locale-switcher';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 import Image from 'next/image';
 
 export default function LoginPage() {
@@ -69,8 +70,9 @@ export default function LoginPage() {
     <div className="min-h-screen grid lg:grid-cols-5">
       {/* Left — Form (60%) */}
       <div className="col-span-3 flex flex-col justify-center px-6 sm:px-12 lg:px-20 py-12 relative">
-        {/* Locale switcher (top-right of form panel) */}
-        <div className="absolute top-6 right-6 sm:top-8 sm:right-8">
+        {/* Theme + locale switchers */}
+        <div className="absolute top-6 right-6 sm:top-8 sm:right-8 flex items-center gap-2">
+          <ThemeToggle />
           <AuthLocaleSwitcher />
         </div>
 

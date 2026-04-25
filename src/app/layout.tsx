@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { getLocale } from 'next-intl/server';
 import { ChatWidget } from '@/components/chat/chat-widget';
+import { ThemeProvider } from '@/components/providers/theme-provider';
+import { ToastProvider } from '@/components/ui/toast';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -52,7 +54,7 @@ export default async function RootLayout({
 }) {
   const locale = await getLocale();
   return (
-    <html lang={locale} className="dark">
+    <html lang={locale} suppressHydrationWarning>
       <head>
         <script
           type="application/ld+json"
@@ -60,11 +62,15 @@ export default async function RootLayout({
         />
       </head>
       <body className="font-body">
-        <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:bg-amber-500 focus:text-black focus:px-4 focus:py-2 focus:rounded-md focus:text-sm">
-          Skip to main content
-        </a>
-        {children}
-        <ChatWidget />
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+          <ToastProvider>
+            <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:bg-amber-500 focus:text-black focus:px-4 focus:py-2 focus:rounded-md focus:text-sm">
+              Skip to main content
+            </a>
+            {children}
+            <ChatWidget />
+          </ToastProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

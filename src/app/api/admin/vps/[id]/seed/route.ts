@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { proxyToMasterBackend } from '@/lib/proxy/vps-client';
 import { createLogger } from '@/lib/logger';
+import { requireAdmin } from '@/lib/auth/require-admin';
 
 const log = createLogger('api/admin/vps/seed');
 
@@ -19,6 +20,8 @@ interface RouteParams {
  * package for the target customer VPS. Stores checksum + seed_url metadata.
  */
 export async function POST(request: NextRequest, { params }: RouteParams) {
+  const guard = requireAdmin(request);
+  if (guard) return guard;
   try {
     const { id } = await params;
     const body = await request.json().catch(() => ({}));
@@ -104,7 +107,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
  * Returns the seed_url for admin to download directly.
  * Does NOT proxy the binary — seed_url points to VPS1/R2 pre-signed URL.
  */
-export async function GET(_request: NextRequest, { params }: RouteParams) {
+export async function GET(request: NextRequest, { params }: RouteParams) {
+  const guard = requireAdmin(request);
+  if (guard) return guard;
   try {
     const { id } = await params;
 

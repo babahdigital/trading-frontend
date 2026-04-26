@@ -4,6 +4,7 @@ export const runtime = 'nodejs';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { createLogger } from '@/lib/logger';
+import { requireAdmin } from '@/lib/auth/require-admin';
 
 const log = createLogger('api/admin/vps/[id]');
 
@@ -11,9 +12,11 @@ const log = createLogger('api/admin/vps/[id]');
  * GET /api/admin/vps/[id] — Single VPS instance detail
  */
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const guard = requireAdmin(request);
+  if (guard) return guard;
   try {
     const vps = await prisma.vpsInstance.findUnique({
       where: { id: params.id },

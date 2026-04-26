@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { encryptAdminToken, decryptAdminToken } from '@/lib/proxy/vps-client';
 import { createLogger } from '@/lib/logger';
+import { requireAdmin } from '@/lib/auth/require-admin';
 
 const log = createLogger('api/admin/vps/token');
 
@@ -20,6 +21,8 @@ interface RouteParams {
  * 3. Store encrypted fields in VpsInstance.syncToken*
  */
 export async function POST(request: NextRequest, { params }: RouteParams) {
+  const guard = requireAdmin(request);
+  if (guard) return guard;
   try {
     const { id } = await params;
     const body = await request.json();
@@ -75,6 +78,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
  * Clears the encrypted sync token fields from VpsInstance.
  */
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
+  const guard = requireAdmin(request);
+  if (guard) return guard;
   try {
     const { id } = await params;
 
@@ -119,7 +124,9 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 /**
  * GET /api/admin/vps/[id]/token — Check sync token status (does NOT expose the token)
  */
-export async function GET(_request: NextRequest, { params }: RouteParams) {
+export async function GET(request: NextRequest, { params }: RouteParams) {
+  const guard = requireAdmin(request);
+  if (guard) return guard;
   try {
     const { id } = await params;
 

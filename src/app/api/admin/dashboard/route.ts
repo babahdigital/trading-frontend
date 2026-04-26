@@ -4,10 +4,13 @@ export const runtime = 'nodejs';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { createLogger } from '@/lib/logger';
+import { requireAdmin } from '@/lib/auth/require-admin';
 
 const log = createLogger('api/admin/dashboard');
 
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
+  const guard = requireAdmin(request);
+  if (guard) return guard;
   try {
     const now = new Date();
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);

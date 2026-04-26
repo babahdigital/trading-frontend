@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { revalidatePath } from 'next/cache';
+import { requireAdmin } from '@/lib/auth/require-admin';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const guard = requireAdmin(req);
+  if (guard) return guard;
   const entries = await prisma.changelog.findMany({
     orderBy: { releasedAt: 'desc' },
   });
@@ -13,6 +16,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const guard = requireAdmin(req);
+  if (guard) return guard;
   const body = await req.json();
   const entry = await prisma.changelog.create({
     data: {

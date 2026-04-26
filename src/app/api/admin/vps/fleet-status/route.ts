@@ -4,6 +4,7 @@ export const runtime = 'nodejs';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { createLogger } from '@/lib/logger';
+import { requireAdmin } from '@/lib/auth/require-admin';
 
 const log = createLogger('api/admin/vps/fleet-status');
 
@@ -13,7 +14,9 @@ const log = createLogger('api/admin/vps/fleet-status');
  * Returns totals (online, offline, degraded) and per-VPS detail
  * including sync status, code version, and last health check.
  */
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
+  const guard = requireAdmin(request);
+  if (guard) return guard;
   try {
     const vpsInstances = await prisma.vpsInstance.findMany({
       select: {

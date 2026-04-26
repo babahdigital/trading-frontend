@@ -6,10 +6,13 @@ import { prisma } from '@/lib/db/prisma';
 import type { Prisma } from '@prisma/client';
 import { proxyToVpsBackend } from '@/lib/proxy/vps-client';
 import { createLogger } from '@/lib/logger';
+import { requireAdmin } from '@/lib/auth/require-admin';
 
 const log = createLogger('api/admin/kill-switch');
 
 export async function GET(request: NextRequest) {
+  const guard = requireAdmin(request);
+  if (guard) return guard;
   try {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
@@ -43,6 +46,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const guard = requireAdmin(request);
+  if (guard) return guard;
   try {
     const userId = request.headers.get('x-user-id');
     const body = await request.json();

@@ -4,6 +4,7 @@ export const runtime = 'nodejs';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { createLogger } from '@/lib/logger';
+import { requireAdmin } from '@/lib/auth/require-admin';
 
 const log = createLogger('api/admin/customers');
 
@@ -14,6 +15,8 @@ const log = createLogger('api/admin/customers');
  * with server-side pagination and filtering.
  */
 export async function GET(request: NextRequest) {
+  const guard = requireAdmin(request);
+  if (guard) return guard;
   try {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');

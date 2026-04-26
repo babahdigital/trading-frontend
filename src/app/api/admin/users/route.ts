@@ -5,10 +5,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { hashPassword } from '@/lib/auth/password';
 import { createLogger } from '@/lib/logger';
+import { requireAdmin } from '@/lib/auth/require-admin';
 
 const log = createLogger('api/admin/users');
 
 export async function GET(request: NextRequest) {
+  const guard = requireAdmin(request);
+  if (guard) return guard;
   try {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
@@ -41,6 +44,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const guard = requireAdmin(request);
+  if (guard) return guard;
   try {
     const body = await request.json();
     const { email, password, name, role, mt5Account } = body;
@@ -82,6 +87,8 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
+  const guard = requireAdmin(request);
+  if (guard) return guard;
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');

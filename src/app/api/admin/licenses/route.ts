@@ -6,10 +6,13 @@ import { prisma } from '@/lib/db/prisma';
 import { randomBytes } from 'crypto';
 import { createLogger } from '@/lib/logger';
 import { z } from 'zod';
+import { requireAdmin } from '@/lib/auth/require-admin';
 
 const log = createLogger('api/admin/licenses');
 
 export async function GET(request: NextRequest) {
+  const guard = requireAdmin(request);
+  if (guard) return guard;
   try {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
@@ -55,6 +58,8 @@ const patchSchema = z.object({
 }).strict();
 
 export async function PATCH(request: NextRequest) {
+  const guard = requireAdmin(request);
+  if (guard) return guard;
   try {
     const contentType = request.headers.get('content-type');
     if (!contentType || !contentType.includes('application/json')) {
@@ -115,6 +120,8 @@ export async function PATCH(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const guard = requireAdmin(request);
+  if (guard) return guard;
   try {
     const body = await request.json();
     const { userId, type, vpsInstanceId, startsAt, expiresAt, autoRenew, metadata } = body;
@@ -155,6 +162,8 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
+  const guard = requireAdmin(request);
+  if (guard) return guard;
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');

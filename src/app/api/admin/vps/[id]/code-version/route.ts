@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { decryptAdminToken } from '@/lib/proxy/vps-client';
 import { createLogger } from '@/lib/logger';
+import { requireAdmin } from '@/lib/auth/require-admin';
 
 const log = createLogger('api/admin/vps/code-version');
 
@@ -19,6 +20,8 @@ interface RouteParams {
  * against the latest known version.
  */
 export async function GET(request: NextRequest, { params }: RouteParams) {
+  const guard = requireAdmin(request);
+  if (guard) return guard;
   try {
     const { id } = await params;
 

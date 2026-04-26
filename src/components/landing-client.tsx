@@ -62,19 +62,47 @@ const PRICING_PLANS: Record<string, Array<{
   tagline: string; features: string[]; cta: { label: string; href: string };
   popular?: boolean;
 }>> = {
+  // Demo tiers — gratis selama beta, jual setelah launch. Cover dua produk
+  // andalan (Robot Meta MT5 + Robot Crypto Binance) plus Indicator overlay
+  // untuk discretionary trader. Akun MT5 demo / Binance testnet — tidak ada
+  // risiko modal real, tidak masuk track record live.
   demo: [
     {
-      name: 'Signal Demo', tier: 'DEMO', price: 'Gratis', period: 'beta',
-      tagline: 'Coba sinyal Forex tanpa biaya — akun MT5 demo',
-      features: ['Akses preview signal harian', 'MT5 demo account terhubung', 'Dashboard read-only', 'Tidak masuk track record live', 'Upgrade kapan saja'],
-      cta: { label: 'Mulai Demo Gratis', href: '/demo' },
+      name: 'Robot Meta · Demo', tier: 'DEMO MT5', price: 'Gratis', period: 'beta',
+      tagline: 'Bot Forex full auto-execute di akun MT5 demo Anda',
+      features: [
+        'Auto-eksekusi di akun MT5 demo (no real money)',
+        'Akses semua 6 strategi terbatas 7 hari',
+        'Dashboard live + signal preview',
+        'Notifikasi via Email selama trial',
+        'Upgrade ke tier Swing / Scalping / All-In kapan saja',
+      ],
+      cta: { label: 'Mulai Demo Robot Meta', href: '/demo?product=robot-meta' },
+      popular: true,
     },
     {
-      name: 'Indicator Free', tier: 'INDICATOR', price: 'Gratis', period: 'beta',
-      tagline: 'Indikator confluence + 12-layer risk preview',
-      features: ['SMC + Wyckoff confluence overlay', '14 instrumen real-time', 'Risk score live', 'Tidak ada eksekusi otomatis', 'Untuk discretionary trader'],
+      name: 'Robot Crypto · Demo', tier: 'DEMO CRYPTO', price: 'Gratis', period: 'beta',
+      tagline: 'Bot Crypto auto-trading di Binance Testnet — risk-free',
+      features: [
+        'Auto-trading di Binance Testnet (paper money)',
+        'Spot + USDT-M Futures simulation',
+        'Akses 3 strategi crypto selama 7 hari',
+        'Dashboard live + Telegram channel preview',
+        'Upgrade ke Basic / Pro / HNWI kapan saja',
+      ],
+      cta: { label: 'Mulai Demo Robot Crypto', href: '/demo?product=robot-crypto' },
+    },
+    {
+      name: 'Indicator Free', tier: 'INDICATOR', price: 'Gratis', period: 'permanent',
+      tagline: 'Overlay indikator confluence — untuk discretionary trader',
+      features: [
+        'SMC + Wyckoff confluence overlay',
+        '14 instrumen real-time',
+        'Risk score live (12-layer preview)',
+        'Tidak ada eksekusi otomatis',
+        'Untuk trader manual yang butuh edge analitik',
+      ],
       cta: { label: 'Aktifkan Indicator', href: '/demo?product=indicator' },
-      popular: true,
     },
   ],
   // Robot Meta tier ladder — execution bot di MT5 customer (mirror Robot
@@ -493,7 +521,11 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
                 <ul className="grid sm:grid-cols-2 gap-x-8 gap-y-2 mb-8 max-w-2xl">
                   <li className="flex items-start gap-2 t-body-sm text-foreground/80">
                     <Check className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
-                    Akses Forex Robot + Crypto Robot
+                    Akses penuh Robot Meta MT5 + Robot Crypto Binance
+                  </li>
+                  <li className="flex items-start gap-2 t-body-sm text-foreground/80">
+                    <Check className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
+                    Demo MT5 + Binance Testnet — coba dulu, no risk
                   </li>
                   <li className="flex items-start gap-2 t-body-sm text-foreground/80">
                     <Check className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
@@ -506,6 +538,10 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
                   <li className="flex items-start gap-2 t-body-sm text-foreground/80">
                     <Check className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
                     Direct line ke tim engineering
+                  </li>
+                  <li className="flex items-start gap-2 t-body-sm text-foreground/80">
+                    <Check className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
+                    Upgrade tier setelah beta tanpa cancel
                   </li>
                 </ul>
               </AnimatedSection>
@@ -531,6 +567,13 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
                   >
                     {(betaSection.content as Record<string, unknown>)?.ctaLabel as string ?? 'Daftar founding member'}
                     <ArrowRight className="w-4 h-4" />
+                  </Link>
+                  <Link
+                    href="/demo"
+                    className="btn-tertiary w-full justify-center mt-3 text-sm"
+                  >
+                    Coba demo dulu (gratis)
+                    <ArrowUpRight className="w-4 h-4" />
                   </Link>
                   <p className="text-[11px] text-muted-foreground/80 italic mt-4 text-center">
                     Slot terbatas. Verifikasi manual oleh tim kami.
@@ -563,7 +606,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
       <section className="section-padding border-t border-border/60">
         <div className="container-default px-4 sm:px-6">
           <AnimatedSection>
-            <div className="t-eyebrow mb-4">PRODUK</div>
+            <div className="t-eyebrow mb-4">PRODUK ANDALAN</div>
             <h2 className="t-display-section text-foreground mb-4">
               {productsSection.title}
             </h2>

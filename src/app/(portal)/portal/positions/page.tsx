@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth/auth-context';
+import { useBabahalgoWS } from '@/lib/api/use-websocket';
 import { strategyDisplayName, isStrategyObfuscationEnabled } from '@/lib/trading/strategy-names';
 
 interface Position {
@@ -20,49 +21,85 @@ function genericSetup(setup?: string): string {
   return strategyDisplayName(setup, isStrategyObfuscationEnabled());
 }
 
+// Polling cadence: backstop for WS gaps. Slowed when WS connected to halve API load.
+const POLL_FAST_MS = 3000;
+const POLL_SLOW_MS = 15000;
+
 export default function PositionsPage() {
-  const { getAuthHeaders } = useAuth();
+  const { getAuthHeaders, getAccessToken } = useAuth();
   const [positions, setPositions] = useState<Position[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [token, setToken] = useState('');
 
   useEffect(() => {
-    let active = true;
+    setToken(getAccessToken());
+  }, [getAccessToken]);
 
-    async function fetchPositions() {
-      try {
-        const res = await fetch('/api/client/positions', { headers: getAuthHeaders() });
-        if (!res.ok) throw new Error('Failed to fetch positions');
-        const data = await res.json();
-        if (active) {
-          setPositions(Array.isArray(data) ? data : data.positions || []);
-          setLastUpdated(new Date());
-          setError('');
-        }
-      } catch (err: unknown) {
-        if (active) setError(err instanceof Error ? err.message : 'Connection error');
-      } finally {
-        if (active) setLoading(false);
-      }
+  const { connected: wsConnected, subscribe, on } = useBabahalgoWS({ token });
+
+  const fetchPositions = useCallback(async (): Promise<void> => {
+    try {
+      const res = await fetch('/api/client/positions', { headers: getAuthHeaders() });
+      if (!res.ok) throw new Error('Failed to fetch positions');
+      const data = await res.json();
+      setPositions(Array.isArray(data) ? data : data.positions || []);
+      setLastUpdated(new Date());
+      setError('');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Connection error');
+    } finally {
+      setLoading(false);
     }
+  }, [getAuthHeaders]);
 
-    fetchPositions();
-    const interval = setInterval(fetchPositions, 3000);
-    return () => { active = false; clearInterval(interval); };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  useEffect(() => {
+    void fetchPositions();
+    const cadence = wsConnected ? POLL_SLOW_MS : POLL_FAST_MS;
+    const interval = setInterval(() => { void fetchPositions(); }, cadence);
+    return () => clearInterval(interval);
+  }, [fetchPositions, wsConnected]);
+
+  // Live position update: any WS event triggers immediate refetch (server is canonical source).
+  useEffect(() => {
+    const offUpdate = on('position.update', () => { void fetchPositions(); });
+    const offKill = on('kill_switch', () => { void fetchPositions(); });
+    const unsubPos = subscribe({ type: 'position.update' });
+    const unsubKill = subscribe({ type: 'kill_switch' });
+    return () => {
+      offUpdate();
+      offKill();
+      unsubPos();
+      unsubKill();
+    };
+  }, [on, subscribe, fetchPositions]);
 
   const totalPnl = positions.reduce((sum, p) => sum + (p.pnl_usd || 0), 0);
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <h1 className="text-2xl font-bold">Posisi Terbuka</h1>
-        <div className="flex items-center gap-3">
-          <span className="text-xs text-muted-foreground">Auto-refresh: 3 detik</span>
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          <span
+            className={cn(
+              'inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full font-mono uppercase tracking-wider text-[10px]',
+              wsConnected
+                ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/30'
+                : 'bg-muted/40 text-muted-foreground border border-border',
+            )}
+            aria-live="polite"
+          >
+            <span
+              className={cn('w-1.5 h-1.5 rounded-full', wsConnected ? 'bg-emerald-400 animate-pulse' : 'bg-muted-foreground/40')}
+              aria-hidden
+            />
+            {wsConnected ? 'Live' : 'Polling'}
+          </span>
+          <span>Refresh: {wsConnected ? 'on event' : '3s'}</span>
           {lastUpdated && (
-            <span className="text-xs text-muted-foreground">{lastUpdated.toLocaleTimeString()}</span>
+            <span>{lastUpdated.toLocaleTimeString()}</span>
           )}
         </div>
       </div>

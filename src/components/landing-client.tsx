@@ -6,7 +6,11 @@ import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { EquityCurve } from '@/components/charts/equity-curve';
 import { AnimatedSection } from '@/components/ui/animated-section';
-import { ArrowRight, ArrowUpRight, Shield, Zap, Brain, ChevronDown, Check } from 'lucide-react';
+import { EditorialShowcase, type ShowcaseSlide } from '@/components/landing/editorial-showcase';
+import {
+  ArrowRight, ArrowUpRight, Shield, Zap, Brain, ChevronDown, Check,
+  TrendingUp, Bitcoin, Sparkles,
+} from 'lucide-react';
 
 // ─── Types ───
 interface LandingClientProps {
@@ -268,6 +272,24 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
 
   const hero = sections['hero'];
   const perf = sections['performance'];
+  const betaSection = sections['beta-program'];
+  const productsSection = sections['products-showcase'];
+  const showcase = sections['editorial-showcase'];
+  const showcaseSlides: ShowcaseSlide[] = (() => {
+    const raw = (showcase?.content as { slides?: unknown })?.slides;
+    if (!Array.isArray(raw)) return [];
+    return raw.filter((s): s is ShowcaseSlide => {
+      if (!s || typeof s !== 'object') return false;
+      const o = s as Record<string, unknown>;
+      return (
+        typeof o.eyebrow === 'string' &&
+        typeof o.title === 'string' &&
+        typeof o.description === 'string' &&
+        typeof o.metric === 'string' &&
+        typeof o.metricLabel === 'string'
+      );
+    });
+  })();
 
   // Use CMS testimonials if available, otherwise empty
   const displayTestimonials = testimonials?.length > 0 ? testimonials : [];
@@ -305,7 +327,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
           backgroundSize: '40px 40px',
         }} />
 
-        <div className="container-default w-full px-6 py-24 relative z-10">
+        <div className="container-default w-full px-4 sm:px-6 py-16 sm:py-20 lg:py-24 relative z-10">
           <div className="grid lg:grid-cols-5 gap-16 lg:gap-20 items-center">
             {/* Left column — Copy */}
             <div className="lg:col-span-3">
@@ -346,14 +368,20 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
               <AnimatedSection delay={0.35}>
                 <div className="card-enterprise">
                   <div className="flex items-center justify-between mb-4">
-                    <div className="t-eyebrow">EQUITY CURVE</div>
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono uppercase tracking-wider text-data-positive bg-data-positive/10 ring-1 ring-data-positive/20">
-                      <span className="relative flex h-1.5 w-1.5">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-data-positive opacity-75" />
-                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-data-positive" />
+                    <div className="t-eyebrow">{filteredEquity.length > 0 ? 'EQUITY CURVE' : 'PROJEKSI BACKTEST'}</div>
+                    {filteredEquity.length > 0 ? (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono uppercase tracking-wider text-data-positive bg-data-positive/10 ring-1 ring-data-positive/20">
+                        <span className="relative flex h-1.5 w-1.5">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-data-positive opacity-75" />
+                          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-data-positive" />
+                        </span>
+                        Live
                       </span>
-                      Live
-                    </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono uppercase tracking-wider text-amber-400 bg-amber-500/10 ring-1 ring-amber-500/30">
+                        Beta
+                      </span>
+                    )}
                   </div>
                   <EquityCurve
                     data={filteredEquity.slice(-30)}
@@ -363,7 +391,11 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
                   />
                   <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
                     <div>
-                      <div className="text-xs text-muted-foreground">Verified &middot; 90D</div>
+                      <div className="text-xs text-muted-foreground">
+                        {filteredEquity.length > 0
+                          ? 'Verified · 90D'
+                          : 'Track record live · Q3 2026'}
+                      </div>
                     </div>
                     <div className="text-right">
                       <div className="font-mono text-lg font-medium text-amber-400">{kpi.sharpeRatio}</div>
@@ -375,14 +407,30 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
             </div>
           </div>
 
-          {/* KPI Strip — live data dari /api/public/performance */}
+          {/* KPI Strip — factual capability claims (no fake metrics) */}
           <AnimatedSection delay={0.4}>
             <div className="mt-16 pt-12 border-t border-border">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-16">
-                <KpiItem label="TOTAL RETURN" value={kpi.totalReturn} sublabel="sejak akun aktif" />
-                <KpiItem label="STRATEGIES DEPLOYED" value="6" sublabel="Multi-strategy confluence" />
-                <KpiItem label="EXECUTION LATENCY" value="<2ms" sublabel="ZeroMQ → MT5 bridge" />
-                <KpiItem label="UPTIME" value="99.95%" sublabel="Cloudflare Tunnel" />
+                <KpiItem
+                  label="STRATEGI AKTIF"
+                  value="6"
+                  sublabel="SMC · Wyckoff · Astronacci · AI Momentum · Mean-Rev · Oil/Gas"
+                />
+                <KpiItem
+                  label="ASET TERSUPPORT"
+                  value="14+"
+                  sublabel="Forex Major · Metal · Index · Crypto Binance"
+                />
+                <KpiItem
+                  label="LAPISAN RISIKO"
+                  value="12"
+                  sublabel="Pre-trade · In-trade · Post-system framework"
+                />
+                <KpiItem
+                  label="PROGRAM"
+                  value="BETA"
+                  sublabel="Free akses untuk founding members"
+                />
               </div>
             </div>
           </AnimatedSection>
@@ -404,7 +452,142 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
       </section>
 
       {/* ═══════════════════════════════════════════
-          SECTION 2 — TRACK RECORD
+          SECTION 1.5 — BETA PROGRAM (CMS-managed via slug=beta-program)
+          ═══════════════════════════════════════════ */}
+      {betaSection && (
+      <section className="border-t border-border/60 bg-amber-500/[0.03]">
+        <div className="container-default px-4 sm:px-6 py-12 sm:py-16">
+          <div className="grid lg:grid-cols-12 gap-8 items-center">
+            <div className="lg:col-span-7">
+              <AnimatedSection>
+                <div className="flex items-center gap-2 mb-4">
+                  <Sparkles className="w-4 h-4 text-amber-400" />
+                  <span className="t-eyebrow text-amber-400">FOUNDING MEMBERS BETA</span>
+                </div>
+                <h2 className="t-display-section text-foreground mb-4">
+                  {betaSection.title}
+                </h2>
+                <p className="t-lead text-muted-foreground max-w-2xl mb-6">
+                  {betaSection.subtitle ?? 'Kami sedang fase beta. Track record live akan dipublikasi setelah 90 hari operasi produksi.'}
+                </p>
+                <ul className="grid sm:grid-cols-2 gap-x-8 gap-y-2 mb-8 max-w-2xl">
+                  <li className="flex items-start gap-2 t-body-sm text-foreground/80">
+                    <Check className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
+                    Akses Forex Robot + Crypto Robot
+                  </li>
+                  <li className="flex items-start gap-2 t-body-sm text-foreground/80">
+                    <Check className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
+                    Telegram channel founding members
+                  </li>
+                  <li className="flex items-start gap-2 t-body-sm text-foreground/80">
+                    <Check className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
+                    Lock-in harga Phase 1 setelah beta
+                  </li>
+                  <li className="flex items-start gap-2 t-body-sm text-foreground/80">
+                    <Check className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
+                    Direct line ke tim engineering
+                  </li>
+                </ul>
+              </AnimatedSection>
+            </div>
+            <div className="lg:col-span-5">
+              <AnimatedSection delay={0.15}>
+                <div className="rounded-xl border border-amber-500/30 bg-card p-6 md:p-8">
+                  <div className="flex items-baseline gap-2 mb-2">
+                    <span className="font-mono text-3xl font-semibold text-amber-400">
+                      {(betaSection.content as Record<string, unknown>)?.priceLabel as string ?? 'Gratis'}
+                    </span>
+                    <span className="t-body-sm text-muted-foreground">
+                      {(betaSection.content as Record<string, unknown>)?.priceSubtext as string ?? 'selama beta'}
+                    </span>
+                  </div>
+                  <p className="t-body-sm text-muted-foreground mb-6">
+                    Tidak ada biaya bulanan, tidak ada minimum deposit. Modal tetap di akun broker
+                    atau Binance Anda — kami tidak custody dana sama sekali.
+                  </p>
+                  <Link
+                    href={(betaSection.content as Record<string, unknown>)?.ctaHref as string ?? '/contact?subject=beta-founding-member'}
+                    className="btn-primary w-full justify-center"
+                  >
+                    {(betaSection.content as Record<string, unknown>)?.ctaLabel as string ?? 'Daftar founding member'}
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                  <p className="text-[11px] text-muted-foreground/80 italic mt-4 text-center">
+                    Slot terbatas. Verifikasi manual oleh tim kami.
+                  </p>
+                </div>
+              </AnimatedSection>
+            </div>
+          </div>
+        </div>
+      </section>
+      )}
+
+      {/* ═══════════════════════════════════════════
+          SECTION 1.6 — EDITORIAL SHOWCASE (CMS-managed via slug=editorial-showcase)
+          Auto-advancing 5-slide highlight of system pillars.
+          ═══════════════════════════════════════════ */}
+      {showcase && showcaseSlides.length > 0 && (
+        <EditorialShowcase
+          eyebrow="HIGHLIGHT"
+          title={showcase.title}
+          subtitle={showcase.subtitle ?? undefined}
+          slides={showcaseSlides}
+        />
+      )}
+
+      {/* ═══════════════════════════════════════════
+          SECTION 1.7 — PRODUCT SHOWCASE (CMS-managed via slug=products-showcase)
+          ═══════════════════════════════════════════ */}
+      {productsSection && (
+      <section className="section-padding border-t border-border/60">
+        <div className="container-default px-4 sm:px-6">
+          <AnimatedSection>
+            <div className="t-eyebrow mb-4">PRODUK</div>
+            <h2 className="t-display-section text-foreground mb-4">
+              {productsSection.title}
+            </h2>
+            <p className="t-lead text-muted-foreground max-w-2xl mb-12">
+              {productsSection.subtitle ?? 'Mesin trading otomatis untuk dua kelas aset, dibangun di atas framework risiko 12-layer yang sama.'}
+            </p>
+          </AnimatedSection>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            <ProductCard
+              icon={<TrendingUp className="w-6 h-6" />}
+              eyebrow="ROBOT FOREX"
+              title="Forex · Metal · Index"
+              tagline="MetaTrader 5 bridge dengan eksekusi sub-2ms ZeroMQ"
+              bullets={[
+                'Forex Major + Cross + Metal (Gold, Silver)',
+                'Strategi: SMC · Wyckoff · Astronacci · AI Momentum',
+                'Tier Starter $19 → VIP $299 / bulan',
+                'Eksekusi via Exness partner broker',
+              ]}
+              href="/solutions/signal"
+              ctaLabel="Lihat detail Robot Forex"
+            />
+            <ProductCard
+              icon={<Bitcoin className="w-6 h-6" />}
+              eyebrow="ROBOT CRYPTO"
+              title="Binance Spot + Futures"
+              tagline="Auto-trading dengan API key Anda — modal tetap di Binance"
+              bullets={[
+                'Spot + USDT-M Futures',
+                'Multi-strategi: scalping_momentum · SMC · Mean-Rev',
+                'Tier Basic $49 → HNWI $499 / bulan + performance fee',
+                'Tidak ada custody dana, tidak ada withdraw permission',
+              ]}
+              href="/solutions/crypto"
+              ctaLabel="Lihat detail Robot Crypto"
+            />
+          </div>
+        </div>
+      </section>
+      )}
+
+      {/* ═══════════════════════════════════════════
+          SECTION 2 — TRACK RECORD (honest empty state during beta)
           ═══════════════════════════════════════════ */}
       <section className="section-padding border-t border-border/60">
         <div className="container-default px-4 sm:px-6">
@@ -413,70 +596,125 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
             <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-10">
               <div>
                 <h2 className="t-display-section text-foreground mb-2">
-                  {perf?.title || 'Real money. Real audits.'}
+                  {perfSource === 'empty' || filteredEquity.length === 0
+                    ? 'Sedang beta — track record live setelah 90 hari operasi.'
+                    : (perf?.title || 'Real money. Real audits.')}
                 </h2>
                 <p className="t-body-sm text-muted-foreground">
-                  Verified &middot; Production account &middot; Updated every 4 hours
+                  {perfSource === 'empty' || filteredEquity.length === 0
+                    ? 'Kami publikasi equity statement dan KPI hanya setelah produksi live ≥90 hari. Tidak ada angka palsu.'
+                    : 'Verified · Production account · Updated every 4 hours'}
                 </p>
               </div>
-              <Link
-                href="/performance"
-                className="btn-tertiary mt-4 md:mt-0"
-              >
-                Full performance details
-                <ArrowRight className="w-4 h-4" />
-              </Link>
+              {filteredEquity.length > 0 && (
+                <Link
+                  href="/performance"
+                  className="btn-tertiary mt-4 md:mt-0"
+                >
+                  Full performance details
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              )}
             </div>
           </AnimatedSection>
 
-          <AnimatedSection delay={0.1}>
-            <div className="card-enterprise p-6 md:p-8">
-              <EquityCurve
-                data={filteredEquity}
-                height={420}
-                periods={['7D', '30D', '90D']}
-                activePeriod={equityPeriod}
-                onPeriodChange={setEquityPeriod}
-              />
-            </div>
-          </AnimatedSection>
+          {filteredEquity.length > 0 ? (
+            <>
+              <AnimatedSection delay={0.1}>
+                <div className="card-enterprise p-6 md:p-8">
+                  <EquityCurve
+                    data={filteredEquity}
+                    height={420}
+                    periods={['7D', '30D', '90D']}
+                    activePeriod={equityPeriod}
+                    onPeriodChange={setEquityPeriod}
+                  />
+                </div>
+              </AnimatedSection>
 
-          {/* KPI Grid — live dari /api/public/performance */}
-          <AnimatedSection delay={0.2}>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-8">
-              <div className="kpi-card">
-                <div className="t-eyebrow mb-3">TOTAL RETURN</div>
-                <div className="t-data-kpi text-amber-400">{kpi.totalReturn}</div>
-                <div className="t-body-sm text-muted-foreground mt-2">sejak akun aktif</div>
-              </div>
-              <div className="kpi-card">
-                <div className="t-eyebrow mb-3">MAX DRAWDOWN</div>
-                <div className="t-data-kpi text-data-negative">{kpi.maxDrawdown}</div>
-                <div className="t-body-sm text-muted-foreground mt-2">peak-to-trough</div>
-              </div>
-              <div className="kpi-card">
-                <div className="t-eyebrow mb-3">SHARPE RATIO</div>
-                <div className="t-data-kpi text-amber-400">{kpi.sharpeRatio}</div>
-                <div className="t-body-sm text-muted-foreground mt-2">rolling 1y</div>
-              </div>
-              <div className="kpi-card">
-                <div className="t-eyebrow mb-3">PROFIT FACTOR</div>
-                <div className="t-data-kpi text-amber-400">{kpi.profitFactor}</div>
-                <div className="t-body-sm text-muted-foreground mt-2">wins / losses</div>
-              </div>
-              <div className="kpi-card">
-                <div className="t-eyebrow mb-3">WIN RATE</div>
-                <div className="t-data-kpi text-foreground">{kpi.winRate}</div>
-                <div className="t-body-sm text-muted-foreground mt-2">closed trades</div>
-              </div>
-            </div>
-          </AnimatedSection>
+              {/* KPI Grid — live dari /api/public/performance */}
+              <AnimatedSection delay={0.2}>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-8">
+                  <div className="kpi-card">
+                    <div className="t-eyebrow mb-3">TOTAL RETURN</div>
+                    <div className="t-data-kpi text-amber-400">{kpi.totalReturn}</div>
+                    <div className="t-body-sm text-muted-foreground mt-2">sejak akun aktif</div>
+                  </div>
+                  <div className="kpi-card">
+                    <div className="t-eyebrow mb-3">MAX DRAWDOWN</div>
+                    <div className="t-data-kpi text-data-negative">{kpi.maxDrawdown}</div>
+                    <div className="t-body-sm text-muted-foreground mt-2">peak-to-trough</div>
+                  </div>
+                  <div className="kpi-card">
+                    <div className="t-eyebrow mb-3">SHARPE RATIO</div>
+                    <div className="t-data-kpi text-amber-400">{kpi.sharpeRatio}</div>
+                    <div className="t-body-sm text-muted-foreground mt-2">rolling 1y</div>
+                  </div>
+                  <div className="kpi-card">
+                    <div className="t-eyebrow mb-3">PROFIT FACTOR</div>
+                    <div className="t-data-kpi text-amber-400">{kpi.profitFactor}</div>
+                    <div className="t-body-sm text-muted-foreground mt-2">wins / losses</div>
+                  </div>
+                  <div className="kpi-card">
+                    <div className="t-eyebrow mb-3">WIN RATE</div>
+                    <div className="t-data-kpi text-foreground">{kpi.winRate}</div>
+                    <div className="t-body-sm text-muted-foreground mt-2">closed trades</div>
+                  </div>
+                </div>
+              </AnimatedSection>
 
-          <div className="mt-6 text-xs text-muted-foreground italic">
-            {perfSource === 'empty'
-              ? 'Data performa belum tersedia di environment ini. Past performance does not guarantee future results.'
-              : 'Past performance does not guarantee future results. Verified equity statements available on request.'}
-          </div>
+              <div className="mt-6 text-xs text-muted-foreground italic">
+                Past performance does not guarantee future results. Verified equity statements
+                available on request.
+              </div>
+            </>
+          ) : (
+            // Honest empty state — no fake numbers, no fake chart, just transparent timeline
+            <AnimatedSection delay={0.1}>
+              <div className="rounded-xl border border-border/80 bg-card p-8 md:p-12">
+                <div className="grid md:grid-cols-3 gap-8">
+                  <div>
+                    <div className="t-eyebrow text-amber-400 mb-3">FASE SEKARANG</div>
+                    <div className="font-display text-2xl text-foreground mb-2">Beta Tertutup</div>
+                    <p className="t-body-sm text-muted-foreground">
+                      Founding members trading dengan modal mereka sendiri. Kami kumpulkan data
+                      eksekusi real-money sebelum publikasi.
+                    </p>
+                  </div>
+                  <div className="md:border-l md:border-border/60 md:pl-8">
+                    <div className="t-eyebrow text-amber-400 mb-3">90 HARI KE DEPAN</div>
+                    <div className="font-display text-2xl text-foreground mb-2">Soft Launch</div>
+                    <p className="t-body-sm text-muted-foreground">
+                      Equity statement, max drawdown, win rate, dan Sharpe ratio rolling akan
+                      dipublikasi mulai dari Q3 2026.
+                    </p>
+                  </div>
+                  <div className="md:border-l md:border-border/60 md:pl-8">
+                    <div className="t-eyebrow text-amber-400 mb-3">AUDIT POLICY</div>
+                    <div className="font-display text-2xl text-foreground mb-2">Independen</div>
+                    <p className="t-body-sm text-muted-foreground">
+                      Equity statement diaudit pihak ketiga. Tersedia atas permintaan untuk
+                      institutional inquiry.
+                    </p>
+                  </div>
+                </div>
+                <div className="border-t border-border/60 mt-8 pt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <p className="t-body-sm text-muted-foreground">
+                    Mau melihat live demo dengan akun simulasi?
+                  </p>
+                  <Link href="/demo" className="btn-tertiary shrink-0">
+                    Akses demo gratis
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </div>
+              </div>
+              <p className="mt-4 text-xs text-muted-foreground italic">
+                Kami menolak menampilkan chart simulasi atau angka backtest sebagai &ldquo;track
+                record&rdquo;. Kinerja masa lalu — termasuk simulasi — tidak menjamin hasil masa
+                depan.
+              </p>
+            </AnimatedSection>
+          )}
         </div>
       </section>
 
@@ -614,7 +852,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
                               </span>
                             )}
                           </div>
-                          <p className="t-body-sm text-ink-500">{plan.tagline}</p>
+                          <p className="t-body-sm text-muted-foreground">{plan.tagline}</p>
                         </div>
                         <div className="flex items-baseline gap-1 sm:text-right shrink-0">
                           <span className="font-mono text-3xl font-semibold text-foreground">{plan.price}</span>
@@ -628,7 +866,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
                           {plan.features.map(f => (
                             <li key={f} className="flex gap-2 t-body-sm">
                               <Check className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
-                              <span className="text-ink-300">{f}</span>
+                              <span className="text-foreground/85">{f}</span>
                             </li>
                           ))}
                         </ul>
@@ -673,9 +911,12 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
       </section>
 
       {/* ═══════════════════════════════════════════
-          SECTION 6 — TESTIMONIALS (if available)
+          SECTION 6 — TRUST SIGNALS
+          When real testimonials available → show them.
+          Otherwise → show stack/partner trust strip + founding member CTA
+          (no dummy quotes per institutional discipline).
           ═══════════════════════════════════════════ */}
-      {displayTestimonials.length > 0 && (
+      {displayTestimonials.length > 0 ? (
         <section className="section-padding border-t border-border/60">
           <div className="container-default px-4 sm:px-6">
             <AnimatedSection>
@@ -697,6 +938,52 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
                   </div>
                 </AnimatedSection>
               ))}
+            </div>
+          </div>
+        </section>
+      ) : (
+        <section className="section-padding border-t border-border/60">
+          <div className="container-default px-4 sm:px-6">
+            <AnimatedSection>
+              <div className="t-eyebrow mb-4">DIBANGUN DI ATAS</div>
+              <h2 className="t-display-section text-foreground mb-4">
+                Stack institusional, bukan kemasan.
+              </h2>
+              <p className="t-lead text-muted-foreground max-w-2xl mb-12">
+                Kami belum menampilkan testimoni — slot founding member baru dibuka. Sebelum itu,
+                kepercayaan berdiri di atas teknologi, partner, dan disiplin kami.
+              </p>
+            </AnimatedSection>
+
+            <div className="grid md:grid-cols-3 gap-6 mb-12">
+              <TrustCard
+                eyebrow="EKSEKUSI"
+                title="MetaTrader 5 + ZeroMQ"
+                description="Bridge native ke MT5 lewat ZeroMQ. Setiap order ber-deterministic slippage budget dan ter-log untuk audit."
+              />
+              <TrustCard
+                eyebrow="BROKER"
+                title="Exness Partner"
+                description="Eksekusi via partner broker teregulasi (FCA, CySEC, FSCA). Modal di akun broker Anda — tidak ada custody dana."
+              />
+              <TrustCard
+                eyebrow="CRYPTO"
+                title="Binance API"
+                description="Read + Trade scope only — kami tidak meminta withdraw permission. Modal tetap di Binance Anda."
+              />
+            </div>
+
+            <div className="rounded-xl border border-border/80 bg-card p-6 md:p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <p className="t-eyebrow text-amber-400 mb-2">UNDANGAN</p>
+                <p className="t-body text-foreground">
+                  Founding members feedback masuk langsung ke roadmap engineering kami.
+                </p>
+              </div>
+              <Link href="/contact?subject=beta-founding-member" className="btn-primary shrink-0">
+                Daftar founding member
+                <ArrowRight className="w-4 h-4" />
+              </Link>
             </div>
           </div>
         </section>
@@ -812,6 +1099,61 @@ function KpiItem({ label, value, sublabel }: { label: string; value: string; sub
   );
 }
 
+function ProductCard({ icon, eyebrow, title, tagline, bullets, href, ctaLabel }: {
+  icon: React.ReactNode;
+  eyebrow: string;
+  title: string;
+  tagline: string;
+  bullets: string[];
+  href: string;
+  ctaLabel: string;
+}) {
+  return (
+    <AnimatedSection delay={0.1}>
+      <Link
+        href={href}
+        className="group block rounded-xl border border-border/80 hover:border-amber-500/40 bg-card p-6 sm:p-8 h-full transition-colors"
+      >
+        <div className="flex items-start justify-between mb-6">
+          <div className="icon-container">{icon}</div>
+          <ArrowUpRight className="w-5 h-5 text-muted-foreground group-hover:text-amber-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+        </div>
+        <div className="t-eyebrow text-amber-400 mb-2">{eyebrow}</div>
+        <h3 className="t-display-sub text-foreground mb-2">{title}</h3>
+        <p className="t-body-sm text-muted-foreground mb-6">{tagline}</p>
+        <ul className="space-y-2 mb-6">
+          {bullets.map((b) => (
+            <li key={b} className="flex items-start gap-2 t-body-sm text-foreground/80">
+              <Check className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
+              <span>{b}</span>
+            </li>
+          ))}
+        </ul>
+        <span className="inline-flex items-center gap-2 t-body-sm font-medium text-amber-400">
+          {ctaLabel}
+          <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+        </span>
+      </Link>
+    </AnimatedSection>
+  );
+}
+
+function TrustCard({ eyebrow, title, description }: {
+  eyebrow: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <AnimatedSection delay={0.1}>
+      <div className="rounded-xl border border-border/80 bg-card p-6 sm:p-7 h-full">
+        <div className="t-eyebrow text-amber-400 mb-3">{eyebrow}</div>
+        <h3 className="font-display text-xl text-foreground mb-3">{title}</h3>
+        <p className="t-body-sm text-muted-foreground leading-relaxed">{description}</p>
+      </div>
+    </AnimatedSection>
+  );
+}
+
 function PillarCard({ icon, eyebrow, title, description, href, linkLabel }: {
   icon: React.ReactNode;
   eyebrow: string;
@@ -826,7 +1168,7 @@ function PillarCard({ icon, eyebrow, title, description, href, linkLabel }: {
         <div className="icon-container mb-8">{icon}</div>
         <div className="t-eyebrow mb-3">{eyebrow}</div>
         <h3 className="t-display-sub text-foreground mb-4">{title}</h3>
-        <p className="t-body text-ink-500 flex-1 mb-6">{description}</p>
+        <p className="t-body text-muted-foreground flex-1 mb-6">{description}</p>
         <Link href={href} className="btn-tertiary">
           {linkLabel}
           <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />

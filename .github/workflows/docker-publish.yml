@@ -1,6 +1,6 @@
 name: Docker Publish + Deploy
 
-# Build multi-arch image (amd64 + arm64) → push ke Docker Hub → trigger deploy ke VPS3.
+# Build amd64 image (VPS3 = amd64) → push ke Docker Hub → trigger deploy ke VPS3.
 # Trigger:
 #   - push ke main (tag: latest, sha-<short>, dan branch=main)
 #   - push tag v* (tag: latest, v1.2.3, semver)
@@ -59,9 +59,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up QEMU (multi-arch emulation)
-        uses: docker/setup-qemu-action@v3
-
       - name: Set up Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -100,13 +97,13 @@ jobs:
             org.opencontainers.image.vendor=Babah Digital
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
 
-      - name: Build & push (multi-arch)
+      - name: Build & push (amd64 only — match VPS3 arch)
         id: build
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           push: true
           provenance: false
           tags: ${{ steps.meta.outputs.tags }}
@@ -137,9 +134,6 @@ jobs:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && inputs.skip_deploy != true }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    environment:
-      name: production
-      url: https://babahalgo.com
     steps:
       - name: Setup SSH key
         run: |

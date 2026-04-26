@@ -195,6 +195,17 @@ ssh ... "cd /opt/trading-commercial && \
 - `data/backups/` (DB pg_dump daily/weekly/monthly) — sync setiap hari 03:00 Asia/Jakarta (1 jam setelah local backup jam 02:00)
 - `public/` (branding + CMS images) — sync Sunday 04:00 Asia/Jakarta
 
+**Multi-project bucket layout (recommended):**
+Set `R2_PREFIX=frontend` di `.env` untuk pisahkan dari project lain dalam bucket yang sama:
+```
+babahalgo-backups/
+├── frontend/                    ← R2_PREFIX=frontend
+│   ├── backups/{daily,weekly,monthly}/
+│   └── public/
+├── crypto/                      ← project lain (R2_PREFIX=crypto)
+└── forex/                       ← project lain (R2_PREFIX=forex)
+```
+
 **One-time setup:**
 1. Login [dash.cloudflare.com](https://dash.cloudflare.com) → R2 → **Create bucket** → name `babahalgo-backups`
 2. R2 → **Manage R2 API Tokens** → Create API token:

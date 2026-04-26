@@ -107,12 +107,17 @@ export function EnterpriseNav() {
   }, []);
 
   useEffect(() => {
+    // Class-based lock — survives sticky-nav re-layout on iOS Safari more
+    // reliably than `body.style.overflow = 'hidden'`. Pak Abdullah report:
+    // mobile menu fails to re-open after scrolling once it has been closed.
     if (mobileOpen) {
-      document.body.style.overflow = 'hidden';
+      document.body.classList.add('menu-open');
     } else {
-      document.body.style.overflow = '';
+      document.body.classList.remove('menu-open');
     }
-    return () => { document.body.style.overflow = ''; };
+    return () => {
+      document.body.classList.remove('menu-open');
+    };
   }, [mobileOpen]);
 
   const toggleMenu = (menu: string) => {

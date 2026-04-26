@@ -43,12 +43,17 @@ const RISK_LAYERS = {
 };
 
 // ─── Pricing Data ───
+// Tab order rewires the product hierarchy per Pak Abdullah feedback
+// (2026-04-27): Robot Forex (MT5 bridge) and Robot Crypto (Binance API) are
+// the two main retail products — same idea, different exchange. VPS License
+// is the on-prem deployment tier. Public APIs are for developer integration
+// only (NOT execution-as-product).
 const PRICING_TABS = [
   { id: 'demo', label: 'Free Demo' },
-  { id: 'forex', label: 'Forex Signal' },
-  { id: 'crypto', label: 'Crypto Bot' },
+  { id: 'forex', label: 'Robot Forex' },
+  { id: 'crypto', label: 'Robot Crypto' },
   { id: 'vps', label: 'VPS License' },
-  { id: 'apis', label: 'Public APIs' },
+  { id: 'apis', label: 'Developer APIs' },
   { id: 'institutional', label: 'Institutional' },
 ];
 
@@ -72,25 +77,46 @@ const PRICING_PLANS: Record<string, Array<{
       popular: true,
     },
   ],
+  // Robot Meta tier ladder — execution bot di MT5 customer (mirror Robot
+  // Crypto Binance, beda venue saja). Bukan signal-only; bot autoeksekusi
+  // dengan strategi swing/scalping per tier.
   forex: [
     {
-      name: 'Signal Starter', tier: 'STARTER', price: '$19', period: '/bulan',
-      tagline: 'Entry tier — coba sinyal harian',
-      features: ['Live signals (≤3 simbol)', '1 strategy aktif', 'Rule-based AI explainability', 'MT5 bridge ringan', 'Email support'],
-      cta: { label: 'Mulai Starter', href: '/register/signal' },
+      name: 'Robot Meta · Swing', tier: 'TIER 1', price: '$19', period: '/bulan',
+      tagline: 'Entry tier — strategi swing untuk modal kecil',
+      features: [
+        '3 pair major (EURUSD · GBPUSD · USDJPY)',
+        'Strategi swing only (durasi rata-rata 4–24 jam)',
+        'Indikator dasar: SMC + Wyckoff',
+        'Notifikasi: Email + Dashboard',
+        'Auto-eksekusi di MT5 Anda',
+      ],
+      cta: { label: 'Mulai Tier Swing', href: '/register/signal?tier=swing' },
     },
     {
-      name: 'Signal Pro', tier: 'PRO', price: '$79', period: '/bulan',
-      tagline: 'Untuk trader aktif multi-pair',
-      features: ['Unlimited symbols', '5 strategi paralel', 'Mid-tier AI explainability', 'Priority MT5 latency', 'Email + Telegram support'],
-      cta: { label: 'Mulai Pro', href: '/register/signal' },
+      name: 'Robot Meta · Scalping', tier: 'TIER 2', price: '$79', period: '/bulan',
+      tagline: 'Trader aktif — swing + scalping multi-strategi',
+      features: [
+        '8 pair (Major · Cross · Gold · Silver)',
+        'Strategi swing + scalping',
+        'Indikator advanced: SMC + Wyckoff + AI Momentum',
+        'Notifikasi: WhatsApp + Telegram + Email',
+        'Mid-tier AI explainability per trade',
+      ],
+      cta: { label: 'Mulai Tier Scalping', href: '/register/signal?tier=scalping' },
       popular: true,
     },
     {
-      name: 'Signal VIP', tier: 'VIP', price: '$299', period: '/bulan',
-      tagline: 'Premium AI + copy-trade dashboard',
-      features: ['Semua fitur Pro', 'Premium AI (gradient boost)', 'Custom backtest sweep (≤10/bulan)', 'Payout API', 'Copy-trade lead dashboard', 'Priority support 24/7'],
-      cta: { label: 'Mulai VIP', href: '/register/signal' },
+      name: 'Robot Meta · All-In', tier: 'TIER 3', price: '$299', period: '/bulan',
+      tagline: 'Premium full-stack — semua strategi, semua pair',
+      features: [
+        'Unlimited pair (Major · Cross · Metals · Index)',
+        'Semua 6 strategi paralel (SMC · Wyckoff · Astronacci · AI Momentum · Mean-Rev · Oil/Gas)',
+        'Premium AI advisor + copy-trade dashboard',
+        'Notifikasi all channels + dedicated support 24/7',
+        'Custom backtest sweep (≤10/bulan) + Payout API',
+      ],
+      cta: { label: 'Mulai Tier All-In', href: '/register/signal?tier=all' },
     },
   ],
   crypto: [
@@ -166,12 +192,6 @@ const PRICING_PLANS: Record<string, Array<{
       tagline: 'Tick + bar data 14 instrumen real-time',
       features: ['Hobby $29 — 1y history', 'Pro $99 — 5y history + tick', 'VIP $249 — websocket stream', 'Enterprise: custom feed'],
       cta: { label: 'Lihat Tier Market', href: '/pricing/apis#market' },
-    },
-    {
-      name: 'Execution Cloud API', tier: 'EXECUTION', price: '$19', period: '/akun/bulan',
-      tagline: 'Order routing langsung MT5 lewat ZeroMQ bridge',
-      features: ['Pro $19/akun — REST + WS execution', 'Enterprise $49/akun — zmq_ea native', 'Sub-2ms latency', 'Slippage budget per order'],
-      cta: { label: 'Konsultasi Execution', href: '/contact?subject=execution-cloud' },
     },
     {
       name: 'Correlation API', tier: 'CORRELATION', price: '$9', period: '— $49/bulan',
@@ -555,31 +575,31 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
           <div className="grid md:grid-cols-2 gap-6">
             <ProductCard
               icon={<TrendingUp className="w-6 h-6" />}
-              eyebrow="ROBOT FOREX"
+              eyebrow="ROBOT META · MT5"
               title="Forex · Metal · Index"
-              tagline="MetaTrader 5 bridge dengan eksekusi sub-2ms ZeroMQ"
+              tagline="Auto-eksekusi di MetaTrader 5 Anda — bridge ZeroMQ institusional"
               bullets={[
-                'Forex Major + Cross + Metal (Gold, Silver)',
-                'Strategi: SMC · Wyckoff · Astronacci · AI Momentum',
-                'Tier Starter $19 → VIP $299 / bulan',
-                'Eksekusi via Exness partner broker',
+                'Tier 1 Swing $19 — 3 pair major, indikator dasar',
+                'Tier 2 Scalping $79 — 8 pair + Gold/Silver, WhatsApp alert',
+                'Tier 3 All-In $299 — semua strategi, semua pair, dedicated support',
+                'Eksekusi via Exness partner broker (modal di akun Anda)',
               ]}
               href="/solutions/signal"
-              ctaLabel="Lihat detail Robot Forex"
+              ctaLabel="Lihat tier Robot Meta"
             />
             <ProductCard
               icon={<Bitcoin className="w-6 h-6" />}
-              eyebrow="ROBOT CRYPTO"
+              eyebrow="ROBOT CRYPTO · BINANCE"
               title="Binance Spot + Futures"
               tagline="Auto-trading dengan API key Anda — modal tetap di Binance"
               bullets={[
-                'Spot + USDT-M Futures',
-                'Multi-strategi: scalping_momentum · SMC · Mean-Rev',
-                'Tier Basic $49 → HNWI $499 / bulan + performance fee',
-                'Tidak ada custody dana, tidak ada withdraw permission',
+                'Tier Basic $49 — 3 pair, leverage 5x, scalping momentum',
+                'Tier Pro $199 — 8 pair, leverage 10x, multi-strategi',
+                'Tier HNWI $499 — 12 pair, leverage 15x, dedicated manager',
+                'API scope read+trade only — tidak ada withdraw permission',
               ]}
               href="/solutions/crypto"
-              ctaLabel="Lihat detail Robot Crypto"
+              ctaLabel="Lihat tier Robot Crypto"
             />
           </div>
         </div>
@@ -860,19 +880,22 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
                         </div>
                       </div>
 
-                      {/* Features + CTA — horizontal on larger screens */}
-                      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
-                        <ul className="flex flex-wrap gap-x-6 gap-y-2">
+                      {/* Features + CTA — single column on mobile so feature
+                          text never wraps mid-bullet (Pak Abdullah report
+                          "text banyak yang kewarp"). 2-col on sm+, full-row
+                          on lg+ next to the CTA button. */}
+                      <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+                        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5 flex-1 min-w-0">
                           {plan.features.map(f => (
-                            <li key={f} className="flex gap-2 t-body-sm">
+                            <li key={f} className="flex gap-2 t-body-sm min-w-0">
                               <Check className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
-                              <span className="text-foreground/85">{f}</span>
+                              <span className="text-foreground/85 break-words">{f}</span>
                             </li>
                           ))}
                         </ul>
                         <Link
                           href={plan.cta.href}
-                          className={`shrink-0 text-center ${plan.popular ? 'btn-primary' : 'btn-secondary'} justify-center`}
+                          className={`shrink-0 text-center w-full lg:w-auto ${plan.popular ? 'btn-primary' : 'btn-secondary'} justify-center`}
                         >
                           {plan.cta.label}
                           <ArrowRight className="w-4 h-4" />

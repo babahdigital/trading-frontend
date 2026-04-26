@@ -2,6 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Prevent horizontal scroll globally — Pak Abdullah feedback "halaman index
+   bisa di geser kekiri tidak fix dilayar". Some absolutely-positioned BG
+   elements (radial blur, grid pattern) can extend past viewport on mobile.
+   overflow-x:hidden on the root + body short-circuits that. */
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+/* Class-based scroll lock for mobile menu — more reliable than inline styles
+   on iOS Safari. Toggling inline body.style.overflow can leave residual
+   layout state when paired with sticky positioning, which is why mobile
+   menu sometimes failed to re-open after scrolling. */
+body.menu-open {
+  overflow: hidden;
+}
+
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=Inter+Tight:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @layer base {

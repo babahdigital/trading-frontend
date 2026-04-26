@@ -149,48 +149,45 @@ services:
         cp -f /usr/share/zoneinfo/Asia/Jakarta /etc/localtime || true
 
         # ============ do-backup.sh (inline) ============
+        # NOTE: $$ di YAML compose escape jadi $ — semua var-interpretation
+        # akan dihandle di runtime container, bukan di compose config-time.
         cat > /usr/local/bin/do-backup.sh <<'BACKUP'
         #!/bin/sh
         set -eu
-        TS=$(date +%Y%m%d-%H%M%S)
-        DOW=$(date +%u)            # 1=Mon..7=Sun
-        DOM=$(date +%d)            # 01..31
-        OUT="/backups/daily/trading_commercial-${TS}.sql.gz"
+        TS=$$(date +%Y%m%d-%H%M%S)
+        DOW=$$(date +%u)
+        DOM=$$(date +%d)
+        OUT="/backups/daily/trading_commercial-$${TS}.sql.gz"
         mkdir -p /backups/daily /backups/weekly /backups/monthly
 
-        echo "[$(date '+%F %T')] backup start → $OUT"
-        pg_dump --no-owner --no-acl --clean --if-exists \
-          | gzip -9 > "$OUT.tmp"
-        mv "$OUT.tmp" "$OUT"
-        SIZE=$(du -h "$OUT" | cut -f1)
-        echo "[$(date '+%F %T')] backup done — $SIZE"
+        echo "[$$(date '+%F %T')] backup start → $$OUT"
+        pg_dump --no-owner --no-acl --clean --if-exists | gzip -9 > "$$OUT.tmp"
+        mv "$$OUT.tmp" "$$OUT"
+        SIZE=$$(du -h "$$OUT" | cut -f1)
+        echo "[$$(date '+%F %T')] backup done — $$SIZE"
 
-        # Weekly snapshot (Sunday)
-        if [ "$DOW" = "7" ]; then
-          cp "$OUT" "/backups/weekly/trading_commercial-week-${TS}.sql.gz"
+        if [ "$$DOW" = "7" ]; then
+          cp "$$OUT" "/backups/weekly/trading_commercial-week-$${TS}.sql.gz"
         fi
-        # Monthly snapshot (day 01)
-        if [ "$DOM" = "01" ]; then
-          cp "$OUT" "/backups/monthly/trading_commercial-month-${TS}.sql.gz"
+        if [ "$$DOM" = "01" ]; then
+          cp "$$OUT" "/backups/monthly/trading_commercial-month-$${TS}.sql.gz"
         fi
 
-        # Retention pruning
-        find /backups/daily   -name '*.sql.gz' -mtime +${BACKUP_RETENTION_DAILY:-7}     -delete
-        find /backups/weekly  -name '*.sql.gz' -mtime +$((${BACKUP_RETENTION_WEEKLY:-4} * 7))  -delete
-        find /backups/monthly -name '*.sql.gz' -mtime +$((${BACKUP_RETENTION_MONTHLY:-12} * 31)) -delete
+        find /backups/daily   -name '*.sql.gz' -mtime +$${BACKUP_RETENTION_DAILY:-7}     -delete
+        find /backups/weekly  -name '*.sql.gz' -mtime +$$(( $${BACKUP_RETENTION_WEEKLY:-4} * 7))  -delete
+        find /backups/monthly -name '*.sql.gz' -mtime +$$(( $${BACKUP_RETENTION_MONTHLY:-12} * 31)) -delete
 
-        echo "[$(date '+%F %T')] retention pruned"
+        echo "[$$(date '+%F %T')] retention pruned"
         BACKUP
         chmod +x /usr/local/bin/do-backup.sh
 
-        # ============ scheduler loop ============
-        echo "[$(date '+%F %T')] db-backup ready, scheduled hour=${BACKUP_HOUR:-2} Asia/Jakarta"
+        echo "[$$(date '+%F %T')] db-backup ready, scheduled hour=$${BACKUP_HOUR:-2} Asia/Jakarta"
         while true; do
-          NOW_HOUR=$(date +%H)
-          NOW_MIN=$(date +%M)
-          if [ "$NOW_HOUR" = "$(printf '%02d' ${BACKUP_HOUR:-2})" ] && [ "$NOW_MIN" = "00" ]; then
-            /usr/local/bin/do-backup.sh || echo "[$(date '+%F %T')] backup FAILED, will retry tomorrow"
-            sleep 70  # avoid double-run within same minute
+          NOW_HOUR=$$(date +%H)
+          NOW_MIN=$$(date +%M)
+          if [ "$$NOW_HOUR" = "$$(printf '%02d' $${BACKUP_HOUR:-2})" ] && [ "$$NOW_MIN" = "00" ]; then
+            /usr/local/bin/do-backup.sh || echo "[$$(date '+%F %T')] backup FAILED, will retry tomorrow"
+            sleep 70
           fi
           sleep 30
         done

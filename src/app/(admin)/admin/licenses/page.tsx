@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -63,7 +63,7 @@ export default function LicensesPage() {
     vpsInstanceId: '',
   });
 
-  async function fetchLicenses() {
+  const fetchLicenses = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch('/api/admin/licenses', { headers: getAuthHeaders() });
@@ -77,9 +77,9 @@ export default function LicensesPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [getAuthHeaders]);
 
-  async function fetchFormOptions() {
+  const fetchFormOptions = useCallback(async () => {
     try {
       const [usersRes, vpsRes] = await Promise.all([
         fetch('/api/admin/users', { headers: getAuthHeaders() }),
@@ -97,15 +97,15 @@ export default function LicensesPage() {
     } catch {
       // handled
     }
-  }
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { fetchLicenses(); }, []);
+  }, [getAuthHeaders]);
 
   useEffect(() => {
-    if (showForm) fetchFormOptions();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showForm]);
+    void fetchLicenses();
+  }, [fetchLicenses]);
+
+  useEffect(() => {
+    if (showForm) void fetchFormOptions();
+  }, [showForm, fetchFormOptions]);
 
   function updateForm(field: string, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -130,7 +130,7 @@ export default function LicensesPage() {
       if (res.ok) {
         setForm({ userId: '', type: LICENSE_TYPES[0], startsAt: '', expiresAt: '', vpsInstanceId: '' });
         setShowForm(false);
-        fetchLicenses();
+        void fetchLicenses();
       } else {
         const data = await res.json().catch(() => ({}));
         setError(data.error || 'Failed to generate license');

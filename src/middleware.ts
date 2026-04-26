@@ -44,11 +44,16 @@ const intlMiddleware = createIntlMiddleware({
  * Detect preferred locale from CF-IPCountry header (Cloudflare) with
  * graceful fallback to ipapi.co Geo-IP lookup when header is missing.
  *
+ * URL semantics:
+ *   - ID visitors → root URL (no prefix). Cookie locks NEXT_LOCALE=id.
+ *   - non-ID visitors → redirected to /en{pathname}. Cookie locks NEXT_LOCALE=en.
+ *
  * Strategy:
  * 1. Skip if URL already has explicit locale prefix or user already has NEXT_LOCALE cookie.
  * 2. Read CF-IPCountry → fast path, no outbound call.
  * 3. Else, ask resolveCountryByIp (cached, 1.5s timeout).
- * 4. If still unknown → safe default = 'en' (international visitor most likely).
+ * 4. If still unknown → fall through to non-ID branch (English).
+ *    Rationale: CF-IPCountry reliably detects ID; failed detection most often = international.
  *
  * Always sets NEXT_LOCALE cookie so subsequent requests skip detection (flicker-free).
  */

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -46,7 +46,7 @@ export default function VpsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  async function fetchVps() {
+  const fetchVps = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch('/api/admin/vps', { headers: getAuthHeaders() });
@@ -59,10 +59,11 @@ export default function VpsPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [getAuthHeaders]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { fetchVps(); }, []);
+  useEffect(() => {
+    void fetchVps();
+  }, [fetchVps]);
 
   function updateForm(field: string, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -90,7 +91,7 @@ export default function VpsPage() {
       if (res.ok) {
         setForm(defaultForm);
         setShowForm(false);
-        fetchVps();
+        void fetchVps();
       } else {
         const data = await res.json().catch(() => ({}));
         setError(data.error || 'Failed to register VPS');

@@ -308,6 +308,11 @@ export function ChatWidget() {
             {/* Messages */}
             <div
               ref={messagesContainerRef}
+              role="log"
+              aria-live="polite"
+              aria-atomic="false"
+              aria-relevant="additions text"
+              aria-label={copy.title}
               className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 space-y-3 relative"
             >
               {messages.map((msg) => {
@@ -443,7 +448,7 @@ export function ChatWidget() {
                 disabled={isLoading || isServiceDown}
                 aria-label={copy.placeholder}
                 className="flex-1 rounded-xl border border-border bg-background px-3.5 py-2.5
-                           text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/40
+                           text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/40
                            disabled:opacity-50 placeholder:text-muted-foreground/70"
               />
               <button

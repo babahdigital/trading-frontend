@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,7 +35,7 @@ export default function UsersPage() {
     mt5Account: '',
   });
 
-  async function fetchUsers() {
+  const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch('/api/admin/users', { headers: getAuthHeaders() });
@@ -49,10 +49,11 @@ export default function UsersPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [getAuthHeaders]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { fetchUsers(); }, []);
+  useEffect(() => {
+    void fetchUsers();
+  }, [fetchUsers]);
 
   function updateForm(field: string, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -77,7 +78,7 @@ export default function UsersPage() {
       if (res.ok) {
         setForm({ email: '', password: '', name: '', role: 'CLIENT', mt5Account: '' });
         setShowForm(false);
-        fetchUsers();
+        void fetchUsers();
       } else {
         const data = await res.json().catch(() => ({}));
         setError(data.error || 'Failed to create user');
@@ -151,7 +152,8 @@ export default function UsersPage() {
 
       <Card>
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
+          {/* Desktop table (md+) */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b">
@@ -189,6 +191,45 @@ export default function UsersPage() {
               </tbody>
             </table>
           </div>
+
+          {/* Mobile card stack (<md) */}
+          <ul className="md:hidden divide-y divide-border" aria-label="Users list">
+            {loading ? (
+              <li className="p-4 text-center text-muted-foreground text-sm">Loading...</li>
+            ) : users.length === 0 ? (
+              <li className="p-4 text-center text-muted-foreground text-sm">No users found.</li>
+            ) : (
+              users.map((user) => (
+                <li key={user.id} className="p-4 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="font-medium text-sm break-words">{user.name || '-'}</div>
+                      <div className="text-xs text-muted-foreground break-all">{user.email}</div>
+                    </div>
+                    <span className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider ${user.role === 'ADMIN' ? 'bg-purple-500/20 text-purple-400' : 'bg-blue-500/20 text-blue-400'}`}>
+                      {user.role}
+                    </span>
+                  </div>
+                  <dl className="grid grid-cols-3 gap-2 text-xs">
+                    <div>
+                      <dt className="text-muted-foreground/70 text-[10px] uppercase tracking-wider">MT5</dt>
+                      <dd className="font-mono mt-0.5 truncate">{user.mt5Account || '-'}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-muted-foreground/70 text-[10px] uppercase tracking-wider">Licenses</dt>
+                      <dd className="font-medium mt-0.5">{user._count.licenses}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-muted-foreground/70 text-[10px] uppercase tracking-wider">Last Login</dt>
+                      <dd className="mt-0.5 text-muted-foreground truncate">
+                        {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString() : 'Never'}
+                      </dd>
+                    </div>
+                  </dl>
+                </li>
+              ))
+            )}
+          </ul>
         </CardContent>
       </Card>
     </div>

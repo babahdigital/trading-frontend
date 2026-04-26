@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,7 +28,7 @@ export default function KillSwitchPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  async function fetchEvents() {
+  const fetchEvents = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch('/api/admin/kill-switch', { headers: getAuthHeaders() });
@@ -41,10 +41,11 @@ export default function KillSwitchPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [getAuthHeaders]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { fetchEvents(); }, []);
+  useEffect(() => {
+    void fetchEvents();
+  }, [fetchEvents]);
 
   async function handleTrigger() {
     if (!confirmStep) {
@@ -64,7 +65,7 @@ export default function KillSwitchPage() {
         setSuccess('Kill switch triggered successfully.');
         setLicenseId('');
         setConfirmStep(false);
-        fetchEvents();
+        void fetchEvents();
       } else {
         const data = await res.json().catch(() => ({}));
         setError(data.error || 'Failed to trigger kill switch');

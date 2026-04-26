@@ -187,6 +187,65 @@ ssh ... "cd /opt/trading-commercial && \
   docker compose -f docker-compose.prod.yml exec -T db-backup psql -d trading_commercial"
 ```
 
+### Cloudflare R2 offsite backup (recommended)
+
+**Status:** Compose service `r2-backup` siap pakai (image `rclone/rclone:latest`), default DISABLED. Enable saat butuh disaster recovery cloud-side.
+
+**Yang di-backup ke R2:**
+- `data/backups/` (DB pg_dump daily/weekly/monthly) — sync setiap hari 03:00 Asia/Jakarta (1 jam setelah local backup jam 02:00)
+- `public/` (branding + CMS images) — sync Sunday 04:00 Asia/Jakarta
+
+**One-time setup:**
+1. Login [dash.cloudflare.com](https://dash.cloudflare.com) → R2 → **Create bucket** → name `babahalgo-backups`
+2. R2 → **Manage R2 API Tokens** → Create API token:
+   - Permissions: `Object Read & Write`
+   - Specify bucket: `babahalgo-backups`
+   - TTL: 1 year (renew before expiry)
+3. Catat: **Access Key ID**, **Secret Access Key**, **Account ID** (di sidebar R2)
+4. Edit `.env` di VPS3:
+   ```bash
+   ssh -i ~/.ssh/id_raspi_ed25519 -p 1983 abdullah@148.230.96.201
+   cd /opt/trading-commercial
+   nano .env
+   # Set:
+   #   R2_ENABLED=true
+   #   R2_ACCOUNT_ID=<account-id>
+   #   R2_ACCESS_KEY_ID=<access-key>
+   #   R2_SECRET_ACCESS_KEY=<secret>
+   #   R2_BUCKET=babahalgo-backups
+   ```
+5. Restart r2-backup service:
+   ```bash
+   docker compose -f docker-compose.prod.yml up -d --force-recreate r2-backup
+   docker compose -f docker-compose.prod.yml logs r2-backup --tail=10
+   # Cek log: "r2-backup ready (R2_ENABLED=true, bucket=babahalgo-backups)"
+   ```
+6. Test manual sync (immediate):
+   ```bash
+   docker compose -f docker-compose.prod.yml exec r2-backup /usr/local/bin/do-r2-sync.sh backups
+   docker compose -f docker-compose.prod.yml exec r2-backup /usr/local/bin/do-r2-sync.sh public
+   ```
+
+**Verifikasi di R2:**
+- Cloudflare dashboard → R2 → bucket `babahalgo-backups` → harusnya ada `backups/daily/...sql.gz` + `public/logo/*.png`
+
+**Restore dari R2 (saat disaster):**
+```bash
+# Download backup dari R2 ke VPS3 local
+ssh ... "cd /opt/trading-commercial && \
+  docker compose -f docker-compose.prod.yml exec r2-backup \
+    rclone copy r2:babahalgo-backups/backups/daily/<file>.sql.gz /local/backups/daily/"
+
+# Restore ke postgres
+ssh ... "cd /opt/trading-commercial && \
+  gunzip -c data/backups/daily/<file>.sql.gz | \
+  docker compose -f docker-compose.prod.yml exec -T db-backup psql -d trading_commercial"
+```
+
+**Cost:** R2 free tier 10 GB storage + 10M Class A ops + 1M Class B ops/bulan. Untuk DB backup ~10 MB/hari × (7 daily + 4 weekly + 12 monthly) = ~250 MB/bulan storage, jauh di bawah free tier. Egress R2 GRATIS unlimited.
+
+**Optional — encrypt sensitive backups:** rclone supports `crypt` backend untuk encrypt before upload. Lihat [rclone docs](https://rclone.org/crypt/). Untuk DB dump tidak essential (sudah cukup secure di R2 dengan API token bucket-scoped).
+
 ### Migrate postgres host → docker (optional)
 Lihat playbook lengkap di header `docker-compose.db.yml`. Ringkas:
 1. `pg_dump -Fc` dari host postgres

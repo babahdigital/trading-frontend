@@ -368,7 +368,7 @@ export default function NewCustomerPage() {
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Host *</label>
-                  <Input value={vpsForm.host} onChange={(e) => setVpsForm({ ...vpsForm, host: e.target.value })} placeholder="192.168.1.100" required />
+                  <Input value={vpsForm.host} onChange={(e) => setVpsForm({ ...vpsForm, host: e.target.value })} placeholder="vps-customer-01.babahalgo.internal" required />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Port</label>
@@ -376,7 +376,7 @@ export default function NewCustomerPage() {
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Backend URL *</label>
-                  <Input value={vpsForm.backendBaseUrl} onChange={(e) => setVpsForm({ ...vpsForm, backendBaseUrl: e.target.value })} placeholder="http://192.168.1.100:8000" required />
+                  <Input value={vpsForm.backendBaseUrl} onChange={(e) => setVpsForm({ ...vpsForm, backendBaseUrl: e.target.value })} placeholder="https://vps-customer-01.babahalgo.internal:8000" required />
                 </div>
                 <div className="md:col-span-2">
                   <label className="text-sm font-medium text-muted-foreground">Admin Token *</label>

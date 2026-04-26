@@ -97,7 +97,13 @@ export function PopupManager() {
           >
             <button type="button" onClick={() => setActivePopup(null)} className="absolute top-4 right-4 text-muted-foreground hover:text-foreground text-lg" aria-label="Tutup popup">&#10005;</button>
             {activePopup.imageUrl && (
-              <Image src={activePopup.imageUrl} alt="" width={400} height={300} className="w-full rounded-lg mb-4" />
+              <Image
+                src={activePopup.imageUrl}
+                alt={activePopup.title || 'Promotional banner'}
+                width={400}
+                height={300}
+                className="w-full rounded-lg mb-4"
+              />
             )}
             <h3 className="text-xl font-bold mb-2">{activePopup.title}</h3>
             <p className="text-muted-foreground text-sm mb-4">{activePopup.content}</p>

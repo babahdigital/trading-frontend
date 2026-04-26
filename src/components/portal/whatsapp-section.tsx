@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { AlertCircle, CheckCircle2, Loader2, Lock, MessageSquare, ShieldCheck, ShieldX } from 'lucide-react';
+import { CryptoNotificationsSection } from './crypto-notifications-section';
 import {
   confirmWhatsappOtp,
   getWhatsappConfig,
@@ -518,7 +519,11 @@ export function WhatsappSection() {
             </button>
           ))}
         </div>
-        <ProductPanel key={activeProduct} product={activeProduct} />
+        {activeProduct === 'forex' ? (
+          <ProductPanel key="forex" product="forex" />
+        ) : (
+          <CryptoNotificationsSection />
+        )}
       </CardContent>
     </Card>
   );

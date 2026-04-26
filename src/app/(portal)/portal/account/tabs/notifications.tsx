@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth/auth-context';
+import { WhatsappSection } from '@/components/portal/whatsapp-section';
 
 const CHANNELS = [
   { id: 'INAPP', label: 'In-App' },
@@ -153,6 +154,8 @@ export function NotificationsTab() {
           </div>
         </CardContent>
       </Card>
+
+      <WhatsappSection />
 
       <Card className="bg-card border-border">
         <CardHeader><CardTitle className="text-lg font-semibold">Riwayat Pengiriman</CardTitle></CardHeader>

@@ -16,10 +16,11 @@ export default async function RegisterInstitutionalPage() {
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">Register</p>
-            <h1 className="t-display-page mb-4">Institutional Engagement</h1>
+            <h1 className="t-display-page mb-4">Institutional & B2B Engagement</h1>
             <p className="t-lead text-foreground/60 max-w-2xl">
-              For managed accounts, API access, and white-label deployments. Our institutional
-              process begins with a confidential briefing to understand your objectives.
+              Untuk Public API priority access, white-label deployment, dan Backtest as a Service.
+              <strong className="text-amber-300"> BabahAlgo zero-custody</strong> — kami tidak menerima managed account; capital tetap di akun Anda.
+              Proses institusional mulai dari briefing confidential untuk memahami objektif Anda.
             </p>
           </div>
         </section>
@@ -29,10 +30,10 @@ export default async function RegisterInstitutionalPage() {
           <div className="container-default px-4 sm:px-6">
             <div className="grid md:grid-cols-4 gap-6">
               {[
-                { step: '01', title: 'Schedule Briefing', desc: 'Book a 30-minute call with our quant team' },
-                { step: '02', title: 'Discovery', desc: 'We assess your requirements, risk parameters, and AUM' },
-                { step: '03', title: 'Proposal', desc: 'Custom proposal with fee structure and SLA terms' },
-                { step: '04', title: 'Onboarding', desc: 'IMA signing, funding, and infrastructure setup' },
+                { step: '01', title: 'Schedule Briefing', desc: 'Book 30-menit call dengan tim engineering kami' },
+                { step: '02', title: 'Discovery', desc: 'Kami assess requirement Anda: API tier, integration scope, white-label scope' },
+                { step: '03', title: 'Proposal', desc: 'Custom proposal dengan tier API + SLA terms + integration plan' },
+                { step: '04', title: 'Onboarding', desc: 'API key issuance, dedicated environment, integration sprint' },
               ].map((item) => (
                 <div key={item.step} className="card-enterprise">
                   <div className="font-mono text-amber-400 text-sm mb-3">{item.step}</div>
@@ -50,23 +51,23 @@ export default async function RegisterInstitutionalPage() {
             <h2 className="t-display-sub mb-6">Engagement models</h2>
             <div className="grid md:grid-cols-3 gap-6">
               <div className="card-enterprise">
-                <h3 className="font-display text-lg font-semibold mb-2">Managed Account</h3>
-                <p className="t-body-sm text-foreground/60 mb-4">
-                  Custom mandate with dedicated risk parameters. Starting AUM $250K.
-                </p>
-                <p className="font-mono text-amber-400 text-sm">Custom fee structure</p>
-              </div>
-              <div className="card-enterprise">
                 <h3 className="font-display text-lg font-semibold mb-2">API Access</h3>
                 <p className="t-body-sm text-foreground/60 mb-4">
-                  Integrate BabahAlgo signals and execution into your existing infrastructure.
+                  Integrasi 9 Public API container kami ke infrastruktur Anda — News, Signals, Indicators, Calendar, Market Data, Execution Cloud, Correlation, Broker Specs, AI Explainability.
                 </p>
-                <p className="font-mono text-amber-400 text-sm">Usage-based pricing</p>
+                <p className="font-mono text-amber-400 text-sm">Custom usage-based pricing</p>
+              </div>
+              <div className="card-enterprise">
+                <h3 className="font-display text-lg font-semibold mb-2">Backtest as a Service</h3>
+                <p className="t-body-sm text-foreground/60 mb-4">
+                  Walk-forward + Monte Carlo backtesting on-demand. 5y tick data 14 instrumen, parameter optimization, whitelabel report PDF.
+                </p>
+                <p className="font-mono text-amber-400 text-sm">$99 — $999 / bulan</p>
               </div>
               <div className="card-enterprise">
                 <h3 className="font-display text-lg font-semibold mb-2">White-Label</h3>
                 <p className="t-body-sm text-foreground/60 mb-4">
-                  BabahAlgo technology deployed under your brand with custom configuration.
+                  Teknologi BabahAlgo dengan brand Anda — Anda pegang relasi customer, kami sediakan tech stack lengkap.
                 </p>
                 <p className="font-mono text-amber-400 text-sm">Annual license</p>
               </div>

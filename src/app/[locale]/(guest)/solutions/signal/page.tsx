@@ -25,8 +25,9 @@ const FEATURE_ICONS: Record<string, React.ReactNode> = {
 };
 
 const PRICING = [
-  { tier: 'Signal Standard', price: '$49', period: '/mo', features: ['Up to 10 signals per week', 'Telegram channel access', 'Basic performance dashboard', 'Email support'] },
-  { tier: 'Signal Pro', price: '$149', period: '/mo', popular: true, features: ['Unlimited signals', 'Telegram + MT5 trade copier', 'Full performance dashboard', 'Weekly market brief', 'Priority WhatsApp support', 'Early access to new strategies'] },
+  { tier: 'Signal Starter', price: '$19', period: '/bulan', features: ['Live signals (≤3 simbol)', '1 strategy aktif', 'Rule-based AI explainability', 'MT5 bridge ringan', 'Email support'] },
+  { tier: 'Signal Pro', price: '$79', period: '/bulan', popular: true, features: ['Unlimited symbols', '5 strategi paralel', 'Mid-tier AI explainability', 'Priority MT5 latency', 'Email + Telegram support', 'Weekly market brief'] },
+  { tier: 'Signal VIP', price: '$299', period: '/bulan', features: ['Semua fitur Pro', 'Premium AI (gradient boost)', 'Custom backtest sweep (≤10/bulan)', 'Payout API', 'Copy-trade lead dashboard', 'Priority support 24/7'] },
 ];
 
 const STEPS = [

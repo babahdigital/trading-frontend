@@ -7,34 +7,34 @@ export const dynamic = 'force-dynamic';
 
 const FEATURES = [
   {
-    title: 'Custom managed account',
+    title: 'Priority API access',
     description:
-      'A dedicated trading account managed under a bespoke Investment Management Agreement (IMA) tailored to your mandate, risk parameters, and return objectives.',
-  },
-  {
-    title: 'API access',
-    description:
-      'Programmatic access to real-time portfolio data, trade history, risk metrics, and reporting through our authenticated REST API. Integrate with your own systems.',
+      'Akses prioritas ke 9 Public API container kami (News, Signals, Indicators, Calendar, Market Data, Execution Cloud, Correlation, Broker Specs, AI Explainability) dengan rate limit khusus + dedicated infrastructure lane.',
   },
   {
     title: 'White-label capability',
     description:
-      'Offer BabahAlgo strategies under your own brand to your clients. We provide the infrastructure, execution, and reporting -- you own the relationship.',
+      'Tawarkan teknologi BabahAlgo dengan brand Anda sendiri. Kami sediakan infrastructure + execution + reporting; Anda yang pegang relasi customer dan branding.',
   },
   {
-    title: 'Custom mandate',
+    title: 'Custom integration support',
     description:
-      'Define your own instrument universe, risk limits, drawdown thresholds, exposure caps, and rebalancing schedule. Every parameter is negotiable.',
+      'Tim engineering kami bantu integrasi langsung ke OMS/PMS/risk-system Anda. WebSocket subscription, REST batching, custom data formatter sesuai kebutuhan.',
   },
   {
-    title: 'Dedicated relationship manager',
+    title: 'Backtest as a Service',
     description:
-      'A single point of contact for all operational, strategic, and compliance matters. Direct access via phone, WhatsApp, and email.',
+      'Walk-forward + Monte Carlo backtesting on-demand untuk strategi internal Anda. Tick data 5 tahun di 14 instrumen. Whitelabel report PDF + API automation.',
   },
   {
-    title: 'Institutional reporting',
+    title: 'Dedicated engineering contact',
     description:
-      'Monthly and quarterly performance reports formatted for LP distribution, fund administration, and regulatory filings. GIPS-compliant on request.',
+      'Single point of contact dari engineering team — bukan customer support generic. Direct access via Telegram + email + scheduled call. SLA 99.9%.',
+  },
+  {
+    title: 'Compliance & audit reporting',
+    description:
+      'Monthly + quarterly reports yang siap untuk audit, LP distribution, dan regulatory filings. Audit chain verification harian + immutable trail per ADR governance.',
   },
 ];
 

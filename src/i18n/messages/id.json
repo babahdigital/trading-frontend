@@ -275,5 +275,17 @@
     "disclaimer": "Trading kripto sangat volatil. Kinerja masa lalu tidak menjamin hasil masa depan. Anda tetap memegang kendali penuh atas API key — kami tidak bisa withdraw dana Anda.",
     "subscription_required": "Belum berlangganan",
     "connect_binance": "Hubungkan Binance"
+  },
+  "demo": {
+    "badge": "DEMO — simulasi",
+    "live_badge": "LIVE",
+    "equity_simulated_suffix": "(simulasi)",
+    "track_record_live_only": "Hanya akun live",
+    "track_record_disclaimer": "Performa masa lalu tidak menjamin hasil di masa depan.",
+    "demo_only_banner": "Anda hanya menjalankan akun demo. Upgrade ke akun live untuk mulai membangun rekam jejak terverifikasi.",
+    "onboarding_acknowledge": "Saya mengerti akun ini simulasi dan tidak akan masuk rekam jejak saya.",
+    "no_live_track_record": "Belum ada rekam jejak live. Saat ini Anda punya 0 akun live dan 1 akun demo. Track record mulai terkumpul setelah Anda menambah akun MT5 live.",
+    "warning_title": "DEMO — simulasi, bukan capital nyata",
+    "warning_body": "Trade di akun demo Anda 100% simulasi MT5. Tidak menyentuh capital nyata, tidak ditampilkan di public track record kami, dan tidak dihitung untuk verified performance."
   }
 }

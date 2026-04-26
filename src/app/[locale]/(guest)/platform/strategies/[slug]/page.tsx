@@ -3,6 +3,8 @@ import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { Link } from '@/i18n/navigation';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { notFound } from 'next/navigation';
+import { breadcrumbSchema, ldJson, organizationSchema } from '@/lib/seo-jsonld';
+import type { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
 
@@ -209,6 +211,28 @@ export async function generateStaticParams() {
   return STRATEGY_SLUGS.map((slug) => ({ slug }));
 }
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  if (!STRATEGY_SLUGS.includes(slug as StrategySlug)) {
+    return { title: 'Strategy Not Found | BabahAlgo' };
+  }
+  const strategy = STRATEGY_DATA[slug as StrategySlug];
+  const description = strategy.abstract[0].slice(0, 160);
+  return {
+    title: `${strategy.name} — Quantitative Strategy | BabahAlgo`,
+    description,
+    openGraph: {
+      title: `${strategy.name} — BabahAlgo`,
+      description,
+      type: 'article',
+    },
+  };
+}
+
 export default async function StrategyDetailPage({
   params,
 }: {
@@ -223,8 +247,17 @@ export default async function StrategyDetailPage({
   const strategy = STRATEGY_DATA[slug as StrategySlug];
   const { prev, next } = getAdjacentStrategies(slug as StrategySlug);
 
+  const breadcrumb = breadcrumbSchema([
+    { name: 'Home', url: '/' },
+    { name: 'Platform', url: '/platform' },
+    { name: 'Strategies', url: '/platform/strategies' },
+    { name: strategy.name, url: `/platform/strategies/${slug}` },
+  ]);
+
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(organizationSchema()) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(breadcrumb) }} />
       <EnterpriseNav />
       <main className="max-w-4xl mx-auto px-6 py-20">
         {/* Back link */}

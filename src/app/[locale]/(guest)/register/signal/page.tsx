@@ -1,22 +1,42 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useLocale, useTranslations } from 'next-intl';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { AlertTriangle } from 'lucide-react';
 
 const STEPS = ['Account Information', 'Select Tier', 'Confirmation'];
 
-export default function RegisterSignalPage() {
+function RegisterSignalInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isDemoMode = searchParams.get('mode') === 'demo';
+  const locale = useLocale();
+  const tDemo = useTranslations('demo');
+  const isEn = locale === 'en';
+
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [form, setForm] = useState({ name: '', email: '', password: '', tier: 'SIGNAL_BASIC' });
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    password: '',
+    tier: isDemoMode ? 'DEMO' : 'SIGNAL_BASIC',
+    demoAcknowledged: false,
+  });
 
-  function set(key: string, val: string) {
+  useEffect(() => {
+    if (isDemoMode) {
+      setForm((f) => ({ ...f, tier: 'DEMO' }));
+    }
+  }, [isDemoMode]);
+
+  function set<K extends keyof typeof form>(key: K, val: (typeof form)[K]) {
     setForm((f) => ({ ...f, [key]: val }));
   }
 
@@ -27,19 +47,25 @@ export default function RegisterSignalPage() {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: form.name, email: form.email, password: form.password, tier: form.tier }),
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          password: form.password,
+          tier: form.tier,
+          accountType: isDemoMode ? 'demo' : 'live',
+        }),
       });
       const data = await res.json();
       if (res.ok) {
         setError('');
         setStep(2);
-        alert(data.message || 'Registration successful! Your account will be activated by admin.');
+        alert(data.message || (isEn ? 'Registration successful! Your account will be activated by admin.' : 'Pendaftaran berhasil! Cek email untuk verifikasi.'));
         router.push('/login');
       } else {
-        setError(data.error || 'Registration failed. Please try again.');
+        setError(data.error || (isEn ? 'Registration failed. Please try again.' : 'Pendaftaran gagal. Silakan coba lagi.'));
       }
     } catch {
-      setError('An error occurred. Please try again.');
+      setError(isEn ? 'An error occurred. Please try again.' : 'Terjadi gangguan jaringan. Silakan coba lagi.');
     } finally {
       setLoading(false);
     }
@@ -53,11 +79,28 @@ export default function RegisterSignalPage() {
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
             <div className="max-w-md mx-auto">
-              <p className="t-eyebrow mb-4">Register</p>
-              <h1 className="t-display-sub mb-2">Signal Service Registration</h1>
-              <p className="t-lead text-foreground/60 mb-10">
-                AI-powered trading signals delivered to your dashboard.
+              <p className="t-eyebrow mb-4">{isDemoMode ? (isEn ? 'Demo Registration' : 'Daftar Demo') : 'Register'}</p>
+              <h1 className="t-display-sub mb-2">
+                {isDemoMode
+                  ? (isEn ? 'Free Demo Signup' : 'Daftar Demo Gratis')
+                  : (isEn ? 'Signal Service Registration' : 'Pendaftaran Signal')}
+              </h1>
+              <p className="t-lead text-foreground/60 mb-6">
+                {isDemoMode
+                  ? (isEn ? 'Test our signals on a simulated MT5 account — no payment, no live capital.' : 'Coba sinyal kami di akun MT5 simulasi — tanpa biaya, tanpa modal nyata.')
+                  : (isEn ? 'AI-powered trading signals delivered to your dashboard.' : 'Sinyal trading AI dikirim langsung ke dashboard Anda.')}
               </p>
+
+              {/* Demo isolation banner per DEMO_UX_GUIDE §3.4 */}
+              {isDemoMode && (
+                <div className="rounded-lg border-2 border-amber-500/40 bg-amber-500/5 p-4 mb-6 flex items-start gap-3">
+                  <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-semibold text-amber-200 mb-1">{tDemo('warning_title')}</p>
+                    <p className="text-xs text-amber-200/80 leading-relaxed">{tDemo('warning_body')}</p>
+                  </div>
+                </div>
+              )}
 
               {/* Step indicator */}
               <div className="flex items-center justify-center gap-2 mb-8">
@@ -114,8 +157,9 @@ export default function RegisterSignalPage() {
                         />
                       </div>
                       <button
-                        className="btn-primary w-full"
-                        onClick={() => setStep(1)}
+                        type="button"
+                        className="btn-primary w-full h-11 rounded-md text-sm font-medium"
+                        onClick={() => setStep(isDemoMode ? 2 : 1)}
                         disabled={!form.name || !form.email || !form.password}
                       >
                         Continue
@@ -123,7 +167,7 @@ export default function RegisterSignalPage() {
                     </>
                   )}
 
-                  {step === 1 && (
+                  {step === 1 && !isDemoMode && (
                     <>
                       <div className="space-y-3">
                         {[
@@ -174,39 +218,63 @@ export default function RegisterSignalPage() {
 
                   {step === 2 && (
                     <>
-                      <div className="border border-border/60 rounded-lg p-4 space-y-2 text-sm">
+                      <div className="border border-border/60 rounded-lg p-4 space-y-2 text-sm bg-muted/30">
                         <div className="flex justify-between">
-                          <span className="text-foreground/60">Name</span>
+                          <span className="text-foreground/60">{isEn ? 'Name' : 'Nama'}</span>
                           <span>{form.name}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-foreground/60">Email</span>
-                          <span>{form.email}</span>
+                          <span className="font-mono text-xs sm:text-sm truncate ml-2">{form.email}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-foreground/60">Plan</span>
+                          <span className="text-foreground/60">{isEn ? 'Plan' : 'Paket'}</span>
                           <span className="font-semibold text-amber-400">
-                            {form.tier === 'SIGNAL_BASIC' ? 'Signal Basic ($49/mo)' : 'Signal VIP ($149/mo)'}
+                            {isDemoMode
+                              ? (isEn ? 'Free Demo (Beta)' : 'Demo Gratis (Beta)')
+                              : form.tier === 'SIGNAL_BASIC' ? 'Signal Basic ($49/mo)' : 'Signal VIP ($149/mo)'}
                           </span>
                         </div>
                       </div>
+
+                      {/* Demo acknowledgment per DEMO_UX_GUIDE §3.6 */}
+                      {isDemoMode && (
+                        <label className="flex items-start gap-2.5 text-xs cursor-pointer select-none p-3 rounded-md bg-amber-500/5 border border-amber-500/30">
+                          <input
+                            type="checkbox"
+                            checked={form.demoAcknowledged}
+                            onChange={(e) => set('demoAcknowledged', e.target.checked)}
+                            className="mt-0.5 h-4 w-4 rounded border-input shrink-0"
+                          />
+                          <span className="text-amber-200/90 leading-relaxed">
+                            {tDemo('onboarding_acknowledge')}
+                          </span>
+                        </label>
+                      )}
+
                       {error && (
-                        <div className="t-body-sm text-red-400 bg-red-500/10 p-3 rounded-md">{error}</div>
+                        <div className="t-body-sm text-red-400 bg-red-500/10 border border-red-500/30 p-3 rounded-md">{error}</div>
                       )}
                       <div className="flex gap-3">
                         <Button
+                          type="button"
                           variant="outline"
-                          className="flex-1 border-border/60 text-foreground/50 hover:text-amber-400"
-                          onClick={() => setStep(1)}
+                          className="flex-1"
+                          onClick={() => setStep(isDemoMode ? 0 : 1)}
                         >
-                          Back
+                          {isEn ? 'Back' : 'Kembali'}
                         </Button>
                         <button
-                          className="btn-primary flex-1"
+                          type="button"
+                          className="btn-primary flex-1 h-11 rounded-md text-sm font-medium disabled:opacity-50"
                           onClick={handleSubmit}
-                          disabled={loading}
+                          disabled={loading || (isDemoMode && !form.demoAcknowledged)}
                         >
-                          {loading ? 'Processing...' : 'Confirm Registration'}
+                          {loading
+                            ? (isEn ? 'Processing...' : 'Memproses…')
+                            : isDemoMode
+                              ? (isEn ? 'Activate Demo' : 'Aktifkan Demo')
+                              : (isEn ? 'Confirm Registration' : 'Konfirmasi Pendaftaran')}
                         </button>
                       </div>
                     </>
@@ -231,5 +299,13 @@ export default function RegisterSignalPage() {
 
       <EnterpriseFooter />
     </div>
+  );
+}
+
+export default function RegisterSignalPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background" />}>
+      <RegisterSignalInner />
+    </Suspense>
   );
 }

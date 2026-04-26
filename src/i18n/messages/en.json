@@ -275,5 +275,17 @@
     "disclaimer": "Crypto assets are highly volatile. Past performance does not guarantee future results. You retain full control over your API key — we cannot withdraw your funds.",
     "subscription_required": "No active subscription",
     "connect_binance": "Connect Binance"
+  },
+  "demo": {
+    "badge": "DEMO — simulated",
+    "live_badge": "LIVE",
+    "equity_simulated_suffix": "(simulated)",
+    "track_record_live_only": "Live accounts only",
+    "track_record_disclaimer": "Past performance does not guarantee future results.",
+    "demo_only_banner": "You are running demo accounts only. Upgrade to live to begin contributing to your verified track record.",
+    "onboarding_acknowledge": "I understand this account is simulated and will not count toward my track record.",
+    "no_live_track_record": "No live track record yet. You currently have 0 live accounts and 1 demo account. Track record begins accumulating once you add a live MT5 account.",
+    "warning_title": "DEMO — simulated, not real capital",
+    "warning_body": "Trades on your demo account are 100% simulated MT5. They never touch real capital, never appear in our public track record, and never count toward verified performance."
   }
 }

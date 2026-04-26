@@ -205,8 +205,23 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
     ? faqs.map(f => ({ q: f.question, a: f.answer }))
     : FAQ_ITEMS;
 
+  // FAQPage JSON-LD untuk Google rich snippet
+  const faqJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: displayFaqs.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
       <EnterpriseNav />
 
       {/* ═══════════════════════════════════════════

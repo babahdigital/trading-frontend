@@ -2,6 +2,7 @@ import { Link } from '@/i18n/navigation';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { getPageMetadata } from '@/lib/seo';
+import { breadcrumbSchema, faqPageSchema, ldJson, organizationSchema } from '@/lib/seo-jsonld';
 import {
   ArrowRight,
   Bitcoin,
@@ -171,8 +172,17 @@ const FAQ_ITEMS = [
 ];
 
 export default function CryptoBotSolutionPage() {
+  const breadcrumb = breadcrumbSchema([
+    { name: 'Home', url: '/' },
+    { name: 'Solutions', url: '/solutions/signal' },
+    { name: 'Crypto Bot', url: '/solutions/crypto' },
+  ]);
+  const faq = faqPageSchema(FAQ_ITEMS.map((f) => ({ question: f.q, answer: f.a })));
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(organizationSchema()) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(breadcrumb) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(faq) }} />
       <EnterpriseNav />
       <main id="main-content">
         {/* Hero */}

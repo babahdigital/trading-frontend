@@ -23,13 +23,30 @@ const SEVERITY_FILTERS = [
   { id: 'critical', label: 'Critical' },
 ] as const;
 
+const CHANNEL_FILTERS = [
+  { id: 'all', label: 'Semua' },
+  { id: 'WHATSAPP', label: 'WhatsApp' },
+  { id: 'TELEGRAM', label: 'Telegram' },
+  { id: 'EMAIL', label: 'Email' },
+  { id: 'INAPP', label: 'In-App' },
+] as const;
+
+type SeverityFilter = (typeof SEVERITY_FILTERS)[number]['id'];
+type ChannelFilter = (typeof CHANNEL_FILTERS)[number]['id'];
+
+function matchesChannel(notif: BackendNotification, filter: ChannelFilter): boolean {
+  if (filter === 'all') return true;
+  return notif.channel.toUpperCase() === filter;
+}
+
 export default function NotificationsPage() {
   const { getAuthHeaders } = useAuth();
   const [items, setItems] = useState<BackendNotification[]>([]);
   const [source, setSource] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [filter, setFilter] = useState<(typeof SEVERITY_FILTERS)[number]['id']>('all');
+  const [filter, setFilter] = useState<SeverityFilter>('all');
+  const [channelFilter, setChannelFilter] = useState<ChannelFilter>('all');
 
   const load = useCallback(async () => {
     setRefreshing(true);
@@ -52,7 +69,11 @@ export default function NotificationsPage() {
     return () => clearInterval(t);
   }, [load]);
 
-  const filtered = filter === 'all' ? items : items.filter((n) => n.severity === filter);
+  const filtered = items.filter((n) => {
+    if (filter !== 'all' && n.severity !== filter) return false;
+    if (!matchesChannel(n, channelFilter)) return false;
+    return true;
+  });
 
   return (
     <div className="space-y-5 max-w-3xl">
@@ -83,25 +104,48 @@ export default function NotificationsPage() {
         </div>
       </div>
 
-      {/* Severity filter */}
-      <div className="inline-flex rounded-md border border-white/10 bg-card p-0.5 text-xs">
-        {SEVERITY_FILTERS.map((f) => (
-          <button
-            key={f.id}
-            onClick={() => setFilter(f.id)}
-            className={cn(
-              'px-3 py-1.5 rounded font-mono uppercase transition-colors',
-              filter === f.id ? 'bg-amber-500/15 text-amber-300' : 'text-muted-foreground hover:text-foreground',
-            )}
-          >
-            {f.label}
-            {filter === f.id && f.id !== 'all' && (
-              <span className="ml-1.5 text-[10px] opacity-70">
-                ({items.filter((n) => n.severity === f.id).length})
-              </span>
-            )}
-          </button>
-        ))}
+      {/* Filters */}
+      <div className="flex flex-wrap gap-2">
+        <div className="inline-flex rounded-md border border-white/10 bg-card p-0.5 text-xs">
+          {SEVERITY_FILTERS.map((f) => (
+            <button
+              key={f.id}
+              onClick={() => setFilter(f.id)}
+              className={cn(
+                'px-3 py-1.5 rounded font-mono uppercase transition-colors',
+                filter === f.id ? 'bg-amber-500/15 text-amber-300' : 'text-muted-foreground hover:text-foreground',
+              )}
+              aria-pressed={filter === f.id}
+            >
+              {f.label}
+              {filter === f.id && f.id !== 'all' && (
+                <span className="ml-1.5 text-[10px] opacity-70">
+                  ({items.filter((n) => n.severity === f.id).length})
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+        <div className="inline-flex rounded-md border border-white/10 bg-card p-0.5 text-xs">
+          {CHANNEL_FILTERS.map((c) => (
+            <button
+              key={c.id}
+              onClick={() => setChannelFilter(c.id)}
+              className={cn(
+                'px-3 py-1.5 rounded font-mono uppercase transition-colors',
+                channelFilter === c.id ? 'bg-emerald-500/15 text-emerald-300' : 'text-muted-foreground hover:text-foreground',
+              )}
+              aria-pressed={channelFilter === c.id}
+            >
+              {c.label}
+              {channelFilter === c.id && c.id !== 'all' && (
+                <span className="ml-1.5 text-[10px] opacity-70">
+                  ({items.filter((n) => matchesChannel(n, c.id)).length})
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
       </div>
 
       {loading ? (

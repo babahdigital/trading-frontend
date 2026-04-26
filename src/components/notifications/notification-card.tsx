@@ -103,6 +103,20 @@ export function NotificationCard({ notification }: { notification: BackendNotifi
                 {notification.tags.result}
               </span>
             )}
+            {notification.channel && (
+              <span className={cn(
+                'px-1.5 py-0.5 rounded text-[10px] font-mono uppercase border',
+                notification.channel.toUpperCase() === 'WHATSAPP'
+                  ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300'
+                  : notification.channel.toUpperCase() === 'TELEGRAM'
+                    ? 'bg-sky-500/15 border-sky-500/30 text-sky-300'
+                    : notification.channel.toUpperCase() === 'EMAIL'
+                      ? 'bg-violet-500/15 border-violet-500/30 text-violet-300'
+                      : 'bg-white/5 border-white/10 text-muted-foreground',
+              )}>
+                {notification.channel}
+              </span>
+            )}
             <span className="px-1.5 py-0.5 rounded text-[10px] font-mono uppercase bg-white/5 border border-white/10 text-muted-foreground">
               {notification.event_type.replace(/_/g, ' ')}
             </span>

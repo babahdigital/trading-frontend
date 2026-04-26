@@ -37,7 +37,7 @@ Cancel-in-progress aktif — push baru cancel build lama.
 
 **Job 1 — build-and-push:**
 - Build multi-arch (linux/amd64 + linux/arm64) via QEMU + Buildx
-- Push ke `babahdigital/babahalgo` di Docker Hub
+- Push ke `babahdigital/babahalgo-frontend` di Docker Hub
 - Cache via GHA cache (per-scope `babahalgo`)
 
 **Job 2 — deploy:**
@@ -107,7 +107,7 @@ Sekali-saja prosedur untuk pindah dari "build-on-prod" ke "pull-image". Setelah 
 ```bash
 git push origin main
 ```
-GitHub Actions akan build + push `babahdigital/babahalgo:latest` ke Docker Hub. Verifikasi di https://hub.docker.com/r/babahdigital/babahalgo.
+GitHub Actions akan build + push `babahdigital/babahalgo-frontend:latest` ke Docker Hub. Verifikasi di https://hub.docker.com/r/babahdigital/babahalgo-frontend.
 
 ### Step 2 — Setup folder + compose di VPS3
 ```bash
@@ -132,7 +132,7 @@ mkdir -p data/backups/{daily,weekly,monthly} public scratch
 chmod 750 data/backups
 
 # Bootstrap public/ folder dari image default (logos, manifest dll)
-docker run --rm -v $(pwd)/public:/dest babahdigital/babahalgo:latest \
+docker run --rm -v $(pwd)/public:/dest babahdigital/babahalgo-frontend:latest \
   sh -c 'cp -r /app/public/. /dest/ && chown -R 1001:1001 /dest'
 
 # Pull image + start
@@ -275,7 +275,7 @@ ssh ... "cd /opt/trading-commercial && \
 ```
 
 Atau kalau panic: `docker rollback` via Docker Hub UI tidak ada, tapi Anda bisa:
-1. Buka https://hub.docker.com/r/babahdigital/babahalgo/tags
+1. Buka https://hub.docker.com/r/babahdigital/babahalgo-frontend/tags
 2. Catat sha tag sebelumnya yang masih bagus
 3. Set `IMAGE_TAG=<sha-...>` di `.env`
 4. Run `docker compose up -d --force-recreate app`

@@ -132,6 +132,6 @@ jobs:
           file: ./Dockerfile
           push: false
           load: false
-          tags: babahdigital/babahalgo:ci-${{ github.sha }}
+          tags: babahdigital/babahalgo-frontend:ci-${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

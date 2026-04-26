@@ -20,13 +20,13 @@
 #   docker compose -f docker-compose.prod.yml up -d --force-recreate app
 #
 # One-time bootstrap (untuk first-time deploy public/ folder):
-#   docker run --rm -v $(pwd)/public:/dest babahdigital/babahalgo \
+#   docker run --rm -v $(pwd)/public:/dest babahdigital/babahalgo-frontend \
 #     sh -c 'cp -r /app/public/. /dest/'
 # ============================================================
 
 services:
   app:
-    image: babahdigital/babahalgo:${IMAGE_TAG:-latest}
+    image: babahdigital/babahalgo-frontend:${IMAGE_TAG:-latest}
     container_name: trading-commercial-app-1
     restart: unless-stopped
     pull_policy: always

@@ -18,7 +18,7 @@ name: Docker Publish + Deploy
 env:
   DOCKER_BUILDKIT: "1"
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
-  IMAGE_NAME: babahdigital/babahalgo
+  IMAGE_NAME: babahdigital/babahalgo-frontend
 
 on:
   push:
@@ -179,8 +179,8 @@ jobs:
           # First-time bootstrap public/ from image (cuma kalau folder kosong)
           if [ -z "$(ls -A public 2>/dev/null)" ]; then
             echo "== bootstrap public/ from image =="
-            docker pull babahdigital/babahalgo:latest
-            docker run --rm -v "$(pwd)/public:/dest" babahdigital/babahalgo:latest \
+            docker pull babahdigital/babahalgo-frontend:latest
+            docker run --rm -v "$(pwd)/public:/dest" babahdigital/babahalgo-frontend:latest \
               sh -c 'cp -r /app/public/. /dest/ 2>/dev/null && chown -R 1001:1001 /dest 2>/dev/null || true'
             echo "public/ bootstrapped: $(ls public | wc -l) entries"
           fi

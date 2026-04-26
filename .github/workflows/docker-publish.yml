@@ -146,7 +146,19 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.VPS3_SSH_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -p ${{ secrets.VPS3_SSH_PORT }} -H ${{ secrets.VPS3_SSH_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+          # ssh-keyscan kadang gagal transient — make it non-fatal, fallback ke accept-new
+          ssh-keyscan -p ${{ secrets.VPS3_SSH_PORT }} -H ${{ secrets.VPS3_SSH_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+          cat > ~/.ssh/config <<SSHCFG
+          Host vps3
+            HostName ${{ secrets.VPS3_SSH_HOST }}
+            Port ${{ secrets.VPS3_SSH_PORT }}
+            User ${{ secrets.VPS3_SSH_USER }}
+            IdentityFile ~/.ssh/deploy_key
+            StrictHostKeyChecking accept-new
+            UserKnownHostsFile ~/.ssh/known_hosts
+            BatchMode yes
+          SSHCFG
+          chmod 600 ~/.ssh/config
 
       - name: Sync compose files to VPS3
         env:

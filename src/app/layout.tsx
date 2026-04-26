@@ -11,11 +11,9 @@ export const metadata: Metadata = {
   description: 'Institutional-grade quantitative trading infrastructure. AI-powered strategies, systematic execution, institutional risk management.',
   icons: {
     icon: [
-      { url: '/logo/babahalgo-favicon-16.png', sizes: '16x16', type: 'image/png' },
-      { url: '/logo/babahalgo-icon-32.png', sizes: '32x32', type: 'image/png' },
-      { url: '/logo/babahalgo-icon-64.png', sizes: '64x64', type: 'image/png' },
+      { url: '/logo/babahalgo-favicon-new.png', type: 'image/png' },
     ],
-    apple: { url: '/logo/babahalgo-icon-256.png', sizes: '256x256', type: 'image/png' },
+    apple: { url: '/logo/babahalgo-favicon-new.png', type: 'image/png' },
   },
 };
 

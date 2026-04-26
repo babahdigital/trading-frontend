@@ -83,7 +83,7 @@ export default function LoginPage() {
         <div className="w-full max-w-md mx-auto lg:mx-0">
           {/* Logo */}
           <Image
-            src="/logo/babahalgo-horizontal-inverse.png"
+            src="/logo/babahalgo-header-dark.png"
             alt="BabahAlgo"
             width={140}
             height={28}
@@ -91,7 +91,7 @@ export default function LoginPage() {
             priority
           />
           <Image
-            src="/logo/babahalgo-horizontal-dual.png"
+            src="/logo/babahalgo-header-light.png"
             alt="BabahAlgo"
             width={140}
             height={28}

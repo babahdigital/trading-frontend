@@ -7,7 +7,7 @@ export default function NotFound() {
     <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12 text-center bg-background">
       <Link href="/" aria-label="BabahAlgo home" className="mb-12 opacity-90 hover:opacity-100 transition-opacity">
         <Image
-          src="/logo/babahalgo-horizontal-inverse.png"
+          src="/logo/babahalgo-header-dark.png"
           alt="BabahAlgo"
           width={160}
           height={32}
@@ -15,7 +15,7 @@ export default function NotFound() {
           priority
         />
         <Image
-          src="/logo/babahalgo-horizontal-dual.png"
+          src="/logo/babahalgo-header-light.png"
           alt="BabahAlgo"
           width={160}
           height={32}

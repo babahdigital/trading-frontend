@@ -104,7 +104,7 @@ function PortalLayoutInner({ children }: { children: React.ReactNode }) {
         <div className="px-5 py-6 border-b border-white/10">
           <Link href="/portal" className="flex items-center gap-2">
             <Image
-              src="/logo/babahalgo-horizontal-inverse.png"
+              src="/logo/babahalgo-header-dark.png"
               alt="BabahAlgo"
               width={120}
               height={24}
@@ -112,7 +112,7 @@ function PortalLayoutInner({ children }: { children: React.ReactNode }) {
               priority
             />
             <Image
-              src="/logo/babahalgo-horizontal-dual.png"
+              src="/logo/babahalgo-header-light.png"
               alt="BabahAlgo"
               width={120}
               height={24}

@@ -77,7 +77,7 @@ export function RegisterClient({ packages }: { packages: PackageData[] }) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <Image
-              src="/logo/babahalgo-horizontal-inverse.png"
+              src="/logo/babahalgo-header-dark.png"
               alt="BabahAlgo"
               width={130}
               height={26}
@@ -85,7 +85,7 @@ export function RegisterClient({ packages }: { packages: PackageData[] }) {
               priority
             />
             <Image
-              src="/logo/babahalgo-horizontal-dual.png"
+              src="/logo/babahalgo-header-light.png"
               alt="BabahAlgo"
               width={130}
               height={26}

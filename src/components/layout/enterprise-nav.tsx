@@ -139,7 +139,7 @@ export function EnterpriseNav() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 shrink-0" onClick={() => setActiveMenu(null)}>
           <Image
-            src="/logo/babahalgo-horizontal-inverse.png"
+            src="/logo/babahalgo-header-dark.png"
             alt="BabahAlgo"
             width={180}
             height={36}
@@ -147,7 +147,7 @@ export function EnterpriseNav() {
             priority
           />
           <Image
-            src="/logo/babahalgo-horizontal-dual.png"
+            src="/logo/babahalgo-header-light.png"
             alt="BabahAlgo"
             width={180}
             height={36}

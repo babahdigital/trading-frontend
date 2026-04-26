@@ -104,18 +104,18 @@ export function EnterpriseFooter() {
           {/* Brand column */}
           <div className="col-span-2">
             <Image
-              src="/logo/babahalgo-horizontal-inverse.png"
+              src="/logo/babahalgo-footer-dark.png"
               alt="BabahAlgo"
-              width={160}
-              height={32}
-              className="h-8 w-auto mb-6 hidden dark:block"
+              width={320}
+              height={64}
+              className="h-12 w-auto mb-6 hidden dark:block"
             />
             <Image
-              src="/logo/babahalgo-horizontal-dual.png"
+              src="/logo/babahalgo-footer-light.png"
               alt="BabahAlgo"
-              width={160}
-              height={32}
-              className="h-8 w-auto mb-6 dark:hidden"
+              width={320}
+              height={64}
+              className="h-12 w-auto mb-6 dark:hidden"
             />
             <p className="font-display text-lg italic text-foreground/70 leading-snug mb-4">
               {locale === 'id' ? (

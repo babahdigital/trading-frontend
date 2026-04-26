@@ -106,16 +106,16 @@ export function EnterpriseFooter() {
             <Image
               src="/logo/babahalgo-footer-dark.png"
               alt="BabahAlgo"
-              width={320}
-              height={64}
-              className="h-12 w-auto mb-6 hidden dark:block"
+              width={240}
+              height={48}
+              className="h-9 w-auto mb-6 hidden dark:block"
             />
             <Image
               src="/logo/babahalgo-footer-light.png"
               alt="BabahAlgo"
-              width={320}
-              height={64}
-              className="h-12 w-auto mb-6 dark:hidden"
+              width={240}
+              height={48}
+              className="h-9 w-auto mb-6 dark:hidden"
             />
             <p className="font-display text-lg italic text-foreground/70 leading-snug mb-4">
               {locale === 'id' ? (

@@ -411,13 +411,16 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
               </AnimatedSection>
             </div>
 
-            {/* Right column — Mini equity curve card */}
+            {/* Right column — Equity card when data exists, otherwise
+                Capability quadrant. Per Pak Abdullah: "chart kita kosong"
+                — empty chart is uninformative; replace with factual
+                snapshot of what the platform actually offers today. */}
             <div className="lg:col-span-2">
               <AnimatedSection delay={0.35}>
-                <div className="card-enterprise">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="t-eyebrow">{filteredEquity.length > 0 ? 'EQUITY CURVE' : 'PROJEKSI BACKTEST'}</div>
-                    {filteredEquity.length > 0 ? (
+                {filteredEquity.length > 0 ? (
+                  <div className="card-enterprise">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="t-eyebrow">EQUITY CURVE</div>
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono uppercase tracking-wider text-data-positive bg-data-positive/10 ring-1 ring-data-positive/20">
                         <span className="relative flex h-1.5 w-1.5">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-data-positive opacity-75" />
@@ -425,32 +428,69 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
                         </span>
                         Live
                       </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono uppercase tracking-wider text-amber-400 bg-amber-500/10 ring-1 ring-amber-500/30">
-                        Beta
-                      </span>
-                    )}
-                  </div>
-                  <EquityCurve
-                    data={filteredEquity.slice(-30)}
-                    height={210}
-                    periods={[]}
-                    activePeriod="30D"
-                  />
-                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
-                    <div>
-                      <div className="text-xs text-muted-foreground">
-                        {filteredEquity.length > 0
-                          ? 'Verified · 90D'
-                          : 'Track record live · Q3 2026'}
+                    </div>
+                    <EquityCurve
+                      data={filteredEquity.slice(-30)}
+                      height={210}
+                      periods={[]}
+                      activePeriod="30D"
+                    />
+                    <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
+                      <div>
+                        <div className="text-xs text-muted-foreground">Verified · 90D</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-mono text-lg font-medium text-amber-400">{kpi.sharpeRatio}</div>
+                        <div className="text-xs text-muted-foreground">Sharpe Ratio</div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="font-mono text-lg font-medium text-amber-400">{kpi.sharpeRatio}</div>
-                      <div className="text-xs text-muted-foreground">Sharpe Ratio</div>
+                  </div>
+                ) : (
+                  <div className="card-enterprise">
+                    <div className="flex items-center justify-between mb-5">
+                      <div className="t-eyebrow">CAPABILITIES</div>
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono uppercase tracking-wider text-amber-400 bg-amber-500/10 ring-1 ring-amber-500/30">
+                        Beta · Founding members
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <CapabilityQuadrant
+                        icon={<Brain className="w-5 h-5" />}
+                        value="6"
+                        label="Strategi confluence"
+                      />
+                      <CapabilityQuadrant
+                        icon={<Shield className="w-5 h-5" />}
+                        value="12"
+                        label="Lapisan risiko"
+                      />
+                      <CapabilityQuadrant
+                        icon={<TrendingUp className="w-5 h-5" />}
+                        value="14+"
+                        label="Aset (Forex · Metal · Crypto)"
+                      />
+                      <CapabilityQuadrant
+                        icon={<Sparkles className="w-5 h-5" />}
+                        value="0"
+                        label="Custody dana"
+                        valueClass="text-emerald-400"
+                      />
+                    </div>
+                    <div className="mt-5 pt-4 border-t border-border">
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        Track record live publikasi setelah 90 hari produksi (Q3 2026).
+                        Sebelum itu, founding members coba demo MT5 + Binance Testnet gratis.
+                      </p>
+                      <Link
+                        href="/demo"
+                        className="inline-flex items-center gap-1.5 mt-3 text-xs font-medium text-amber-400 hover:text-amber-300 transition-colors"
+                      >
+                        Coba demo gratis
+                        <ArrowRight className="w-3 h-3" />
+                      </Link>
                     </div>
                   </div>
-                </div>
+                )}
               </AnimatedSection>
             </div>
           </div>
@@ -1161,6 +1201,25 @@ function KpiItem({ label, value, sublabel }: { label: string; value: string; sub
       <div className="t-eyebrow mb-2">{label}</div>
       <div className="font-mono text-2xl md:text-3xl font-medium text-foreground tabular-nums">{value}</div>
       <div className="t-body-sm text-muted-foreground mt-1">{sublabel}</div>
+    </div>
+  );
+}
+
+function CapabilityQuadrant({ icon, value, label, valueClass }: {
+  icon: React.ReactNode;
+  value: string;
+  label: string;
+  valueClass?: string;
+}) {
+  return (
+    <div className="rounded-lg border border-border/60 bg-background/40 p-3.5">
+      <div className="flex items-center justify-between mb-2 text-amber-400/80">
+        {icon}
+      </div>
+      <div className={`font-mono text-3xl font-medium tabular-nums ${valueClass ?? 'text-foreground'}`}>
+        {value}
+      </div>
+      <div className="text-[11px] text-muted-foreground mt-1 leading-snug">{label}</div>
     </div>
   );
 }

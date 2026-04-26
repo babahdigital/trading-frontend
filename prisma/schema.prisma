@@ -584,6 +584,21 @@ model NotificationPreference {
   createdAt       DateTime @default(now())
 }
 
+model WhatsappVerification {
+  id         String    @id @default(cuid())
+  userId     String
+  product    String // "forex" | "crypto" — which backend the verified number is bound to
+  e164       String // pending number under verification, sanitized E.164
+  otpHash    String // sha256(otp + WA_OTP_HASH_SECRET)
+  expiresAt  DateTime
+  consumedAt DateTime?
+  attempts   Int       @default(0)
+  createdAt  DateTime  @default(now())
+
+  @@index([userId, product])
+  @@index([expiresAt])
+}
+
 model Invoice {
   id             String        @id @default(cuid())
   userId         String

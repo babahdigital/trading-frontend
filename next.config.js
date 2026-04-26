@@ -8,6 +8,22 @@ const nextConfig = {
   experimental: {
     instrumentationHook: true,
   },
+  images: {
+    remotePatterns: [
+      // Article cover images yang di-upload via admin CMS atau dari external host
+      { protocol: 'https', hostname: 'babahalgo.com' },
+      { protocol: 'https', hostname: 'cdn.babahalgo.com' },
+      // AI image generators (Pollinations.ai sering dipakai untuk article images)
+      { protocol: 'https', hostname: 'image.pollinations.ai' },
+      // Default Cloudflare Image Optimization passthrough
+      { protocol: 'https', hostname: '**.r2.cloudflarestorage.com' },
+      { protocol: 'https', hostname: '**.cloudflare-ipfs.com' },
+    ],
+    // Buffer size limit untuk avoid OOM dari oversize uploads
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    formats: ['image/webp'],
+  },
   async redirects() {
     return [
       // Locale-prefixed auth/admin/portal routes redirect to root

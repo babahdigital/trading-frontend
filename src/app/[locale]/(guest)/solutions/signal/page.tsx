@@ -5,6 +5,7 @@ import { Link } from '@/i18n/navigation';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { ArrowRight, BarChart3, Clock, Shield, Send, FileText, LineChart } from 'lucide-react';
+import { financialProductSchema, ldJson, breadcrumbSchema, faqPageSchema } from '@/lib/seo-jsonld';
 
 const FEATURES = [
   { title: 'Real-time trade alerts', description: 'Receive entry, stop-loss, and take-profit levels the moment our system identifies a high-probability setup across 14 curated instruments.', icon: 'chart' },
@@ -73,8 +74,27 @@ export default function SignalPage() {
     loadFaq();
   }, []);
 
+  const breadcrumb = breadcrumbSchema([
+    { name: 'Home', url: '/' },
+    { name: 'Solutions', url: '/solutions' },
+    { name: 'Forex Signal', url: '/solutions/signal' },
+  ]);
+  const faqJson = faqPageSchema(faq.map((f) => ({ question: f.q, answer: f.a })));
+  const tierProducts = PRICING.map((tier) => financialProductSchema({
+    name: `${tier.tier} — ${tier.price}${tier.period}`,
+    description: tier.features.join(' · '),
+    price: tier.price.replace(/[^0-9.]/g, ''),
+    currency: 'USD',
+    url: '/solutions/signal',
+  }));
+
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(breadcrumb) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(faqJson) }} />
+      {tierProducts.map((schema, i) => (
+        <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(schema) }} />
+      ))}
       <EnterpriseNav />
       <main id="main-content">
         {/* Hero */}

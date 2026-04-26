@@ -129,10 +129,15 @@ model Subscription {
 }
 
 enum SubscriptionTier {
+  // Canonical 2026-04-26 (per MONETIZATION_STRATEGY.md)
+  DEMO
+  SIGNAL_STARTER
+  SIGNAL_PRO
+  SIGNAL_VIP
+  // Legacy — retained for existing rows; new registrations should use canonical above
+  SIGNAL_BASIC
   PAMM_BASIC
   PAMM_PRO
-  SIGNAL_BASIC
-  SIGNAL_VIP
 }
 
 model KillSwitchEvent {

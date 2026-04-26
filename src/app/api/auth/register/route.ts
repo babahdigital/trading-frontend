@@ -7,14 +7,23 @@ import { createLogger } from '@/lib/logger';
 
 const log = createLogger('api/auth/register');
 
+// Canonical tier slugs per audit 2026-04-26 (PAMM tiers deprecated, zero-custody model).
+// SIGNAL_BASIC retained as alias for SIGNAL_STARTER for backward-compat with existing rows.
 const registerSchema = z.object({
   name: z.string().min(2, 'Nama minimal 2 karakter'),
   email: z.string().email('Format email tidak valid'),
   password: z.string().min(8, 'Password minimal 8 karakter'),
-  tier: z.enum(['SIGNAL_BASIC', 'SIGNAL_VIP', 'PAMM_BASIC', 'PAMM_PRO']),
-  // Opsional untuk PAMM
+  tier: z.enum([
+    'DEMO',
+    'SIGNAL_STARTER',
+    'SIGNAL_BASIC',
+    'SIGNAL_PRO',
+    'SIGNAL_VIP',
+  ]),
+  accountType: z.enum(['demo', 'live']).optional(),
   brokerName: z.string().optional(),
   mt5Account: z.string().optional(),
+  product: z.enum(['signal', 'crypto', 'vps']).optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -55,14 +64,19 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      // Tentukan durasi subscription (30 hari default)
+      // Tentukan durasi subscription (30 hari default; demo 30 hari fixed)
       const startsAt = new Date();
       const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
-      // Set profit share untuk PAMM
-      const isPamm = tier.startsWith('PAMM');
-      const profitSharePct = isPamm ? (tier === 'PAMM_PRO' ? 20 : 25) : null;
-      const monthlyFeeUsd = !isPamm ? (tier === 'SIGNAL_VIP' ? 149 : 49) : null;
+      // Canonical pricing per audit 2026-04-26 — Signal 3-tier
+      const monthlyFeeUsd = (() => {
+        if (tier === 'DEMO') return 0;
+        if (tier === 'SIGNAL_VIP') return 299;
+        if (tier === 'SIGNAL_PRO') return 79;
+        // SIGNAL_STARTER + legacy SIGNAL_BASIC alias both → $19
+        return 19;
+      })();
+      const profitSharePct = null; // No profit-share for Signal/Demo (only Crypto Bot, handled in /api/crypto)
 
       const subscription = await tx.subscription.create({
         data: {

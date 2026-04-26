@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocale } from 'next-intl';
 import Link from 'next/link';
+import Image from 'next/image';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { Pagination } from '@/components/ui/pagination';
@@ -160,13 +161,14 @@ export default function ResearchPage() {
                         className="card-enterprise flex flex-col group cursor-pointer hover:border-amber-500/20 transition-colors overflow-hidden"
                       >
                         {article.imageUrl && (
-                          <div className="relative w-[calc(100%+4rem)] aspect-[16/9] bg-white/[0.03] -ml-8 -mt-8 mb-6 overflow-hidden rounded-t-[var(--radius-lg)]">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
+                          <div className="relative w-[calc(100%+4rem)] aspect-[16/9] bg-muted/30 -ml-8 -mt-8 mb-6 overflow-hidden rounded-t-[var(--radius-lg)]">
+                            <Image
                               src={article.imageUrl}
-                              alt=""
-                              loading="lazy"
-                              className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500"
+                              alt={title || 'Research article cover'}
+                              fill
+                              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                              className="object-cover group-hover:scale-[1.02] transition-transform duration-500"
+                              quality={85}
                             />
                           </div>
                         )}

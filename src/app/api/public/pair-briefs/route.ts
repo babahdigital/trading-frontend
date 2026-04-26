@@ -60,7 +60,9 @@ async function getUserTier(request: NextRequest): Promise<string | null> {
   }
 }
 
-const SUBSCRIBER_TIERS = ['SIGNAL_BASIC', 'SIGNAL_VIP', 'PAMM_BASIC', 'PAMM_PRO'];
+// All Signal subscribers get pair-brief access (canonical + legacy).
+// PAMM removed per audit 2026-04-26 (zero-custody, deprecated tier).
+const SUBSCRIBER_TIERS = ['SIGNAL_STARTER', 'SIGNAL_BASIC', 'SIGNAL_PRO', 'SIGNAL_VIP'];
 
 export async function GET(request: NextRequest) {
   const pair = request.nextUrl.searchParams.get('pair');

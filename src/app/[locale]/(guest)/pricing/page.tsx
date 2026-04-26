@@ -180,9 +180,8 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
             <p className="t-eyebrow mb-3">Public API Marketplace</p>
             <h2 className="t-display-section mb-3 max-w-2xl">9 API container untuk integrasi pihak ketiga</h2>
             <p className="t-body text-foreground/60 max-w-2xl mb-12">
-              REST + WebSocket dengan rate limit per tier. API key issued setelah pembayaran. Lihat
-              {' '}<a href="/api-docs" className="text-amber-400 hover:underline">developer docs</a>{' '}
-              untuk schema lengkap.
+              REST + WebSocket dengan rate limit per tier. API key issued setelah pembayaran. Untuk schema lengkap dan integrasi technical, hubungi
+              {' '}<Link href="/contact?subject=api-docs" className="text-amber-400 hover:underline">tim engineering kami</Link>.
             </p>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
               {PUBLIC_APIS.map((api) => (

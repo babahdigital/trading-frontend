@@ -26,7 +26,7 @@ function RegisterSignalInner() {
     name: '',
     email: '',
     password: '',
-    tier: isDemoMode ? 'DEMO' : 'SIGNAL_BASIC',
+    tier: isDemoMode ? 'DEMO' : 'SIGNAL_PRO',
     demoAcknowledged: false,
   });
 
@@ -172,30 +172,42 @@ function RegisterSignalInner() {
                       <div className="space-y-3">
                         {[
                           {
-                            value: 'SIGNAL_BASIC',
-                            label: 'Signal Basic',
-                            price: '$49/month',
-                            desc: 'AI-powered signals, dashboard access, daily reports',
+                            value: 'SIGNAL_STARTER',
+                            label: 'Signal Starter',
+                            price: '$19/bulan',
+                            desc: 'Live signals (≤3 simbol), 1 strategy aktif, rule-based AI explainability',
+                          },
+                          {
+                            value: 'SIGNAL_PRO',
+                            label: 'Signal Pro',
+                            price: '$79/bulan',
+                            desc: 'Unlimited symbols, 5 strategi paralel, mid-tier AI, priority MT5 latency',
+                            popular: true,
                           },
                           {
                             value: 'SIGNAL_VIP',
                             label: 'Signal VIP',
-                            price: '$149/month',
-                            desc: 'All Basic features + real-time Telegram alerts + priority support',
+                            price: '$299/bulan',
+                            desc: 'Premium AI (gradient boost), custom backtest sweep, payout API, copy-trade lead dashboard',
                           },
                         ].map((tier) => (
                           <div
                             key={tier.value}
-                            className={`border rounded-lg p-4 cursor-pointer transition-colors ${
+                            className={`relative border rounded-lg p-4 cursor-pointer transition-colors ${
                               form.tier === tier.value
-                                ? 'border-amber-400 bg-amber-400/5'
+                                ? 'border-amber-400 bg-amber-400/5 ring-1 ring-amber-400/30'
                                 : 'border-border/60 hover:border-amber-400/50'
                             }`}
                             onClick={() => set('tier', tier.value)}
                           >
-                            <div className="flex justify-between items-center">
+                            {tier.popular && (
+                              <span className="absolute -top-2 right-3 inline-flex items-center px-2 py-0.5 rounded-full bg-amber-500 text-amber-50 text-[10px] font-bold uppercase tracking-wider">
+                                Populer
+                              </span>
+                            )}
+                            <div className="flex justify-between items-baseline gap-2 flex-wrap">
                               <span className="font-semibold">{tier.label}</span>
-                              <span className="text-amber-400 font-mono font-bold">{tier.price}</span>
+                              <span className="text-amber-400 font-mono font-bold text-sm">{tier.price}</span>
                             </div>
                             <p className="t-body-sm text-foreground/60 mt-1">{tier.desc}</p>
                           </div>
@@ -232,7 +244,10 @@ function RegisterSignalInner() {
                           <span className="font-semibold text-amber-400">
                             {isDemoMode
                               ? (isEn ? 'Free Demo (Beta)' : 'Demo Gratis (Beta)')
-                              : form.tier === 'SIGNAL_BASIC' ? 'Signal Basic ($49/mo)' : 'Signal VIP ($149/mo)'}
+                              : form.tier === 'SIGNAL_STARTER' ? 'Signal Starter ($19/mo)'
+                              : form.tier === 'SIGNAL_PRO' ? 'Signal Pro ($79/mo)'
+                              : form.tier === 'SIGNAL_VIP' ? 'Signal VIP ($299/mo)'
+                              : `${form.tier}`}
                           </span>
                         </div>
                       </div>

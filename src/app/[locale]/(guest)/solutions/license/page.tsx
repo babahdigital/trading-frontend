@@ -2,6 +2,7 @@ import { Link } from '@/i18n/navigation';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { ArrowRight } from 'lucide-react';
+import { breadcrumbSchema, financialProductSchema, ldJson, organizationSchema } from '@/lib/seo-jsonld';
 
 export const dynamic = 'force-dynamic';
 
@@ -106,7 +107,23 @@ const FAQ = [
 ];
 
 export default async function LicensePage() {
+  const breadcrumb = breadcrumbSchema([
+    { name: 'Home', url: '/' },
+    { name: 'Solutions', url: '/solutions' },
+    { name: 'VPS License', url: '/solutions/license' },
+  ]);
+  const tiers = [
+    { name: 'VPS Standard — $3,000 setup + $150/mo', description: 'Dedicated VPS broker-level, full bot access, custom configuration', price: '3000', currency: 'USD' },
+    { name: 'VPS Premium — $7,500 setup + $300/mo', description: 'Multi-broker bridge MT4+MT5, 3 akun paralel, priority support 24/7', price: '7500', currency: 'USD' },
+    { name: 'VPS Dedicated — $1,499/mo', description: 'Single-customer isolated VPS, dedicated MT5 bridge, 24/7 incident channel, SLA 99.9%', price: '1499', currency: 'USD' },
+  ].map((t) => financialProductSchema({ ...t, url: '/solutions/license' }));
   return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(organizationSchema()) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(breadcrumb) }} />
+      {tiers.map((schema, i) => (
+        <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(schema) }} />
+      ))}
     <div className="min-h-screen bg-background text-foreground">
       <EnterpriseNav />
       <main id="main-content">
@@ -305,5 +322,6 @@ export default async function LicensePage() {
       </main>
       <EnterpriseFooter />
     </div>
+    </>
   );
 }

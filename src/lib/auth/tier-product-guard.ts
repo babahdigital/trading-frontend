@@ -5,14 +5,39 @@
  * adapter routes (`/api/client/*`) and component renderers to prevent
  * lower-tier customers from accessing higher-tier features.
  *
- * Tier ordering: free < starter < pro < vip < dedicated.
+ * Tier ordering: free < demo < starter < pro < vip < dedicated.
+ *
+ * Per audit 2026-04-26: PAMM tiers removed (deprecated, zero-custody model).
+ * SIGNAL_BASIC/SIGNAL_VIP retained for backward compat with existing DB rows
+ * but new registrations use SIGNAL_STARTER ($19), SIGNAL_PRO ($79), SIGNAL_VIP ($299).
  */
 
-export type TierName = 'FREE' | 'STARTER' | 'PRO' | 'VIP' | 'DEDICATED' | 'PAMM_BASIC' | 'PAMM_PRO' | 'SIGNAL_BASIC' | 'SIGNAL_VIP';
+export type TierName =
+  | 'FREE'
+  | 'DEMO'
+  | 'STARTER'
+  | 'PRO'
+  | 'VIP'
+  | 'DEDICATED'
+  | 'SIGNAL_STARTER'
+  | 'SIGNAL_BASIC' // legacy alias for STARTER
+  | 'SIGNAL_PRO'
+  | 'SIGNAL_VIP';
 
 export type ProductName = 'signal' | 'copy' | 'dedicated' | 'news_api' | 'ai_advisor' | 'pair_brief';
 
-const TIER_ORDER: TierName[] = ['FREE', 'STARTER', 'SIGNAL_BASIC', 'PAMM_BASIC', 'SIGNAL_VIP', 'PAMM_PRO', 'PRO', 'VIP', 'DEDICATED'];
+const TIER_ORDER: TierName[] = [
+  'FREE',
+  'DEMO',
+  'STARTER',
+  'SIGNAL_STARTER',
+  'SIGNAL_BASIC',
+  'SIGNAL_PRO',
+  'PRO',
+  'SIGNAL_VIP',
+  'VIP',
+  'DEDICATED',
+];
 
 /** Minimum tier required per product. */
 const PRODUCT_TIER_RULES: Record<ProductName, TierName> = {
@@ -41,7 +66,7 @@ export function canAccess(tier: string | null | undefined, product: ProductName)
 
   // Special-case Signal subscriptions get signal access regardless of order
   if (product === 'signal' && tier && /^SIGNAL_/i.test(tier)) return true;
-  if (product === 'pair_brief' && tier && /^SIGNAL_|^PAMM_/i.test(tier)) return true;
+  if (product === 'pair_brief' && tier && /^SIGNAL_/i.test(tier)) return true;
 
   const userIdx = tierIndex(tier);
   const minIdx = tierIndex(minTier);

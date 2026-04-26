@@ -3,7 +3,7 @@ import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { ArrowRight, ShieldCheck, Eye, Zap, AlertTriangle } from 'lucide-react';
 import { getPageMetadata } from '@/lib/seo';
-import { breadcrumbSchema, ldJson, organizationSchema } from '@/lib/seo-jsonld';
+import { breadcrumbSchema, financialProductSchema, ldJson, organizationSchema } from '@/lib/seo-jsonld';
 
 export const dynamic = 'force-dynamic';
 
@@ -45,11 +45,19 @@ export default function DemoPage() {
     { name: 'Home', url: '/' },
     { name: 'Demo', url: '/demo' },
   ]);
+  const demoProduct = financialProductSchema({
+    name: 'Free Demo — Signal Preview + Indicator Beta',
+    description: 'Akun MT5 demo + signal preview + indicator confluence overlay. Gratis untuk evaluasi 30 hari, tidak masuk public track record (per DEMO_UX_GUIDE).',
+    price: '0',
+    currency: 'USD',
+    url: '/demo',
+  });
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(organizationSchema()) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(breadcrumb) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(demoProduct) }} />
       <EnterpriseNav />
       <main id="main-content">
         {/* Hero */}

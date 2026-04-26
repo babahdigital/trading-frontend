@@ -8,9 +8,25 @@ import { resolveIdempotencyKey } from '@/lib/api/idempotency';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
+// Canonical pricing per audit 2026-04-26 (MONETIZATION_STRATEGY.md).
+// IDR rates pakai estimasi USD→IDR ~16,500 (revisit saat business confirm).
+// SIGNAL_BASIC = legacy alias = same price as SIGNAL_STARTER ($19).
 const TIER_PRICES: Record<string, { amountIdr: number; description: string }> = {
-  SIGNAL_BASIC: { amountIdr: 300_000, description: 'Signal Basic - 1 Bulan' },
-  SIGNAL_VIP: { amountIdr: 600_000, description: 'Signal VIP - 1 Bulan' },
+  // Forex Signal
+  SIGNAL_STARTER: { amountIdr: 315_000, description: 'Signal Starter — 1 Bulan' },
+  SIGNAL_BASIC: { amountIdr: 315_000, description: 'Signal Basic (legacy alias Starter) — 1 Bulan' },
+  SIGNAL_PRO: { amountIdr: 1_300_000, description: 'Signal Pro — 1 Bulan' },
+  SIGNAL_VIP: { amountIdr: 4_950_000, description: 'Signal VIP — 1 Bulan' },
+  // Crypto Bot
+  CRYPTO_BASIC: { amountIdr: 815_000, description: 'Crypto Basic — 1 Bulan + 20% profit share' },
+  CRYPTO_PRO: { amountIdr: 3_300_000, description: 'Crypto Pro — 1 Bulan + 15% profit share' },
+  CRYPTO_HNWI: { amountIdr: 8_250_000, description: 'Crypto HNWI — 1 Bulan + 10% profit share' },
+  // VPS License
+  VPS_STANDARD: { amountIdr: 49_500_000, description: 'VPS License — Setup' },
+  VPS_PREMIUM: { amountIdr: 124_000_000, description: 'VPS Premium — Setup' },
+  VPS_DEDICATED: { amountIdr: 24_750_000, description: 'VPS Dedicated — 1 Bulan' },
+  // Demo (gratis — tidak boleh masuk checkout, return 400)
+  DEMO: { amountIdr: 0, description: 'Demo (gratis) — checkout tidak diperlukan' },
 };
 
 type PaymentProvider = 'midtrans' | 'xendit';
@@ -25,6 +41,12 @@ export async function POST(req: NextRequest) {
   const { tier, provider = 'midtrans' } = body as { tier: string; provider?: PaymentProvider };
   const pricing = TIER_PRICES[tier];
   if (!pricing) return NextResponse.json({ error: 'Invalid tier' }, { status: 400 });
+  if (pricing.amountIdr === 0) {
+    return NextResponse.json(
+      { error: 'free_tier', message: 'Tier gratis tidak butuh checkout. Aktivasi langsung via /demo signup.' },
+      { status: 400 },
+    );
+  }
 
   if (provider !== 'midtrans' && provider !== 'xendit') {
     return NextResponse.json({ error: 'Invalid payment provider. Use "midtrans" or "xendit"' }, { status: 400 });

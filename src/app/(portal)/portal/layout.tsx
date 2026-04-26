@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ResponsiveSidebar } from '@/components/layout/responsive-sidebar';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { AuthProvider, useAuth } from '@/lib/auth/auth-context';
 
 interface NavItem {
@@ -157,11 +158,12 @@ function PortalLayoutInner({ children }: { children: React.ReactNode }) {
           ))}
         </nav>
 
-        <div className="p-3 border-t border-white/10">
-          <Button variant="ghost" className="w-full justify-start gap-2.5 text-sm" onClick={logout}>
+        <div className="p-3 border-t border-white/10 flex items-center gap-2">
+          <Button variant="ghost" className="flex-1 justify-start gap-2.5 text-sm" onClick={logout}>
             <LogOut className="h-4 w-4" />
             Logout
           </Button>
+          <ThemeToggle />
         </div>
       </ResponsiveSidebar>
 

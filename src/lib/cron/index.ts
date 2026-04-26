@@ -1,5 +1,6 @@
 import { runKillSwitchCron } from './kill-switch';
 import { runHealthCheckCron } from './health-check';
+import { runWhatsappVerificationCleanup } from './whatsapp-cleanup';
 import { runSignalConsumer } from '@/lib/consumers/signal';
 import { runTradeEventsConsumer } from '@/lib/consumers/trade-events';
 import { runResearchIngester } from '@/lib/ingesters/research';
@@ -115,6 +116,12 @@ export function initCronJobs() {
   setInterval(async () => {
     try { await expireSubscriptions(); } catch (err) { log.error('Subscription expiry error:', err); }
   }, 60 * 60 * 1000);
+
+  // WhatsApp verification cleanup — every 6 hours (prune expired OTPs + 30d-old consumed rows)
+  setInterval(async () => {
+    try { await runWhatsappVerificationCleanup(); } catch (err) { log.error('WA verification cleanup error:', err); }
+  }, 6 * 60 * 60 * 1000);
+  setTimeout(() => runWhatsappVerificationCleanup().catch((err) => log.error('WA verification cleanup startup error:', err)), 120_000);
 
   log.info('Cron jobs initialized.');
 }

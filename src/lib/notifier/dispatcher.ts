@@ -68,6 +68,23 @@ async function dispatchToOne(
   };
 
   for (const channel of channels) {
+    // WhatsApp delivery is owned by the trading backend (forex/crypto). Each
+    // backend has its own outbox + WA dispatcher loop with audit chain
+    // integration. The FE only manages preferences + history viewer; we
+    // explicitly skip the channel here to make the no-op intentional.
+    if (channel === 'WHATSAPP') {
+      await prisma.notificationLog.create({
+        data: {
+          userId: subscription.userId,
+          channel: 'WHATSAPP',
+          category: 'SIGNAL',
+          refId: String(signal.id),
+          payload: { pair: signal.pair, handled_by: 'backend' },
+          status: 'SKIPPED',
+        },
+      });
+      continue;
+    }
     try {
       if (channel === 'TELEGRAM' && subscription.user.telegramChatId) {
         const text = formatSignalTelegram(signal, subInfo);

@@ -155,9 +155,14 @@ jobs:
           SSH_HOST: ${{ secrets.VPS3_SSH_HOST }}
           DEPLOY_PATH: ${{ secrets.VPS3_DEPLOY_PATH }}
         run: |
-          scp -i ~/.ssh/deploy_key -P "$SSH_PORT" \
-            docker-compose.prod.yml docker-compose.db.yml \
-            "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/"
+          # Pakai tar pipe + ssh (lebih reliable dari scp sftp-based di OpenSSH 9+)
+          tar -cf - docker-compose.prod.yml docker-compose.db.yml | \
+            ssh -i ~/.ssh/deploy_key -p "$SSH_PORT" -o BatchMode=yes \
+              "$SSH_USER@$SSH_HOST" \
+              "mkdir -p '$DEPLOY_PATH' && cd '$DEPLOY_PATH' && tar -xf -"
+          # Verify
+          ssh -i ~/.ssh/deploy_key -p "$SSH_PORT" -o BatchMode=yes "$SSH_USER@$SSH_HOST" \
+            "ls -la '$DEPLOY_PATH/docker-compose.prod.yml' '$DEPLOY_PATH/docker-compose.db.yml'"
 
       - name: Bootstrap folder structure + public assets
         env:

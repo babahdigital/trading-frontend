@@ -144,24 +144,37 @@ jobs:
 
       - name: Pull image + zero-downtime restart
         env:
-          SSH_CMD: ssh -i ~/.ssh/deploy_key -p ${{ secrets.VPS3_SSH_PORT }} -o BatchMode=yes ${{ secrets.VPS3_SSH_USER }}@${{ secrets.VPS3_SSH_HOST }}
+          SSH_HOST: ${{ secrets.VPS3_SSH_HOST }}
+          SSH_PORT: ${{ secrets.VPS3_SSH_PORT }}
+          SSH_USER: ${{ secrets.VPS3_SSH_USER }}
+          DEPLOY_PATH: ${{ secrets.VPS3_DEPLOY_PATH }}
         run: |
-          $SSH_CMD "set -euo pipefail; \
-            cd ${{ secrets.VPS3_DEPLOY_PATH }}; \
-            echo '== docker pull =='; \
-            docker compose -f docker-compose.prod.yml pull app; \
-            echo '== docker up -d (recreate) =='; \
-            docker compose -f docker-compose.prod.yml up -d --force-recreate app; \
-            echo '== healthcheck =='; \
-            for i in 1 2 3 4 5 6 7 8 9 10; do \
-              STATUS=\$(docker inspect --format '{{.State.Health.Status}}' trading-commercial-app-1 2>/dev/null || echo 'starting'); \
-              echo \"attempt \$i: \$STATUS\"; \
-              if [ \"\$STATUS\" = 'healthy' ]; then exit 0; fi; \
-              sleep 6; \
-            done; \
-            echo '::error::Container failed to become healthy within 60s'; \
-            docker compose -f docker-compose.prod.yml logs app --tail=50; \
-            exit 1"
+          ssh -i ~/.ssh/deploy_key -p "$SSH_PORT" -o BatchMode=yes "$SSH_USER@$SSH_HOST" \
+            DEPLOY_PATH="$DEPLOY_PATH" 'bash -s' <<'REMOTE'
+          set -euo pipefail
+          cd "$DEPLOY_PATH"
+
+          echo "== docker compose pull =="
+          docker compose -f docker-compose.prod.yml pull app
+
+          echo "== docker compose up -d (recreate) =="
+          docker compose -f docker-compose.prod.yml up -d --force-recreate app
+
+          echo "== healthcheck poll =="
+          for i in $(seq 1 12); do
+            STATUS=$(docker inspect --format '{{.State.Health.Status}}' trading-commercial-app-1 2>/dev/null || echo 'starting')
+            echo "attempt $i: $STATUS"
+            if [ "$STATUS" = "healthy" ]; then
+              echo "container healthy ✓"
+              exit 0
+            fi
+            sleep 6
+          done
+
+          echo "::error::Container failed to become healthy within 72s"
+          docker compose -f docker-compose.prod.yml logs app --tail=80
+          exit 1
+          REMOTE
 
       - name: Public smoke test
         run: |

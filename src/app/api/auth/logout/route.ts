@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
+import { AUTH_COOKIE_NAMES, clearAuthCookies } from '@/lib/auth/cookies';
 
 export async function POST(request: NextRequest) {
   try {
-    const { refreshToken } = await request.json();
+    // Refresh token from cookie (preferred) or legacy body
+    let refreshToken = request.cookies.get(AUTH_COOKIE_NAMES.REFRESH_TOKEN)?.value ?? '';
+    if (!refreshToken) {
+      const body = await request.json().catch(() => ({}));
+      refreshToken = (body as { refreshToken?: string }).refreshToken ?? '';
+    }
+
     if (refreshToken) {
       await prisma.session.updateMany({
         where: { refreshToken, revokedAt: null },
@@ -23,8 +30,8 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    return NextResponse.json({ ok: true });
+    return clearAuthCookies(NextResponse.json({ ok: true }));
   } catch {
-    return NextResponse.json({ ok: true });
+    return clearAuthCookies(NextResponse.json({ ok: true }));
   }
 }

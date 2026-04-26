@@ -46,10 +46,33 @@ export default function PortalDashboard() {
   const [equityPeriod, setEquityPeriod] = useState('30D');
 
   useEffect(() => {
-    try {
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      setUserName(user.name || user.email || '');
-    } catch { /* empty */ }
+    let cancelled = false;
+    async function loadUser() {
+      // Prefer the session-storage hint set during login (instant, no network).
+      try {
+        const cached = sessionStorage.getItem('user');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (!cancelled) setUserName(parsed.name || parsed.email || '');
+          return;
+        }
+      } catch { /* empty */ }
+      // Fallback: identity probe via cookie. Backstop for direct-link refreshes
+      // where sessionStorage was cleared by the browser.
+      try {
+        const res = await fetch('/api/auth/me', { credentials: 'same-origin' });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!cancelled && data.user) {
+          setUserName(data.user.name || data.user.email || '');
+          try {
+            sessionStorage.setItem('user', JSON.stringify(data.user));
+          } catch { /* empty */ }
+        }
+      } catch { /* network glitch — leave userName blank */ }
+    }
+    loadUser();
+    return () => { cancelled = true; };
   }, []);
 
   // Fetch status (polling)

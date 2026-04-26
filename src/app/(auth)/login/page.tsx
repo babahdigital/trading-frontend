@@ -36,6 +36,7 @@ export default function LoginPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
+        credentials: 'same-origin',
       });
 
       const data = await res.json();
@@ -45,11 +46,14 @@ export default function LoginPage() {
         return;
       }
 
-      localStorage.setItem('access_token', data.accessToken);
-      localStorage.setItem('refresh_token', data.refreshToken);
-      localStorage.setItem('user', JSON.stringify(data.user));
-
-      document.cookie = `access_token=${data.accessToken}; path=/; max-age=${15 * 60}; SameSite=Lax`;
+      // Tokens live in HTTP-only cookies set by the API — never persisted to
+      // localStorage (XSS-readable). The user object is the only public data
+      // the client needs and is safe in sessionStorage for navigation hints.
+      try {
+        sessionStorage.setItem('user', JSON.stringify(data.user));
+      } catch {
+        // sessionStorage disabled (private mode) — non-fatal, route still works.
+      }
 
       if (data.user.role === 'ADMIN') {
         router.push('/admin');

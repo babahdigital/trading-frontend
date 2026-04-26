@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { verifyRefreshToken, signJwt, signRefreshToken, type JwtPayload } from '@/lib/auth/jwt';
+import { AUTH_COOKIE_NAMES, setAuthCookies } from '@/lib/auth/cookies';
 import { randomUUID } from 'crypto';
 import { createLogger } from '@/lib/logger';
 
@@ -8,7 +9,12 @@ const log = createLogger('api/auth/refresh');
 
 export async function POST(request: NextRequest) {
   try {
-    const { refreshToken } = await request.json();
+    // Prefer refresh token from cookie; fall back to legacy body for clients in transition.
+    let refreshToken = request.cookies.get(AUTH_COOKIE_NAMES.REFRESH_TOKEN)?.value ?? '';
+    if (!refreshToken) {
+      const body = await request.json().catch(() => ({}));
+      refreshToken = (body as { refreshToken?: string }).refreshToken ?? '';
+    }
     if (!refreshToken) {
       return NextResponse.json({ error: 'Refresh token required' }, { status: 400 });
     }
@@ -62,10 +68,10 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({
-      accessToken: newAccessToken,
-      refreshToken: newRefreshToken,
-    });
+    return setAuthCookies(
+      NextResponse.json({ ok: true }),
+      { accessToken: newAccessToken, refreshToken: newRefreshToken },
+    );
   } catch (error) {
     log.error('Refresh error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { verifyPassword } from '@/lib/auth/password';
 import { signJwt, signRefreshToken, type JwtPayload } from '@/lib/auth/jwt';
+import { setAuthCookies } from '@/lib/auth/cookies';
 import { randomUUID } from 'crypto';
 import { createLogger } from '@/lib/logger';
 
@@ -80,11 +81,12 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      return NextResponse.json({
-        accessToken,
-        refreshToken,
-        user: { id: user.id, email: user.email, role: user.role, name: user.name },
-      });
+      return setAuthCookies(
+        NextResponse.json({
+          user: { id: user.id, email: user.email, role: user.role, name: user.name },
+        }),
+        { accessToken, refreshToken },
+      );
     }
 
     // Standard login: email + password (Admin or Model B)
@@ -141,11 +143,12 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({
-      accessToken,
-      refreshToken,
-      user: { id: user.id, email: user.email, role: user.role, name: user.name },
-    });
+    return setAuthCookies(
+      NextResponse.json({
+        user: { id: user.id, email: user.email, role: user.role, name: user.name },
+      }),
+      { accessToken, refreshToken },
+    );
   } catch (error) {
     log.error('Login error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

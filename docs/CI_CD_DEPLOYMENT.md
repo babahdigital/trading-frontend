@@ -1,203 +1,143 @@
-# CI/CD + Deployment Architecture
+# CI/CD + Deployment — BabahAlgo Frontend
 
-Dokumen ini menjelaskan bagaimana kode di-build, di-publish, dan di-deploy ke produksi.
+> **Status:** Live since 2026-04-26 — production VPS3 = pull-based deploy, source code 100% offloaded ke Docker Hub.
 
 ## TL;DR
 
 ```
-┌──────────────┐    ┌──────────────────┐    ┌──────────────┐    ┌─────────────┐
-│  Local dev   │───▶│  GitHub Actions  │───▶│  Docker Hub  │───▶│   VPS3      │
-│  git push    │    │  build + push    │    │ babahdigital │    │ docker pull │
-│              │    │  smoke test      │    │  /babahalgo  │    │ docker up   │
-└──────────────┘    └──────────────────┘    └──────────────┘    └─────────────┘
-                       (5-10 menit)            (image cache)      (~30 detik)
+┌──────────────┐    ┌──────────────────┐    ┌──────────────────────┐    ┌─────────────┐
+│  Local dev   │───▶│  GitHub Actions  │───▶│     Docker Hub       │───▶│   VPS3      │
+│  git push    │    │  build + push    │    │ babahdigital/        │    │ docker pull │
+│              │    │  (~3 min amd64)  │    │ babahalgo-frontend   │    │ + restart   │
+└──────────────┘    └──────────────────┘    └──────────────────────┘    └─────────────┘
+                                                                          (~30 detik)
 ```
 
-**Production VPS3 tidak punya source code lagi.** Cuma `docker-compose.prod.yml`, `.env`, dan folder `scratch/` untuk script test/maintenance.
+**Daily ops Anda cuma satu perintah:**
+```bash
+git push origin main
+```
+Build + publish + deploy + cleanup + smoke test = otomatis ~6 menit.
 
 ---
 
-## Komponen
+## Folder layout VPS3 (target state — sudah live)
 
-### 1. `.github/workflows/ci.yml`
-Quality gate pada setiap PR + push ke main.
-- Detect path changes (cuma jalankan job yang relevan)
-- Typecheck (`tsc --noEmit`)
-- Lint (`next lint`)
-- Build verify (`next build`, no artifact upload)
-- Docker build smoke (no push)
+```
+/opt/trading-commercial/                  (2.4 MB total — bersih dari source code)
+├── docker-compose.prod.yml               # config utama (dari repo, auto-sync via deploy)
+├── docker-compose.db.yml                 # OPTIONAL postgres-in-docker
+├── .env                                  # secrets (NEVER commit ke git)
+├── .env.example                          # reference
+├── .env.bak-YYYYMMDD-HHMMSS              # backup .env (auto-prune >30 hari)
+├── data/
+│   ├── postgres/                         # postgres data (kalau pakai docker-compose.db.yml)
+│   └── backups/
+│       ├── daily/                        # 7 backup terakhir (auto-prune)
+│       ├── weekly/                       # 4 minggu terakhir (Sunday snapshot)
+│       └── monthly/                      # 12 bulan terakhir (snapshot tgl 01)
+├── public/                               # branding/CMS images (hot-swap tanpa rebuild)
+└── scratch/                              # one-off test/maintenance scripts (RO mount)
+```
 
-Cancel-in-progress aktif — push baru cancel build lama.
+**Source code (`src/`, `prisma/`, `node_modules/`, `dev/`, `docs/`, `Dockerfile`, dll) TIDAK ADA di VPS3.** Semua baked into image yang di-pull dari Docker Hub.
 
-### 2. `.github/workflows/docker-publish.yml`
-**Trigger:**
-- Push ke `main` → tag `latest` + `sha-<short>` + `main`
-- Push tag `v1.2.3` → tag `latest` + `v1.2.3` + `1.2`
+---
+
+## Workflows
+
+### `.github/workflows/ci.yml` — Quality Gate
+Trigger: PR + push ke `main` + manual dispatch.
+
+Jobs (path-filter aware — cuma run yang relevan):
+1. **changes** — detect path changes
+2. **app** — `npm ci` → `prisma generate` → `tsc --noEmit` → `next lint` → `next build`
+3. **docker-smoke** — Docker build verify (no push)
+
+Cancel-in-progress: push baru cancel build lama. Total ~5 menit.
+
+### `.github/workflows/docker-publish.yml` — Build + Deploy
+Trigger:
+- Push ke `main` → tags: `latest`, `main`, `sha-<short>`
+- Push tag `v1.2.3` → tags: `latest`, `v1.2.3`, `1.2`
 - Manual dispatch (input: `skip_deploy`, `cleanup_cache`)
 
-**Job 1 — build-and-push:**
-- Build multi-arch (linux/amd64 + linux/arm64) via QEMU + Buildx
-- Push ke `babahdigital/babahalgo-frontend` di Docker Hub
-- Cache via GHA cache (per-scope `babahalgo`)
+**Job 1 — build-and-push** (~3 menit):
+- Login ke Docker Hub
+- Build amd64 (single-arch karena VPS3 = amd64, no QEMU emulation)
+- Push ke `babahdigital/babahalgo-frontend`
+- GHA cache scope `babahalgo`
 
-**Job 2 — deploy:**
-- Cuma jalan saat push ke `main` (bukan tag, bukan PR)
-- SSH ke VPS3 → `docker compose pull + up -d --force-recreate`
-- Polling healthcheck max 60 detik
-- Smoke test public endpoints (`/api/health`, `/api/public/capabilities`, `/pricing`)
-- Fail loud kalau healthcheck gagal — auto-rollback bukan otomatis (lihat seksi Rollback)
+**Job 2 — deploy** (~1 menit, hanya saat push ke main atau workflow_dispatch):
+1. Setup SSH key + ssh config alias `vps3`
+2. Sync compose files via `tar | ssh` pipe (lebih reliable dari scp SFTP-based)
+3. Bootstrap folder structure (`data/`, `public/`, `scratch/`) — first-time bootstrap `public/` dari image
+4. Pull image + restart container + healthcheck poll 90 detik
+5. **Cleanup source code (whitelist-only, non-fatal)** — hapus semua kecuali whitelist
+6. Public smoke test (`/api/health`, `/api/public/capabilities`, `/pricing`)
 
-### 3. `.github/workflows/actions-housekeeping.yml`
-Cron 2x/hari: hapus workflow runs lama (keep 5 latest per workflow) + cache lama (keep 3).
+**Whitelist saat cleanup:**
+```
+docker-compose.prod.yml | docker-compose.db.yml | .env | .env.example
+data | public | scratch | .docker
+```
+Selain ini → di-hapus otomatis (try sudo -n untuk root-owned files).
+
+### `.github/workflows/actions-housekeeping.yml` — Cron Cleanup
+Cron 2x/hari: hapus workflow runs lama (keep 5 latest per workflow) + Actions cache lama (keep 3).
 
 ---
 
 ## Required GitHub Secrets
 
-Buka https://github.com/babahdigital/trading-frontend/settings/secrets/actions dan tambahkan:
+Buka https://github.com/babahdigital/trading-frontend/settings/secrets/actions:
 
-| Secret | Value | Catatan |
+| Secret | Value | Cara isi |
 |---|---|---|
-| `DOCKER_USERNAME` | `babahdigital` | Sama dengan project lain |
-| `DOCKER_PASSWORD` | `<Docker Hub access token>` | Pakai PAT, bukan password akun. Generate di https://hub.docker.com/settings/security |
-| `VPS3_SSH_HOST` | `148.230.96.201` | |
-| `VPS3_SSH_PORT` | `1983` | |
-| `VPS3_SSH_USER` | `abdullah` | |
-| `VPS3_SSH_KEY` | `<isi ~/.ssh/id_raspi_ed25519>` | Full PEM private key, termasuk header/footer `-----BEGIN/END OPENSSH PRIVATE KEY-----` |
-| `VPS3_DEPLOY_PATH` | `/opt/trading-commercial` | |
+| `DOCKER_USERNAME` | `babahdigital` | `gh secret set DOCKER_USERNAME --body "babahdigital"` |
+| `DOCKER_PASSWORD` | `dckr_pat_...` | Generate PAT di https://hub.docker.com/settings/security (Read+Write+Delete), lalu `gh secret set DOCKER_PASSWORD` (paste, Enter, Ctrl+Z+Enter di Windows / Ctrl+D di bash) |
+| `VPS3_SSH_HOST` | `148.230.96.201` | `gh secret set VPS3_SSH_HOST --body "148.230.96.201"` |
+| `VPS3_SSH_PORT` | `1983` | `gh secret set VPS3_SSH_PORT --body "1983"` |
+| `VPS3_SSH_USER` | `abdullah` | `gh secret set VPS3_SSH_USER --body "abdullah"` |
+| `VPS3_SSH_KEY` | full PEM | `gh secret set VPS3_SSH_KEY < ~/.ssh/id_raspi_ed25519` |
+| `VPS3_DEPLOY_PATH` | `/opt/trading-commercial` | **PENTING:** kalau set dari Git Bash di Windows, prefix dengan `MSYS_NO_PATHCONV=1`, kalau tidak `/opt/...` ke-translate jadi `C:\Program Files\Git\opt\...`. Command: `MSYS_NO_PATHCONV=1 gh secret set VPS3_DEPLOY_PATH --body "/opt/trading-commercial"` |
 
-**Tip:** Kalau pakai existing key, copy isinya:
-```bash
-cat ~/.ssh/id_raspi_ed25519
-```
+Verify: `gh secret list` → harus muncul 7 entries.
 
 ---
 
-## Folder layout di VPS3 (target state)
+## Daily ops
 
-```
-/opt/trading-commercial/
-├── docker-compose.prod.yml   # config utama (di-clone dari repo, jarang berubah)
-├── docker-compose.db.yml     # OPTIONAL: postgres-in-docker
-├── .env                       # secrets (NEVER commit ke git)
-├── data/
-│   ├── postgres/              # postgres data volume (kalau pakai docker postgres)
-│   └── backups/
-│       ├── daily/             # 7 backup terakhir (auto-prune)
-│       ├── weekly/            # 4 minggu terakhir (Sunday snapshot)
-│       └── monthly/           # 12 bulan terakhir (snapshot tgl 01)
-├── public/                    # branding/CMS images, hot-swap tanpa rebuild
-└── scratch/                   # one-off test/maintenance scripts (RO mount)
-```
-
-**Keuntungan layout ini:**
-- Update kode → cuma `docker pull` (no source di prod)
-- Update branding/logo → drop file ke `./public/`, no rebuild
-- Backup otomatis → `./data/backups/` retention 7+4+12
-- Restore mudah → file `.sql.gz` siap pakai di host filesystem
-- Bisa migrate postgres ke docker tanpa ubah app config
-
----
-
-## Migration ke pull-based deploy (one-time setup di VPS3)
-
-Sekali-saja prosedur untuk pindah dari "build-on-prod" ke "pull-image". Setelah ini selesai, semua deploy berjalan otomatis dari `git push`.
-
-### Step 1 — Push CI/CD scaffolding ke main
+### Update kode (cara normal)
 ```bash
 git push origin main
 ```
-GitHub Actions akan build + push `babahdigital/babahalgo-frontend:latest` ke Docker Hub. Verifikasi di https://hub.docker.com/r/babahdigital/babahalgo-frontend.
+**Itu saja.** Lihat progress: `gh run watch` atau https://github.com/babahdigital/trading-frontend/actions.
 
-### Step 2 — Setup folder + compose di VPS3
+### Manual deploy (skip CI build, hotfix dari image yang sudah ada)
 ```bash
-ssh -i ~/.ssh/id_raspi_ed25519 -p 1983 abdullah@148.230.96.201
-
-cd /opt/trading-commercial
-
-# Backup current state (rollback safety net)
-sudo cp -a /opt/trading-commercial /opt/trading-commercial.backup-$(date +%Y%m%d)
-
-# Stop existing container
-docker compose down
-
-# Pull compose files dari main (cuma 2 file kecil, no source code)
-curl -fsSL -o docker-compose.prod.yml \
-  https://raw.githubusercontent.com/babahdigital/trading-frontend/main/docker-compose.prod.yml
-curl -fsSL -o docker-compose.db.yml \
-  https://raw.githubusercontent.com/babahdigital/trading-frontend/main/docker-compose.db.yml
-
-# Buat folder structure
-mkdir -p data/backups/{daily,weekly,monthly} public scratch
-chmod 750 data/backups
-
-# Bootstrap public/ folder dari image default (logos, manifest dll)
-docker run --rm -v $(pwd)/public:/dest babahdigital/babahalgo-frontend:latest \
-  sh -c 'cp -r /app/public/. /dest/ && chown -R 1001:1001 /dest'
-
-# Pull image + start
-docker compose -f docker-compose.prod.yml pull
-docker compose -f docker-compose.prod.yml up -d
-
-# Verifikasi
-docker compose -f docker-compose.prod.yml ps
-docker compose -f docker-compose.prod.yml logs app --tail=20
-curl -s https://babahalgo.com/api/health
-```
-
-### Step 3 — Verifikasi
-```bash
-docker compose -f docker-compose.prod.yml ps
-docker compose -f docker-compose.prod.yml logs app --tail=30
-curl -s https://babahalgo.com/api/health
-```
-
-### Step 4 — Cleanup source code (setelah verified stable selama beberapa hari)
-**Tunggu 3-7 hari** sambil monitor stabilitas. Setelah yakin, hapus source:
-
-```bash
-cd /opt/trading-commercial
-
-# WAJIB sisakan: docker-compose.prod.yml, .env, scratch/
-ls
-
-# Hapus source + build artifacts (rollback masih bisa via image registry)
-rm -rf src/ public/ prisma/ node_modules/ .next/ dev/ docs/ \
-       package.json package-lock.json tsconfig.json next.config.js \
-       Dockerfile docker-compose.yml \
-       customer-vps-template/ scripts/ \
-       .git/ .next/ .vscode/ .eslintrc.json .hintrc
-
-ls -la
-# Should show: docker-compose.prod.yml .env scratch/ (plus dotfiles)
-```
-
----
-
-## Daily ops — apa yang perlu Anda lakukan
-
-### Update kode
-```bash
-# Local
-git push origin main
-```
-**Itu saja.** GitHub Actions handle build + push + deploy. Lihat progress di https://github.com/babahdigital/trading-frontend/actions.
-
-### Manual deploy (skip CI build, untuk hotfix dari image yang sudah ada)
-```bash
-# Re-pull latest image dan restart, dari local terminal
 ssh -i ~/.ssh/id_raspi_ed25519 -p 1983 abdullah@148.230.96.201 \
-  "cd /opt/trading-commercial && docker compose -f docker-compose.prod.yml pull app && docker compose -f docker-compose.prod.yml up -d --force-recreate app"
+  "cd /opt/trading-commercial && \
+   docker compose -f docker-compose.prod.yml pull && \
+   docker compose -f docker-compose.prod.yml up -d --force-recreate"
 ```
 
-### Manual deploy specific image version
+### Manual deploy specific image version (rollback)
 ```bash
 ssh -i ~/.ssh/id_raspi_ed25519 -p 1983 abdullah@148.230.96.201
-
 cd /opt/trading-commercial
-# Edit .env, tambah:
-# IMAGE_TAG=sha-41b7332    (atau v1.2.3, atau main)
-docker compose -f docker-compose.prod.yml up -d --force-recreate app
+# Edit .env, tambah baris:
+# IMAGE_TAG=sha-41b7332
+docker compose -f docker-compose.prod.yml up -d --force-recreate
+```
+Tag tersedia di https://hub.docker.com/r/babahdigital/babahalgo-frontend/tags.
+
+### Update branding / public assets (hot-swap, no rebuild)
+```bash
+# Logo/banner/favicon — drop file langsung ke ./public/
+scp -i ~/.ssh/id_raspi_ed25519 -P 1983 my-new-logo.png \
+  abdullah@148.230.96.201:/opt/trading-commercial/public/logo/
+# Hard refresh di browser (Cmd+Shift+R) — file langsung ter-serve
 ```
 
 ### Run prisma migration di prod
@@ -208,25 +148,19 @@ docker compose -f docker-compose.prod.yml exec app npx prisma migrate deploy
 ```
 
 ### Run scratch / one-off script
-1. Copy ke VPS3:
-   ```bash
-   scp -i ~/.ssh/id_raspi_ed25519 -P 1983 my-script.ts \
-     abdullah@148.230.96.201:/opt/trading-commercial/scratch/
-   ```
-2. Execute dalam container (volume `./scratch:/app/scratch:ro`):
-   ```bash
-   ssh ... "cd /opt/trading-commercial && docker compose -f docker-compose.prod.yml exec app npx tsx /app/scratch/my-script.ts"
-   ```
-
-### Update branding / public assets (logo, favicon, banner CMS)
 ```bash
-# Edit/upload langsung ke ./public/ — no rebuild needed, Next.js serve static dari volume
-scp -i ~/.ssh/id_raspi_ed25739 -P 1983 my-new-logo.png \
-  abdullah@148.230.96.201:/opt/trading-commercial/public/logo/
-# Hard refresh di browser (Cmd+Shift+R) — file langsung ter-serve
+# Copy script ke scratch
+scp -i ~/.ssh/id_raspi_ed25519 -P 1983 my-script.ts \
+  abdullah@148.230.96.201:/opt/trading-commercial/scratch/
+
+# Execute dalam container (volume ./scratch:/app/scratch:ro)
+ssh ... "cd /opt/trading-commercial && \
+  docker compose -f docker-compose.prod.yml exec app npx tsx /app/scratch/my-script.ts"
 ```
 
 ### DB Backup operations
+
+**Auto schedule:** setiap hari 02:00 Asia/Jakarta → `./data/backups/daily/`. Sunday → weekly. Tgl 01 → monthly. Retention 7d/4w/12m.
 
 **Manual backup (immediate):**
 ```bash
@@ -253,15 +187,44 @@ ssh ... "cd /opt/trading-commercial && \
   docker compose -f docker-compose.prod.yml exec -T db-backup psql -d trading_commercial"
 ```
 
-### Migrate postgres dari host ke docker (optional, kalau mau self-contained)
+### Migrate postgres host → docker (optional)
 Lihat playbook lengkap di header `docker-compose.db.yml`. Ringkas:
 1. `pg_dump -Fc` dari host postgres
 2. `docker compose down` app
 3. Set `DB_HOST=postgres` di `.env`
-4. `docker compose -f docker-compose.prod.yml -f docker-compose.db.yml up -d postgres`
+4. Start dengan kedua compose: `docker compose -f docker-compose.prod.yml -f docker-compose.db.yml up -d postgres`
 5. `pg_restore` ke container postgres
 6. Start app, verifikasi
 7. Setelah stable 7+ hari, disable host postgres
+
+---
+
+## Maintenance — disk cleanup
+
+Production VPS3 sekarang clean (2.4 MB di `/opt/trading-commercial`, 1.8 MB di `/home/abdullah`). Tapi Docker akumulasi cache + image lama seiring waktu. Lakukan periodically (sebulan sekali atau saat disk >70%):
+
+```bash
+ssh -i ~/.ssh/id_raspi_ed25519 -p 1983 abdullah@148.230.96.201
+
+# Lihat usage
+docker system df
+
+# Prune (safe — tidak hapus image yang sedang aktif)
+docker builder prune -af              # build cache (bisa huge: 70+ GB)
+docker image prune -af                # unused images
+docker volume prune -af               # unused volumes
+docker container prune -f             # stopped containers
+
+# Verify
+df -h /
+docker system df
+```
+
+Saved 70+ GB di cleanup pertama 2026-04-26 (dari 80% → 7% disk usage). Anda juga bisa bikin cron tugas mingguan:
+```bash
+# /etc/cron.d/docker-cleanup (root)
+0 3 * * 0 root docker builder prune -af >/dev/null 2>&1
+```
 
 ---
 
@@ -271,16 +234,10 @@ Lihat playbook lengkap di header `docker-compose.db.yml`. Ringkas:
 Setiap commit ke `main` di-tag `sha-<short>`. Untuk rollback ke commit X:
 ```bash
 ssh ... "cd /opt/trading-commercial && \
-  IMAGE_TAG=sha-<previous-sha> docker compose -f docker-compose.prod.yml up -d --force-recreate app"
+  IMAGE_TAG=sha-<previous-sha> docker compose -f docker-compose.prod.yml up -d --force-recreate"
 ```
 
-Atau kalau panic: `docker rollback` via Docker Hub UI tidak ada, tapi Anda bisa:
-1. Buka https://hub.docker.com/r/babahdigital/babahalgo-frontend/tags
-2. Catat sha tag sebelumnya yang masih bagus
-3. Set `IMAGE_TAG=<sha-...>` di `.env`
-4. Run `docker compose up -d --force-recreate app`
-
-### Lama — revert commit + push
+### Lambat — revert commit + push
 ```bash
 git revert <bad-commit>
 git push origin main
@@ -294,10 +251,22 @@ GitHub Actions akan otomatis build + deploy versi reverted.
 ### CI workflow gagal: "DOCKER_USERNAME secret tidak tersedia"
 Setup secrets per seksi "Required GitHub Secrets" di atas.
 
-### Deploy job gagal: SSH timeout
-- Cek `VPS3_SSH_HOST`, `VPS3_SSH_PORT`, `VPS3_SSH_USER` di secrets
-- Cek SSH key valid: copy isinya ke file lokal, `chmod 600`, test `ssh -i ./key -p 1983 abdullah@148.230.96.201`
-- Pastikan key sudah ada di `~/.ssh/authorized_keys` di VPS3
+### Deploy job gagal di SSH setup: `ssh-keyscan` exit 1
+Transient network issue — workflow sudah handle dengan `|| true` + StrictHostKeyChecking=accept-new. Re-run kalau tetap gagal.
+
+### Deploy job gagal di "Sync compose files": `scp: remote mkdir "***/": No such file or directory`
+**Root cause:** Secret `VPS3_DEPLOY_PATH` di-set dari Git Bash → MSYS path conversion mengubah `/opt/trading-commercial` jadi `C:\Program Files\Git\opt\trading-commercial` SEBELUM dikirim ke GitHub.
+
+**Fix:**
+```bash
+MSYS_NO_PATHCONV=1 gh secret set VPS3_DEPLOY_PATH --body "/opt/trading-commercial"
+```
+
+### Cleanup step gagal: `rm: Permission denied`
+File root-owned di `/opt/trading-commercial` (e.g., `customer-vps-template/`). Workflow sudah handle `continue-on-error: true` + try `sudo -n`. Kalau sudo butuh password, manual cleanup sekali:
+```bash
+ssh ... "sudo rm -rf /opt/trading-commercial/<offending-path>"
+```
 
 ### Container gagal start setelah deploy
 ```bash
@@ -305,18 +274,39 @@ ssh ... "cd /opt/trading-commercial && \
   docker compose -f docker-compose.prod.yml logs app --tail=100"
 ```
 Common issues:
-- `.env` kekurangan variable wajib (`JWT_SECRET`, `LICENSE_MW_MASTER_KEY`, `VPS1_BACKEND_URL`)
-- Database connection refused → cek `host.docker.internal` resolve, postgres listen di `172.17.0.1`
+- `.env` kekurangan variable wajib (`JWT_SECRET`, `LICENSE_MW_MASTER_KEY`, `VPS1_BACKEND_URL`, `DB_PASSWORD`)
+- Database connection refused → pastikan `host.docker.internal` resolve, postgres listen di `172.17.0.1`
 - Port conflict → 3000 sudah dipakai service lain
 
-### Image multi-arch tidak match VPS3 arch
-VPS3 = amd64. Image tag `latest` punya manifest list amd64 + arm64; Docker akan auto-pick yang sesuai. Tidak perlu intervention.
+### Docker compose warning: "variable X is not set"
+Variables shell di entrypoint heredoc harus di-escape dengan `$$` (compose interpretation). Sudah fixed di `docker-compose.prod.yml` commit `61018e0`.
+
+### `gh run watch` keluar EXIT=0 tapi step ada yang failed
+`gh run watch --exit-status` cuma cek workflow conclusion, bukan per-step. Verify manual:
+```bash
+gh run view <run-id> --json status,conclusion,jobs --jq '.jobs[] | .name + ": " + .conclusion'
+```
 
 ---
 
-## Cost & maintenance
+## Cost & maintenance burden
 
-- **GitHub Actions:** 2000 menit/bulan free (account personal). Build typical ~5 menit. Deploy ~1 menit. Estimasi: ~30-50 menit/bulan untuk traffic normal.
-- **Docker Hub:** free tier unlimited pulls dari account auth. Public repo unlimited storage.
-- **GHA cache:** auto-evict via housekeeping workflow (keep 3 latest).
-- **Storage VPS3:** setelah cleanup source code, /opt/trading-commercial cuma ~few KB. Image cache di docker bersifat add-only — periodic `docker image prune -f` tetap perlu (already in nightly cron? cek `crontab -l`).
+| Item | Cost | Catatan |
+|---|---|---|
+| GitHub Actions | Free 2000 min/bulan | Build ~3 min × deploy frequency. Estimasi 20-30 min/bulan untuk traffic normal |
+| Docker Hub | Free tier | Public repo unlimited storage + pulls authed |
+| GHA cache | Auto-evict via housekeeping | Keep 3 latest |
+| VPS3 disk | Periodic prune | `docker system prune` sebulan sekali |
+| Image registry | Auto-clean via tag rotation | Old `sha-*` tags di-keep selamanya — manual delete via Docker Hub UI kalau perlu |
+
+---
+
+## Lessons learned (post-mortem 2026-04-26 launch)
+
+1. **MSYS path conversion** — Windows Git Bash auto-translate `/foo/` → `C:\Program Files\Git\foo\`. Pakai `MSYS_NO_PATHCONV=1` saat set secret yang punya unix path.
+2. **scp SFTP-based di OpenSSH 9+** — bisa fail multi-file copy ke remote dir. Workaround: `tar | ssh` pipe lebih reliable.
+3. **docker-compose YAML `$VAR` interpretation** — compose interpret `$` sebelum container start. Escape dengan `$$` untuk pass literal `$` ke shell di container.
+4. **`@swc/helpers` peer dep** — next-intl require `>=0.5.17`, next 14 brings 0.5.5. Pin di package.json devDeps.
+5. **deploy gate `if: github.event_name == 'push'`** — block manual workflow_dispatch deploy. Buka untuk keduanya: `(push || workflow_dispatch) && ref == 'main'`.
+6. **`continue-on-error: true` di cleanup step** — file root-owned bisa block deploy walaupun container sudah healthy. Make cleanup non-fatal + try `sudo -n` fallback.
+7. **GitHub secrets write-only by design** — tidak bisa export dari project A ke project B. Re-paste PAT atau generate baru per project.

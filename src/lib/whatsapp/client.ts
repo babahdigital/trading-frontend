@@ -7,6 +7,10 @@ import type {
   ValidateNumberResult,
   OtpRequestResult,
   OtpConfirmResult,
+  CryptoNotificationPrefs,
+  CryptoNotificationPrefsPatch,
+  CryptoOtpVerifyResult,
+  CryptoOtpConfirmResult,
 } from './types';
 import { WhatsappAdapterError } from './types';
 
@@ -74,5 +78,43 @@ export function confirmWhatsappOtp(
   });
 }
 
+/* ────── CRYPTO PATH (per CRYPTO_2026_04_27_NOTIFICATION_PREFERENCES.md) ────── */
+
+export function getCryptoNotificationPrefs(): Promise<CryptoNotificationPrefs> {
+  return jsonFetch<CryptoNotificationPrefs>('/api/client/crypto/notifications');
+}
+
+export function patchCryptoNotificationPrefs(patch: CryptoNotificationPrefsPatch): Promise<CryptoNotificationPrefs> {
+  return jsonFetch<CryptoNotificationPrefs>('/api/client/crypto/notifications', {
+    method: 'PATCH',
+    body: JSON.stringify(patch),
+  });
+}
+
+export function requestCryptoWhatsappOtp(): Promise<CryptoOtpVerifyResult> {
+  return jsonFetch<CryptoOtpVerifyResult>('/api/client/crypto/notifications/whatsapp/verify', {
+    method: 'POST',
+    body: JSON.stringify({}),
+  });
+}
+
+export function confirmCryptoWhatsappOtp(code: string): Promise<CryptoOtpConfirmResult> {
+  return jsonFetch<CryptoOtpConfirmResult>('/api/client/crypto/notifications/whatsapp/confirm', {
+    method: 'POST',
+    body: JSON.stringify({ code }),
+  });
+}
+
 export { WhatsappAdapterError };
-export type { WhatsappConfig, WhatsappConfigPatch, ValidateNumberResult, OtpRequestResult, OtpConfirmResult, WaProduct };
+export type {
+  WhatsappConfig,
+  WhatsappConfigPatch,
+  ValidateNumberResult,
+  OtpRequestResult,
+  OtpConfirmResult,
+  CryptoNotificationPrefs,
+  CryptoNotificationPrefsPatch,
+  CryptoOtpVerifyResult,
+  CryptoOtpConfirmResult,
+  WaProduct,
+};

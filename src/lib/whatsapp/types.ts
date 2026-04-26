@@ -65,3 +65,47 @@ export class WhatsappAdapterError extends Error {
     this.name = 'WhatsappAdapterError';
   }
 }
+
+/* ───────────────────────── CRYPTO-SPECIFIC TYPES ───────────────────────── */
+//
+// Crypto backend exposes a unified preferences endpoint that combines
+// Telegram + WhatsApp + per-event mute matrix. Shape mirrors
+// `NotificationPreferencesView` from
+// CRYPTO_2026_04_27_NOTIFICATION_PREFERENCES.md kontrak.
+
+export interface CryptoNotificationPrefs {
+  tenantId: number;
+  telegramEnabled: boolean;
+  telegramChatId: string | null;
+  whatsappEnabled: boolean;
+  whatsappNumber: string | null;
+  whatsappVerified: boolean;
+  whatsappVerifiedAt: string | null;
+  /** Per-event mute map. true = MUTED. */
+  eventOptouts: Record<string, boolean>;
+  /** "id" | "en" — locale used for backend-rendered messages. */
+  notificationLang: string;
+}
+
+export interface CryptoNotificationPrefsPatch {
+  telegramEnabled?: boolean;
+  whatsappEnabled?: boolean;
+  /** E.164 string or null to clear. Setting changes resets whatsappVerified. */
+  whatsappNumber?: string | null;
+  /** Partial merge — backend overlays this on existing map. */
+  eventOptouts?: Record<string, boolean>;
+}
+
+export interface CryptoOtpVerifyResult {
+  /** "otp_send_stub" during Phase 2; "otp_sent" once Phase 3 wires Fonnte. */
+  status: string;
+  detail?: string;
+  /** Friendly hint to surface in the UI. */
+  message?: string;
+}
+
+export interface CryptoOtpConfirmResult {
+  /** "verified" when accepted, error detail field surfaces 4xx codes. */
+  status: 'verified' | string;
+  verifiedAt?: string;
+}

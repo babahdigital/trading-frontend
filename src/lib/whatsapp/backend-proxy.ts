@@ -1,18 +1,14 @@
 /**
- * Server-side proxy helpers for the WhatsApp config endpoints.
+ * Server-side proxy helpers for the *forex* WhatsApp config endpoints.
  *
  * Forex backend exposes:
  *   GET /api/forex/tenant/whatsapp
  *   PATCH /api/forex/tenant/whatsapp
  *
- * Crypto backend WA endpoint is pending — calls return 503 gracefully so
- * the FE UI can render a "coming soon" state without throwing.
- *
- * Forex auth: X-API-Token (admin scope shared via `vps1/client.ts`).
- * Crypto auth: scoped tokens via `proxy/crypto-client.ts` (when wired).
+ * The crypto backend uses a different shape (unified Telegram + WhatsApp +
+ * event opt-outs) — see `crypto-prefs-proxy.ts`.
  */
 
-import { proxyToCryptoBackend } from '@/lib/proxy/crypto-client';
 import type { WaProduct, WhatsappConfig, WhatsappConfigPatch } from './types';
 
 const FOREX_BASE_URL_ENV = 'VPS1_BACKEND_URL';
@@ -99,35 +95,19 @@ async function callForex(opts: ForexCallOptions): Promise<{ status: number; data
   return { status: res.status, data };
 }
 
-async function callCrypto(method: 'GET' | 'PATCH', userId: string, body?: unknown) {
-  // Crypto WA endpoint TBD. We attempt a sensible path; 404/405 surface as
-  // 503 so the FE renders "coming soon" instead of an error toast.
-  const res = await proxyToCryptoBackend({
-    scope: 'admin',
-    method,
-    path: '/api/tenants/me/whatsapp',
-    body,
-    forwardUserId: userId,
-    timeoutMs: 10_000,
-  });
-  if (res.status === 404 || res.status === 405) {
-    return { status: 503, data: { error: 'crypto_whatsapp_endpoint_pending' } };
-  }
-  const data = await res.json().catch(() => ({}));
-  return { status: res.status, data };
-}
-
 export async function fetchWhatsappConfig(
   product: WaProduct,
   userId: string,
 ): Promise<{ ok: true; config: WhatsappConfig } | { ok: false; status: number; error: string }> {
-  const call = product === 'crypto' ? callCrypto('GET', userId) : callForex({ method: 'GET', userId });
-  const { status, data } = await call;
+  if (product !== 'forex') {
+    return { ok: false, status: 400, error: 'use_crypto_prefs_proxy' };
+  }
+  const { status, data } = await callForex({ method: 'GET', userId });
   if (status >= 400) {
     return {
       ok: false,
       status: status >= 500 ? 503 : status,
-      error: extractError(data, product),
+      error: extractError(data),
     };
   }
   if (!data || typeof data !== 'object') {
@@ -141,16 +121,16 @@ export async function updateWhatsappConfig(
   userId: string,
   patch: WhatsappConfigPatch,
 ): Promise<{ ok: true; config: WhatsappConfig } | { ok: false; status: number; error: string }> {
+  if (product !== 'forex') {
+    return { ok: false, status: 400, error: 'use_crypto_prefs_proxy' };
+  }
   const body = toForexPatch(patch);
-  const call = product === 'crypto'
-    ? callCrypto('PATCH', userId, body)
-    : callForex({ method: 'PATCH', userId, body });
-  const { status, data } = await call;
+  const { status, data } = await callForex({ method: 'PATCH', userId, body });
   if (status >= 400) {
     return {
       ok: false,
       status: status >= 500 ? 503 : status,
-      error: extractError(data, product),
+      error: extractError(data),
     };
   }
   if (!data || typeof data !== 'object') {
@@ -159,7 +139,7 @@ export async function updateWhatsappConfig(
   return { ok: true, config: fromForex(data as ForexConfigDto) };
 }
 
-function extractError(data: unknown, product: WaProduct): string {
+function extractError(data: unknown): string {
   if (data && typeof data === 'object' && 'error' in data && typeof (data as { error?: unknown }).error === 'string') {
     return (data as { error: string }).error;
   }
@@ -167,7 +147,7 @@ function extractError(data: unknown, product: WaProduct): string {
     const detail = (data as { detail: unknown }).detail;
     if (typeof detail === 'string') return detail;
   }
-  return product === 'crypto' ? 'crypto_whatsapp_endpoint_pending' : 'forex_request_failed';
+  return 'forex_request_failed';
 }
 
 export { forexConfigured };

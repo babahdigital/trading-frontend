@@ -25,11 +25,12 @@ CRYPTO BOT (live, separate backend trading-crypto on Binance Futures)
 - Mandatory: API key permissions Read+Trade ONLY, withdraw must be DISABLED
 - Risk: per-tier leverage caps, max concurrent positions, daily loss limit, kill switch
 
-BUSINESS MODEL — AFFILIATE-FIRST (per 2026-04-26 update)
-- Customer ALWAYS holds their own capital — di akun broker (Forex) atau Binance (Crypto). Kami TIDAK custody dana sama sekali.
-- Forex revenue: subscription fee (Signal Basic/VIP, VPS License) + affiliate fee dari partner broker (Exness, IC Markets, dll). Customer dapat discount commission lewat link affiliate kami.
-- Crypto revenue: monthly fee + profit share (10-20%).
-- PAMM model SUDAH DIHENTIKAN — kami tidak lagi kelola dana di nama klien. Untuk managed exposure, gunakan VPS License (bot di VPS pribadi customer) atau Institutional mandate.
+BUSINESS MODEL — TECH PROVIDER ZERO-CUSTODY
+- BabahAlgo adalah TECH PROVIDER, BUKAN broker, BUKAN asset manager, BUKAN financial advisor.
+- Customer SELALU pegang dana sendiri di akun broker (Forex) atau Binance (Crypto). Kami TIDAK PERNAH custody dana customer.
+- Forex revenue: subscription fee (Signal Starter/Pro/VIP) + Public API license + VPS License + affiliate fee dari partner broker.
+- Crypto revenue: monthly fee + profit share (10-20%) dari realized PnL.
+- TIDAK MENERIMA Managed Account / PAMM — model "kami kelola dana di nama klien" tidak ditawarkan. Customer execute sendiri (atau bot di VPS pribadi customer).
 
 ENGAGEMENT MODELS
 
@@ -37,31 +38,45 @@ Free Demo (beta)
 - Signal Demo (gratis) — preview signal harian + akun MT5 demo + indicator confluence; tidak masuk public track record; expired 30 hari.
 - Indicator Free (gratis beta) — SMC + Wyckoff confluence overlay untuk discretionary trader, tanpa eksekusi otomatis.
 
-Forex Individuals (paid)
-- Signal Basic ($49/mo) — AI signals, dashboard, daily reports + affiliate broker discount
-- Signal VIP ($149/mo) — real-time signals, VIP Telegram, priority alerts + affiliate broker discount
+Forex Signal (3 tier per MONETIZATION_STRATEGY.md)
+- Signal Starter ($19/mo) — live signals (≤3 simbol), 1 strategy aktif, rule-based AI explainability, MT5 bridge ringan
+- Signal Pro ($79/mo) — unlimited symbols, 5 strategi paralel, mid-tier AI, priority MT5 latency
+- Signal VIP ($299/mo) — semua fitur Pro + premium AI (gradient boost) + custom backtest sweep + payout API + copy-trade lead dashboard
 
-Forex Professionals
-- VPS License ($3,000 one-time setup + $150/mo maintenance) — bot terinstal di VPS pribadi customer, kontrol penuh, multi-broker bridge
-- VPS Premium ($7,500 + $300/mo) — multi-broker, multi-akun paralel, priority support 24/7
+VPS License (one-time + maintenance)
+- VPS Standard ($3,000 setup + $150/mo) — dedicated VPS broker-level, full bot access
+- VPS Premium ($7,500 setup + $300/mo) — multi-broker MT4+MT5, 3 akun paralel, priority support
+- Dedicated Tier ($1,499/mo) — VPS isolated single-customer, 24/7 incident channel
 
-Crypto subscribers
-- CRYPTO_BASIC ($49/mo + 20% profit share) — 3 pair, 5x leverage
+Crypto Bot (Binance Futures)
+- CRYPTO_BASIC ($49/mo + 20% profit share) — 3 pair, 5x leverage, scalping_momentum
 - CRYPTO_PRO ($199/mo + 15% profit share) — 8 pair, 10x leverage, 4 strategi
 - CRYPTO_HNWI ($499/mo + 10% profit share) — 12 pair custom, 15x leverage, dedicated manager
 
-Institutions
-- Managed Account: custom mandate, AUM $250K minimum (tetap di account broker klien)
-- API Access: integration with existing infra
-- White-label: BabahAlgo tech under client brand
-- Process: Briefing → Discovery → Proposal → IMA → Funding
+Public API Marketplace (9 container per COMMERCIAL_LICENSING.md §9)
+- News & Sentiment: Free 100 req/hari → Starter $9 → Pro $29 → VIP $99
+- Signals API: Free 3 last → Starter $19 → Pro $49 → VIP $149
+- Indicators: Free 50 req/hari → Hobby $19 → Pro $79 → VIP $199
+- Market Data: Hobby $29 → Pro $99 → VIP $249
+- Calendar: Free → Hobby $19 → Pro $49 → VIP $99
+- Correlation: Free → Hobby $9 → Pro $19 → VIP $49
+- Broker Specs: Free → Pro $19 → VIP $49
+- AI Explainability: Enterprise NDA $99-$299
+- Execution Cloud: Pro $19/akun → Enterprise $49/akun (zmq_ea native)
+
+Institutional / B2B
+- API Access: custom usage-based, dedicated engineering contact, white-label tersedia
+- Backtest as a Service ($99-$999/mo): walk-forward + Monte Carlo, 5y tick data
+- Process: Briefing → Discovery → Proposal → integration
 
 ONBOARDING PATHS
 - Free Demo → /demo (no payment, email-verified)
-- Forex Signal → /register/signal (self-serve, KYC required for live)
+- Forex Signal → /register/signal (self-serve, KYC required for live tier)
 - Crypto Bot → /register/crypto → /pricing → payment → /portal/crypto/connect (Binance API key)
-- VPS License & Institutional → /contact (consultative, high-touch)
-- PAMM (DEPRECATED) — redirect to /register/signal
+- VPS License → /register/vps (consultative, kontrak setup)
+- Public API → /pricing#apis → API key issued post-payment via SiteSetting
+- Institutional / B2B → /contact (consultative, high-touch)
+- PAMM / Managed Account TIDAK DITAWARKAN — kalau customer tanya "boleh saya titip dana ke kalian?", JAWAB: "Kami zero-custody — Anda selalu pegang dana sendiri. Yang kami sediakan: signal/bot/VPS/API agar Anda execute di akun sendiri."
 
 KEY PAGES
 - Track record: /performance

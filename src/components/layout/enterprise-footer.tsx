@@ -1,47 +1,63 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useLocale } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import Image from 'next/image';
 
-const FOOTER_LINKS = {
+type LocaleStr = { id: string; en: string };
+
+const FOOTER_LINKS: Record<string, Array<{ href: string; label: LocaleStr }>> = {
   platform: [
-    { href: '/platform', label: 'Overview' },
-    { href: '/platform/strategies/smc', label: 'Strategi' },
-    { href: '/platform/technology', label: 'Teknologi' },
-    { href: '/platform/risk-framework', label: 'Risk Framework' },
-    { href: '/performance', label: 'Performa' },
+    { href: '/platform', label: { id: 'Overview', en: 'Overview' } },
+    { href: '/platform/strategies/smc', label: { id: 'Strategi', en: 'Strategies' } },
+    { href: '/platform/technology', label: { id: 'Teknologi', en: 'Technology' } },
+    { href: '/platform/risk-framework', label: { id: 'Risk Framework', en: 'Risk Framework' } },
+    { href: '/performance', label: { id: 'Performa', en: 'Performance' } },
   ],
   solutions: [
-    { href: '/solutions/signal', label: 'Forex Signal' },
-    { href: '/solutions/crypto', label: 'Crypto Bot' },
-    { href: '/solutions/license', label: 'VPS License' },
-    { href: '/solutions/institutional', label: 'Institutional' },
-    { href: '/demo', label: 'Try Demo (Free)' },
+    { href: '/solutions/signal', label: { id: 'Forex Signal', en: 'Forex Signal' } },
+    { href: '/solutions/crypto', label: { id: 'Crypto Bot', en: 'Crypto Bot' } },
+    { href: '/solutions/license', label: { id: 'VPS License', en: 'VPS License' } },
+    { href: '/pricing#apis', label: { id: 'Public API', en: 'Public API' } },
+    { href: '/demo', label: { id: 'Coba Demo (Gratis)', en: 'Try Demo (Free)' } },
   ],
   getStarted: [
-    { href: '/register/signal', label: 'Daftar Signal' },
-    { href: '/register/crypto', label: 'Daftar Crypto Bot' },
-    { href: '/register/vps', label: 'Daftar VPS License' },
-    { href: '/register/institutional', label: 'Institutional Inquiry' },
-    { href: '/contact', label: 'Schedule Briefing' },
+    { href: '/register/signal', label: { id: 'Daftar Signal', en: 'Sign up for Signal' } },
+    { href: '/register/crypto', label: { id: 'Daftar Crypto Bot', en: 'Sign up for Crypto Bot' } },
+    { href: '/register/vps', label: { id: 'Daftar VPS License', en: 'Sign up for VPS License' } },
+    { href: '/register/institutional', label: { id: 'Permintaan Institusional', en: 'Institutional Inquiry' } },
+    { href: '/contact', label: { id: 'Jadwalkan Briefing', en: 'Schedule Briefing' } },
   ],
   company: [
-    { href: '/about', label: 'Tentang Kami' },
-    { href: '/about/team', label: 'Tim' },
-    { href: '/about/governance', label: 'Governance' },
-    { href: '/research', label: 'Research' },
-    { href: '/changelog', label: 'Changelog' },
-    { href: '/status', label: 'Status' },
-    { href: '/contact', label: 'Kontak' },
+    { href: '/about', label: { id: 'Tentang Kami', en: 'About' } },
+    { href: '/about/team', label: { id: 'Tim', en: 'Team' } },
+    { href: '/about/governance', label: { id: 'Tata Kelola', en: 'Governance' } },
+    { href: '/research', label: { id: 'Riset', en: 'Research' } },
+    { href: '/changelog', label: { id: 'Changelog', en: 'Changelog' } },
+    { href: '/status', label: { id: 'Status', en: 'Status' } },
+    { href: '/contact', label: { id: 'Kontak', en: 'Contact' } },
   ],
   legal: [
-    { href: '/legal/terms', label: 'Terms of Service' },
-    { href: '/legal/privacy', label: 'Privacy Policy' },
-    { href: '/legal/risk-disclosure', label: 'Risk Disclosure' },
-    { href: '/legal/regulatory', label: 'Regulatory' },
-    { href: '/legal/cookies', label: 'Cookies' },
+    { href: '/legal/terms', label: { id: 'Syarat Layanan', en: 'Terms of Service' } },
+    { href: '/legal/privacy', label: { id: 'Kebijakan Privasi', en: 'Privacy Policy' } },
+    { href: '/legal/risk-disclosure', label: { id: 'Pernyataan Risiko', en: 'Risk Disclosure' } },
+    { href: '/legal/regulatory', label: { id: 'Regulasi', en: 'Regulatory' } },
+    { href: '/legal/cookies', label: { id: 'Cookies', en: 'Cookies' } },
   ],
+};
+
+const COLUMN_TITLES: Record<string, LocaleStr> = {
+  platform: { id: 'Platform', en: 'Platform' },
+  solutions: { id: 'Layanan', en: 'Solutions' },
+  getStarted: { id: 'Mulai', en: 'Get Started' },
+  company: { id: 'Perusahaan', en: 'Company' },
+  legal: { id: 'Legal', en: 'Legal' },
+};
+
+const RISK_COPY: LocaleStr = {
+  id: 'Trading instrumen finansial mengandung risiko substansial dan dapat mengakibatkan kerugian sebagian atau seluruh modal. Kinerja masa lalu tidak menjamin hasil di masa depan. BabahAlgo bukan financial advisor. Konsultasikan dengan penasihat keuangan berlisensi sebelum mengambil keputusan investasi. Layanan yang disediakan bersifat teknologi perdagangan otomatis, bukan rekomendasi investasi.',
+  en: 'Trading financial instruments involves substantial risk and may result in partial or total loss of capital. Past performance does not guarantee future results. BabahAlgo is not a financial advisor. Consult a licensed financial advisor before making investment decisions. Our services are automated trading technology, not investment recommendations.',
 };
 
 interface ContactInfo {
@@ -62,6 +78,8 @@ const FALLBACK_CONTACT: ContactInfo = {
 
 export function EnterpriseFooter() {
   const [contact, setContact] = useState<ContactInfo>(FALLBACK_CONTACT);
+  const localeRaw = useLocale();
+  const locale: 'id' | 'en' = localeRaw === 'en' ? 'en' : 'id';
 
   useEffect(() => {
     let active = true;
@@ -100,21 +118,27 @@ export function EnterpriseFooter() {
               className="h-8 w-auto mb-6 dark:hidden"
             />
             <p className="font-display text-lg italic text-foreground/70 leading-snug mb-4">
-              Autonomous Intelligence.<br />
-              Institutional Precision.
+              {locale === 'id' ? (
+                <>Inteligensi Otonom.<br />Presisi Institusional.</>
+              ) : (
+                <>Autonomous Intelligence.<br />Institutional Precision.</>
+              )}
             </p>
             <p className="t-body-sm text-muted-foreground">
-              Quantitative trading infrastructure.<br />
-              Operated by CV Babah Digital.
+              {locale === 'id' ? (
+                <>Infrastruktur trading kuantitatif.<br />Dioperasikan oleh CV Babah Digital.</>
+              ) : (
+                <>Quantitative trading infrastructure.<br />Operated by CV Babah Digital.</>
+              )}
             </p>
           </div>
 
-          {/* Links */}
-          <FooterColumn title="Platform" links={FOOTER_LINKS.platform} />
-          <FooterColumn title="Solutions" links={FOOTER_LINKS.solutions} />
-          <FooterColumn title="Get Started" links={FOOTER_LINKS.getStarted} />
-          <FooterColumn title="Company" links={FOOTER_LINKS.company} />
-          <FooterColumn title="Legal" links={FOOTER_LINKS.legal} />
+          {/* Links — locale-aware */}
+          <FooterColumn title={COLUMN_TITLES.platform[locale]} links={FOOTER_LINKS.platform} locale={locale} />
+          <FooterColumn title={COLUMN_TITLES.solutions[locale]} links={FOOTER_LINKS.solutions} locale={locale} />
+          <FooterColumn title={COLUMN_TITLES.getStarted[locale]} links={FOOTER_LINKS.getStarted} locale={locale} />
+          <FooterColumn title={COLUMN_TITLES.company[locale]} links={FOOTER_LINKS.company} locale={locale} />
+          <FooterColumn title={COLUMN_TITLES.legal[locale]} links={FOOTER_LINKS.legal} locale={locale} />
         </div>
 
         {/* Legal entity + Contact */}
@@ -163,13 +187,11 @@ export function EnterpriseFooter() {
         {/* Risk Disclosure */}
         <div className="border-t border-border/60 pt-8 mb-8">
           <div className="max-w-4xl">
-            <p className="t-eyebrow text-muted-foreground mb-3">RISK DISCLOSURE</p>
+            <p className="t-eyebrow text-muted-foreground mb-3">
+              {locale === 'id' ? 'PERNYATAAN RISIKO' : 'RISK DISCLOSURE'}
+            </p>
             <p className="text-xs text-muted-foreground leading-relaxed italic">
-              Trading instrumen finansial mengandung risiko substansial dan dapat mengakibatkan kerugian
-              sebagian atau seluruh modal. Kinerja masa lalu tidak menjamin hasil di masa depan.
-              BabahAlgo bukan financial advisor. Konsultasikan dengan penasihat keuangan berlisensi
-              sebelum mengambil keputusan investasi. Layanan yang disediakan bersifat teknologi
-              perdagangan otomatis, bukan rekomendasi investasi.
+              {RISK_COPY[locale]}
             </p>
           </div>
         </div>
@@ -177,11 +199,11 @@ export function EnterpriseFooter() {
         {/* Bottom strip */}
         <div className="border-t border-border/60 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-muted-foreground">
-            &copy; {new Date().getFullYear()} CV Babah Digital. All rights reserved.
+            &copy; {new Date().getFullYear()} CV Babah Digital. {locale === 'id' ? 'Hak cipta dilindungi.' : 'All rights reserved.'}
           </p>
           {contact.exnessUrl && (
             <p className="text-xs text-muted-foreground">
-              Trading via{' '}
+              {locale === 'id' ? 'Trading via' : 'Trading via'}{' '}
               <a
                 href={contact.exnessUrl}
                 target="_blank"
@@ -190,7 +212,7 @@ export function EnterpriseFooter() {
               >
                 Exness
               </a>{' '}
-              &mdash; Regulated Broker Partner
+              &mdash; {locale === 'id' ? 'Mitra Broker Teregulasi' : 'Regulated Broker Partner'}
             </p>
           )}
         </div>
@@ -199,18 +221,18 @@ export function EnterpriseFooter() {
   );
 }
 
-function FooterColumn({ title, links }: { title: string; links: { href: string; label: string }[] }) {
+function FooterColumn({ title, links, locale }: { title: string; links: Array<{ href: string; label: LocaleStr }>; locale: 'id' | 'en' }) {
   return (
     <div>
       <h4 className="t-eyebrow mb-4">{title}</h4>
       <ul className="space-y-2.5">
         {links.map((link, i) => (
-          <li key={link.href + link.label + i}>
+          <li key={link.href + link.label[locale] + i}>
             <Link
               href={link.href}
               className="t-body-sm text-foreground/60 hover:text-amber-400 transition-colors"
             >
-              {link.label}
+              {link.label[locale]}
             </Link>
           </li>
         ))}

@@ -44,6 +44,7 @@ const PRICING_TABS = [
   { id: 'forex', label: 'Forex Signal' },
   { id: 'crypto', label: 'Crypto Bot' },
   { id: 'vps', label: 'VPS License' },
+  { id: 'apis', label: 'Public APIs' },
   { id: 'institutional', label: 'Institutional' },
 ];
 
@@ -69,17 +70,23 @@ const PRICING_PLANS: Record<string, Array<{
   ],
   forex: [
     {
-      name: 'Signal Basic', tier: 'SIGNAL', price: '$49', period: '/bulan',
-      tagline: 'Sinyal harian dengan analisa lengkap',
-      features: ['Daily signal alerts', 'Weekly performance report', 'Dashboard customer', 'Email support'],
-      cta: { label: 'Mulai Signal', href: '/register/signal' },
+      name: 'Signal Starter', tier: 'STARTER', price: '$19', period: '/bulan',
+      tagline: 'Entry tier — coba sinyal harian',
+      features: ['Live signals (≤3 simbol)', '1 strategy aktif', 'Rule-based AI explainability', 'MT5 bridge ringan', 'Email support'],
+      cta: { label: 'Mulai Starter', href: '/register/signal' },
     },
     {
-      name: 'Signal VIP', tier: 'SIGNAL VIP', price: '$149', period: '/bulan',
-      tagline: 'Real-time alerts + Telegram VIP',
-      features: ['Real-time signal alerts', 'Daily detailed reports', 'Telegram VIP group', 'Priority support', 'Strategy deep-dives'],
-      cta: { label: 'Mulai VIP', href: '/register/signal' },
+      name: 'Signal Pro', tier: 'PRO', price: '$79', period: '/bulan',
+      tagline: 'Untuk trader aktif multi-pair',
+      features: ['Unlimited symbols', '5 strategi paralel', 'Mid-tier AI explainability', 'Priority MT5 latency', 'Email + Telegram support'],
+      cta: { label: 'Mulai Pro', href: '/register/signal' },
       popular: true,
+    },
+    {
+      name: 'Signal VIP', tier: 'VIP', price: '$299', period: '/bulan',
+      tagline: 'Premium AI + copy-trade dashboard',
+      features: ['Semua fitur Pro', 'Premium AI (gradient boost)', 'Custom backtest sweep (≤10/bulan)', 'Payout API', 'Copy-trade lead dashboard', 'Priority support 24/7'],
+      cta: { label: 'Mulai VIP', href: '/register/signal' },
     },
   ],
   crypto: [
@@ -117,19 +124,83 @@ const PRICING_PLANS: Record<string, Array<{
       cta: { label: 'Konsultasi Setup', href: '/register/vps' },
       popular: true,
     },
+    {
+      name: 'Dedicated Tier', tier: 'DEDICATED', price: '$1,499', period: '/bulan',
+      tagline: 'VPS isolated single-customer',
+      features: ['Dedicated MT5 bridge VPS', 'Isolated DB schema', '24/7 Telegram incident channel', 'Custom risk framework', 'SLA 99.9%'],
+      cta: { label: 'Konsultasi Dedicated', href: '/contact?subject=dedicated-vps' },
+    },
+  ],
+  apis: [
+    {
+      name: 'News & Sentiment API', tier: 'NEWS', price: 'Free', period: '— $99/bulan',
+      tagline: 'Forex + Crypto news dengan sentiment scoring',
+      features: ['Free: 100 req/hari curated', 'Starter $9 — 500 req/hari', 'Pro $29 — 5K req/hari + sentiment', 'VIP $99 — unlimited + websocket'],
+      cta: { label: 'Lihat Tier News', href: '/pricing/apis#news' },
+    },
+    {
+      name: 'Signals API', tier: 'SIGNALS', price: 'Free', period: '— $149/bulan',
+      tagline: 'REST/WebSocket signal feed untuk integrasi',
+      features: ['Free: 3 last published', 'Starter $19 — last 50/hari', 'Pro $49 — full feed', 'VIP $149 — premium AI confidence'],
+      cta: { label: 'Lihat Tier Signals', href: '/pricing/apis#signals' },
+    },
+    {
+      name: 'Indicators API', tier: 'INDICATORS', price: 'Free', period: '— $199/bulan',
+      tagline: '14 indicator core + custom params',
+      features: ['Free: 50 req/hari core', 'Hobby $19 — 500 req/hari', 'Pro $79 — custom params', 'VIP $199 — backtest sweep'],
+      cta: { label: 'Lihat Tier Indicators', href: '/pricing/apis#indicators' },
+      popular: true,
+    },
+    {
+      name: 'Calendar API', tier: 'CALENDAR', price: 'Free', period: '— $99/bulan',
+      tagline: 'Economic calendar high-impact + sentiment',
+      features: ['Free: 100 req/hari high-impact', 'Hobby $19 — full calendar', 'Pro $49 — webhook delivery', 'VIP $99 — unlimited'],
+      cta: { label: 'Lihat Tier Calendar', href: '/pricing/apis#calendar' },
+    },
+    {
+      name: 'Market Data API', tier: 'MARKET', price: '$29', period: '— $249/bulan',
+      tagline: 'Tick + bar data 14 instrumen real-time',
+      features: ['Hobby $29 — 1y history', 'Pro $99 — 5y history + tick', 'VIP $249 — websocket stream', 'Enterprise: custom feed'],
+      cta: { label: 'Lihat Tier Market', href: '/pricing/apis#market' },
+    },
+    {
+      name: 'Execution Cloud API', tier: 'EXECUTION', price: '$19', period: '/akun/bulan',
+      tagline: 'Order routing langsung MT5 lewat ZeroMQ bridge',
+      features: ['Pro $19/akun — REST + WS execution', 'Enterprise $49/akun — zmq_ea native', 'Sub-2ms latency', 'Slippage budget per order'],
+      cta: { label: 'Konsultasi Execution', href: '/contact?subject=execution-cloud' },
+    },
+    {
+      name: 'Correlation API', tier: 'CORRELATION', price: '$9', period: '— $49/bulan',
+      tagline: 'Korelasi pair real-time + heatmap',
+      features: ['Free: 30 req/hari H1 matrix', 'Hobby $9 — multi-timeframe', 'Pro $19 — custom basket', 'VIP $49 — historical backtest'],
+      cta: { label: 'Lihat Tier Correlation', href: '/pricing/apis#correlation' },
+    },
+    {
+      name: 'Broker Specs API', tier: 'BROKER', price: 'Free', period: '— $49/bulan',
+      tagline: 'Spec broker (spread, commission, leverage cap)',
+      features: ['Free: 100 req/hari shared', 'Pro $19 — unlimited query', 'VIP $49 — historical spread'],
+      cta: { label: 'Lihat Tier Broker', href: '/pricing/apis#broker' },
+    },
+    {
+      name: 'AI Explainability API', tier: 'AI', price: '$99', period: '— $299/bulan (NDA)',
+      tagline: 'Confidence scoring + decision rationale (Enterprise NDA)',
+      features: ['Enterprise only — kontrak NDA', 'Per-trade rationale + counterfactual', 'Custom model fine-tuning', 'Audit-grade explainability'],
+      cta: { label: 'Konsultasi NDA', href: '/contact?subject=ai-explainability' },
+    },
   ],
   institutional: [
-    {
-      name: 'Managed Account', tier: 'INSTITUTIONAL', price: '$250K', period: 'AUM minimum',
-      tagline: 'Mandate kustom dengan parameter dedicated',
-      features: ['Custom strategy allocation', 'Dedicated VPS deployment', 'Full audit trail access', 'Custom risk framework', 'SLA-backed uptime'],
-      cta: { label: 'Schedule briefing', href: '/contact' },
-    },
     {
       name: 'API Access', tier: 'API', price: 'Custom', period: 'usage-based',
       tagline: 'Integrasi API langsung ke infrastruktur Anda',
       features: ['REST + WebSocket API', 'Signal streaming', 'Custom integration support', 'Dedicated engineering contact', 'White-label tersedia'],
       cta: { label: 'Speak with IR', href: '/register/institutional' },
+      popular: true,
+    },
+    {
+      name: 'Backtest as a Service', tier: 'B2B', price: '$99', period: '— $999/bulan',
+      tagline: 'Backtest engine on-demand untuk trading firm',
+      features: ['Walk-forward + Monte Carlo', '5 tahun tick data 14 instrumen', 'Strategy parameter optimization', 'Whitelabel report PDF', 'API integration'],
+      cta: { label: 'Konsultasi B2B', href: '/contact?subject=backtest-service' },
     },
   ],
 };

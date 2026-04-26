@@ -4,45 +4,97 @@ import { useEffect, useState } from 'react';
 import { Link } from '@/i18n/navigation';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
-import { ArrowRight, BarChart3, Clock, Shield, Send, FileText, LineChart } from 'lucide-react';
+import {
+  ArrowRight, BarChart3, Clock, Shield, Send, FileText, LineChart,
+  Cpu, Activity, Award, Check,
+} from 'lucide-react';
 import { financialProductSchema, ldJson, breadcrumbSchema, faqPageSchema } from '@/lib/seo-jsonld';
 
+// ─── Robot Meta — feature highlights ───
 const FEATURES = [
-  { title: 'Real-time trade alerts', description: 'Receive entry, stop-loss, and take-profit levels the moment our system identifies a high-probability setup across 14 curated instruments.', icon: 'chart' },
-  { title: 'Multi-timeframe analysis', description: 'Every signal is generated from confluence across H1, H4, and D1 timeframes, reducing false signals and improving hit rate.', icon: 'clock' },
-  { title: 'Risk-sized recommendations', description: 'Each alert includes a suggested position size calibrated to your account balance and our 12-layer risk framework.', icon: 'shield' },
-  { title: 'Telegram & MT5 delivery', description: 'Signals delivered instantly via private Telegram channel and can be auto-copied to your MT5 terminal with our trade copier.', icon: 'send' },
-  { title: 'Weekly market brief', description: 'A concise research note every Monday covering key levels, macro catalysts, and the week-ahead outlook.', icon: 'file' },
-  { title: 'Performance dashboard', description: 'Track every signal in your personal dashboard with full transparency: entry, exit, duration, and P&L for every trade.', icon: 'line' },
+  { title: 'Auto-eksekusi di MetaTrader 5', description: 'Bridge ZeroMQ native ke MT5 customer. Bot eksekusi entry, modify, dan close otomatis tanpa intervensi manual — modal tetap di akun broker Anda.', icon: 'cpu' },
+  { title: 'Multi-strategi confluence', description: 'SMC + Wyckoff + Astronacci + AI Momentum + Mean-Reversion + Oil/Gas. Strategi paralel dengan multi-timeframe scoring (H4 → H1 → M15 → M5).', icon: 'chart' },
+  { title: '12-lapisan risk control', description: 'Spread guard, news blackout, dynamic lot sizing, kill-switch — risk control adalah substrat, bukan fitur. Hadir di setiap trade.', icon: 'shield' },
+  { title: 'Notifikasi multi-channel', description: 'Tier 2+ dapat WhatsApp + Telegram + Email per signal. Tier All-In tambah dedicated support 24/7 dan custom alert routing.', icon: 'send' },
+  { title: 'AI Explainability per trade', description: 'Setiap entry punya rationale yang ter-log: confidence score, indikator yang trigger, dan counterfactual analysis untuk audit.', icon: 'file' },
+  { title: 'Performance dashboard', description: 'Track equity curve real-time + per-trade audit trail. Sharpe ratio, win rate, profit factor — terupdate setiap eksekusi.', icon: 'line' },
 ];
 
 const FEATURE_ICONS: Record<string, React.ReactNode> = {
+  cpu: <Cpu className="w-5 h-5 text-amber-400" />,
   chart: <BarChart3 className="w-5 h-5 text-amber-400" />,
   clock: <Clock className="w-5 h-5 text-amber-400" />,
   shield: <Shield className="w-5 h-5 text-amber-400" />,
   send: <Send className="w-5 h-5 text-amber-400" />,
   file: <FileText className="w-5 h-5 text-amber-400" />,
   line: <LineChart className="w-5 h-5 text-amber-400" />,
+  activity: <Activity className="w-5 h-5 text-amber-400" />,
+  award: <Award className="w-5 h-5 text-amber-400" />,
 };
 
+// ─── Robot Meta tier ladder (matches landing PRICING_PLANS.forex) ───
 const PRICING = [
-  { tier: 'Signal Starter', price: '$19', period: '/bulan', features: ['Live signals (≤3 simbol)', '1 strategy aktif', 'Rule-based AI explainability', 'MT5 bridge ringan', 'Email support'] },
-  { tier: 'Signal Pro', price: '$79', period: '/bulan', popular: true, features: ['Unlimited symbols', '5 strategi paralel', 'Mid-tier AI explainability', 'Priority MT5 latency', 'Email + Telegram support', 'Weekly market brief'] },
-  { tier: 'Signal VIP', price: '$299', period: '/bulan', features: ['Semua fitur Pro', 'Premium AI (gradient boost)', 'Custom backtest sweep (≤10/bulan)', 'Payout API', 'Copy-trade lead dashboard', 'Priority support 24/7'] },
+  {
+    tier: 'TIER 1',
+    name: 'Robot Meta · Swing',
+    price: '$19',
+    period: '/bulan',
+    tagline: 'Entry tier — strategi swing untuk modal kecil',
+    features: [
+      '3 pair major (EURUSD · GBPUSD · USDJPY)',
+      'Strategi swing only (durasi 4–24 jam)',
+      'Indikator dasar: SMC + Wyckoff',
+      'Notifikasi: Email + Dashboard',
+      'Auto-eksekusi di MT5 Anda',
+    ],
+    cta: { label: 'Mulai Tier Swing', href: '/register/signal?tier=swing' },
+  },
+  {
+    tier: 'TIER 2',
+    name: 'Robot Meta · Scalping',
+    price: '$79',
+    period: '/bulan',
+    popular: true,
+    tagline: 'Trader aktif — swing + scalping multi-strategi',
+    features: [
+      '8 pair (Major · Cross · Gold · Silver)',
+      'Strategi swing + scalping',
+      'Indikator advanced: SMC + Wyckoff + AI Momentum',
+      'Notifikasi: WhatsApp + Telegram + Email',
+      'Mid-tier AI explainability per trade',
+    ],
+    cta: { label: 'Mulai Tier Scalping', href: '/register/signal?tier=scalping' },
+  },
+  {
+    tier: 'TIER 3',
+    name: 'Robot Meta · All-In',
+    price: '$299',
+    period: '/bulan',
+    tagline: 'Premium full-stack — semua strategi, semua pair',
+    features: [
+      'Unlimited pair (Major · Cross · Metals · Index)',
+      'Semua 6 strategi paralel',
+      'Premium AI advisor + copy-trade dashboard',
+      'Notifikasi all channels + dedicated support 24/7',
+      'Custom backtest sweep + Payout API',
+    ],
+    cta: { label: 'Mulai Tier All-In', href: '/register/signal?tier=all' },
+  },
 ];
 
 const STEPS = [
-  { step: '01', title: 'Sign up', description: 'Create your account on BabahAlgo. Verify your email and complete your trader profile.' },
-  { step: '02', title: 'Choose a plan', description: 'Select Standard or Pro and complete payment. We accept bank transfer, credit card, and crypto.' },
-  { step: '03', title: 'Start trading', description: 'Within 1 business day, receive your Telegram invite, dashboard access, and MT5 copier setup guide.' },
+  { step: '01', title: 'Daftar founding member', description: 'Akses founding member gratis selama beta. Verifikasi manual oleh tim, lalu kami kirim invite Telegram + dashboard credentials.' },
+  { step: '02', title: 'Buka akun MT5 Exness', description: 'Daftar akun MT5 lewat partner broker Exness lewat link affiliate kami — Anda dapat discount commission, modal tetap di akun Anda.' },
+  { step: '03', title: 'Connect bridge', description: 'Kami pasang ZmqEa di terminal MT5 Anda + lakukan health check end-to-end. Setelah hijau, bot mulai auto-eksekusi sesuai tier.' },
 ];
 
 const FAQ_FALLBACK = [
-  { q: 'Do I need to change my broker?', a: 'No. Our signal service is broker-agnostic. You keep your existing broker account and simply execute the signals we provide, or use our MT5 trade copier.' },
-  { q: 'What instruments do you cover?', a: 'We trade 14 carefully selected instruments across forex majors, crosses, and gold. Each has been validated through extensive backtesting and live trading.' },
-  { q: 'What is the expected win rate?', a: 'Our historical win rate is approximately 62–68%. Our edge comes from favorable risk-reward ratios averaging 1:1.8 per trade.' },
-  { q: 'Can I cancel at any time?', a: 'Yes. All subscriptions are month-to-month with no lock-in. Cancel before your next billing date. No questions asked.' },
-  { q: 'What is the minimum account size?', a: 'We recommend $1,000 for Standard and $5,000 for Pro to properly follow position sizing recommendations.' },
+  { q: 'Apa beda Robot Meta dengan signal-only service?', a: 'Robot Meta auto-eksekusi penuh di MT5 Anda — bot yang taruh order, modify SL/TP, dan close. Signal-only kirim alert tapi Anda harus eksekusi manual. Modal tetap di akun broker Anda di kedua skenario.' },
+  { q: 'Apakah saya harus ganti broker?', a: 'Tidak wajib, tapi kami rekomendasikan partner broker Exness lewat link affiliate untuk discount commission. Bridge ZeroMQ kami compatible dengan MT5 broker mana saja yang allow EA/automated trading.' },
+  { q: 'Berapa modal minimal untuk mulai?', a: 'Tier Swing $19/bulan: rekomendasi $1K minimum agar position sizing optimal. Tier Scalping $79: $5K minimum. Tier All-In $299: $25K minimum untuk diversifikasi multi-strategi.' },
+  { q: 'Bagaimana risk management bekerja?', a: 'Setiap trade lewat 12-layer framework: pre-trade (spread guard, dynamic lot sizing, news blackout), in-trade (protective stop-loss, max hold time, breakeven trail), post-system (cooldown, catastrophic breaker, kill-switch). Detailnya di /platform/risk-framework.' },
+  { q: 'Apakah ada demo atau free trial?', a: 'Ya. Robot Meta · Demo gratis 7 hari di akun MT5 demo Anda — bot full eksekusi tapi di paper money. Akses /demo untuk daftar.' },
+  { q: 'Bisa cancel kapan saja?', a: 'Ya, semua tier month-to-month tanpa lock-in. Cancel kapan saja sebelum billing date berikutnya. Bot auto-detach dari MT5 Anda setelah cancel.' },
 ];
 
 interface FaqItem {
@@ -77,11 +129,11 @@ export default function SignalPage() {
   const breadcrumb = breadcrumbSchema([
     { name: 'Home', url: '/' },
     { name: 'Solutions', url: '/solutions' },
-    { name: 'Forex Signal', url: '/solutions/signal' },
+    { name: 'Robot Meta', url: '/solutions/signal' },
   ]);
   const faqJson = faqPageSchema(faq.map((f) => ({ question: f.q, answer: f.a })));
   const tierProducts = PRICING.map((tier) => financialProductSchema({
-    name: `${tier.tier} — ${tier.price}${tier.period}`,
+    name: `${tier.name} — ${tier.price}${tier.period}`,
     description: tier.features.join(' · '),
     price: tier.price.replace(/[^0-9.]/g, ''),
     currency: 'USD',
@@ -100,93 +152,84 @@ export default function SignalPage() {
         {/* Hero */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-4">Signal Service</p>
+            <p className="t-eyebrow mb-4">Robot Meta · MetaTrader 5</p>
             <h1 className="t-display-page mb-6">
-              Trading signals for<br className="hidden sm:block" /> retail traders.
+              Auto-trading Forex<br className="hidden sm:block" /> di terminal Anda.
             </h1>
             <p className="t-lead text-foreground/60 max-w-2xl">
-              Institutional-grade trade alerts delivered to your Telegram and MT5 terminal.
-              You keep full control of your capital and your broker relationship.
+              Bot institusional yang eksekusi langsung di akun MT5 Anda lewat bridge ZeroMQ
+              sub-2ms target. Forex Major, Cross, Gold, dan Silver — modal tetap di broker
+              Anda, kami tidak custody dana sama sekali.
             </p>
             <div className="flex flex-wrap gap-4 mt-10">
-              <Link href="/register/signal" className="btn-primary">
-                Open Signal Account <ArrowRight className="w-4 h-4" />
+              <Link href="/register/signal?tier=scalping" className="btn-primary">
+                Daftar Robot Meta <ArrowRight className="w-4 h-4" />
               </Link>
-              <Link href="/performance" className="btn-secondary">
-                View Track Record
+              <Link href="/demo?product=robot-meta" className="btn-secondary">
+                Coba Demo Gratis
+              </Link>
+              <Link href="/performance" className="btn-tertiary">
+                Lihat track record
               </Link>
             </div>
+            <p className="text-xs text-foreground/50 mt-6 max-w-2xl">
+              Sedang fase beta. Akses gratis untuk founding members hingga track record live
+              90 hari produksi (Q3 2026). Pricing tier di bawah berlaku setelah beta selesai.
+            </p>
           </div>
         </section>
 
-        {/* Pricing — prominent comparison table first */}
+        {/* Pricing — 3-tier card layout */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-3">Pricing</p>
-            <h2 className="t-display-sub mb-4">Choose your plan</h2>
-            <p className="t-body text-foreground/60 mb-10 max-w-xl">
-              Compare features side-by-side and pick the plan that fits your trading style.
+            <p className="t-eyebrow mb-3">Pricing — Pasca Beta</p>
+            <h2 className="t-display-sub mb-4">Tiga tier, satu platform</h2>
+            <p className="t-body text-foreground/60 mb-10 max-w-2xl">
+              Semakin tinggi tier, semakin banyak pair, strategi, dan kanal notifikasi.
+              Semua tier mendapat framework risiko 12-layer yang sama — itu non-negotiable.
             </p>
 
-            {/* Comparison table */}
-            <div className="overflow-x-auto max-w-4xl">
-              <div className="table-enterprise-wrapper min-w-[600px]">
-              <table className="table-enterprise w-full">
-                <thead>
-                  <tr className="border-b border-border/60">
-                    <th className="text-left px-6 py-4 w-1/2">Feature</th>
-                    <th className="text-center px-6 py-4">
-                      <span className="block text-foreground/80">Standard</span>
-                      <span className="block font-display text-2xl font-medium mt-1">$49<span className="text-sm text-foreground/40 font-normal">/mo</span></span>
-                    </th>
-                    <th className="text-center px-6 py-4">
-                      <span className="inline-block bg-amber-500 text-black text-xs font-medium px-3 py-0.5 rounded-full mb-2">Most popular</span>
-                      <span className="block text-foreground/80">Pro</span>
-                      <span className="block font-display text-2xl font-medium mt-1">$149<span className="text-sm text-foreground/40 font-normal">/mo</span></span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="text-sm">
-                  {[
-                    { feature: 'Signals per week', standard: 'Up to 10', pro: 'Unlimited' },
-                    { feature: 'Telegram channel', standard: true, pro: true },
-                    { feature: 'MT5 trade copier', standard: false, pro: true },
-                    { feature: 'Performance dashboard', standard: 'Basic', pro: 'Full' },
-                    { feature: 'Weekly market brief', standard: false, pro: true },
-                    { feature: 'Support channel', standard: 'Email', pro: 'Priority WhatsApp' },
-                    { feature: 'Early access to strategies', standard: false, pro: true },
-                  ].map((row) => (
-                    <tr key={row.feature} className="border-b border-border/60 last:border-0">
-                      <td className="px-6 py-3 text-foreground/70">{row.feature}</td>
-                      <td className="px-6 py-3 text-center">
-                        {typeof row.standard === 'boolean'
-                          ? row.standard
-                            ? <span className="text-amber-400 font-mono">Yes</span>
-                            : <span className="text-foreground/25">--</span>
-                          : <span className="text-foreground/60">{row.standard}</span>}
-                      </td>
-                      <td className="px-6 py-3 text-center">
-                        {typeof row.pro === 'boolean'
-                          ? row.pro
-                            ? <span className="text-amber-400 font-mono">Yes</span>
-                            : <span className="text-foreground/25">--</span>
-                          : <span className="text-foreground/60">{row.pro}</span>}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              </div>
-            </div>
-
-            {/* CTA buttons under table */}
-            <div className="flex flex-wrap gap-4 mt-8 max-w-4xl">
-              <Link href="/register/signal" className="btn-secondary">
-                Get Standard <ArrowRight className="w-4 h-4" />
-              </Link>
-              <Link href="/register/signal" className="btn-primary">
-                Get Pro <ArrowRight className="w-4 h-4" />
-              </Link>
+            <div className="grid md:grid-cols-3 gap-6">
+              {PRICING.map((tier) => (
+                <div
+                  key={tier.name}
+                  className={`rounded-xl p-6 sm:p-7 border transition-colors ${
+                    tier.popular
+                      ? 'border-amber-500 ring-1 ring-amber-500 bg-amber-500/[0.02]'
+                      : 'border-border/80 hover:border-amber-500/30 bg-card'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="t-eyebrow text-amber-400">{tier.tier}</span>
+                    {tier.popular && (
+                      <span className="px-2 py-0.5 rounded-full bg-amber-500 text-black text-[11px] font-medium tracking-wider uppercase">
+                        Popular
+                      </span>
+                    )}
+                  </div>
+                  <h3 className="font-display text-xl font-medium mb-1">{tier.name}</h3>
+                  <p className="t-body-sm text-muted-foreground mb-4">{tier.tagline}</p>
+                  <div className="flex items-baseline gap-1 mb-6">
+                    <span className="font-mono text-3xl font-semibold">{tier.price}</span>
+                    <span className="t-body-sm text-foreground/40">{tier.period}</span>
+                  </div>
+                  <ul className="space-y-2.5 mb-6">
+                    {tier.features.map((f) => (
+                      <li key={f} className="flex items-start gap-2 t-body-sm text-foreground/85">
+                        <Check className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
+                        <span className="break-words">{f}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <Link
+                    href={tier.cta.href}
+                    className={`w-full justify-center ${tier.popular ? 'btn-primary' : 'btn-secondary'}`}
+                  >
+                    {tier.cta.label}
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </div>
+              ))}
             </div>
           </div>
         </section>
@@ -197,31 +240,35 @@ export default function SignalPage() {
             <div className="grid lg:grid-cols-5 gap-16">
               <div className="lg:col-span-2">
                 <p className="t-eyebrow mb-3">Audience</p>
-                <h2 className="t-display-sub">Who it&apos;s for</h2>
+                <h2 className="t-display-sub">Untuk siapa Robot Meta</h2>
               </div>
               <ul className="lg:col-span-3 space-y-5 t-body text-foreground/70">
                 <li className="flex items-start gap-3">
                   <span className="mt-2 w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-                  Retail traders with $1K–$50K who want data-driven entries without building their own system.
+                  Trader retail dengan modal $1K–$50K yang ingin sistematik tanpa harus bangun bot sendiri.
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="mt-2 w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-                  Part-time traders who cannot monitor charts but want high-probability setups.
+                  Part-time trader yang tidak bisa pantau chart 24/7 tapi ingin setup high-probability tetap dieksekusi.
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="mt-2 w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-                  Experienced traders looking to complement discretionary analysis with a quantitative edge.
+                  Trader berpengalaman yang mau konsisten via auto-execution tanpa bias emosional.
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="mt-2 w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                  Asset manager / family office yang ingin diversifikasi multi-strategi dengan auditable execution log.
                 </li>
               </ul>
             </div>
           </div>
         </section>
 
-        {/* Features — 2-column icon grid */}
+        {/* Features grid */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-3">Features</p>
-            <h2 className="t-display-sub mb-12">What you get</h2>
+            <h2 className="t-display-sub mb-12">Apa yang Anda dapat</h2>
             <div className="grid md:grid-cols-2 gap-x-12 gap-y-10">
               {FEATURES.map((f) => (
                 <div key={f.title} className="flex items-start gap-5">
@@ -241,8 +288,8 @@ export default function SignalPage() {
         {/* Onboarding */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-3">Getting Started</p>
-            <h2 className="t-display-sub mb-12">Three simple steps</h2>
+            <p className="t-eyebrow mb-3">Onboarding</p>
+            <h2 className="t-display-sub mb-12">Tiga langkah saja</h2>
             <div className="grid md:grid-cols-3 gap-8">
               {STEPS.map((step, i) => (
                 <div key={step.step} className="relative">
@@ -264,7 +311,7 @@ export default function SignalPage() {
             <div className="grid lg:grid-cols-5 gap-16">
               <div className="lg:col-span-2">
                 <p className="t-eyebrow mb-3">FAQ</p>
-                <h2 className="t-display-sub">Common questions</h2>
+                <h2 className="t-display-sub">Pertanyaan umum</h2>
               </div>
               <div className="lg:col-span-3 space-y-8">
                 {faq.map((item) => (
@@ -281,13 +328,19 @@ export default function SignalPage() {
         {/* CTA */}
         <section className="section-padding text-center">
           <div className="container-default px-4 sm:px-6">
-            <h2 className="t-display-sub mb-4">Ready to start?</h2>
+            <h2 className="t-display-sub mb-4">Siap mulai dengan Robot Meta?</h2>
             <p className="t-body text-foreground/60 mb-8 max-w-lg mx-auto">
-              Create your account, pick your plan, and receive your first signal within 24 hours.
+              Daftar founding member gratis selama beta — atau coba demo dulu di akun MT5 demo
+              tanpa risiko modal real.
             </p>
-            <Link href="/register/signal" className="btn-primary">
-              Open Signal Account <ArrowRight className="w-4 h-4" />
-            </Link>
+            <div className="flex flex-wrap justify-center gap-4">
+              <Link href="/contact?subject=beta-founding-member" className="btn-primary">
+                Daftar Founding Member <ArrowRight className="w-4 h-4" />
+              </Link>
+              <Link href="/demo?product=robot-meta" className="btn-secondary">
+                Coba Demo Gratis
+              </Link>
+            </div>
           </div>
         </section>
       </main>

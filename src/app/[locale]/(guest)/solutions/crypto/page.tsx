@@ -18,9 +18,9 @@ import {
 
 export async function generateMetadata() {
   return getPageMetadata('/solutions/crypto', {
-    title: 'Crypto Bot — Automated Binance Futures Trading | BabahAlgo',
+    title: 'Robot Crypto — Auto-trading di Binance | BabahAlgo',
     description:
-      'Institutional-grade crypto trading bot untuk Binance Futures. Strategi SMC, Wyckoff, dan momentum 24/7 dengan risk management 12-layer. Mulai $49/bulan.',
+      'Robot Crypto institusional untuk Binance Spot + USDT-M Futures. Strategi SMC, Wyckoff, dan momentum 24/7 dengan framework risiko 12-layer. Modal tetap di akun Binance Anda — tidak ada custody dana.',
   });
 }
 
@@ -175,7 +175,7 @@ export default function CryptoBotSolutionPage() {
   const breadcrumb = breadcrumbSchema([
     { name: 'Home', url: '/' },
     { name: 'Solutions', url: '/solutions/signal' },
-    { name: 'Crypto Bot', url: '/solutions/crypto' },
+    { name: 'Robot Crypto', url: '/solutions/crypto' },
   ]);
   const faq = faqPageSchema(FAQ_ITEMS.map((f) => ({ question: f.q, answer: f.a })));
   return (
@@ -191,28 +191,36 @@ export default function CryptoBotSolutionPage() {
             <div className="max-w-3xl">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-xs font-mono uppercase tracking-wider text-amber-300 mb-6">
                 <Bitcoin className="w-3.5 h-3.5" />
-                Crypto Bot · Binance Futures
+                Robot Crypto · Binance
               </div>
               <h1 className="t-display-page mb-5">
-                Trading kripto otomatis,<br />kelas institusional.
+                Auto-trading kripto,<br />kelas institusional.
               </h1>
               <p className="t-lead text-foreground/70 mb-8 max-w-2xl">
-                Strategi SMC + Wyckoff + Momentum yang sama digunakan trader profesional, dieksekusi oleh bot 24/7 di Binance
-                Futures. Anda pegang API key, bot hanya trade — kami tidak bisa withdraw dana Anda.
+                Strategi SMC + Wyckoff + Momentum yang sama dipakai trader profesional, dieksekusi
+                oleh bot 24/7 di Binance Spot + USDT-M Futures. Anda pegang API key — kami tidak
+                bisa withdraw dana Anda. Modal tetap di akun Binance Anda.
               </p>
               <div className="flex flex-col sm:flex-row gap-3">
                 <Link href="/register/crypto" className="btn-primary inline-flex items-center justify-center gap-2 px-6 py-3 rounded-md text-sm font-medium">
-                  Mulai Crypto Bot <ArrowRight className="w-4 h-4" />
+                  Daftar Robot Crypto <ArrowRight className="w-4 h-4" />
                 </Link>
-                <Link href="/contact?subject=crypto-consultation" className="btn-secondary inline-flex items-center justify-center gap-2 px-6 py-3 rounded-md text-sm font-medium">
-                  Konsultasi Tier HNWI
+                <Link href="/demo?product=robot-crypto" className="btn-secondary inline-flex items-center justify-center gap-2 px-6 py-3 rounded-md text-sm font-medium">
+                  Coba Demo Gratis
+                </Link>
+                <Link href="/contact?subject=crypto-consultation" className="btn-tertiary inline-flex items-center justify-center gap-2 px-6 py-3 rounded-md text-sm font-medium">
+                  Konsultasi HNWI
                 </Link>
               </div>
+              <p className="text-xs text-foreground/50 mt-6 max-w-2xl">
+                Sedang fase beta. Akses gratis untuk founding members hingga track record live
+                90 hari produksi (Q3 2026). Pricing tier di bawah berlaku setelah beta selesai.
+              </p>
               <div className="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-6 text-sm">
                 <Stat label="Pair Universe" value="200+" sub="CMC top-200 dynamic" />
                 <Stat label="Min Investasi" value="$500" sub="USDT di Binance" />
                 <Stat label="Strategi" value="6" sub="Multi-confluence" />
-                <Stat label="Latensi Order" value="<150ms" sub="Direct API" />
+                <Stat label="API Scope" value="Read+Trade" sub="No withdraw permission" />
               </div>
             </div>
           </div>

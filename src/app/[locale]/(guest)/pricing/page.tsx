@@ -5,6 +5,7 @@ import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { localizePricingTier } from '@/lib/i18n/localize-cms';
 import { breadcrumbSchema, ldJson, organizationSchema } from '@/lib/seo-jsonld';
+import { CapabilityLadder } from '@/components/pricing/capability-ladder';
 import {
   ArrowRight,
   Check,
@@ -155,6 +156,9 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
           subtitle="3 tier sesuai intensitas trading Anda. Eksekusi tetap di akun broker pribadi Anda — kami tech provider, bukan asset manager."
           tiers={SIGNAL_TIERS}
         />
+
+        {/* Capability ladder — sourced from /v1/capabilities backend */}
+        <CapabilityLadder />
 
         {/* Crypto Bot */}
         <ProductSection

@@ -7,6 +7,7 @@ import { EquityCurve } from '@/components/charts/equity-curve';
 import { PnlBarChart } from '@/components/charts/pnl-bar-chart';
 import { SkeletonCard, SkeletonChart, SkeletonTable } from '@/components/ui/skeleton';
 import { useAuth } from '@/lib/auth/auth-context';
+import { DiscoveryBanner } from '@/components/portal/discovery-banner';
 
 interface StatusData {
   bot_status?: string;
@@ -168,6 +169,9 @@ export default function PortalDashboard() {
       {error && (
         <div className="rounded-md bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-400">{error}</div>
       )}
+
+      {/* Discovery banner — surfaces compelling locked feature for upgrade */}
+      <DiscoveryBanner />
 
       {/* ROW 1: KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

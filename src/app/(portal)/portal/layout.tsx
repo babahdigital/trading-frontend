@@ -24,6 +24,7 @@ import {
   Shield,
   KeyRound,
   Bell,
+  Sparkles,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ResponsiveSidebar } from '@/components/layout/responsive-sidebar';
@@ -46,6 +47,7 @@ const NAV_SECTIONS: NavSection[] = [
     items: [
       { href: '/portal', label: 'Dashboard', icon: LayoutDashboard },
       { href: '/portal/notifications', label: 'Notifikasi', icon: Bell },
+      { href: '/portal/features', label: 'Fitur & Capabilities', icon: Sparkles },
     ],
   },
   {

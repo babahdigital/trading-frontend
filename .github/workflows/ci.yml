@@ -1,0 +1,137 @@
+name: CI
+
+# Quality gates pada setiap PR + push ke main.
+# Tidak push image — itu tugas docker-publish.yml.
+# Goal: verifikasi cepat (≤5 menit) sebelum kode masuk main.
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # -------------------------------------------------------------
+  # JOB 1 — detect what changed
+  # -------------------------------------------------------------
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      app: ${{ steps.filter.outputs.app }}
+      docker: ${{ steps.filter.outputs.docker }}
+      ci: ${{ steps.filter.outputs.ci }}
+      schema: ${{ steps.filter.outputs.schema }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            app:
+              - 'src/**'
+              - 'public/**'
+              - 'package.json'
+              - 'package-lock.json'
+              - 'next.config.js'
+              - 'tsconfig.json'
+              - 'tailwind.config.*'
+              - 'postcss.config.*'
+            docker:
+              - 'Dockerfile'
+              - 'docker-compose*.yml'
+              - '.dockerignore'
+            ci:
+              - '.github/workflows/**'
+            schema:
+              - 'prisma/schema.prisma'
+              - 'prisma/migrations/**'
+      - name: Show change summary
+        run: |
+          {
+            echo "### Path Change Summary"
+            echo "- app: ${{ steps.filter.outputs.app }}"
+            echo "- docker: ${{ steps.filter.outputs.docker }}"
+            echo "- ci: ${{ steps.filter.outputs.ci }}"
+            echo "- schema: ${{ steps.filter.outputs.schema }}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # -------------------------------------------------------------
+  # JOB 2 — Next.js quality gates (typecheck + lint + build)
+  # -------------------------------------------------------------
+  app:
+    needs: changes
+    if: ${{ needs.changes.outputs.app == 'true' || needs.changes.outputs.ci == 'true' || needs.changes.outputs.schema == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/dummy?schema=public
+      JWT_SECRET: ci-dummy-secret-not-used-in-production
+      LICENSE_MW_MASTER_KEY: ci-dummy-master-key
+      VPS1_BACKEND_URL: http://localhost:18000
+      NEXT_PUBLIC_APP_URL: https://babahalgo.com
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prisma generate
+        run: npx prisma generate
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npx next lint
+
+      - name: Build (verify only, no artifact)
+        run: npx next build
+
+      - name: Build size summary
+        if: always()
+        run: |
+          {
+            echo "### Build Output"
+            if [ -f .next/build-manifest.json ]; then
+              echo "- Build manifest: present"
+            fi
+            if [ -d .next/standalone ]; then
+              SIZE=$(du -sh .next/standalone | cut -f1)
+              echo "- Standalone output: $SIZE"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # -------------------------------------------------------------
+  # JOB 3 — Docker build smoke test (no push)
+  # -------------------------------------------------------------
+  docker-smoke:
+    needs: changes
+    if: ${{ needs.changes.outputs.app == 'true' || needs.changes.outputs.docker == 'true' || needs.changes.outputs.ci == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build image (verify only)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          load: false
+          tags: babahdigital/babahalgo:ci-${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

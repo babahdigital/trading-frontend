@@ -1,0 +1,118 @@
+name: Actions Housekeeping
+
+# Cron cleanup: hapus workflow runs lama + Actions cache lama agar quota tidak penuh.
+# Default: keep 5 latest runs per workflow, hapus semua cache lebih lama dari 7 hari.
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+on:
+  schedule:
+    - cron: "0 */12 * * *" # 2x sehari
+  workflow_dispatch:
+    inputs:
+      keep_runs:
+        description: "Keep latest completed workflow runs per workflow"
+        required: false
+        default: "5"
+      keep_caches:
+        description: "Keep latest Actions caches"
+        required: false
+        default: "3"
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: actions-housekeeping
+  cancel-in-progress: false
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Cleanup old workflow runs
+        uses: actions/github-script@v7
+        env:
+          KEEP_RUNS: ${{ inputs.keep_runs || '5' }}
+        with:
+          script: |
+            const parsed = parseInt(process.env.KEEP_RUNS || '5', 10)
+            const keep = Number.isNaN(parsed) ? 5 : Math.min(Math.max(parsed, 1), 30)
+            const owner = context.repo.owner
+            const repo = context.repo.repo
+
+            const allRuns = await github.paginate(
+              github.rest.actions.listWorkflowRunsForRepo,
+              { owner, repo, per_page: 100 }
+            )
+
+            // Group by workflow_id, keep `keep` latest completed per workflow
+            const byWorkflow = new Map()
+            for (const run of allRuns) {
+              if (run.status !== 'completed') continue
+              if (!byWorkflow.has(run.workflow_id)) byWorkflow.set(run.workflow_id, [])
+              byWorkflow.get(run.workflow_id).push(run)
+            }
+
+            let deleted = 0, failed = 0
+            for (const [, runs] of byWorkflow) {
+              runs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+              const candidates = runs.slice(keep)
+              for (const run of candidates) {
+                try {
+                  await github.rest.actions.deleteWorkflowRun({ owner, repo, run_id: run.id })
+                  deleted++
+                } catch (err) {
+                  failed++
+                  core.warning(`Failed to delete run ${run.id}: ${err.message}`)
+                }
+              }
+            }
+            core.notice(`Workflow cleanup: deleted=${deleted}, failed=${failed}, kept_per_workflow=${keep}`)
+
+      - name: Cleanup old Actions caches
+        uses: actions/github-script@v7
+        env:
+          KEEP_CACHES: ${{ inputs.keep_caches || '3' }}
+        with:
+          script: |
+            const parsed = parseInt(process.env.KEEP_CACHES || '3', 10)
+            const keep = Number.isNaN(parsed) ? 3 : Math.min(Math.max(parsed, 0), 20)
+            const owner = context.repo.owner
+            const repo = context.repo.repo
+
+            const allCaches = []
+            let page = 1
+            while (true) {
+              const response = await github.request('GET /repos/{owner}/{repo}/actions/caches', {
+                owner, repo, per_page: 100, page,
+              })
+              const pageCaches = response?.data?.actions_caches || []
+              allCaches.push(...pageCaches)
+              if (pageCaches.length < 100) break
+              page++
+            }
+
+            const sorted = allCaches.slice().sort(
+              (a, b) => new Date(b.last_accessed_at) - new Date(a.last_accessed_at)
+            )
+            const candidates = sorted.slice(keep)
+
+            let deleted = 0, failed = 0
+            for (const cache of candidates) {
+              try {
+                if (cache.id) {
+                  await github.request('DELETE /repos/{owner}/{repo}/actions/caches/{cache_id}', {
+                    owner, repo, cache_id: cache.id,
+                  })
+                  deleted++
+                }
+              } catch (err) {
+                failed++
+                core.warning(`Failed to delete cache ${cache.id}: ${err.message}`)
+              }
+            }
+            core.notice(`Cache cleanup: total=${allCaches.length}, deleted=${deleted}, failed=${failed}, kept=${keep}`)

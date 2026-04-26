@@ -1,0 +1,204 @@
+# ============================================================
+# Production compose — VPS3 (148.230.96.201)
+# ============================================================
+# Tidak ada `build:` — image di-pull dari Docker Hub.
+# Source code TIDAK perlu ada di /opt/trading-commercial.
+#
+# Folder structure di VPS3:
+#   /opt/trading-commercial/
+#   ├── docker-compose.prod.yml   # this file
+#   ├── docker-compose.db.yml     # OPTIONAL: postgres-in-docker
+#   ├── .env                       # secrets
+#   ├── data/
+#   │   ├── postgres/              # postgres data (kalau pakai docker postgres)
+#   │   └── backups/               # nightly pg_dump output
+#   ├── public/                    # branding/CMS images (hot-swap tanpa rebuild)
+#   └── scratch/                   # one-off test/maintenance scripts
+#
+# Update flow (otomatis via GitHub Actions):
+#   docker compose -f docker-compose.prod.yml pull app
+#   docker compose -f docker-compose.prod.yml up -d --force-recreate app
+#
+# One-time bootstrap (untuk first-time deploy public/ folder):
+#   docker run --rm -v $(pwd)/public:/dest babahdigital/babahalgo \
+#     sh -c 'cp -r /app/public/. /dest/'
+# ============================================================
+
+services:
+  app:
+    image: babahdigital/babahalgo:${IMAGE_TAG:-latest}
+    container_name: trading-commercial-app-1
+    restart: unless-stopped
+    pull_policy: always
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      # Database (default: host Postgres via host.docker.internal)
+      # Override DB_HOST=postgres untuk pakai docker-compose.db.yml
+      - DATABASE_URL=postgresql://trading_user:${DB_PASSWORD}@${DB_HOST:-host.docker.internal}:${DB_PORT:-5432}/trading_commercial?schema=public
+
+      # Auth
+      - JWT_SECRET=${JWT_SECRET}
+      - LICENSE_MW_MASTER_KEY=${LICENSE_MW_MASTER_KEY:?LICENSE_MW_MASTER_KEY must be set}
+
+      # Backend proxy
+      - VPS1_BACKEND_URL=${VPS1_BACKEND_URL:?VPS1_BACKEND_URL must be set}
+      - VPS1_ADMIN_TOKEN=${VPS1_ADMIN_TOKEN:-}
+      - VPS1_TOKEN_SIGNALS=${VPS1_TOKEN_SIGNALS:-}
+      - VPS1_TOKEN_TRADE_EVENTS=${VPS1_TOKEN_TRADE_EVENTS:-}
+      - VPS1_TOKEN_RESEARCH=${VPS1_TOKEN_RESEARCH:-}
+      - VPS1_TOKEN_PAMM=${VPS1_TOKEN_PAMM:-}
+      - VPS1_TOKEN_STATS=${VPS1_TOKEN_STATS:-}
+
+      # Cron + workers
+      - CRON_SECRET=${CRON_SECRET:-}
+      - ENABLE_SIGNAL_CONSUMER=${ENABLE_SIGNAL_CONSUMER:-false}
+      - ENABLE_TRADE_EVENTS_CONSUMER=${ENABLE_TRADE_EVENTS_CONSUMER:-false}
+      - ENABLE_RESEARCH_INGESTER=${ENABLE_RESEARCH_INGESTER:-false}
+      - ENABLE_PAIR_BRIEF_WORKER=${ENABLE_PAIR_BRIEF_WORKER:-false}
+
+      # AI
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+
+      # Admin bootstrap
+      - ADMIN_EMAIL=${ADMIN_EMAIL:-}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-}
+
+      # Runtime
+      - NODE_ENV=production
+      - NEXT_PUBLIC_APP_URL=${APP_URL:-https://babahalgo.com}
+
+      # Telegram
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+      - TELEGRAM_ADMIN_CHAT_ID=${TELEGRAM_ADMIN_CHAT_ID:-}
+
+      # Email (Brevo)
+      - BREVO_API_KEY=${BREVO_API_KEY:-}
+      - SMTP_FROM=${SMTP_FROM:-BabahAlgo <no-reply@babahalgo.com>}
+
+      # Payment
+      - MIDTRANS_SERVER_KEY=${MIDTRANS_SERVER_KEY:-}
+      - MIDTRANS_CLIENT_KEY=${MIDTRANS_CLIENT_KEY:-}
+      - XENDIT_SECRET_KEY=${XENDIT_SECRET_KEY:-}
+      - XENDIT_WEBHOOK_TOKEN=${XENDIT_WEBHOOK_TOKEN:-}
+
+      # Observability
+      - SENTRY_DSN=${SENTRY_DSN:-}
+      - NEXT_PUBLIC_SENTRY_DSN=${SENTRY_DSN:-}
+      - SENTRY_ORG=${SENTRY_ORG:-}
+      - SENTRY_PROJECT=${SENTRY_PROJECT:-}
+
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+    volumes:
+      # Public assets (logos, CMS-uploaded images, default branding) — hot-swap tanpa rebuild image
+      - ./public:/app/public
+      # Scratch space untuk one-off test/maintenance script (read-only di container)
+      - ./scratch:/app/scratch:ro
+
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
+
+  # ============================================================
+  # Nightly DB backup → ./data/backups/
+  # ============================================================
+  # Runs pg_dump every day at 02:00 Asia/Jakarta.
+  # Retention: 7 daily + 4 weekly + 12 monthly.
+  # Logic inline di sini — tidak butuh script eksternal di VPS3.
+  #
+  # Manual one-off backup:
+  #   docker compose -f docker-compose.prod.yml exec db-backup /usr/local/bin/do-backup.sh
+  # Restore (TARGET: trading_commercial database, hati-hati):
+  #   gunzip -c data/backups/<file>.sql.gz | docker compose exec -T db-backup psql -d trading_commercial
+  db-backup:
+    image: postgres:16-alpine
+    container_name: trading-commercial-db-backup
+    restart: unless-stopped
+    environment:
+      - PGHOST=${DB_HOST:-host.docker.internal}
+      - PGPORT=${DB_PORT:-5432}
+      - PGDATABASE=trading_commercial
+      - PGUSER=${DB_BACKUP_USER:-trading_user}
+      - PGPASSWORD=${DB_PASSWORD}
+      - TZ=Asia/Jakarta
+      - BACKUP_HOUR=${BACKUP_HOUR:-2}
+      - BACKUP_RETENTION_DAILY=${BACKUP_RETENTION_DAILY:-7}
+      - BACKUP_RETENTION_WEEKLY=${BACKUP_RETENTION_WEEKLY:-4}
+      - BACKUP_RETENTION_MONTHLY=${BACKUP_RETENTION_MONTHLY:-12}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./data/backups:/backups
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        set -eu
+        apk add --no-cache tzdata findutils >/dev/null
+        cp -f /usr/share/zoneinfo/Asia/Jakarta /etc/localtime || true
+
+        # ============ do-backup.sh (inline) ============
+        cat > /usr/local/bin/do-backup.sh <<'BACKUP'
+        #!/bin/sh
+        set -eu
+        TS=$(date +%Y%m%d-%H%M%S)
+        DOW=$(date +%u)            # 1=Mon..7=Sun
+        DOM=$(date +%d)            # 01..31
+        OUT="/backups/daily/trading_commercial-${TS}.sql.gz"
+        mkdir -p /backups/daily /backups/weekly /backups/monthly
+
+        echo "[$(date '+%F %T')] backup start → $OUT"
+        pg_dump --no-owner --no-acl --clean --if-exists \
+          | gzip -9 > "$OUT.tmp"
+        mv "$OUT.tmp" "$OUT"
+        SIZE=$(du -h "$OUT" | cut -f1)
+        echo "[$(date '+%F %T')] backup done — $SIZE"
+
+        # Weekly snapshot (Sunday)
+        if [ "$DOW" = "7" ]; then
+          cp "$OUT" "/backups/weekly/trading_commercial-week-${TS}.sql.gz"
+        fi
+        # Monthly snapshot (day 01)
+        if [ "$DOM" = "01" ]; then
+          cp "$OUT" "/backups/monthly/trading_commercial-month-${TS}.sql.gz"
+        fi
+
+        # Retention pruning
+        find /backups/daily   -name '*.sql.gz' -mtime +${BACKUP_RETENTION_DAILY:-7}     -delete
+        find /backups/weekly  -name '*.sql.gz' -mtime +$((${BACKUP_RETENTION_WEEKLY:-4} * 7))  -delete
+        find /backups/monthly -name '*.sql.gz' -mtime +$((${BACKUP_RETENTION_MONTHLY:-12} * 31)) -delete
+
+        echo "[$(date '+%F %T')] retention pruned"
+        BACKUP
+        chmod +x /usr/local/bin/do-backup.sh
+
+        # ============ scheduler loop ============
+        echo "[$(date '+%F %T')] db-backup ready, scheduled hour=${BACKUP_HOUR:-2} Asia/Jakarta"
+        while true; do
+          NOW_HOUR=$(date +%H)
+          NOW_MIN=$(date +%M)
+          if [ "$NOW_HOUR" = "$(printf '%02d' ${BACKUP_HOUR:-2})" ] && [ "$NOW_MIN" = "00" ]; then
+            /usr/local/bin/do-backup.sh || echo "[$(date '+%F %T')] backup FAILED, will retry tomorrow"
+            sleep 70  # avoid double-run within same minute
+          fi
+          sleep 30
+        done
+    depends_on:
+      app:
+        condition: service_healthy
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"

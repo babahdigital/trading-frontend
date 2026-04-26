@@ -1,0 +1,85 @@
+# ============================================================
+# OPTIONAL: PostgreSQL di Docker stack
+# ============================================================
+# Pakai ini kalau mau migrate dari host-postgres ke containerized-postgres.
+# Default `docker-compose.prod.yml` masih connect ke host postgres
+# via `host.docker.internal:5432`.
+#
+# Migration playbook (downtime ~5 menit):
+#   1. Backup host postgres:
+#        sudo -u postgres pg_dump -Fc trading_commercial > /tmp/trading_commercial.dump
+#   2. Stop running stack:
+#        docker compose -f docker-compose.prod.yml down
+#   3. Edit .env, add:
+#        DB_HOST=postgres
+#        DB_PORT=5432
+#   4. Start with both files:
+#        docker compose -f docker-compose.prod.yml -f docker-compose.db.yml up -d postgres
+#   5. Wait healthy, lalu restore:
+#        cat /tmp/trading_commercial.dump | docker compose -f docker-compose.prod.yml -f docker-compose.db.yml \
+#          exec -T postgres pg_restore -U trading_user -d trading_commercial --no-owner --clean
+#   6. Start app:
+#        docker compose -f docker-compose.prod.yml -f docker-compose.db.yml up -d
+#   7. Verifikasi /api/health → 200
+#   8. (Setelah stabil ~7 hari) Stop host postgres + uninstall:
+#        sudo systemctl stop postgresql; sudo systemctl disable postgresql
+#
+# Run mode (sehari-hari setelah migrate):
+#   docker compose -f docker-compose.prod.yml -f docker-compose.db.yml up -d
+#   docker compose -f docker-compose.prod.yml -f docker-compose.db.yml pull app
+#   docker compose -f docker-compose.prod.yml -f docker-compose.db.yml up -d --force-recreate app
+# ============================================================
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: trading-commercial-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=trading_commercial
+      - POSTGRES_USER=trading_user
+      - POSTGRES_PASSWORD=${DB_PASSWORD:?DB_PASSWORD must be set}
+      - PGDATA=/var/lib/postgresql/data/pgdata
+      - TZ=Asia/Jakarta
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    # Tidak expose port keluar host — hanya di-akses lewat docker network
+    expose:
+      - "5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U trading_user -d trading_commercial"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    # Tuning konservatif untuk VPS3 — adjust sesuai RAM
+    command:
+      - postgres
+      - -c
+      - shared_buffers=256MB
+      - -c
+      - effective_cache_size=1GB
+      - -c
+      - work_mem=8MB
+      - -c
+      - maintenance_work_mem=128MB
+      - -c
+      - max_connections=100
+      - -c
+      - log_min_duration_statement=1000
+
+  # Override app service untuk depend on postgres + remove host.docker.internal
+  app:
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  db-backup:
+    depends_on:
+      postgres:
+        condition: service_healthy

@@ -1,0 +1,196 @@
+name: Docker Publish + Deploy
+
+# Build multi-arch image (amd64 + arm64) → push ke Docker Hub → trigger deploy ke VPS3.
+# Trigger:
+#   - push ke main (tag: latest, sha-<short>, dan branch=main)
+#   - push tag v* (tag: latest, v1.2.3, semver)
+#   - workflow_dispatch (manual)
+#
+# Required GitHub secrets:
+#   DOCKER_USERNAME       — Docker Hub login (sama dengan project lain di org)
+#   DOCKER_PASSWORD       — Docker Hub access token (PAT, bukan password akun)
+#   VPS3_SSH_HOST         — 148.230.96.201
+#   VPS3_SSH_PORT         — 1983
+#   VPS3_SSH_USER         — abdullah
+#   VPS3_SSH_KEY          — private key (id_raspi_ed25519 content, full PEM)
+#   VPS3_DEPLOY_PATH      — /opt/trading-commercial
+
+env:
+  DOCKER_BUILDKIT: "1"
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+  IMAGE_NAME: babahdigital/babahalgo
+
+on:
+  push:
+    branches: ["main"]
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      skip_deploy:
+        description: "Skip auto-deploy ke VPS3 (image tetap di-publish)"
+        type: boolean
+        required: false
+        default: false
+      cleanup_cache:
+        description: "Bersihkan build cache GHA sebelum build (lambat tapi reproducible)"
+        type: boolean
+        required: false
+        default: false
+
+concurrency:
+  group: docker-publish-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # -------------------------------------------------------------
+  # JOB 1 — Build & push multi-arch image
+  # -------------------------------------------------------------
+  build-and-push:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image_tag: ${{ steps.meta.outputs.version }}
+      image_digest: ${{ steps.build.outputs.digest }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU (multi-arch emulation)
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Validasi Secret Docker Hub
+        run: |
+          if [ -z "${{ secrets.DOCKER_USERNAME }}" ]; then
+            echo "::error::DOCKER_USERNAME secret tidak tersedia"
+            exit 1
+          fi
+          if [ -z "${{ secrets.DOCKER_PASSWORD }}" ]; then
+            echo "::error::DOCKER_PASSWORD secret tidak tersedia"
+            exit 1
+          fi
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Docker metadata (tags + labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=ref,event=branch
+            type=ref,event=tag
+            type=sha,prefix=sha-,format=short
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+          labels: |
+            org.opencontainers.image.title=BabahAlgo Frontend
+            org.opencontainers.image.description=Institutional trading platform commerce frontend (Next.js)
+            org.opencontainers.image.vendor=Babah Digital
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+
+      - name: Build & push (multi-arch)
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          provenance: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=babahalgo
+          cache-to: type=gha,mode=max,scope=babahalgo${{ inputs.cleanup_cache == true && ',ignore-error=true' || '' }}
+
+      - name: Image summary
+        run: |
+          {
+            echo "### Image Published"
+            echo "- Image: \`${{ env.IMAGE_NAME }}\`"
+            echo "- Primary tag: \`${{ steps.meta.outputs.version }}\`"
+            echo "- Digest: \`${{ steps.build.outputs.digest }}\`"
+            echo "- Platforms: linux/amd64, linux/arm64"
+            echo ""
+            echo "**All tags pushed:**"
+            echo '```'
+            echo "${{ steps.meta.outputs.tags }}"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # -------------------------------------------------------------
+  # JOB 2 — Deploy ke VPS3 via SSH (pull image + restart container)
+  # -------------------------------------------------------------
+  deploy:
+    needs: build-and-push
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && inputs.skip_deploy != true }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: production
+      url: https://babahalgo.com
+    steps:
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS3_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p ${{ secrets.VPS3_SSH_PORT }} -H ${{ secrets.VPS3_SSH_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Pull image + zero-downtime restart
+        env:
+          SSH_CMD: ssh -i ~/.ssh/deploy_key -p ${{ secrets.VPS3_SSH_PORT }} -o BatchMode=yes ${{ secrets.VPS3_SSH_USER }}@${{ secrets.VPS3_SSH_HOST }}
+        run: |
+          $SSH_CMD "set -euo pipefail; \
+            cd ${{ secrets.VPS3_DEPLOY_PATH }}; \
+            echo '== docker pull =='; \
+            docker compose -f docker-compose.prod.yml pull app; \
+            echo '== docker up -d (recreate) =='; \
+            docker compose -f docker-compose.prod.yml up -d --force-recreate app; \
+            echo '== healthcheck =='; \
+            for i in 1 2 3 4 5 6 7 8 9 10; do \
+              STATUS=\$(docker inspect --format '{{.State.Health.Status}}' trading-commercial-app-1 2>/dev/null || echo 'starting'); \
+              echo \"attempt \$i: \$STATUS\"; \
+              if [ \"\$STATUS\" = 'healthy' ]; then exit 0; fi; \
+              sleep 6; \
+            done; \
+            echo '::error::Container failed to become healthy within 60s'; \
+            docker compose -f docker-compose.prod.yml logs app --tail=50; \
+            exit 1"
+
+      - name: Public smoke test
+        run: |
+          set -e
+          echo "== /api/health =="
+          curl -fsS https://babahalgo.com/api/health -o /dev/null -w "HTTP %{http_code}\n"
+          echo "== /api/public/capabilities =="
+          curl -fsS https://babahalgo.com/api/public/capabilities | head -c 200
+          echo ""
+          echo "== /pricing =="
+          curl -fsS https://babahalgo.com/pricing -o /dev/null -w "HTTP %{http_code}\n"
+
+      - name: Deploy summary
+        if: success()
+        run: |
+          {
+            echo "### Deploy Successful"
+            echo "- Target: VPS3 (${{ secrets.VPS3_SSH_HOST }})"
+            echo "- Image tag: \`${{ needs.build-and-push.outputs.image_tag }}\`"
+            echo "- Production URL: https://babahalgo.com"
+            echo "- Healthcheck: passed"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Cleanup SSH key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key

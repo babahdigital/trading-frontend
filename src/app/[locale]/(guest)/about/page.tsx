@@ -16,11 +16,11 @@ export async function generateMetadata() {
 }
 
 const MILESTONES = [
-  { year: '2023', title: 'Research', description: 'Initial strategy research, backtesting, and validation across 5 years of tick data.' },
-  { year: '2024', title: 'Platform launch', description: 'Production deployment with live trading on 14 instruments. Infrastructure buildout.' },
-  { year: '2024', title: 'Signal service', description: 'Launch of retail signal service with Telegram and MT5 trade copier integration.' },
-  { year: '2025', title: 'PAMM accounts', description: 'Introduction of managed accounts with profit sharing for passive investors.' },
-  { year: '2026', title: 'Institutional', description: 'Custom mandate service for family offices, small funds, and high-net-worth individuals.' },
+  { year: '2023', title: 'Research', description: 'Initial strategy research, backtesting, dan validation lintas 5 tahun tick data.' },
+  { year: '2024', title: 'Platform launch', description: 'Production deployment dengan live trading di 14 instrumen. Infrastructure buildout.' },
+  { year: '2024', title: 'Signal Service', description: 'Launch retail signal service dengan Telegram + MT5 trade copier — model affiliate-broker, customer pegang dana sendiri.' },
+  { year: '2025', title: 'Crypto Bot', description: 'Binance Futures bot dengan 6 strategi institusional + risk overlay 12-layer. Customer pegang Binance API key.' },
+  { year: '2026', title: 'Public API Marketplace', description: '9 container API (News, Signals, Indicators, Calendar, Market Data, Execution, Correlation, Broker Specs, AI Explainability) untuk integrasi B2B + institutional.' },
 ];
 
 const PRINCIPLES = [

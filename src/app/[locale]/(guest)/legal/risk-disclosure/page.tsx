@@ -195,15 +195,16 @@ export default function RiskDisclosurePage() {
               </section>
 
               <section>
-                <h2 className="t-display-sub mb-6 text-foreground">9. PAMM and Managed Account Risk</h2>
+                <h2 className="t-display-sub mb-6 text-foreground">9. VPS License & Crypto Bot Profit-Share Risk</h2>
                 <p>
-                  If you invest in a PAMM or managed account, you are entrusting trading decisions to
-                  BabahAlgo. While we employ risk management frameworks to limit losses, there is no
-                  guarantee that these measures will prevent significant drawdowns or losses. You
-                  should only allocate capital to managed trading that you can afford to lose entirely.
-                  The profit-sharing fee structure means that BabahAlgo earns fees on profitable periods
-                  even if your overall investment is at a loss when accounting for prior drawdowns,
-                  although our high-water mark provisions mitigate this risk.
+                  BabahAlgo operates a <strong>zero-custody model</strong> — we do not hold or manage
+                  client capital. For VPS License clients, the bot runs on infrastructure you control,
+                  trading from your own broker account. For Crypto Bot subscribers, you hold the
+                  Binance API key (Read + Trade permissions only, never Withdraw) and trades execute
+                  in your own Binance Futures account. Our crypto profit-share fee structure means
+                  BabahAlgo earns fees on profitable periods, calculated against a high-water mark
+                  to ensure you do not pay performance fees during losing recovery periods. We do
+                  NOT offer PAMM or managed-account products in any form.
                 </p>
               </section>
 

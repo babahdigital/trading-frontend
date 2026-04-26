@@ -113,7 +113,7 @@ export default function TermsPage() {
               <section>
                 <h2 className="t-display-sub mb-6 text-foreground">4. Subscription Plans and Services</h2>
                 <p>
-                  BabahAlgo offers several service tiers including Signal Service, PAMM Account management,
+                  BabahAlgo offers several service tiers including Signal Service, VPS License management,
                   VPS License, and Institutional mandates. Each service tier has specific terms, pricing,
                   and conditions that are presented during the subscription or onboarding process.
                 </p>
@@ -134,7 +134,7 @@ export default function TermsPage() {
                 <h2 className="t-display-sub mb-6 text-foreground">5. Billing and Payment</h2>
                 <p>
                   Subscription fees are billed in advance on a monthly basis unless otherwise specified.
-                  Performance fees for PAMM and institutional mandates are calculated and billed according
+                  Performance fees for institutional API mandates are calculated and billed according
                   to the terms of the applicable service agreement.
                 </p>
                 <p className="mt-3">
@@ -162,8 +162,8 @@ export default function TermsPage() {
                   portions of a billing period.
                 </p>
                 <p className="mt-3">
-                  PAMM Account mandates can be terminated with written notice. Withdrawal of funds from
-                  PAMM accounts is subject to the terms of the broker agreement and may take up to 3
+                  VPS License mandates can be terminated with written notice. Withdrawal of funds from
+                  VPS License accounts is subject to the terms of the broker agreement and may take up to 3
                   business days to process. Outstanding performance fees are calculated and deducted at
                   the time of termination.
                 </p>

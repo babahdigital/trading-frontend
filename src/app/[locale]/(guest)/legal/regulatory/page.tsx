@@ -71,7 +71,7 @@ export default function RegulatoryPage() {
                   regulatory sense.
                 </p>
                 <p className="mt-3">
-                  Trading authority for managed accounts (PAMM and institutional mandates) is established
+                  Trading authority for managed accounts (institutional API mandates) is established
                   through limited power of attorney arrangements between clients and regulated brokers.
                   BabahAlgo acts as the appointed trading manager under these arrangements.
                 </p>

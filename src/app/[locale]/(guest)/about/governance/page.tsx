@@ -62,7 +62,7 @@ export default async function GovernancePage() {
                 who maintain their own accounts at regulated brokers.
               </p>
               <p>
-                For PAMM and institutional mandates, trading authority is granted through limited power of
+                For institutional API mandates, trading authority is granted through limited power of
                 attorney arrangements directly between the client and the broker. BabahAlgo does not hold,
                 custody, or transfer client funds at any point.
               </p>
@@ -167,7 +167,7 @@ export default async function GovernancePage() {
                 <li className="flex items-start gap-3">
                   <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-foreground shrink-0" />
                   <span>
-                    <strong className="text-foreground">Performance fees:</strong> PAMM and institutional
+                    <strong className="text-foreground">Performance fees:</strong> institutional API
                     mandates include performance-based compensation, which could incentivize excessive
                     risk-taking. This is mitigated by our risk framework, drawdown limits, and high-water
                     mark provisions.

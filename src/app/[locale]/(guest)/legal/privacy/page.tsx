@@ -71,7 +71,7 @@ export default function PrivacyPage() {
                 <p className="mt-3">
                   <strong className="text-foreground">Account information:</strong> When you register for an
                   account, we collect your name, email address, phone number, and country of residence.
-                  For PAMM and institutional clients, we may also collect identification documents,
+                  For institutional API clients, we may also collect identification documents,
                   proof of address, and financial information as required by our onboarding process.
                 </p>
                 <p className="mt-3">
@@ -156,7 +156,7 @@ export default function PrivacyPage() {
                 </p>
                 <p className="mt-3">
                   <strong className="text-foreground">Broker partners:</strong> To facilitate account
-                  opening and trade execution for PAMM and VPS License clients, we share necessary
+                  opening and trade execution for VPS License clients, we share necessary
                   account information with our partner brokers. These brokers are regulated entities
                   with their own privacy and data protection obligations.
                 </p>

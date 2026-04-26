@@ -207,12 +207,14 @@ ssh ... "cd /opt/trading-commercial && \
    ssh -i ~/.ssh/id_raspi_ed25519 -p 1983 abdullah@148.230.96.201
    cd /opt/trading-commercial
    nano .env
-   # Set:
+   # Tambah:
    #   R2_ENABLED=true
    #   R2_ACCOUNT_ID=<account-id>
    #   R2_ACCESS_KEY_ID=<access-key>
    #   R2_SECRET_ACCESS_KEY=<secret>
    #   R2_BUCKET=babahalgo-backups
+   #   # Untuk EU jurisdiction (default US, auto dari ACCOUNT_ID kalau kosong):
+   #   R2_ENDPOINT=https://<account-id>.eu.r2.cloudflarestorage.com
    ```
 5. Restart r2-backup service:
    ```bash

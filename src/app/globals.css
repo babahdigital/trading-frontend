@@ -356,15 +356,33 @@
   .container-full { max-width: 1600px; margin-inline: auto; }
 
   /* ─── Card enterprise ─── */
+  /* Adaptive theme: light mode uses shadcn card tokens (white bg + dark text);
+     dark mode locks to midnight-2 with warmer accents. Light theme adds a
+     subtle shadow for depth instead of relying on dark contrast. */
   .card-enterprise {
     border-radius: var(--radius-lg);
-    border: 1px solid rgba(245, 245, 247, 0.08);
+    border: 1px solid hsl(var(--border));
+    background: hsl(var(--card));
+    color: hsl(var(--card-foreground));
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    transition: border-color var(--duration-normal) ease,
+                box-shadow var(--duration-normal) ease;
+  }
+  @media (min-width: 640px) {
+    .card-enterprise { padding: 2rem; }
+  }
+  .dark .card-enterprise {
     background: var(--brand-midnight-2);
-    padding: 2rem;
-    transition: border-color var(--duration-normal) ease;
+    border-color: rgba(245, 245, 247, 0.12);
+    box-shadow: none;
   }
   .card-enterprise:hover {
-    border-color: rgba(245, 181, 71, 0.3);
+    border-color: rgba(245, 181, 71, 0.4);
+    box-shadow: var(--shadow-md);
+  }
+  .dark .card-enterprise:hover {
+    box-shadow: none;
   }
 
   /* ─── Icon container ─── */
@@ -414,14 +432,27 @@
   /* ─── KPI Card ─── */
   .kpi-card {
     border-radius: var(--radius-lg);
+    background: hsl(var(--card));
+    color: hsl(var(--card-foreground));
+    border: 1px solid hsl(var(--border));
+    padding: 1.25rem;
+    box-shadow: var(--shadow-sm);
+    transition: border-color var(--duration-normal) ease,
+                box-shadow var(--duration-normal) ease;
+  }
+  @media (min-width: 640px) {
+    .kpi-card { padding: 1.5rem; }
+  }
+  .dark .kpi-card {
     background: var(--brand-midnight-2);
-    border: 1px solid rgba(245, 245, 247, 0.08);
-    padding: 1.5rem;
-    transition: border-color var(--duration-normal) ease;
+    border-color: rgba(245, 245, 247, 0.12);
+    box-shadow: none;
   }
   .kpi-card:hover {
-    border-color: rgba(245, 181, 71, 0.3);
+    border-color: rgba(245, 181, 71, 0.4);
+    box-shadow: var(--shadow-md);
   }
+  .dark .kpi-card:hover { box-shadow: none; }
 
   /* ─── Nav link ─── */
   .nav-link {

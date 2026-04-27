@@ -83,7 +83,7 @@ function RegisterSignalInner() {
               <h1 className="t-display-sub mb-2">
                 {isDemoMode
                   ? (isEn ? 'Free Demo Signup' : 'Daftar Demo Gratis')
-                  : (isEn ? 'Signal Service Registration' : 'Pendaftaran Signal')}
+                  : (isEn ? 'Robot Meta Registration' : 'Pendaftaran Robot Meta')}
               </h1>
               <p className="t-lead text-foreground/60 mb-6">
                 {isDemoMode
@@ -173,22 +173,22 @@ function RegisterSignalInner() {
                         {[
                           {
                             value: 'SIGNAL_STARTER',
-                            label: 'Signal Starter',
+                            label: 'Tier 1 · Swing',
                             price: '$19/bulan',
-                            desc: 'Live signals (≤3 simbol), 1 strategy aktif, rule-based AI explainability',
+                            desc: '3 pair major · swing only · indikator dasar SMC + Wyckoff · email/dashboard',
                           },
                           {
                             value: 'SIGNAL_PRO',
-                            label: 'Signal Pro',
+                            label: 'Tier 2 · Scalping',
                             price: '$79/bulan',
-                            desc: 'Unlimited symbols, 5 strategi paralel, mid-tier AI, priority MT5 latency',
+                            desc: '8 pair (Major + Cross + Gold + Silver) · swing + scalping · WhatsApp + Telegram · mid-tier AI',
                             popular: true,
                           },
                           {
                             value: 'SIGNAL_VIP',
-                            label: 'Signal VIP',
+                            label: 'Tier 3 · All-In',
                             price: '$299/bulan',
-                            desc: 'Premium AI (gradient boost), custom backtest sweep, payout API, copy-trade lead dashboard',
+                            desc: 'Unlimited pair · semua 6 strategi · premium AI advisor · dedicated support 24/7',
                           },
                         ].map((tier) => (
                           <div
@@ -244,9 +244,9 @@ function RegisterSignalInner() {
                           <span className="font-semibold text-amber-400">
                             {isDemoMode
                               ? (isEn ? 'Free Demo (Beta)' : 'Demo Gratis (Beta)')
-                              : form.tier === 'SIGNAL_STARTER' ? 'Signal Starter ($19/mo)'
-                              : form.tier === 'SIGNAL_PRO' ? 'Signal Pro ($79/mo)'
-                              : form.tier === 'SIGNAL_VIP' ? 'Signal VIP ($299/mo)'
+                              : form.tier === 'SIGNAL_STARTER' ? 'Robot Meta · Tier 1 Swing ($19/mo)'
+                              : form.tier === 'SIGNAL_PRO' ? 'Robot Meta · Tier 2 Scalping ($79/mo)'
+                              : form.tier === 'SIGNAL_VIP' ? 'Robot Meta · Tier 3 All-In ($299/mo)'
                               : `${form.tier}`}
                           </span>
                         </div>

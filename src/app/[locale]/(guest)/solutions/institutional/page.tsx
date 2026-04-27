@@ -1,3 +1,4 @@
+import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
@@ -6,96 +7,35 @@ import { breadcrumbSchema, ldJson, organizationSchema, professionalServiceSchema
 
 export const dynamic = 'force-dynamic';
 
-const FEATURES = [
-  {
-    title: 'Priority API access',
-    description:
-      'Akses prioritas ke 8 Developer API container kami (News, Signals, Indicators, Calendar, Market Data, Correlation, Broker Specs, AI Explainability) dengan rate limit khusus + dedicated infrastructure lane.',
-  },
-  {
-    title: 'White-label capability',
-    description:
-      'Tawarkan teknologi BabahAlgo dengan brand Anda sendiri. Kami sediakan infrastructure + execution + reporting; Anda yang pegang relasi customer dan branding.',
-  },
-  {
-    title: 'Custom integration support',
-    description:
-      'Tim engineering kami bantu integrasi langsung ke OMS/PMS/risk-system Anda. WebSocket subscription, REST batching, custom data formatter sesuai kebutuhan.',
-  },
-  {
-    title: 'Backtest as a Service',
-    description:
-      'Walk-forward + Monte Carlo backtesting on-demand untuk strategi internal Anda. Tick data 5 tahun di 14 instrumen. Whitelabel report PDF + API automation.',
-  },
-  {
-    title: 'Dedicated engineering contact',
-    description:
-      'Single point of contact dari engineering team — bukan customer support generic. Direct access via Telegram + email + scheduled call. SLA 99.9%.',
-  },
-  {
-    title: 'Compliance & audit reporting',
-    description:
-      'Monthly + quarterly reports yang siap untuk audit, LP distribution, dan regulatory filings. Audit chain verification harian + immutable trail per ADR governance.',
-  },
-];
+const FEATURE_META = [
+  { titleKey: 'feat1_title', descKey: 'feat1_desc' },
+  { titleKey: 'feat2_title', descKey: 'feat2_desc' },
+  { titleKey: 'feat3_title', descKey: 'feat3_desc' },
+  { titleKey: 'feat4_title', descKey: 'feat4_desc' },
+  { titleKey: 'feat5_title', descKey: 'feat5_desc' },
+  { titleKey: 'feat6_title', descKey: 'feat6_desc' },
+] as const;
 
-const STEPS = [
-  {
-    step: '01',
-    title: 'Briefing',
-    description:
-      'An introductory call to understand your investment mandate, capital allocation, risk appetite, and operational requirements.',
-  },
-  {
-    step: '02',
-    title: 'Discovery',
-    description:
-      'Our team conducts due diligence on both sides: we share our track record, risk framework, and infrastructure details. You share your compliance requirements and investment criteria.',
-  },
-  {
-    step: '03',
-    title: 'Proposal',
-    description:
-      'We deliver a comprehensive proposal covering strategy design, risk parameters, fee structure, reporting cadence, and legal framework.',
-  },
-  {
-    step: '04',
-    title: 'IMA signing',
-    description:
-      'Upon agreement, we execute the Investment Management Agreement and establish the legal and operational framework for the mandate.',
-  },
-  {
-    step: '05',
-    title: 'Funding & go-live',
-    description:
-      'Capital is deposited at the designated broker. Trading begins according to the agreed mandate with full reporting from day one.',
-  },
-];
+const STEP_META = [
+  { step: '01', titleKey: 'step1_title', descKey: 'step1_desc' },
+  { step: '02', titleKey: 'step2_title', descKey: 'step2_desc' },
+  { step: '03', titleKey: 'step3_title', descKey: 'step3_desc' },
+  { step: '04', titleKey: 'step4_title', descKey: 'step4_desc' },
+  { step: '05', titleKey: 'step5_title', descKey: 'step5_desc' },
+] as const;
 
-const FAQ = [
-  {
-    q: 'What is the minimum AUM?',
-    a: 'The starting AUM for institutional mandates is $250,000. This minimum ensures adequate diversification across our instrument universe and proper position sizing within the risk framework.',
-  },
-  {
-    q: 'What is the fee structure?',
-    a: 'Fee structures are mandate-specific and negotiated during the proposal phase. Typical arrangements include a management fee (1-2% annually) plus performance fee (15-25% of profits above high-water mark). We are flexible on structure.',
-  },
-  {
-    q: 'Where are client funds held?',
-    a: 'All client funds are held at regulated brokers in segregated accounts under the client entity name. BabahAlgo holds limited power of attorney for trading purposes only. We cannot transfer or withdraw client funds.',
-  },
-  {
-    q: 'Do you support multi-currency mandates?',
-    a: 'Yes. We can configure mandates to trade in multiple base currencies and across currency pairs. P&L reporting can be denominated in USD, EUR, GBP, or SGD.',
-  },
-  {
-    q: 'What regulatory framework applies?',
-    a: 'BabahAlgo operates as a technology and advisory provider under Indonesian commercial law (CV Babah Digital). For mandates requiring specific regulatory coverage, we work with regulated partner entities in the relevant jurisdictions.',
-  },
-];
+const FAQ_META = [
+  { qKey: 'faq1_q', aKey: 'faq1_a' },
+  { qKey: 'faq2_q', aKey: 'faq2_a' },
+  { qKey: 'faq3_q', aKey: 'faq3_a' },
+  { qKey: 'faq4_q', aKey: 'faq4_a' },
+  { qKey: 'faq5_q', aKey: 'faq5_a' },
+] as const;
+
+const ELIG_KEYS = ['elig_b1', 'elig_b2', 'elig_b3'] as const;
 
 export default async function InstitutionalPage() {
+  const t = await getTranslations('solutions_institutional');
   const breadcrumb = breadcrumbSchema([
     { name: 'Home', url: '/' },
     { name: 'Solutions', url: '/solutions' },
@@ -111,13 +51,12 @@ export default async function InstitutionalPage() {
         {/* Hero */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-4">Institutional</p>
+            <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
             <h1 className="t-display-page mb-6">
-              Custom mandate for family offices and funds.
+              {t('hero_title')}
             </h1>
             <p className="t-lead text-foreground/60 max-w-2xl">
-              Bespoke trading mandates with dedicated infrastructure, custom risk parameters,
-              and institutional-grade reporting. Built for allocators who demand full control and transparency.
+              {t('hero_subtitle')}
             </p>
           </div>
         </section>
@@ -125,21 +64,15 @@ export default async function InstitutionalPage() {
         {/* Who it's for */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-4">Eligibility</p>
-            <h2 className="t-display-sub mb-8">Who it is for</h2>
+            <p className="t-eyebrow mb-4">{t('elig_eyebrow')}</p>
+            <h2 className="t-display-sub mb-8">{t('elig_title')}</h2>
             <ul className="space-y-4 text-foreground/60 max-w-2xl">
-              <li className="flex items-start gap-3">
-                <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-                <span>Family offices seeking systematic, uncorrelated return streams with institutional-grade risk management and reporting.</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-                <span>Small hedge funds and CTA programs looking for turnkey quantitative trading infrastructure with custom mandate design.</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-                <span>High-net-worth individuals with $250,000 or more in liquid assets who want professionally managed, algorithm-driven exposure to FX and commodities markets.</span>
-              </li>
+              {ELIG_KEYS.map((k) => (
+                <li key={k} className="flex items-start gap-3">
+                  <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                  <span>{t(k)}</span>
+                </li>
+              ))}
             </ul>
           </div>
         </section>
@@ -147,13 +80,13 @@ export default async function InstitutionalPage() {
         {/* What you get */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-4">Capabilities</p>
-            <h2 className="t-display-sub mb-12">What you get</h2>
+            <p className="t-eyebrow mb-4">{t('cap_eyebrow')}</p>
+            <h2 className="t-display-sub mb-12">{t('cap_title')}</h2>
             <div className="grid md:grid-cols-2 gap-8">
-              {FEATURES.map((feature) => (
-                <div key={feature.title} className="card-enterprise">
-                  <h3 className="font-semibold mb-3">{feature.title}</h3>
-                  <p className="t-body-sm text-foreground/60 leading-relaxed">{feature.description}</p>
+              {FEATURE_META.map((feature) => (
+                <div key={feature.titleKey} className="card-enterprise">
+                  <h3 className="font-semibold mb-3">{t(feature.titleKey)}</h3>
+                  <p className="t-body-sm text-foreground/60 leading-relaxed">{t(feature.descKey)}</p>
                 </div>
               ))}
             </div>
@@ -163,17 +96,16 @@ export default async function InstitutionalPage() {
         {/* Pricing */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-4">Pricing</p>
-            <h2 className="t-display-sub mb-12">Pricing</h2>
+            <p className="t-eyebrow mb-4">{t('pricing_eyebrow')}</p>
+            <h2 className="t-display-sub mb-12">{t('pricing_title')}</h2>
             <div className="card-enterprise max-w-xl">
-              <p className="t-eyebrow mb-4">Mandate-Based</p>
-              <p className="font-display text-4xl font-medium mb-2">Starting AUM: $250,000</p>
+              <p className="t-eyebrow mb-4">{t('pricing_label')}</p>
+              <p className="font-display text-4xl font-medium mb-2">{t('pricing_value')}</p>
               <p className="text-foreground/60 leading-relaxed mb-6">
-                Fee structures are negotiated on a per-mandate basis. Typical arrangements include a management fee
-                and performance fee with high-water mark protection. All terms are documented in the Investment Management Agreement.
+                {t('pricing_subtitle')}
               </p>
               <p className="t-body-sm text-foreground/60">
-                Schedule a briefing to discuss your specific requirements and receive a tailored proposal.
+                {t('pricing_note')}
               </p>
             </div>
           </div>
@@ -182,15 +114,15 @@ export default async function InstitutionalPage() {
         {/* Onboarding */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-4">Process</p>
-            <h2 className="t-display-sub mb-12">Onboarding process</h2>
+            <p className="t-eyebrow mb-4">{t('process_eyebrow')}</p>
+            <h2 className="t-display-sub mb-12">{t('process_title')}</h2>
             <div className="grid md:grid-cols-5 gap-6">
-              {STEPS.map((step, i) => (
+              {STEP_META.map((step, i) => (
                 <div key={step.step} className="relative">
                   <p className="font-mono text-5xl text-amber-500/20 mb-3">{step.step}</p>
-                  <h3 className="font-semibold text-sm mb-2">{step.title}</h3>
-                  <p className="text-xs text-foreground/60 leading-relaxed">{step.description}</p>
-                  {i < STEPS.length - 1 && (
+                  <h3 className="font-semibold text-sm mb-2">{t(step.titleKey)}</h3>
+                  <p className="text-xs text-foreground/60 leading-relaxed">{t(step.descKey)}</p>
+                  {i < STEP_META.length - 1 && (
                     <ArrowRight className="hidden md:block absolute top-4 -right-4 w-4 h-4 text-foreground/30" />
                   )}
                 </div>
@@ -204,14 +136,14 @@ export default async function InstitutionalPage() {
           <div className="container-default px-4 sm:px-6">
             <div className="grid lg:grid-cols-5 gap-12">
               <div className="lg:col-span-2">
-                <p className="t-eyebrow mb-4">FAQ</p>
-                <h2 className="t-display-sub">Frequently asked questions</h2>
+                <p className="t-eyebrow mb-4">{t('faq_eyebrow')}</p>
+                <h2 className="t-display-sub">{t('faq_title')}</h2>
               </div>
               <div className="lg:col-span-3 space-y-8">
-                {FAQ.map((item) => (
-                  <div key={item.q}>
-                    <h3 className="font-semibold mb-2">{item.q}</h3>
-                    <p className="t-body-sm text-foreground/60 leading-relaxed">{item.a}</p>
+                {FAQ_META.map((item) => (
+                  <div key={item.qKey}>
+                    <h3 className="font-semibold mb-2">{t(item.qKey)}</h3>
+                    <p className="t-body-sm text-foreground/60 leading-relaxed">{t(item.aKey)}</p>
                   </div>
                 ))}
               </div>
@@ -222,17 +154,16 @@ export default async function InstitutionalPage() {
         {/* CTA */}
         <section className="section-padding">
           <div className="container-default px-4 sm:px-6 text-center">
-            <p className="t-eyebrow mb-4">Get Started</p>
-            <h2 className="t-display-sub mb-4">Let us discuss your mandate</h2>
+            <p className="t-eyebrow mb-4">{t('cta_eyebrow')}</p>
+            <h2 className="t-display-sub mb-4">{t('cta_title')}</h2>
             <p className="text-foreground/60 mb-8 max-w-lg mx-auto">
-              Schedule an introductory briefing with our institutional team. No commitment, no pressure --
-              just a conversation about whether our capabilities align with your objectives.
+              {t('cta_body')}
             </p>
             <Link
               href="/contact"
               className="btn-primary inline-flex items-center gap-2"
             >
-              Request introduction
+              {t('cta_button')}
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>

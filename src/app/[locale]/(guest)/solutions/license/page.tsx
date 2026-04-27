@@ -1,3 +1,4 @@
+import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
@@ -6,107 +7,46 @@ import { breadcrumbSchema, financialProductSchema, ldJson, organizationSchema } 
 
 export const dynamic = 'force-dynamic';
 
-const SPECS = [
-  { spec: 'CPU', value: '4 vCPUs (dedicated)', note: 'Guaranteed cores, no shared contention' },
-  { spec: 'RAM', value: '8 GB DDR4', note: 'Expandable to 16 GB on request' },
-  { spec: 'Storage', value: '100 GB NVMe SSD', note: 'Sub-millisecond I/O for trade logging' },
-  { spec: 'Network', value: '1 Gbps dedicated', note: 'Low-latency broker connectivity' },
-  { spec: 'Uptime SLA', value: '99.9%', note: 'Contractual guarantee with failover' },
-  { spec: 'OS', value: 'Linux (hardened)', note: 'Minimal attack surface, auto-patched' },
-  { spec: 'Monitoring', value: '60-second health checks', note: '24/7 automated alerting' },
-  { spec: 'Backup', value: 'Daily snapshots', note: '7-day retention with point-in-time recovery' },
-];
+const SPEC_META = [
+  { specKey: 'spec_cpu', valueKey: 'spec_cpu_value', noteKey: 'spec_cpu_note' },
+  { specKey: 'spec_ram', valueKey: 'spec_ram_value', noteKey: 'spec_ram_note' },
+  { specKey: 'spec_storage', valueKey: 'spec_storage_value', noteKey: 'spec_storage_note' },
+  { specKey: 'spec_network', valueKey: 'spec_network_value', noteKey: 'spec_network_note' },
+  { specKey: 'spec_uptime', valueKey: 'spec_uptime_value', noteKey: 'spec_uptime_note' },
+  { specKey: 'spec_os', valueKey: 'spec_os_value', noteKey: 'spec_os_note' },
+  { specKey: 'spec_monitoring', valueKey: 'spec_monitoring_value', noteKey: 'spec_monitoring_note' },
+  { specKey: 'spec_backup', valueKey: 'spec_backup_value', noteKey: 'spec_backup_note' },
+] as const;
 
-const FEATURES = [
-  {
-    title: 'Dedicated VPS instance',
-    description:
-      'Your own isolated virtual private server running our trading bot with guaranteed CPU, RAM, and network resources. No shared infrastructure.',
-  },
-  {
-    title: 'Custom strategy configuration',
-    description:
-      'Work with our quant team to configure the bot for your specific instruments, timeframes, risk parameters, and trading schedule.',
-  },
-  {
-    title: 'Direct MT5 integration',
-    description:
-      'The bot connects directly to your MT5 broker account with sub-millisecond execution latency. Supports multiple broker connections.',
-  },
-  {
-    title: '99.9% uptime SLA',
-    description:
-      'Enterprise-grade infrastructure with automated failover, health monitoring, and proactive alerting. Backed by a contractual uptime guarantee.',
-  },
-  {
-    title: 'Full audit trail',
-    description:
-      'Every trade decision, risk check, and execution event is logged and available through your dashboard and API. Complete operational transparency.',
-  },
-  {
-    title: 'Ongoing maintenance',
-    description:
-      'Monthly maintenance includes system updates, security patches, performance optimization, and strategy parameter reviews.',
-  },
-];
+const FEATURE_META = [
+  { titleKey: 'feat1_title', descKey: 'feat1_desc' },
+  { titleKey: 'feat2_title', descKey: 'feat2_desc' },
+  { titleKey: 'feat3_title', descKey: 'feat3_desc' },
+  { titleKey: 'feat4_title', descKey: 'feat4_desc' },
+  { titleKey: 'feat5_title', descKey: 'feat5_desc' },
+  { titleKey: 'feat6_title', descKey: 'feat6_desc' },
+] as const;
 
-const STEPS = [
-  {
-    step: '01',
-    title: 'Schedule a call',
-    description:
-      'Book a 30-minute consultation with our team. We will discuss your trading objectives, capital allocation, and infrastructure requirements.',
-  },
-  {
-    step: '02',
-    title: 'Discovery',
-    description:
-      'Our quant team conducts a detailed assessment of your requirements: instrument universe, risk tolerance, broker preferences, and operational needs.',
-  },
-  {
-    step: '03',
-    title: 'Proposal',
-    description:
-      'We deliver a technical proposal covering system architecture, strategy configuration, risk parameters, pricing, and timeline.',
-  },
-  {
-    step: '04',
-    title: 'Setup',
-    description:
-      'Upon agreement, we provision your dedicated VPS, configure the trading bot, connect to your broker, and run a controlled paper-trading validation phase.',
-  },
-  {
-    step: '05',
-    title: 'Training & go-live',
-    description:
-      'We walk you through the dashboard, alerting system, and operational procedures. Once confirmed, we switch to live trading with your capital.',
-  },
-];
+const STEP_META = [
+  { step: '01', titleKey: 'step1_title', descKey: 'step1_desc' },
+  { step: '02', titleKey: 'step2_title', descKey: 'step2_desc' },
+  { step: '03', titleKey: 'step3_title', descKey: 'step3_desc' },
+  { step: '04', titleKey: 'step4_title', descKey: 'step4_desc' },
+  { step: '05', titleKey: 'step5_title', descKey: 'step5_desc' },
+] as const;
 
-const FAQ = [
-  {
-    q: 'What hardware specifications are included?',
-    a: 'Each VPS instance includes a minimum of 4 vCPUs, 8GB RAM, 100GB NVMe SSD, and a dedicated 1Gbps network connection. We can scale these resources based on the number of instruments and strategies deployed.',
-  },
-  {
-    q: 'Can I use my own broker?',
-    a: 'Yes. The bot supports any MT5-compatible broker. We have pre-tested integrations with several brokers and can validate connectivity with your preferred broker during the discovery phase.',
-  },
-  {
-    q: 'What happens if the server goes down?',
-    a: 'Our monitoring system detects failures within 30 seconds and initiates automatic recovery. If a hardware failure occurs, the bot is migrated to backup infrastructure. All open positions have server-side stop-losses as an additional safety layer.',
-  },
-  {
-    q: 'Can I modify the strategy after deployment?',
-    a: 'Yes. Strategy parameters can be adjusted at any time through a structured change request process. Material changes go through our validation pipeline before deployment to ensure they do not compromise the risk framework.',
-  },
-  {
-    q: 'Is the setup fee refundable?',
-    a: 'The setup fee covers infrastructure provisioning, strategy configuration, and training. It is non-refundable after the discovery phase begins. You may cancel the monthly maintenance at any time with 30 days notice.',
-  },
-];
+const FAQ_META = [
+  { qKey: 'faq1_q', aKey: 'faq1_a' },
+  { qKey: 'faq2_q', aKey: 'faq2_a' },
+  { qKey: 'faq3_q', aKey: 'faq3_a' },
+  { qKey: 'faq4_q', aKey: 'faq4_a' },
+  { qKey: 'faq5_q', aKey: 'faq5_a' },
+] as const;
+
+const ELIG_KEYS = ['elig_b1', 'elig_b2', 'elig_b3'] as const;
 
 export default async function LicensePage() {
+  const t = await getTranslations('solutions_license');
   const breadcrumb = breadcrumbSchema([
     { name: 'Home', url: '/' },
     { name: 'Solutions', url: '/solutions' },
@@ -116,7 +56,8 @@ export default async function LicensePage() {
     { name: 'VPS Standard — $3,000 setup + $150/mo', description: 'Dedicated VPS broker-level, full bot access, custom configuration', price: '3000', currency: 'USD' },
     { name: 'VPS Premium — $7,500 setup + $300/mo', description: 'Multi-broker bridge MT4+MT5, 3 akun paralel, priority support 24/7', price: '7500', currency: 'USD' },
     { name: 'VPS Dedicated — $1,499/mo', description: 'Single-customer isolated VPS, dedicated MT5 bridge, 24/7 incident channel, SLA 99.9%', price: '1499', currency: 'USD' },
-  ].map((t) => financialProductSchema({ ...t, url: '/solutions/license' }));
+  ].map((m) => financialProductSchema({ ...m, url: '/solutions/license' }));
+
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(organizationSchema()) }} />
@@ -130,13 +71,12 @@ export default async function LicensePage() {
         {/* Hero */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-4">VPS License</p>
+            <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
             <h1 className="t-display-page mb-6">
-              Dedicated bot infrastructure for professional traders.
+              {t('hero_title')}
             </h1>
             <p className="t-lead text-foreground/60 max-w-2xl">
-              Your own isolated server running our trading algorithms, configured to your specifications.
-              Full control, full transparency, enterprise-grade reliability.
+              {t('hero_subtitle')}
             </p>
           </div>
         </section>
@@ -144,27 +84,27 @@ export default async function LicensePage() {
         {/* Technical Specs Table */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-3">Infrastructure</p>
-            <h2 className="t-display-sub mb-4">Technical specifications</h2>
+            <p className="t-eyebrow mb-3">{t('infra_eyebrow')}</p>
+            <h2 className="t-display-sub mb-4">{t('infra_title')}</h2>
             <p className="t-body text-foreground/60 mb-10 max-w-xl">
-              Every VPS license includes enterprise-grade hardware with guaranteed resources.
+              {t('infra_subtitle')}
             </p>
             <div className="overflow-x-auto max-w-4xl">
               <div className="table-enterprise-wrapper min-w-[500px]">
               <table className="table-enterprise w-full">
                 <thead>
                   <tr className="border-b border-border/60">
-                    <th className="text-left px-6 py-3">Component</th>
-                    <th className="text-left px-6 py-3">Specification</th>
-                    <th className="text-left px-6 py-3 hidden md:table-cell">Notes</th>
+                    <th className="text-left px-6 py-3">{t('col_component')}</th>
+                    <th className="text-left px-6 py-3">{t('col_spec')}</th>
+                    <th className="text-left px-6 py-3 hidden md:table-cell">{t('col_notes')}</th>
                   </tr>
                 </thead>
                 <tbody className="text-sm">
-                  {SPECS.map((row) => (
-                    <tr key={row.spec} className="border-b border-border/60 last:border-0">
-                      <td className="px-6 py-3 font-medium text-foreground/80">{row.spec}</td>
-                      <td className="px-6 py-3 font-mono text-amber-400">{row.value}</td>
-                      <td className="px-6 py-3 text-foreground/50 hidden md:table-cell">{row.note}</td>
+                  {SPEC_META.map((row) => (
+                    <tr key={row.specKey} className="border-b border-border/60 last:border-0">
+                      <td className="px-6 py-3 font-medium text-foreground/80">{t(row.specKey)}</td>
+                      <td className="px-6 py-3 font-mono text-amber-400">{t(row.valueKey)}</td>
+                      <td className="px-6 py-3 text-foreground/50 hidden md:table-cell">{t(row.noteKey)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -177,21 +117,15 @@ export default async function LicensePage() {
         {/* Who it's for */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-4">Eligibility</p>
-            <h2 className="t-display-sub mb-8">Who it is for</h2>
+            <p className="t-eyebrow mb-4">{t('elig_eyebrow')}</p>
+            <h2 className="t-display-sub mb-8">{t('elig_title')}</h2>
             <ul className="space-y-4 text-foreground/60 max-w-2xl">
-              <li className="flex items-start gap-3">
-                <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-                <span>Professional traders managing $50,000 or more who want dedicated infrastructure without sharing resources.</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-                <span>Trading firms and prop desks looking for turnkey algorithmic trading infrastructure with custom configuration.</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-                <span>Traders who want full operational control and the ability to customize every aspect of the system.</span>
-              </li>
+              {ELIG_KEYS.map((k) => (
+                <li key={k} className="flex items-start gap-3">
+                  <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                  <span>{t(k)}</span>
+                </li>
+              ))}
             </ul>
           </div>
         </section>
@@ -199,12 +133,12 @@ export default async function LicensePage() {
         {/* Features — alternating left-right sections */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-4">Capabilities</p>
-            <h2 className="t-display-sub mb-14">What you get</h2>
+            <p className="t-eyebrow mb-4">{t('cap_eyebrow')}</p>
+            <h2 className="t-display-sub mb-14">{t('cap_title')}</h2>
             <div className="space-y-16">
-              {FEATURES.map((feature, i) => (
+              {FEATURE_META.map((feature, i) => (
                 <div
-                  key={feature.title}
+                  key={feature.titleKey}
                   className={`grid md:grid-cols-2 gap-8 md:gap-16 items-center ${
                     i % 2 === 1 ? 'md:[direction:rtl]' : ''
                   }`}
@@ -214,14 +148,14 @@ export default async function LicensePage() {
                     <div className="aspect-[4/3] rounded-lg border border-border/60 bg-muted/30 flex items-center justify-center">
                       <div className="text-center">
                         <p className="font-mono text-6xl text-amber-500/10 font-bold">{String(i + 1).padStart(2, '0')}</p>
-                        <p className="t-body-sm text-foreground/20 mt-2">{feature.title}</p>
+                        <p className="t-body-sm text-foreground/20 mt-2">{t(feature.titleKey)}</p>
                       </div>
                     </div>
                   </div>
                   {/* Text */}
                   <div className={`${i % 2 === 1 ? 'md:[direction:ltr]' : ''}`}>
-                    <h3 className="font-display text-xl font-medium mb-4">{feature.title}</h3>
-                    <p className="t-body text-foreground/60 leading-relaxed">{feature.description}</p>
+                    <h3 className="font-display text-xl font-medium mb-4">{t(feature.titleKey)}</h3>
+                    <p className="t-body text-foreground/60 leading-relaxed">{t(feature.descKey)}</p>
                   </div>
                 </div>
               ))}
@@ -232,29 +166,27 @@ export default async function LicensePage() {
         {/* Pricing */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-4">Pricing</p>
-            <h2 className="t-display-sub mb-12">Pricing</h2>
+            <p className="t-eyebrow mb-4">{t('pricing_eyebrow')}</p>
+            <h2 className="t-display-sub mb-12">{t('pricing_title')}</h2>
             <div className="card-enterprise max-w-xl">
               <div className="space-y-6">
                 <div>
-                  <p className="t-eyebrow mb-1">Setup fee</p>
+                  <p className="t-eyebrow mb-1">{t('pricing_setup_label')}</p>
                   <p className="font-display text-4xl font-medium">
-                    $3,000
-                    <span className="text-base text-foreground/60 font-normal ml-2">one-time</span>
+                    {t('pricing_setup_value')}
+                    <span className="text-base text-foreground/60 font-normal ml-2">{t('pricing_setup_unit')}</span>
                   </p>
                 </div>
                 <div className="border-t border-border/60 pt-6">
-                  <p className="t-eyebrow mb-1">Maintenance</p>
+                  <p className="t-eyebrow mb-1">{t('pricing_maint_label')}</p>
                   <p className="font-display text-4xl font-medium">
-                    $150
-                    <span className="text-base text-foreground/60 font-normal">/mo</span>
+                    {t('pricing_maint_value')}
+                    <span className="text-base text-foreground/60 font-normal">{t('pricing_maint_unit')}</span>
                   </p>
                 </div>
                 <div className="border-t border-border/60 pt-6">
                   <p className="t-body-sm text-foreground/60 leading-relaxed">
-                    Setup fee covers infrastructure provisioning, strategy configuration, paper-trading validation,
-                    and training. Monthly maintenance covers hosting, monitoring, updates, and support.
-                    Custom configurations may incur additional fees based on scope.
+                    {t('pricing_note')}
                   </p>
                 </div>
               </div>
@@ -265,15 +197,15 @@ export default async function LicensePage() {
         {/* Onboarding */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-4">Process</p>
-            <h2 className="t-display-sub mb-12">Onboarding process</h2>
+            <p className="t-eyebrow mb-4">{t('process_eyebrow')}</p>
+            <h2 className="t-display-sub mb-12">{t('process_title')}</h2>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
-              {STEPS.map((step, i) => (
+              {STEP_META.map((step, i) => (
                 <div key={step.step} className="relative">
                   <p className="font-mono text-5xl text-amber-500/20 mb-3">{step.step}</p>
-                  <h3 className="font-semibold text-sm mb-2">{step.title}</h3>
-                  <p className="text-xs text-foreground/60 leading-relaxed">{step.description}</p>
-                  {i < STEPS.length - 1 && (
+                  <h3 className="font-semibold text-sm mb-2">{t(step.titleKey)}</h3>
+                  <p className="text-xs text-foreground/60 leading-relaxed">{t(step.descKey)}</p>
+                  {i < STEP_META.length - 1 && (
                     <ArrowRight className="hidden md:block absolute top-4 -right-4 w-4 h-4 text-foreground/30" />
                   )}
                 </div>
@@ -287,14 +219,14 @@ export default async function LicensePage() {
           <div className="container-default px-4 sm:px-6">
             <div className="grid lg:grid-cols-5 gap-12">
               <div className="lg:col-span-2">
-                <p className="t-eyebrow mb-4">FAQ</p>
-                <h2 className="t-display-sub">Frequently asked questions</h2>
+                <p className="t-eyebrow mb-4">{t('faq_eyebrow')}</p>
+                <h2 className="t-display-sub">{t('faq_title')}</h2>
               </div>
               <div className="lg:col-span-3 space-y-8">
-                {FAQ.map((item) => (
-                  <div key={item.q}>
-                    <h3 className="font-semibold mb-2">{item.q}</h3>
-                    <p className="t-body-sm text-foreground/60 leading-relaxed">{item.a}</p>
+                {FAQ_META.map((item) => (
+                  <div key={item.qKey}>
+                    <h3 className="font-semibold mb-2">{t(item.qKey)}</h3>
+                    <p className="t-body-sm text-foreground/60 leading-relaxed">{t(item.aKey)}</p>
                   </div>
                 ))}
               </div>
@@ -305,16 +237,16 @@ export default async function LicensePage() {
         {/* CTA */}
         <section className="section-padding">
           <div className="container-default px-4 sm:px-6 text-center">
-            <p className="t-eyebrow mb-4">Get Started</p>
-            <h2 className="t-display-sub mb-4">Ready to discuss your setup?</h2>
+            <p className="t-eyebrow mb-4">{t('cta_eyebrow')}</p>
+            <h2 className="t-display-sub mb-4">{t('cta_title')}</h2>
             <p className="text-foreground/60 mb-8 max-w-lg mx-auto">
-              Schedule a 30-minute call with our team to scope your infrastructure requirements and get a detailed proposal.
+              {t('cta_body')}
             </p>
             <Link
               href="/contact"
               className="btn-primary inline-flex items-center gap-2"
             >
-              Schedule call
+              {t('cta_button')}
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>

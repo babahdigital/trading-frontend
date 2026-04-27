@@ -15,6 +15,7 @@ const LEGAL_LINKS = [
 
 export default function RegulatoryPage() {
   const t = useTranslations('legal_chrome');
+  const tb = useTranslations('legal_regulatory_body');
   const [cmsBody, setCmsBody] = useState<string | null>(null);
 
   useEffect(() => {
@@ -60,164 +61,83 @@ export default function RegulatoryPage() {
 
               {/* BabahAlgo Status */}
               <section>
-                <h2 className="t-display-sub mb-6 text-foreground">BabahAlgo Regulatory Status</h2>
-                <p>
-                  BabahAlgo is operated by CV Babah Digital, a commercial partnership registered under
-                  Indonesian law. BabahAlgo operates as a technology provider and trading infrastructure
-                  service, not as a regulated financial institution, broker, or investment advisor.
-                </p>
-                <p className="mt-3">
-                  Our services include the provision of trading signals, algorithmic trading infrastructure,
-                  and technology-enabled managed account services. We do not hold client funds, execute
-                  trades on regulated exchanges directly, or provide personalized investment advice in the
-                  regulatory sense.
-                </p>
-                <p className="mt-3">
-                  Trading authority for managed accounts (institutional API mandates) is established
-                  through limited power of attorney arrangements between clients and regulated brokers.
-                  BabahAlgo acts as the appointed trading manager under these arrangements.
-                </p>
+                <h2 className="t-display-sub mb-6 text-foreground">{tb('s1_h')}</h2>
+                <p>{tb('s1_p1')}</p>
+                <p className="mt-3">{tb('s1_p2')}</p>
+                <p className="mt-3">{tb('s1_p3')}</p>
               </section>
 
               {/* BAPPEBTI */}
               <section>
-                <h2 className="t-display-sub mb-6 text-foreground">BAPPEBTI / CoFTRA Information</h2>
-                <p>
-                  The Commodity Futures Trading Regulatory Agency (BAPPEBTI), also known as the Commodity
-                  Futures Trading Authority (CoFTRA), is the Indonesian government agency responsible for
-                  regulating commodity futures and derivatives trading in Indonesia.
-                </p>
-                <p className="mt-3">
-                  BabahAlgo is not a registered futures broker, commodity trading advisor, or futures
-                  commission merchant with BAPPEBTI. Our role is limited to providing technology services
-                  and trading infrastructure. Clients who are Indonesian residents should ensure they
-                  trade through BAPPEBTI-regulated brokers and comply with all applicable Indonesian
-                  regulations regarding futures and derivatives trading.
-                </p>
-                <p className="mt-3">
-                  We monitor BAPPEBTI regulations and guidance on digital asset trading, commodity futures,
-                  and financial technology services to ensure our service structure remains compliant with
-                  the evolving regulatory framework in Indonesia.
-                </p>
+                <h2 className="t-display-sub mb-6 text-foreground">{tb('s2_h')}</h2>
+                <p>{tb('s2_p1')}</p>
+                <p className="mt-3">{tb('s2_p2')}</p>
+                <p className="mt-3">{tb('s2_p3')}</p>
               </section>
 
               {/* Partner Broker Status */}
               <section>
-                <h2 className="t-display-sub mb-6 text-foreground">Partner Broker Regulatory Status</h2>
-                <p>
-                  BabahAlgo works with broker partners that are regulated by recognized financial
-                  authorities in their respective jurisdictions. Our broker selection criteria include:
-                </p>
+                <h2 className="t-display-sub mb-6 text-foreground">{tb('s3_h')}</h2>
+                <p>{tb('s3_intro')}</p>
                 <ul className="mt-3 space-y-3 ml-4 text-foreground/60">
-                  <li className="flex items-start gap-3">
-                    <span className="mt-2 w-1.5 h-1.5 rounded-full bg-foreground shrink-0" />
-                    <span>Active regulation by a recognized financial authority</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="mt-2 w-1.5 h-1.5 rounded-full bg-foreground shrink-0" />
-                    <span>Segregation of client funds from company operational funds</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="mt-2 w-1.5 h-1.5 rounded-full bg-foreground shrink-0" />
-                    <span>Participation in investor compensation schemes where available</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="mt-2 w-1.5 h-1.5 rounded-full bg-foreground shrink-0" />
-                    <span>Regular financial reporting and audit requirements</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="mt-2 w-1.5 h-1.5 rounded-full bg-foreground shrink-0" />
-                    <span>Reliable API infrastructure for algorithmic trading</span>
-                  </li>
+                  {(['s3_li1', 's3_li2', 's3_li3', 's3_li4', 's3_li5'] as const).map((k) => (
+                    <li key={k} className="flex items-start gap-3">
+                      <span className="mt-2 w-1.5 h-1.5 rounded-full bg-foreground shrink-0" />
+                      <span>{tb(k)}</span>
+                    </li>
+                  ))}
                 </ul>
-                <p className="mt-3">
-                  Specific broker partner details, including their regulatory licenses and jurisdictions,
-                  are provided to clients during the onboarding process. Clients are encouraged to verify
-                  the regulatory status of their broker independently.
-                </p>
-                <p className="mt-3">
-                  BabahAlgo does not guarantee the financial stability, regulatory compliance, or
-                  operational integrity of any broker partner. Clients should conduct their own due
-                  diligence before opening an account with any broker.
-                </p>
+                <p className="mt-3">{tb('s3_outro1')}</p>
+                <p className="mt-3">{tb('s3_outro2')}</p>
               </section>
 
               {/* Compliance Framework */}
               <section>
-                <h2 className="t-display-sub mb-6 text-foreground">Compliance Framework</h2>
-                <p>
-                  BabahAlgo maintains an internal compliance framework designed to ensure responsible
-                  operations and transparent client relationships. This framework includes:
-                </p>
+                <h2 className="t-display-sub mb-6 text-foreground">{tb('s4_h')}</h2>
+                <p>{tb('s4_intro')}</p>
 
-                <h3 className="font-semibold text-foreground mt-6 mb-3">Client onboarding</h3>
-                <p>
-                  All clients undergo an onboarding process that includes identity verification,
-                  suitability assessment, and risk disclosure acknowledgment. For institutional mandates,
-                  additional due diligence is conducted including entity verification, beneficial
-                  ownership identification, and source of funds documentation.
-                </p>
+                <h3 className="font-semibold text-foreground mt-6 mb-3">{tb('s4_onboard_h')}</h3>
+                <p>{tb('s4_onboard_p')}</p>
 
-                <h3 className="font-semibold text-foreground mt-6 mb-3">Risk management</h3>
-                <p>
-                  Our 12-layer risk framework is documented and audited quarterly. Risk parameters
-                  including maximum drawdown limits, position size caps, and correlation limits are
-                  enforced programmatically and cannot be overridden manually without documented
-                  approval and audit trail.
-                </p>
+                <h3 className="font-semibold text-foreground mt-6 mb-3">{tb('s4_risk_h')}</h3>
+                <p>{tb('s4_risk_p')}</p>
 
-                <h3 className="font-semibold text-foreground mt-6 mb-3">Performance reporting</h3>
-                <p>
-                  All performance data is reconciled quarterly against partner broker statements.
-                  Our internal forex and crypto production databases serve as the source of truth,
-                  with trade-level audit logs available to clients on request. Performance marketing
-                  materials are reviewed for accuracy and compliance with applicable advertising
-                  standards.
-                </p>
+                <h3 className="font-semibold text-foreground mt-6 mb-3">{tb('s4_perf_h')}</h3>
+                <p>{tb('s4_perf_p')}</p>
 
-                <h3 className="font-semibold text-foreground mt-6 mb-3">Conflict of interest management</h3>
+                <h3 className="font-semibold text-foreground mt-6 mb-3">{tb('s4_conflict_h')}</h3>
                 <p>
-                  We maintain a conflict of interest register that identifies, manages, and discloses
-                  potential conflicts. This includes broker referral arrangements, proprietary trading
-                  activities, and performance fee structures. The register is reviewed quarterly and
-                  disclosed to clients as detailed on our{' '}
+                  {tb('s4_conflict_p_pre')}{' '}
                   <Link href="/about/governance" className="text-foreground underline underline-offset-4">
-                    Governance page
-                  </Link>.
+                    {tb('s4_conflict_p_link')}
+                  </Link>
+                  {tb('s4_conflict_p_post')}
                 </p>
 
-                <h3 className="font-semibold text-foreground mt-6 mb-3">Data protection</h3>
+                <h3 className="font-semibold text-foreground mt-6 mb-3">{tb('s4_data_h')}</h3>
                 <p>
-                  Client data is handled in accordance with our{' '}
+                  {tb('s4_data_p_pre')}{' '}
                   <Link href="/legal/privacy" className="text-foreground underline underline-offset-4">
-                    Privacy Policy
-                  </Link>. We implement encryption, access controls, and audit logging to protect
-                  client information. Data breach notification procedures are in place to ensure
-                  timely communication in the event of a security incident.
+                    {tb('s4_data_p_link')}
+                  </Link>
+                  {tb('s4_data_p_post')}
                 </p>
               </section>
 
               {/* Disclaimer */}
               <section>
                 <div className="card-enterprise">
-                  <h3 className="font-semibold text-foreground text-sm mb-3">Important Notice</h3>
-                  <p className="text-xs">
-                    This page is provided for informational purposes only and does not constitute legal
-                    or regulatory advice. Regulatory requirements vary by jurisdiction, and it is your
-                    responsibility to ensure that your use of BabahAlgo services complies with all
-                    applicable laws and regulations in your jurisdiction. If you are unsure about the
-                    regulatory implications of using our services, you should consult with a qualified
-                    legal or financial advisor in your jurisdiction.
-                  </p>
+                  <h3 className="font-semibold text-foreground text-sm mb-3">{tb('s5_callout_h')}</h3>
+                  <p className="text-xs">{tb('s5_callout_p')}</p>
                 </div>
               </section>
 
               <section>
                 <p>
-                  For regulatory inquiries, contact{' '}
+                  {tb('contact_pre')}{' '}
                   <a href="mailto:compliance@babahalgo.com" className="text-foreground underline underline-offset-4">
                     compliance@babahalgo.com
-                  </a>.
+                  </a>{tb('contact_post')}
                 </p>
               </section>
 

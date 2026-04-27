@@ -11,16 +11,16 @@ export async function generateMetadata() {
   return getPageMetadata('/about', {
     title: 'Tentang BabahAlgo — Quantitative Trading Infrastructure | CV Babah Digital',
     description:
-      'BabahAlgo dioperasikan oleh CV Babah Digital. Tim quant Indonesia membangun infrastruktur trading kuantitatif untuk Forex (SMC, Wyckoff) dan Crypto Bot Binance Futures. Track record terverifikasi.',
+      'BabahAlgo dioperasikan oleh CV Babah Digital. Tim quant Indonesia membangun infrastruktur trading kuantitatif: Robot Meta untuk Forex MT5 dan Robot Crypto untuk Binance Spot + Futures. Modal selalu di akun broker / Binance customer — zero-custody.',
   });
 }
 
 const MILESTONES = [
   { year: '2023', title: 'Research', description: 'Initial strategy research, backtesting, dan validation lintas 5 tahun tick data.' },
   { year: '2024', title: 'Platform launch', description: 'Production deployment dengan live trading di 14 instrumen. Infrastructure buildout.' },
-  { year: '2024', title: 'Signal Service', description: 'Launch retail signal service dengan Telegram + MT5 trade copier — model affiliate-broker, customer pegang dana sendiri.' },
-  { year: '2025', title: 'Crypto Bot', description: 'Binance Futures bot dengan 6 strategi institusional + risk overlay 12-layer. Customer pegang Binance API key.' },
-  { year: '2026', title: 'Public API Marketplace', description: '9 container API (News, Signals, Indicators, Calendar, Market Data, Execution, Correlation, Broker Specs, AI Explainability) untuk integrasi B2B + institutional.' },
+  { year: '2024', title: 'Robot Meta · MT5 launch', description: 'Bot auto-execute lewat ZeroMQ bridge ke MetaTrader 5 customer. Model affiliate-broker, customer pegang dana sendiri di akun Exness.' },
+  { year: '2025', title: 'Robot Crypto · Binance', description: 'Auto-trading di Binance Spot + USDT-M Futures dengan 6 strategi institusional + risk overlay 12-layer. Customer pegang API key (Read + Trade only).' },
+  { year: '2026', title: 'Developer APIs + Beta program', description: '8 container API (News, Signals, Indicators, Calendar, Market Data, Correlation, Broker Specs, AI Explainability) untuk developer external. Plus founding members beta untuk 100 trader pertama.' },
 ];
 
 const PRINCIPLES = [

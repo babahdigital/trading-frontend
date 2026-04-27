@@ -2,50 +2,59 @@ import { Link } from '@/i18n/navigation';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { ArrowRight } from 'lucide-react';
+import { getPageMetadata } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
 
+export async function generateMetadata() {
+  return getPageMetadata('/solutions', {
+    title: 'Solutions — Robot Meta · Robot Crypto · VPS License · Developer APIs | BabahAlgo',
+    description:
+      'Pilihan engagement model: Robot Meta (Forex MT5) mulai $19/bulan, Robot Crypto (Binance) mulai $49/bulan, VPS License $3K+ setup, atau akses Developer APIs. Zero-custody — modal tetap di akun Anda.',
+  });
+}
+
 const SOLUTIONS = [
   {
-    name: 'Free Demo',
+    name: 'Free Demo (3 jalur)',
     slug: '/demo',
-    price: 'Gratis',
-    audience: 'Coba sinyal kami di akun MT5 demo + indicator confluence overlay. Tanpa biaya, tanpa modal nyata, tidak masuk public track record.',
+    price: 'Gratis selama beta',
+    audience: 'Robot Meta · MT5 demo, Robot Crypto · Binance Testnet, atau Indicator overlay. Tanpa biaya, tanpa modal nyata, tidak masuk public track record.',
     cta: 'Mulai Demo',
   },
   {
-    name: 'Forex Signal',
+    name: 'Robot Meta · MT5',
     slug: '/solutions/signal',
     price: 'Mulai $19/bulan',
-    audience: 'Retail trader yang ingin institutional-grade signal di akun broker pribadi. 3 tier: Starter $19, Pro $79, VIP $299. Anda tetap pegang capital sendiri.',
-    cta: 'Lihat Signal',
+    audience: 'Bot auto-execute di akun MT5 customer lewat ZeroMQ bridge. Tier 1 Swing $19 · Tier 2 Scalping $79 · Tier 3 All-In $299. Modal di akun broker partner Exness — kami tidak custody.',
+    cta: 'Lihat Robot Meta',
   },
   {
-    name: 'Crypto Bot',
+    name: 'Robot Crypto · Binance',
     slug: '/solutions/crypto',
     price: 'Mulai $49/bulan + profit share',
-    audience: 'Bot trading Binance Futures dengan 6 strategi institusional. Customer pegang Binance API key (Read + Trade), bot eksekusi 24/7.',
-    cta: 'Lihat Crypto',
+    audience: 'Bot auto-trading Binance Spot + USDT-M Futures dengan 6 strategi institusional. Tier Basic $49 · Pro $199 · HNWI $499. Customer pegang API key (Read + Trade only).',
+    cta: 'Lihat Robot Crypto',
   },
   {
     name: 'VPS License',
     slug: '/solutions/license',
     price: 'Mulai $3,000 setup',
-    audience: 'Trader profesional + firm kecil yang butuh dedicated bot infrastructure di isolated hardware. Customization penuh, kontrol penuh.',
+    audience: 'Trader profesional + firm kecil yang butuh dedicated bot infrastructure di isolated hardware. Customization penuh, kontrol penuh, single-customer isolation.',
     cta: 'Lihat License',
   },
   {
-    name: 'Public API Marketplace',
+    name: 'Developer APIs',
     slug: '/pricing#apis',
     price: 'Free tier tersedia',
-    audience: '9 container API: News & Sentiment, Signals, Indicators, Calendar, Market Data, Execution Cloud, Correlation, Broker Specs, AI Explainability.',
+    audience: '8 container API untuk integrasi developer: News & Sentiment, Signals, Indicators, Calendar, Market Data, Correlation, Broker Specs, AI Explainability.',
     cta: 'Lihat APIs',
   },
   {
     name: 'Institutional / B2B',
     slug: '/solutions/institutional',
     price: 'Custom usage-based',
-    audience: 'Trading firm + family office butuh integrasi API priority + white-label tech + Backtest as a Service. Zero-custody — kami tidak terima dana.',
+    audience: 'Trading firm + family office butuh integrasi API priority + white-label tech + Backtest as a Service. Zero-custody — kami tidak menerima dana customer.',
     cta: 'Lihat Institutional',
   },
 ];

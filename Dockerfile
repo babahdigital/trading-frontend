@@ -30,9 +30,15 @@ COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+# prisma CLI binary required for `prisma migrate deploy` at container startup.
+COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
 
 # Install sharp for Next.js image optimization in standalone mode
 RUN npm install --prefix . sharp --no-save --omit=dev
+
+# Entrypoint script — runs migrate deploy then starts server.
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Create writable cache directories before dropping privileges
 RUN mkdir -p /app/.next/cache/images && chown -R nextjs:nodejs /app/.next
@@ -42,4 +48,4 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-CMD ["node", "server.js"]
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]

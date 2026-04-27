@@ -11,6 +11,24 @@ export function localizeLandingSection(
   };
 }
 
+/**
+ * Universal Indonesian time-unit suffixes that need locale-swap on EN render.
+ * Price strings are stored as plain text (no price_en column); we swap
+ * "/bulan" → "/mo" and similar suffixes when serving EN locale so prices
+ * read naturally in either language without DB migration.
+ */
+function localizePriceText(text: string, locale: string): string {
+  if (locale !== 'en' || !text) return text;
+  return text
+    .replace(/\/bulan\b/g, '/mo')
+    .replace(/\/bln\b/g, '/mo')
+    .replace(/\bper bulan\b/gi, 'per month')
+    .replace(/\bsetiap bulan\b/gi, 'monthly')
+    .replace(/\bsekali bayar\b/gi, 'one-time')
+    .replace(/\bbiaya setup\b/gi, 'setup fee')
+    .replace(/\bmaintenance\b/gi, 'maintenance');
+}
+
 export function localizePricingTier(
   tier: PricingTier,
   locale: string
@@ -21,6 +39,10 @@ export function localizePricingTier(
     subtitle: locale === 'en' && tier.subtitle_en ? tier.subtitle_en : tier.subtitle,
     features: locale === 'en' && tier.features_en ? tier.features_en : tier.features,
     ctaLabel: locale === 'en' && tier.ctaLabel_en ? tier.ctaLabel_en : tier.ctaLabel,
+    // Price + note are not separately localized (no _en columns) — use
+    // word-level fallback swap for common Indonesian time-unit suffixes.
+    price: localizePriceText(tier.price, locale),
+    note: tier.note ? localizePriceText(tier.note, locale) : tier.note,
   };
 }
 

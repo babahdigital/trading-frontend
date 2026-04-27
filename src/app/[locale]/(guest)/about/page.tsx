@@ -1,3 +1,4 @@
+import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
@@ -15,21 +16,22 @@ export async function generateMetadata() {
   });
 }
 
-const MILESTONES = [
-  { year: '2023', title: 'Research', description: 'Initial strategy research, backtesting, dan validation lintas 5 tahun tick data.' },
-  { year: '2024', title: 'Platform launch', description: 'Production deployment dengan live trading di 14 instrumen. Infrastructure buildout.' },
-  { year: '2024', title: 'Robot Meta · MT5 launch', description: 'Bot auto-execute lewat ZeroMQ bridge ke MetaTrader 5 customer. Model affiliate-broker, customer pegang dana sendiri di akun Exness.' },
-  { year: '2025', title: 'Robot Crypto · Binance', description: 'Auto-trading di Binance Spot + USDT-M Futures dengan 6 strategi institusional + risk overlay 12-layer. Customer pegang API key (Read + Trade only).' },
-  { year: '2026', title: 'Developer APIs + Beta program', description: '8 container API (News, Signals, Indicators, Calendar, Market Data, Correlation, Broker Specs, AI Explainability) untuk developer external. Plus founding members beta untuk 100 trader pertama.' },
-];
+const MILESTONE_META = [
+  { yearKey: 'milestone1_year', titleKey: 'milestone1_title', descKey: 'milestone1_desc' },
+  { yearKey: 'milestone2_year', titleKey: 'milestone2_title', descKey: 'milestone2_desc' },
+  { yearKey: 'milestone3_year', titleKey: 'milestone3_title', descKey: 'milestone3_desc' },
+  { yearKey: 'milestone4_year', titleKey: 'milestone4_title', descKey: 'milestone4_desc' },
+  { yearKey: 'milestone5_year', titleKey: 'milestone5_title', descKey: 'milestone5_desc' },
+] as const;
 
-const PRINCIPLES = [
-  { title: 'Focus over breadth', body: 'We trade 14 instruments, not 50. We use three timeframes, not twelve. Depth of understanding beats superficial coverage.' },
-  { title: 'Build, don\'t buy', body: 'Every component — from signal generation to risk framework to client dashboard — is designed and built in-house. No white-label, no resold signals.' },
-  { title: 'Transparency is non-negotiable', body: 'Track record dibangun dari database produksi internal (forex backend + crypto backend), direkonsiliasi terhadap broker statement setiap kuartal. Equity statement broker tersedia atas permintaan klien institusional.' },
-];
+const PRINCIPLE_META = [
+  { titleKey: 'principle1_title', bodyKey: 'principle1_body' },
+  { titleKey: 'principle2_title', bodyKey: 'principle2_body' },
+  { titleKey: 'principle3_title', bodyKey: 'principle3_body' },
+] as const;
 
 export default async function AboutPage() {
+  const t = await getTranslations('about_page');
   const breadcrumb = breadcrumbSchema([
     { name: 'Home', url: '/' },
     { name: 'About', url: '/about' },
@@ -43,10 +45,10 @@ export default async function AboutPage() {
         {/* Hero */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-4">About</p>
-            <h1 className="t-display-page mb-6">About BabahAlgo</h1>
+            <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
+            <h1 className="t-display-page mb-6">{t('hero_title')}</h1>
             <p className="t-lead text-foreground/60 max-w-2xl">
-              Quantitative trading infrastructure for serious market participants.
+              {t('hero_subtitle')}
             </p>
           </div>
         </section>
@@ -56,27 +58,13 @@ export default async function AboutPage() {
           <div className="container-default px-4 sm:px-6">
             <div className="grid lg:grid-cols-5 gap-16">
               <div className="lg:col-span-2">
-                <p className="t-eyebrow mb-3">Philosophy</p>
-                <h2 className="t-display-sub">Why we exist</h2>
+                <p className="t-eyebrow mb-3">{t('philosophy_eyebrow')}</p>
+                <h2 className="t-display-sub">{t('philosophy_title')}</h2>
               </div>
               <div className="lg:col-span-3 space-y-6 t-body text-foreground/70 leading-relaxed">
-                <p>
-                  BabahAlgo exists because we believe the tools of institutional trading should not be locked behind
-                  seven-figure minimums and prime brokerage relationships. The mathematics of market microstructure,
-                  the discipline of systematic risk management, and the infrastructure to execute both reliably &mdash;
-                  these are engineering problems, not privilege problems.
-                </p>
-                <p>
-                  Our approach is deliberately narrow. We trade 14 instruments, not 50. We use three timeframes,
-                  not twelve. We run a single strategy architecture with proven edge, not a marketplace of untested
-                  ideas. This focus allows us to understand every parameter, every correlation, and every failure
-                  mode in our system at a depth that broader platforms cannot match.
-                </p>
-                <p>
-                  We are builders first. Every component of the BabahAlgo platform was designed and built in-house.
-                  We do not resell third-party signals or white-label someone else&apos;s infrastructure. When something
-                  breaks at 3am Tokyo time, we know exactly which line of code to look at because we wrote it.
-                </p>
+                <p>{t('philosophy_p1')}</p>
+                <p>{t('philosophy_p2')}</p>
+                <p>{t('philosophy_p3')}</p>
               </div>
             </div>
           </div>
@@ -85,13 +73,13 @@ export default async function AboutPage() {
         {/* Principles */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-3">Principles</p>
-            <h2 className="t-display-sub mb-12">What we believe</h2>
+            <p className="t-eyebrow mb-3">{t('principles_eyebrow')}</p>
+            <h2 className="t-display-sub mb-12">{t('principles_title')}</h2>
             <div className="grid md:grid-cols-3 gap-8">
-              {PRINCIPLES.map((p) => (
-                <div key={p.title} className="card-enterprise">
-                  <h3 className="text-lg font-medium mb-3">{p.title}</h3>
-                  <p className="t-body-sm text-foreground/60 leading-relaxed">{p.body}</p>
+              {PRINCIPLE_META.map((p) => (
+                <div key={p.titleKey} className="card-enterprise">
+                  <h3 className="text-lg font-medium mb-3">{t(p.titleKey)}</h3>
+                  <p className="t-body-sm text-foreground/60 leading-relaxed">{t(p.bodyKey)}</p>
                 </div>
               ))}
             </div>
@@ -101,34 +89,34 @@ export default async function AboutPage() {
         {/* Timeline */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-3">Journey</p>
-            <h2 className="t-display-sub mb-12">Milestones</h2>
+            <p className="t-eyebrow mb-3">{t('journey_eyebrow')}</p>
+            <h2 className="t-display-sub mb-12">{t('journey_title')}</h2>
             <div className="hidden md:flex items-start justify-between gap-4">
-              {MILESTONES.map((milestone, i) => (
-                <div key={`${milestone.year}-${milestone.title}`} className="flex-1 relative">
+              {MILESTONE_META.map((milestone, i) => (
+                <div key={milestone.titleKey} className="flex-1 relative">
                   <div className="flex items-center mb-4">
                     <div className="w-3 h-3 rounded-full bg-amber-500 shrink-0" />
-                    {i < MILESTONES.length - 1 && (
+                    {i < MILESTONE_META.length - 1 && (
                       <div className="h-px bg-border flex-1" />
                     )}
                   </div>
-                  <p className="font-mono text-sm text-foreground/40 mb-1">{milestone.year}</p>
-                  <h3 className="font-medium text-sm mb-2">{milestone.title}</h3>
-                  <p className="text-xs text-foreground/50 leading-relaxed pr-4">{milestone.description}</p>
+                  <p className="font-mono text-sm text-foreground/40 mb-1">{t(milestone.yearKey)}</p>
+                  <h3 className="font-medium text-sm mb-2">{t(milestone.titleKey)}</h3>
+                  <p className="text-xs text-foreground/50 leading-relaxed pr-4">{t(milestone.descKey)}</p>
                 </div>
               ))}
             </div>
             <div className="md:hidden space-y-8">
-              {MILESTONES.map((milestone) => (
-                <div key={`${milestone.year}-${milestone.title}`} className="flex gap-4">
+              {MILESTONE_META.map((milestone) => (
+                <div key={milestone.titleKey} className="flex gap-4">
                   <div className="flex flex-col items-center">
                     <div className="w-3 h-3 rounded-full bg-amber-500 shrink-0" />
                     <div className="w-px bg-border flex-1 mt-2" />
                   </div>
                   <div className="pb-4">
-                    <p className="font-mono text-sm text-foreground/40 mb-1">{milestone.year}</p>
-                    <h3 className="font-medium text-sm mb-2">{milestone.title}</h3>
-                    <p className="text-sm text-foreground/50 leading-relaxed">{milestone.description}</p>
+                    <p className="font-mono text-sm text-foreground/40 mb-1">{t(milestone.yearKey)}</p>
+                    <h3 className="font-medium text-sm mb-2">{t(milestone.titleKey)}</h3>
+                    <p className="text-sm text-foreground/50 leading-relaxed">{t(milestone.descKey)}</p>
                   </div>
                 </div>
               ))}
@@ -141,17 +129,17 @@ export default async function AboutPage() {
           <div className="container-default px-4 sm:px-6">
             <div className="grid md:grid-cols-2 gap-6 max-w-3xl">
               <Link href="/about/team" className="card-enterprise group">
-                <h3 className="text-lg font-medium mb-2 group-hover:text-amber-400 transition-colors">Our team</h3>
-                <p className="t-body-sm text-foreground/60 mb-4">Meet the people behind BabahAlgo.</p>
+                <h3 className="text-lg font-medium mb-2 group-hover:text-amber-400 transition-colors">{t('nav_team_title')}</h3>
+                <p className="t-body-sm text-foreground/60 mb-4">{t('nav_team_desc')}</p>
                 <span className="btn-tertiary text-sm">
-                  View team <ArrowRight className="w-4 h-4" />
+                  {t('nav_team_cta')} <ArrowRight className="w-4 h-4" />
                 </span>
               </Link>
               <Link href="/about/governance" className="card-enterprise group">
-                <h3 className="text-lg font-medium mb-2 group-hover:text-amber-400 transition-colors">Governance</h3>
-                <p className="t-body-sm text-foreground/60 mb-4">Legal structure, compliance, and disclosures.</p>
+                <h3 className="text-lg font-medium mb-2 group-hover:text-amber-400 transition-colors">{t('nav_gov_title')}</h3>
+                <p className="t-body-sm text-foreground/60 mb-4">{t('nav_gov_desc')}</p>
                 <span className="btn-tertiary text-sm">
-                  View governance <ArrowRight className="w-4 h-4" />
+                  {t('nav_gov_cta')} <ArrowRight className="w-4 h-4" />
                 </span>
               </Link>
             </div>

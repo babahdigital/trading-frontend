@@ -1,10 +1,16 @@
+import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 
 export const dynamic = 'force-dynamic';
 
+const AUDIT_KEYS = ['audit_b1', 'audit_b2', 'audit_b3', 'audit_b4', 'audit_b5'] as const;
+const DATA_KEYS = ['data_b1', 'data_b2', 'data_b3', 'data_b4'] as const;
+
 export default async function GovernancePage() {
+  const t = await getTranslations('about_gov_page');
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <EnterpriseNav />
@@ -16,14 +22,14 @@ export default async function GovernancePage() {
               href="/about"
               className="t-body-sm text-foreground/60 hover:text-foreground transition-colors mb-4 inline-block"
             >
-              About
+              {t('back_link')}
             </Link>
-            <p className="t-eyebrow mb-4">Corporate Governance</p>
+            <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
             <h1 className="t-display-page mb-6">
-              Governance
+              {t('hero_title')}
             </h1>
             <p className="t-lead text-foreground/60 max-w-2xl">
-              Legal structure, compliance framework, and disclosures.
+              {t('hero_subtitle')}
             </p>
           </div>
         </section>
@@ -31,20 +37,13 @@ export default async function GovernancePage() {
         {/* Legal Entity */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-4">Legal Structure</p>
-            <h2 className="t-display-sub mb-8">Legal entity</h2>
+            <p className="t-eyebrow mb-4">{t('legal_eyebrow')}</p>
+            <h2 className="t-display-sub mb-8">{t('legal_title')}</h2>
             <div className="max-w-3xl space-y-4 text-foreground/60 leading-relaxed">
               <p>
-                BabahAlgo is operated by <strong className="text-foreground">CV Babah Digital</strong>,
-                a commercial partnership (Commanditaire Vennootschap) registered under Indonesian commercial law.
-                CV Babah Digital provides technology services, trading infrastructure, and advisory services
-                to clients across retail, professional, and institutional segments.
+                {t('legal_p1_pre')} <strong className="text-foreground">{t('legal_p1_strong')}</strong>{t('legal_p1_post')}
               </p>
-              <p>
-                All client-facing services, contracts, and agreements are executed under the CV Babah Digital
-                entity. The company maintains appropriate business licenses and registrations as required by
-                Indonesian law.
-              </p>
+              <p>{t('legal_p2')}</p>
             </div>
           </div>
         </section>
@@ -52,25 +51,14 @@ export default async function GovernancePage() {
         {/* Regulatory Status */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-4">Compliance</p>
-            <h2 className="t-display-sub mb-8">Regulatory status</h2>
+            <p className="t-eyebrow mb-4">{t('reg_eyebrow')}</p>
+            <h2 className="t-display-sub mb-8">{t('reg_title')}</h2>
             <div className="max-w-3xl space-y-4 text-foreground/60 leading-relaxed">
               <p>
-                BabahAlgo operates as a <strong className="text-foreground">technology provider</strong>,
-                not a futures broker, asset manager, or investment advisor in the regulatory sense.
-                We provide trading technology, signal services, and infrastructure management to clients
-                who maintain their own accounts at regulated brokers.
+                {t('reg_p1_pre')} <strong className="text-foreground">{t('reg_p1_strong')}</strong>{t('reg_p1_post')}
               </p>
-              <p>
-                For institutional API mandates, trading authority is granted through limited power of
-                attorney arrangements directly between the client and the broker. BabahAlgo does not hold,
-                custody, or transfer client funds at any point.
-              </p>
-              <p>
-                We monitor regulatory developments in Indonesia (BAPPEBTI/CoFTRA), ASEAN markets, and
-                international jurisdictions where our clients operate. Our service structure is designed to
-                comply with applicable regulations while providing maximum flexibility to our clients.
-              </p>
+              <p>{t('reg_p2')}</p>
+              <p>{t('reg_p3')}</p>
             </div>
           </div>
         </section>
@@ -78,34 +66,24 @@ export default async function GovernancePage() {
         {/* Partner Brokers */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-4">Broker Relations</p>
-            <h2 className="t-display-sub mb-8">Partner brokers</h2>
+            <p className="t-eyebrow mb-4">{t('broker_eyebrow')}</p>
+            <h2 className="t-display-sub mb-8">{t('broker_title')}</h2>
             <div className="max-w-3xl space-y-4 text-foreground/60 leading-relaxed">
               <p>
-                All client trades execute through{' '}
+                {t('broker_p1_pre')}{' '}
                 <a
                   href="https://www.exness.com/"
                   target="_blank"
                   rel="noopener noreferrer sponsored"
                   className="text-foreground underline underline-offset-4 hover:text-amber-400 transition-colors"
                 >
-                  Exness
+                  {t('broker_p1_link')}
                 </a>
-                , a globally regulated multi-asset broker. Exness is our primary broker partner, selected
-                for superior execution quality, regulatory standing across multiple jurisdictions, segregated
-                client fund accounts, and reliable API infrastructure.
+                {t('broker_p1_post')}
               </p>
-              <p>
-                BabahAlgo continuously evaluates broker performance against our criteria for latency,
-                slippage, fund safety, and regulatory compliance. Exness meets and exceeds these standards
-                across all benchmarks.
-              </p>
+              <p>{t('broker_p2')}</p>
               <p className="t-body-sm border-l-2 border-border/60 pl-4">
-                <strong className="text-foreground">Disclosure:</strong> BabahAlgo receives introducing
-                broker (IB) commissions from Exness for client referrals. These
-                arrangements are disclosed to clients during onboarding and do not affect the execution
-                quality or pricing clients receive. Broker selection is based on objective criteria
-                documented in our broker evaluation framework.
+                <strong className="text-foreground">{t('broker_disclosure_strong')}</strong> {t('broker_disclosure_body')}
               </p>
             </div>
           </div>
@@ -114,38 +92,21 @@ export default async function GovernancePage() {
         {/* Audit */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-4">Oversight</p>
-            <h2 className="t-display-sub mb-8">Audit cadence</h2>
+            <p className="t-eyebrow mb-4">{t('audit_eyebrow')}</p>
+            <h2 className="t-display-sub mb-8">{t('audit_title')}</h2>
             <div className="max-w-3xl space-y-4 text-foreground/60 leading-relaxed">
               <p>
-                BabahAlgo conducts <strong className="text-foreground">quarterly internal audits</strong> covering:
+                {t('audit_intro_pre')} <strong className="text-foreground">{t('audit_intro_strong')}</strong> {t('audit_intro_post')}
               </p>
               <ul className="space-y-3 ml-4">
-                <li className="flex items-start gap-3">
-                  <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-foreground shrink-0" />
-                  <span>Performance data reconciliation between platform records and broker statements</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-foreground shrink-0" />
-                  <span>Risk framework parameter validation and stress testing</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-foreground shrink-0" />
-                  <span>Infrastructure security review and access control audit</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-foreground shrink-0" />
-                  <span>Client fee calculation verification</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-foreground shrink-0" />
-                  <span>Compliance review of marketing materials and client communications</span>
-                </li>
+                {AUDIT_KEYS.map((k) => (
+                  <li key={k} className="flex items-start gap-3">
+                    <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-foreground shrink-0" />
+                    <span>{t(k)}</span>
+                  </li>
+                ))}
               </ul>
-              <p>
-                Audit summaries are available to institutional clients under NDA. Full audit reports
-                can be provided as part of institutional due diligence processes.
-              </p>
+              <p>{t('audit_outro')}</p>
             </div>
           </div>
         </section>
@@ -153,37 +114,27 @@ export default async function GovernancePage() {
         {/* Conflict of Interest */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-4">Transparency</p>
-            <h2 className="t-display-sub mb-8">Conflict of interest disclosure</h2>
+            <p className="t-eyebrow mb-4">{t('coi_eyebrow')}</p>
+            <h2 className="t-display-sub mb-8">{t('coi_title')}</h2>
             <div className="max-w-3xl space-y-4 text-foreground/60 leading-relaxed">
-              <p>
-                BabahAlgo is committed to identifying, managing, and disclosing conflicts of interest.
-                The following potential conflicts are acknowledged:
-              </p>
+              <p>{t('coi_intro')}</p>
               <ul className="space-y-3 ml-4">
                 <li className="flex items-start gap-3">
                   <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-foreground shrink-0" />
                   <span>
-                    <strong className="text-foreground">Broker relationships:</strong> We receive IB
-                    commissions from partner brokers. Broker selection is based on documented objective
-                    criteria and clients are free to use any MT5-compatible broker.
+                    <strong className="text-foreground">{t('coi_b1_strong')}</strong> {t('coi_b1_body')}
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-foreground shrink-0" />
                   <span>
-                    <strong className="text-foreground">Performance fees:</strong> institutional API
-                    mandates include performance-based compensation, which could incentivize excessive
-                    risk-taking. This is mitigated by our risk framework, drawdown limits, and high-water
-                    mark provisions.
+                    <strong className="text-foreground">{t('coi_b2_strong')}</strong> {t('coi_b2_body')}
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-foreground shrink-0" />
                   <span>
-                    <strong className="text-foreground">Proprietary trading:</strong> BabahAlgo principals
-                    trade the same strategies as clients. This aligns incentives but means principal
-                    and client orders may compete for liquidity at the same price levels.
+                    <strong className="text-foreground">{t('coi_b3_strong')}</strong> {t('coi_b3_body')}
                   </span>
                 </li>
               </ul>
@@ -194,36 +145,23 @@ export default async function GovernancePage() {
         {/* Data Privacy */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-4">Data Protection</p>
-            <h2 className="t-display-sub mb-8">Data privacy framework</h2>
+            <p className="t-eyebrow mb-4">{t('data_eyebrow')}</p>
+            <h2 className="t-display-sub mb-8">{t('data_title')}</h2>
             <div className="max-w-3xl space-y-4 text-foreground/60 leading-relaxed">
-              <p>
-                BabahAlgo takes data privacy seriously. Our framework is designed around the principles
-                of data minimization, purpose limitation, and security by default:
-              </p>
+              <p>{t('data_intro')}</p>
               <ul className="space-y-3 ml-4">
-                <li className="flex items-start gap-3">
-                  <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-foreground shrink-0" />
-                  <span>We collect only the data necessary to provide our services and comply with legal obligations.</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-foreground shrink-0" />
-                  <span>Client trading data is encrypted at rest and in transit using industry-standard encryption.</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-foreground shrink-0" />
-                  <span>We do not sell, rent, or share personal data with third parties for marketing purposes.</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-foreground shrink-0" />
-                  <span>Clients can request data export or deletion at any time by contacting our compliance team.</span>
-                </li>
+                {DATA_KEYS.map((k) => (
+                  <li key={k} className="flex items-start gap-3">
+                    <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-foreground shrink-0" />
+                    <span>{t(k)}</span>
+                  </li>
+                ))}
               </ul>
               <p>
-                For full details, see our{' '}
+                {t('data_outro_pre')}{' '}
                 <Link href="/legal/privacy" className="text-foreground underline underline-offset-4 hover:text-amber-400">
-                  Privacy Policy
-                </Link>.
+                  {t('data_outro_link')}
+                </Link>{t('data_outro_post')}
               </p>
             </div>
           </div>
@@ -232,11 +170,11 @@ export default async function GovernancePage() {
         {/* Compliance Contact */}
         <section className="section-padding">
           <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-4">Contact</p>
-            <h2 className="t-display-sub mb-8">Compliance contact</h2>
+            <p className="t-eyebrow mb-4">{t('contact_eyebrow')}</p>
+            <h2 className="t-display-sub mb-8">{t('contact_title')}</h2>
             <div className="card-enterprise max-w-md">
               <p className="t-body-sm text-foreground/60 mb-4">
-                For compliance inquiries, regulatory questions, or to report concerns:
+                {t('contact_intro')}
               </p>
               <a
                 href="mailto:compliance@babahalgo.com"
@@ -245,7 +183,7 @@ export default async function GovernancePage() {
                 compliance@babahalgo.com
               </a>
               <p className="t-body-sm text-foreground/50 mt-4">
-                We aim to respond to all compliance inquiries within 2 business days.
+                {t('contact_response')}
               </p>
             </div>
           </div>

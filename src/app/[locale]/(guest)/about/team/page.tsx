@@ -1,33 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { ArrowRight } from 'lucide-react';
-
-const TEAM_FALLBACK = [
-  {
-    name: 'Abdullah',
-    role: 'Founder & Lead Quant',
-    bio: `Abdullah mendirikan BabahAlgo setelah bertahun-tahun mengembangkan dan menyempurnakan strategi trading kuantitatif untuk pasar forex dan komoditas. Berlatar belakang software engineering dengan minat dalam market microstructure, ia merancang arsitektur strategi inti, risk framework, dan infrastruktur yang menjalankan platform ini. Ia mengawasi langsung pengembangan strategi, operasi sistem, dan hubungan klien institusional. Pendekatannya berakar pada statistical rigor, disiplin operasional, dan transparansi penuh.`,
-  },
-  {
-    name: 'Quantitative Research',
-    role: 'Strategy R&D · Backtesting · Validation',
-    bio: `Tim quant research bertanggung jawab atas pengembangan strategi baru, backtesting walk-forward, dan validasi out-of-sample. Setiap strategi melewati minimum 3 tahun in-sample + 1 tahun out-of-sample sebelum di-deploy ke production. Tim juga mengelola monitoring strategy decay, regime detection, dan adjustment parameter berbasis Bayesian optimization. Output utama: laporan validasi bulanan dan signal rationale untuk setiap entry.`,
-  },
-  {
-    name: 'Infrastructure & SRE',
-    role: 'Platform Reliability · Cloud Operations',
-    bio: `Tim infrastructure menjaga uptime 99.95% di seluruh stack — dari MetaTrader 5 execution bridge sub-2ms, Postgres timeseries database, hingga Cloudflare Tunnel ingress. Mereka mengoperasikan playbook insiden lengkap (kill switch protocol, failover MT5, pg backup), monitoring 24/7 dengan alerting, dan runbook deployment untuk setiap perubahan production. Tim juga melakukan audit chain verification harian per ADR governance.`,
-  },
-  {
-    name: 'Client Success & Compliance',
-    role: 'Onboarding · KYC · Customer Operations',
-    bio: `Customer-facing function yang menangani onboarding KYC institusional, dukungan teknis pelanggan, billing, dan compliance reporting. Tim menjamin setiap subscriber Robot Meta · MT5, Robot Crypto · Binance, VPS License, atau Developer APIs dilayani sesuai SLA tier-nya. Mereka juga mengelola review berkala dengan klien Institutional API access dan menjadi kontak utama untuk audit eksternal serta query regulator.`,
-  },
-];
 
 interface TeamMember {
   name: string;
@@ -35,8 +13,21 @@ interface TeamMember {
   bio: string;
 }
 
+const MEMBER_KEYS = [
+  { nameKey: 'member1_name', roleKey: 'member1_role', bioKey: 'member1_bio' },
+  { nameKey: 'member2_name', roleKey: 'member2_role', bioKey: 'member2_bio' },
+  { nameKey: 'member3_name', roleKey: 'member3_role', bioKey: 'member3_bio' },
+  { nameKey: 'member4_name', roleKey: 'member4_role', bioKey: 'member4_bio' },
+] as const;
+
 export default function TeamPage() {
-  const [team, setTeam] = useState<TeamMember[]>(TEAM_FALLBACK);
+  const t = useTranslations('about_team_page');
+  const teamFromI18n: TeamMember[] = MEMBER_KEYS.map((m) => ({
+    name: t(m.nameKey),
+    role: t(m.roleKey),
+    bio: t(m.bioKey),
+  }));
+  const [team, setTeam] = useState<TeamMember[]>(teamFromI18n);
 
   useEffect(() => {
     async function loadCms() {
@@ -57,7 +48,7 @@ export default function TeamPage() {
           }
         }
       } catch {
-        // keep fallback
+        // keep i18n fallback
       }
     }
     loadCms();
@@ -74,14 +65,14 @@ export default function TeamPage() {
               href="/about"
               className="t-body-sm text-foreground/60 hover:text-foreground transition-colors mb-4 inline-block"
             >
-              About
+              {t('back_link')}
             </Link>
-            <p className="t-eyebrow mb-4">Who We Are</p>
+            <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
             <h1 className="t-display-page mb-6">
-              Our Team
+              {t('hero_title')}
             </h1>
             <p className="t-lead text-foreground/60 max-w-2xl">
-              A small team focused on execution quality over headcount.
+              {t('hero_subtitle')}
             </p>
           </div>
         </section>
@@ -89,7 +80,7 @@ export default function TeamPage() {
         {/* Team Grid */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-4">The People</p>
+            <p className="t-eyebrow mb-4">{t('members_eyebrow')}</p>
             <div className="grid md:grid-cols-2 gap-8">
               {team.map((member) => (
                 <div key={member.name} className="card-enterprise">
@@ -112,18 +103,14 @@ export default function TeamPage() {
           <div className="container-default px-4 sm:px-6">
             <div className="max-w-2xl">
               <p className="text-foreground/60 leading-relaxed">
-                We are a small team by design. In quantitative trading, the quality of decisions matters
-                far more than the number of people making them. Every member of the team has direct
-                operational responsibility and deep context on every aspect of the system. This structure
-                allows us to move quickly, maintain consistency, and keep overhead low -- savings that are
-                passed directly to our clients through competitive fee structures.
+                {t('note')}
               </p>
               <div className="mt-8">
                 <Link
                   href="/contact"
                   className="btn-secondary inline-flex items-center gap-2"
                 >
-                  Get in touch
+                  {t('cta_link')}
                   <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>

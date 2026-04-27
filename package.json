@@ -11,7 +11,10 @@
     "db:migrate": "prisma migrate deploy",
     "db:migrate:dev": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "i18n:sync": "tsx scripts/translate-i18n.ts",
+    "i18n:sync:force": "tsx scripts/translate-i18n.ts --force",
+    "i18n:sync:dry": "tsx scripts/translate-i18n.ts --dry"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.53",

@@ -201,7 +201,7 @@ export async function middleware(request: NextRequest) {
   if (pathname === '/api/auth/login' && request.method === 'POST') {
     if (isRateLimited(`login:${clientIp}`, 10, 60_000)) {
       return NextResponse.json(
-        { error: 'Too many login attempts. Try again later.' },
+        { code: 'rate_limit_login', error: 'Too many login attempts. Try again later.' },
         { status: 429 }
       );
     }
@@ -211,7 +211,7 @@ export async function middleware(request: NextRequest) {
   if (pathname === '/api/chat' && request.method === 'POST') {
     if (isRateLimited(`chat:${clientIp}`, 20, 60_000)) {
       return NextResponse.json(
-        { error: 'Too many messages. Please wait.' },
+        { code: 'rate_limit_chat', error: 'Too many messages. Please wait.' },
         { status: 429 }
       );
     }
@@ -221,7 +221,7 @@ export async function middleware(request: NextRequest) {
   if (pathname.startsWith('/api/')) {
     if (isRateLimited(`global:${clientIp}`, 100, 60_000)) {
       return NextResponse.json(
-        { error: 'Rate limit exceeded' },
+        { code: 'rate_limit_global', error: 'Rate limit exceeded' },
         { status: 429 }
       );
     }
@@ -284,7 +284,10 @@ export async function middleware(request: NextRequest) {
 
   if (!token) {
     if (pathname.startsWith('/api/')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      // Locale-agnostic error code shape: frontend resolves to localized
+      // message via errors.auth.<code>. English string is fallback for
+      // non-i18n consumers (curl, logs, legacy clients).
+      return NextResponse.json({ code: 'unauthorized', error: 'Unauthorized' }, { status: 401 });
     }
     return NextResponse.redirect(new URL('/login', request.url));
   }
@@ -296,7 +299,7 @@ export async function middleware(request: NextRequest) {
     if (pathname.startsWith('/admin') || pathname.startsWith('/api/admin')) {
       if (payload.role !== 'ADMIN') {
         if (pathname.startsWith('/api/')) {
-          return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+          return NextResponse.json({ code: 'forbidden', error: 'Forbidden' }, { status: 403 });
         }
         return NextResponse.redirect(new URL('/login', request.url));
       }
@@ -306,7 +309,7 @@ export async function middleware(request: NextRequest) {
     if (pathname.startsWith('/portal') || pathname.startsWith('/api/client')) {
       if (payload.role !== 'CLIENT' && payload.role !== 'ADMIN') {
         if (pathname.startsWith('/api/')) {
-          return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+          return NextResponse.json({ code: 'forbidden', error: 'Forbidden' }, { status: 403 });
         }
         return NextResponse.redirect(new URL('/login', request.url));
       }
@@ -315,7 +318,7 @@ export async function middleware(request: NextRequest) {
       if (payload.role === 'CLIENT') {
         if (!payload.licenseId && !payload.subscriptionId) {
           if (pathname.startsWith('/api/')) {
-            return NextResponse.json({ error: 'No active license or subscription' }, { status: 403 });
+            return NextResponse.json({ code: 'no_active_subscription', error: 'No active license or subscription' }, { status: 403 });
           }
           return NextResponse.redirect(new URL('/login', request.url));
         }
@@ -332,7 +335,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next({ request: { headers: requestHeaders } });
   } catch {
     if (pathname.startsWith('/api/')) {
-      return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 });
+      return NextResponse.json({ code: 'invalid_token', error: 'Invalid or expired token' }, { status: 401 });
     }
     return NextResponse.redirect(new URL('/login', request.url));
   }

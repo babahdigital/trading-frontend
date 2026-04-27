@@ -1319,13 +1319,18 @@
       "invalid_token": "Sesi Anda telah habis. Silakan login ulang.",
       "product_not_subscribed": "Produk ini tidak termasuk dalam langganan Anda.",
       "forbidden": "Anda tidak memiliki izin untuk aksi ini.",
+      "unauthorized": "Anda harus login untuk mengakses fitur ini.",
+      "no_active_subscription": "Tidak ada langganan atau license aktif.",
       "password_required": "Password wajib diisi.",
       "email_required": "Email atau license key wajib diisi.",
       "invalid_credentials": "Email atau password salah.",
       "invalid_license": "License tidak valid atau sudah tidak aktif.",
       "mt5_account_mismatch": "Akun MT5 tidak cocok dengan license.",
       "internal_error": "Terjadi kesalahan internal. Silakan coba lagi.",
-      "rate_limited": "Terlalu banyak percobaan login. Silakan tunggu beberapa saat."
+      "rate_limited": "Terlalu banyak percobaan login. Silakan tunggu beberapa saat.",
+      "rate_limit_login": "Terlalu banyak percobaan login. Coba lagi nanti.",
+      "rate_limit_chat": "Terlalu banyak pesan. Mohon tunggu sebentar.",
+      "rate_limit_global": "Batas permintaan terlampaui. Coba lagi sebentar."
     },
     "idempotency": {
       "conflict": "Aksi sebelumnya sudah diproses dengan parameter berbeda.",

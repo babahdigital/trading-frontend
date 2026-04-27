@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { Sparkles, Lock, RefreshCw, ArrowUpRight, BarChart3, Brain, Target, Loader2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useToast } from '@/components/ui/toast';
@@ -31,10 +32,10 @@ interface TenantFeaturesResponse {
 
 type Bucket = 'indicators' | 'strategies' | 'ai_subsystems';
 
-const SECTION_META: Record<Bucket, { label: string; icon: typeof BarChart3; color: string }> = {
-  indicators: { label: 'Indicators', icon: BarChart3, color: 'text-sky-300' },
-  strategies: { label: 'Strategies', icon: Target, color: 'text-emerald-300' },
-  ai_subsystems: { label: 'AI Subsystems', icon: Brain, color: 'text-amber-300' },
+const SECTION_META: Record<Bucket, { labelKey: string; icon: typeof BarChart3; color: string }> = {
+  indicators: { labelKey: 'section_indicators', icon: BarChart3, color: 'text-sky-300' },
+  strategies: { labelKey: 'section_strategies', icon: Target, color: 'text-emerald-300' },
+  ai_subsystems: { labelKey: 'section_ai_subsystems', icon: Brain, color: 'text-amber-300' },
 };
 
 function ToggleSwitch({
@@ -92,6 +93,7 @@ function UpgradeModal({
   currentTier: CapabilityTier;
   requiredTier: CapabilityTier;
 }) {
+  const t = useTranslations('portal.features');
   if (!open || !feature) return null;
   return (
     <div
@@ -109,23 +111,23 @@ function UpgradeModal({
             <Lock className="h-5 w-5 text-amber-400" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold leading-tight">Fitur ini butuh tier {tierLabel(requiredTier)}</h3>
+            <h3 className="text-lg font-semibold leading-tight">{t('modal_title', { tier: tierLabel(requiredTier) })}</h3>
             <p className="text-xs text-muted-foreground mt-0.5 font-mono">{feature}</p>
           </div>
         </div>
         <p className="text-sm text-muted-foreground mb-2">
-          Tier Anda saat ini: <span className="font-semibold text-foreground">{tierLabel(currentTier)}</span>
+          {t('modal_current_tier')} <span className="font-semibold text-foreground">{tierLabel(currentTier)}</span>
         </p>
         <p className="text-sm text-muted-foreground mb-5">
-          Upgrade ke <span className="font-semibold text-foreground">{tierLabel(requiredTier)}</span> untuk mengaktifkan fitur ini dan akses ke semua fitur tier setara/lebih rendah.
+          {t('modal_explain', { tier: tierLabel(requiredTier) })}
         </p>
         <div className="flex gap-2 justify-end">
           <Button variant="outline" size="sm" onClick={onClose}>
-            Nanti saja
+            {t('modal_later')}
           </Button>
           <Button size="sm" asChild className="bg-amber-500 hover:bg-amber-400 text-black">
             <Link href="/pricing">
-              Lihat paket <ArrowUpRight className="h-4 w-4 ml-1.5" />
+              {t('modal_view_plans')} <ArrowUpRight className="h-4 w-4 ml-1.5" />
             </Link>
           </Button>
         </div>
@@ -145,6 +147,7 @@ function FeatureRow({
   pending: boolean;
   onToggle: (bucket: Bucket, name: string, desired: boolean) => void;
 }) {
+  const t = useTranslations('portal.features');
   const locked = !item.tier_allows;
   return (
     <div
@@ -159,7 +162,7 @@ function FeatureRow({
         checked={item.enabled}
         disabled={locked}
         pending={pending}
-        label={`Toggle ${item.name}`}
+        label={t('toggle_aria', { name: item.name })}
         onChange={() => onToggle(bucket, item.name, !item.enabled)}
       />
       <div className="flex-1 min-w-0">
@@ -168,7 +171,7 @@ function FeatureRow({
           {locked && (
             <Badge variant="outline" className="border-amber-500/40 text-amber-300 text-[10px] uppercase tracking-wider">
               <Lock className="h-3 w-3 mr-1" />
-              Upgrade ke {tierLabel(item.requires_tier)}
+              {t('upgrade_badge', { tier: tierLabel(item.requires_tier) })}
             </Badge>
           )}
           {!locked && item.requires_tier !== 'beta' && (
@@ -184,6 +187,8 @@ function FeatureRow({
 }
 
 export default function PortalFeaturesPage() {
+  const t = useTranslations('portal.features');
+  const tShared = useTranslations('portal.shared');
   const { getAuthHeaders } = useAuth();
   const toast = useToast();
 
@@ -202,17 +207,17 @@ export default function PortalFeaturesPage() {
         const body = (await res.json()) as TenantFeaturesResponse;
         setData(body);
       } else if (res.status === 401) {
-        toast.push({ tone: 'error', title: 'Sesi berakhir', description: 'Silakan login ulang.' });
+        toast.push({ tone: 'error', title: tShared('session_expired_title'), description: tShared('session_expired_desc') });
       } else {
-        toast.push({ tone: 'error', title: 'Gagal memuat fitur', description: `HTTP ${res.status}` });
+        toast.push({ tone: 'error', title: t('fetch_failed_title'), description: t('fetch_failed_desc', { status: res.status }) });
       }
     } catch (err) {
-      toast.push({ tone: 'error', title: 'Network error', description: err instanceof Error ? err.message : 'unknown' });
+      toast.push({ tone: 'error', title: tShared('network_error'), description: err instanceof Error ? err.message : 'unknown' });
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [getAuthHeaders, toast]);
+  }, [getAuthHeaders, toast, t, tShared]);
 
   useEffect(() => {
     load();
@@ -254,7 +259,7 @@ export default function PortalFeaturesPage() {
           if (detail.code === 'TIER_FORBIDDEN' && detail.requires_tier) {
             setUpgradeModal({ feature: name, required: detail.requires_tier });
           } else {
-            toast.push({ tone: 'warning', title: 'Tidak diizinkan', description: `Fitur ${name} butuh tier lebih tinggi.` });
+            toast.push({ tone: 'warning', title: t('not_allowed_title'), description: t('not_allowed_desc', { name }) });
           }
           return;
         }
@@ -268,7 +273,7 @@ export default function PortalFeaturesPage() {
               [bucket]: prev[bucket].map((it) => (it.name === name ? { ...it, enabled: !desired } : it)),
             };
           });
-          toast.push({ tone: 'error', title: 'Gagal menyimpan', description: `HTTP ${res.status}` });
+          toast.push({ tone: 'error', title: t('save_failed_title'), description: t('fetch_failed_desc', { status: res.status }) });
           return;
         }
 
@@ -276,7 +281,7 @@ export default function PortalFeaturesPage() {
         setData(updated);
         toast.push({
           tone: 'success',
-          title: desired ? 'Fitur diaktifkan' : 'Fitur dimatikan',
+          title: desired ? t('feature_enabled') : t('feature_disabled'),
           description: name,
           durationMs: 2500,
         });
@@ -289,7 +294,7 @@ export default function PortalFeaturesPage() {
             [bucket]: prev[bucket].map((it) => (it.name === name ? { ...it, enabled: !desired } : it)),
           };
         });
-        toast.push({ tone: 'error', title: 'Network error', description: err instanceof Error ? err.message : 'unknown' });
+        toast.push({ tone: 'error', title: tShared('network_error'), description: err instanceof Error ? err.message : 'unknown' });
       } finally {
         setPendingKeys((prev) => {
           const n = new Set(prev);
@@ -298,7 +303,7 @@ export default function PortalFeaturesPage() {
         });
       }
     },
-    [data, getAuthHeaders, toast],
+    [data, getAuthHeaders, toast, t, tShared],
   );
 
   const stats = useMemo(() => {
@@ -323,20 +328,20 @@ export default function PortalFeaturesPage() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-3">
             <Sparkles className="h-6 w-6 sm:h-7 sm:w-7 text-amber-400" />
-            Fitur & Capabilities
+            {t('title')}
           </h1>
           <p className="text-muted-foreground mt-1.5 text-sm sm:text-base max-w-2xl">
-            Aktifkan atau matikan indicator, strategy, dan AI subsystem sesuai kebutuhan trading Anda. Fitur di atas tier saat ini perlu upgrade.
+            {t('subtitle')}
           </p>
         </div>
         <div className="flex items-center gap-2">
           {data?.source === 'fallback' && (
             <span className="px-2.5 py-1 rounded-md text-xs font-mono bg-amber-500/10 border border-amber-500/30 text-amber-300">
-              local fallback
+              {tShared('local_fallback_badge')}
             </span>
           )}
           <Button size="sm" variant="outline" onClick={load} disabled={refreshing}>
-            <RefreshCw className={cn('h-4 w-4 mr-2', refreshing && 'animate-spin')} /> Refresh
+            <RefreshCw className={cn('h-4 w-4 mr-2', refreshing && 'animate-spin')} /> {tShared('refresh')}
           </Button>
         </div>
       </div>
@@ -346,20 +351,18 @@ export default function PortalFeaturesPage() {
         <Card className="border-amber-500/20 bg-gradient-to-br from-amber-500/[0.04] to-transparent">
           <CardContent className="p-4 sm:p-5 flex items-start sm:items-center gap-4 flex-wrap">
             <div className="flex-1 min-w-[200px]">
-              <div className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground mb-1">Tier aktif</div>
+              <div className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground mb-1">{t('active_tier_label')}</div>
               <div className="text-lg sm:text-xl font-semibold text-foreground">{tierLabel(tier)}</div>
               {stats && (
                 <div className="text-xs text-muted-foreground mt-1.5">
-                  <span className="font-mono text-foreground">{stats.enabled}</span> aktif ·{' '}
-                  <span className="font-mono text-foreground">{stats.allowed}</span> tersedia ·{' '}
-                  <span className="font-mono text-amber-300">{stats.locked}</span> terkunci
+                  {t('stats_summary', { enabled: stats.enabled, allowed: stats.allowed, locked: stats.locked })}
                 </div>
               )}
             </div>
             {nextTier && (
               <Button asChild size="sm" className="bg-amber-500 hover:bg-amber-400 text-black">
                 <Link href="/pricing">
-                  Upgrade ke {tierLabel(nextTier)} <ArrowUpRight className="h-4 w-4 ml-1.5" />
+                  {t('upgrade_to', { tier: tierLabel(nextTier) })} <ArrowUpRight className="h-4 w-4 ml-1.5" />
                 </Link>
               </Button>
             )}
@@ -384,7 +387,7 @@ export default function PortalFeaturesPage() {
               )}
             >
               <Icon className="h-3.5 w-3.5" />
-              {meta.label}
+              {t(meta.labelKey)}
               <span className="ml-0.5 text-[10px] opacity-70">({count})</span>
             </button>
           );
@@ -402,7 +405,7 @@ export default function PortalFeaturesPage() {
           {data[activeBucket].length === 0 ? (
             <Card>
               <CardContent className="p-8 text-center text-muted-foreground">
-                Tidak ada item pada kategori ini.
+                {t('category_empty')}
               </CardContent>
             </Card>
           ) : (
@@ -424,7 +427,7 @@ export default function PortalFeaturesPage() {
         <Card>
           <CardContent className="p-8 text-center text-muted-foreground">
             <Loader2 className="h-6 w-6 mx-auto opacity-40 mb-2" />
-            Tidak dapat memuat data fitur.
+            {t('load_data_failed')}
           </CardContent>
         </Card>
       )}
@@ -433,13 +436,13 @@ export default function PortalFeaturesPage() {
       {data && (
         <Card className="border-white/10">
           <CardContent className="p-4 sm:p-5">
-            <div className="text-xs uppercase tracking-wider font-mono text-muted-foreground mb-3">Tier ladder</div>
+            <div className="text-xs uppercase tracking-wider font-mono text-muted-foreground mb-3">{t('tier_ladder')}</div>
             <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-              {CAPABILITY_TIER_ORDER.map((t, i) => {
-                const reached = tierIncludes(tier, t);
-                const isCurrent = tier === t;
+              {CAPABILITY_TIER_ORDER.map((tt, i) => {
+                const reached = tierIncludes(tier, tt);
+                const isCurrent = tier === tt;
                 return (
-                  <div key={t} className="flex items-center gap-1 sm:gap-2">
+                  <div key={tt} className="flex items-center gap-1 sm:gap-2">
                     <span
                       className={cn(
                         'inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-mono uppercase tracking-wider',
@@ -450,7 +453,7 @@ export default function PortalFeaturesPage() {
                             : 'bg-white/5 text-muted-foreground',
                       )}
                     >
-                      {tierLabel(t)}
+                      {tierLabel(tt)}
                     </span>
                     {i < CAPABILITY_TIER_ORDER.length - 1 && (
                       <span className={cn('text-[10px]', reached ? 'text-amber-400/50' : 'text-white/15')}>›</span>

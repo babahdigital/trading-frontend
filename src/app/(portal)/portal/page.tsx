@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { EquityCurve } from '@/components/charts/equity-curve';
@@ -36,6 +37,8 @@ interface StatusData {
 }
 
 export default function PortalDashboard() {
+  const t = useTranslations('portal.dashboard');
+  const tShared = useTranslations('portal.shared');
   const { getAuthHeaders } = useAuth();
   const [status, setStatus] = useState<StatusData | null>(null);
   const [equityData, setEquityData] = useState<{ time: string; value: number }[]>([]);
@@ -81,11 +84,11 @@ export default function PortalDashboard() {
     async function fetchStatus() {
       try {
         const res = await fetch('/api/client/status', { headers: getAuthHeaders() });
-        if (!res.ok) throw new Error('Failed to fetch status');
+        if (!res.ok) throw new Error(t('fetch_status_failed'));
         const data = await res.json();
         if (active) { setStatus(data); setError(''); }
       } catch (err: unknown) {
-        if (active) setError(err instanceof Error ? err.message : 'Connection error');
+        if (active) setError(err instanceof Error ? err.message : tShared('connection_error'));
       } finally {
         if (active) setLoading(false);
       }
@@ -150,15 +153,15 @@ export default function PortalDashboard() {
   function licenseCountdown() {
     if (!status?.license_expiry) return null;
     const diff = new Date(status.license_expiry).getTime() - Date.now();
-    if (diff <= 0) return 'Expired';
+    if (diff <= 0) return t('license_expired');
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    return `${days} hari tersisa`;
+    return t('license_days_left', { days });
   }
 
   if (loading) {
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <h1 className="text-2xl font-bold">{t('title')}</h1>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map((i) => <SkeletonCard key={i} />)}
         </div>
@@ -176,14 +179,14 @@ export default function PortalDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
-          <h1 className="text-2xl font-bold">Dashboard</h1>
-          {userName && <p className="text-sm text-muted-foreground">Selamat datang, {userName}</p>}
+          <h1 className="text-2xl font-bold">{t('title')}</h1>
+          {userName && <p className="text-sm text-muted-foreground">{t('welcome', { name: userName })}</p>}
         </div>
         <div className="flex items-center gap-2">
           <span className={cn('inline-flex items-center rounded-full px-3 py-1 text-xs font-medium',
             status?.license_status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'
           )}>
-            License: {status?.license_status === 'active' ? 'Active' : status?.license_status || 'Unknown'}
+            {t('license_label')} {status?.license_status === 'active' ? t('license_active') : status?.license_status || t('license_unknown')}
           </span>
           {licenseCountdown() && <span className="text-xs text-muted-foreground">{licenseCountdown()}</span>}
         </div>
@@ -200,18 +203,18 @@ export default function PortalDashboard() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Bot Status</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t('kpi_bot_status')}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className={cn('text-2xl font-bold capitalize', botStatusColor(status?.bot_status))}>
               {status?.bot_status || '-'}
             </p>
-            <p className="text-xs text-muted-foreground">{status?.active_pairs || 14} pairs</p>
+            <p className="text-xs text-muted-foreground">{status?.active_pairs || 14} {t('kpi_pairs_suffix')}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Equity</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t('kpi_equity')}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold font-mono">
@@ -226,7 +229,7 @@ export default function PortalDashboard() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Today P&L</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t('kpi_today_pnl')}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className={cn('text-2xl font-bold font-mono',
@@ -236,14 +239,14 @@ export default function PortalDashboard() {
             </p>
             {(status?.wins_today !== undefined || status?.losses_today !== undefined) && (
               <p className="text-xs text-muted-foreground">
-                {status?.wins_today ?? 0}W / {status?.losses_today ?? 0}L
+                {t('kpi_wl_short', { wins: status?.wins_today ?? 0, losses: status?.losses_today ?? 0 })}
               </p>
             )}
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Open Trades</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t('kpi_open_trades')}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold font-mono">{status?.open_trades ?? positions.length}</p>
@@ -259,7 +262,7 @@ export default function PortalDashboard() {
       {/* ROW 2: Equity Curve */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-medium">Equity Curve</CardTitle>
+          <CardTitle className="text-sm font-medium">{t('equity_curve_title')}</CardTitle>
         </CardHeader>
         <CardContent>
           {equityData.length > 0 ? (
@@ -272,7 +275,7 @@ export default function PortalDashboard() {
             />
           ) : (
             <div className="flex items-center justify-center h-[240px] sm:h-[280px] md:h-[320px] text-muted-foreground text-sm">
-              Equity data will appear when connected to trading backend
+              {t('equity_empty')}
             </div>
           )}
         </CardContent>
@@ -283,12 +286,12 @@ export default function PortalDashboard() {
         {/* Positions */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-sm font-medium">Posisi Terbuka</CardTitle>
-            <span className="text-xs text-muted-foreground">Polling 3s</span>
+            <CardTitle className="text-sm font-medium">{t('open_positions_title')}</CardTitle>
+            <span className="text-xs text-muted-foreground">{t('polling_3s')}</span>
           </CardHeader>
           <CardContent>
             {positions.length === 0 ? (
-              <p className="text-muted-foreground text-sm text-center py-4">Tidak ada posisi terbuka</p>
+              <p className="text-muted-foreground text-sm text-center py-4">{t('open_positions_empty')}</p>
             ) : (
               <div className="space-y-2">
                 {positions.map((pos, i) => (
@@ -321,11 +324,11 @@ export default function PortalDashboard() {
         {/* Bot Activity Feed */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium">Aktivitas Bot</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('bot_activity_title')}</CardTitle>
           </CardHeader>
           <CardContent>
             {aiStates.length === 0 ? (
-              <p className="text-muted-foreground text-sm text-center py-4">Tidak ada data aktivitas</p>
+              <p className="text-muted-foreground text-sm text-center py-4">{t('bot_activity_empty')}</p>
             ) : (
               <div className="space-y-2 max-h-[300px] overflow-y-auto">
                 {aiStates.map(([pair, state]) => (
@@ -334,7 +337,7 @@ export default function PortalDashboard() {
                     <div>
                       <span className="font-mono font-semibold">{pair}</span>
                       <span className="text-muted-foreground ml-2">
-                        {state.runtime_status_label || 'Memantau pasar'}
+                        {state.runtime_status_label || t('bot_default_status')}
                       </span>
                     </div>
                     {state.updated_seconds_ago !== undefined && (
@@ -351,14 +354,14 @@ export default function PortalDashboard() {
       {/* ROW 4: Daily PnL Mini Bar (7 days) */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-medium">PnL Harian (7 Hari Terakhir)</CardTitle>
+          <CardTitle className="text-sm font-medium">{t('weekly_pnl_title')}</CardTitle>
         </CardHeader>
         <CardContent>
           {weeklyPnl.length > 0 ? (
             <PnlBarChart data={weeklyPnl} height={160} />
           ) : (
             <div className="flex items-center justify-center h-[160px] text-muted-foreground text-sm">
-              Data PnL harian akan muncul saat terhubung
+              {t('weekly_pnl_empty')}
             </div>
           )}
         </CardContent>

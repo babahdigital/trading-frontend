@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth/auth-context';
@@ -13,6 +14,8 @@ interface ReportData {
 }
 
 export default function ReportsPage() {
+  const t = useTranslations('portal.reports');
+  const tShared = useTranslations('portal.shared');
   const { getAuthHeaders } = useAuth();
   const [report, setReport] = useState<ReportData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -22,12 +25,12 @@ export default function ReportsPage() {
     async function fetchReport() {
       try {
         const res = await fetch('/api/client/reports', { headers: getAuthHeaders() });
-        if (!res.ok) throw new Error('Failed to fetch reports');
+        if (!res.ok) throw new Error(t('fetch_failed'));
         const data = await res.json();
         setReport(data);
         setError('');
       } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : 'Connection error');
+        setError(err instanceof Error ? err.message : tShared('connection_error'));
       } finally {
         setLoading(false);
       }
@@ -47,7 +50,7 @@ export default function ReportsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-foreground">Daily Reports</h1>
+      <h1 className="text-2xl font-bold text-foreground">{t('title')}</h1>
 
       {error && (
         <div className="rounded-md bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-400">
@@ -56,10 +59,10 @@ export default function ReportsPage() {
       )}
 
       {loading ? (
-        <p className="text-muted-foreground text-sm">Loading report...</p>
+        <p className="text-muted-foreground text-sm">{t('loading')}</p>
       ) : !report ? (
         <div className="flex items-center justify-center py-12">
-          <p className="text-muted-foreground">No report available</p>
+          <p className="text-muted-foreground">{t('no_report')}</p>
         </div>
       ) : (
         <>
@@ -70,7 +73,7 @@ export default function ReportsPage() {
                 <Card className="bg-card border-border md:col-span-3">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-medium text-muted-foreground">
-                      Summary
+                      {t('summary')}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -83,7 +86,7 @@ export default function ReportsPage() {
                 <Card className="bg-card border-border">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-medium text-muted-foreground">
-                      Total Trades
+                      {t('total_trades')}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -96,7 +99,7 @@ export default function ReportsPage() {
                 <Card className="bg-card border-border">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-medium text-muted-foreground">
-                      Total P&L
+                      {t('total_pnl')}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -118,7 +121,7 @@ export default function ReportsPage() {
           {/* Full Report Details */}
           <Card className="bg-card border-border">
             <CardHeader>
-              <CardTitle className="text-lg font-semibold text-foreground">Report Details</CardTitle>
+              <CardTitle className="text-lg font-semibold text-foreground">{t('details_title')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
@@ -139,7 +142,7 @@ export default function ReportsPage() {
                   ))}
                 {Object.entries(report).filter(([key]) => !highlightKeys.includes(key)).length ===
                   0 && (
-                  <p className="text-muted-foreground text-sm">No additional details available</p>
+                  <p className="text-muted-foreground text-sm">{t('no_details')}</p>
                 )}
               </div>
             </CardContent>

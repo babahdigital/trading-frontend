@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { Sparkles, Lock, ArrowUpRight, X, Moon, Brain, Zap } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
 import { type CapabilityTier, tierLabel, CAPABILITY_TIER_ORDER } from '@/lib/capabilities/tier-mapping';
@@ -33,13 +34,13 @@ interface TenantFeaturesResponse {
   ai_subsystems: FeatureItem[];
 }
 
-const HIGHLIGHT_BY_NAME: Record<string, { icon: typeof Sparkles; tagline: string }> = {
-  astronacci_lunar_phase: { icon: Moon, tagline: 'Lunar phase entry timing — keunggulan kompetitif Anda' },
-  astronacci_planetary: { icon: Sparkles, tagline: 'Planetary alignment + Fibonacci-Astro' },
-  'astronacci.moon_reversal': { icon: Moon, tagline: 'Lunar-Fibonacci reversal — strategi flagship' },
-  weekly_retrospect: { icon: Brain, tagline: 'Retrospective AI mingguan ala manajer portofolio' },
-  entry_veto_mode: { icon: Brain, tagline: 'AI active blocking — cegah entry buruk sebelum eksekusi' },
-  news_momentum: { icon: Zap, tagline: 'High-impact news momentum — early-mover edge' },
+const HIGHLIGHT_BY_NAME: Record<string, { icon: typeof Sparkles; taglineKey: string }> = {
+  astronacci_lunar_phase: { icon: Moon, taglineKey: 'tagline_astronacci_lunar_phase' },
+  astronacci_planetary: { icon: Sparkles, taglineKey: 'tagline_astronacci_planetary' },
+  'astronacci.moon_reversal': { icon: Moon, taglineKey: 'tagline_astronacci_moon_reversal' },
+  weekly_retrospect: { icon: Brain, taglineKey: 'tagline_weekly_retrospect' },
+  entry_veto_mode: { icon: Brain, taglineKey: 'tagline_entry_veto_mode' },
+  news_momentum: { icon: Zap, taglineKey: 'tagline_news_momentum' },
 };
 
 function pickHighlight(data: TenantFeaturesResponse): { item: FeatureItem; bucket: string } | null {
@@ -70,6 +71,7 @@ function pickHighlight(data: TenantFeaturesResponse): { item: FeatureItem; bucke
 const DISMISS_KEY_PREFIX = 'babahalgo:discovery-dismissed:';
 
 export function DiscoveryBanner() {
+  const t = useTranslations('portal.discovery_banner');
   const { getAuthHeaders } = useAuth();
   const [data, setData] = useState<TenantFeaturesResponse | null>(null);
   const [dismissed, setDismissed] = useState(false);
@@ -103,7 +105,7 @@ export function DiscoveryBanner() {
 
   const meta = HIGHLIGHT_BY_NAME[highlight.item.name];
   const Icon = meta?.icon ?? Sparkles;
-  const tagline = meta?.tagline ?? highlight.item.description;
+  const tagline = meta?.taglineKey ? t(meta.taglineKey) : highlight.item.description;
 
   const onDismiss = () => {
     setDismissed(true);
@@ -126,7 +128,7 @@ export function DiscoveryBanner() {
       <button
         type="button"
         onClick={onDismiss}
-        aria-label="Tutup banner"
+        aria-label={t('dismiss_aria')}
         className="absolute top-2 right-2 p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors"
       >
         <X className="h-4 w-4" />
@@ -142,7 +144,7 @@ export function DiscoveryBanner() {
             </span>
             <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider font-mono text-muted-foreground">
               <Lock className="h-3 w-3" />
-              Terkunci
+              {t('locked')}
             </span>
           </div>
           <h3 className="font-semibold text-sm sm:text-base leading-tight mb-1">
@@ -154,14 +156,14 @@ export function DiscoveryBanner() {
               href="/pricing"
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-amber-500 hover:bg-amber-400 text-black text-xs font-semibold transition-colors"
             >
-              Upgrade ke {tierLabel(highlight.item.requires_tier)}
+              {t('upgrade_cta', { tier: tierLabel(highlight.item.requires_tier) })}
               <ArrowUpRight className="h-3.5 w-3.5" />
             </Link>
             <Link
               href="/portal/features"
               className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
             >
-              Lihat semua fitur
+              {t('see_all_features')}
             </Link>
           </div>
         </div>

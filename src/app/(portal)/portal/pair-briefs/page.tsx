@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 
 interface Brief {
   id: string;
@@ -23,18 +24,19 @@ function formatPrice(n: number): string {
   return n >= 100 ? n.toLocaleString('en-US', { maximumFractionDigits: 2 }) : n.toFixed(5);
 }
 
-function sessionBadge(session: string): string {
-  switch (session) {
-    case 'ASIAN': return 'Asian';
-    case 'LONDON': return 'London';
-    case 'NEW_YORK': return 'New York';
-    default: return session;
-  }
-}
-
 export default function PortalPairBriefsPage() {
+  const t = useTranslations('portal.pair_briefs');
   const [briefs, setBriefs] = useState<Brief[]>([]);
   const [loading, setLoading] = useState(true);
+
+  function sessionBadge(session: string): string {
+    switch (session) {
+      case 'ASIAN': return t('session_asian');
+      case 'LONDON': return t('session_london');
+      case 'NEW_YORK': return t('session_new_york');
+      default: return session;
+    }
+  }
 
   useEffect(() => {
     async function load() {
@@ -55,9 +57,9 @@ export default function PortalPairBriefsPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold">Pair Intelligence Briefs</h1>
+        <h1 className="text-2xl font-bold">{t('title')}</h1>
         <p className="text-muted-foreground text-sm mt-1">
-          Per-pair analysis with S/R levels, SND zones, and trade ideas
+          {t('subtitle')}
         </p>
       </div>
 
@@ -72,7 +74,7 @@ export default function PortalPairBriefsPage() {
         </div>
       ) : briefs.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
-          No pair briefs available yet. Check back soon.
+          {t('empty')}
         </div>
       ) : (
         <div className="space-y-4">
@@ -93,7 +95,7 @@ export default function PortalPairBriefsPage() {
                   )}
                 </div>
                 <span className={`text-sm font-medium ${brief.fundamentalBias === 'BULLISH' ? 'text-emerald-500' : brief.fundamentalBias === 'BEARISH' ? 'text-red-500' : 'text-muted-foreground'}`}>
-                  {brief.fundamentalBias || 'NEUTRAL'}
+                  {brief.fundamentalBias || t('bias_neutral')}
                 </span>
               </div>
 

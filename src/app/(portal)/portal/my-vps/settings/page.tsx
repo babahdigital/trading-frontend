@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useTranslations, useLocale } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -21,6 +22,8 @@ interface StatusData {
 }
 
 export default function MyVpsSettingsPage() {
+  const t = useTranslations('portal.vps.settings');
+  const locale = useLocale();
   const { getAuthHeaders } = useAuth();
   const [status, setStatus] = useState<StatusData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -46,29 +49,29 @@ export default function MyVpsSettingsPage() {
       <div className="flex items-center gap-3">
         <Link href="/portal/my-vps">
           <Button variant="ghost" size="sm">
-            <ArrowLeft className="w-4 h-4 mr-1" /> Kembali
+            <ArrowLeft className="w-4 h-4 mr-1" /> {t('back')}
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold">Pengaturan VPS</h1>
-          <p className="text-sm text-muted-foreground">Konfigurasi trading bot dan parameter risiko</p>
+          <h1 className="text-2xl font-bold">{t('heading')}</h1>
+          <p className="text-sm text-muted-foreground">{t('tagline')}</p>
         </div>
       </div>
 
       {loading ? (
-        <p className="text-muted-foreground text-sm">Memuat data...</p>
+        <p className="text-muted-foreground text-sm">{t('loading')}</p>
       ) : (
         <>
           {/* Active Pairs */}
           <Card>
             <CardHeader>
               <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Zap className="w-4 h-4" /> Pair Aktif
+                <Zap className="w-4 h-4" /> {t('active_pairs_title')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               {pairs.length === 0 ? (
-                <p className="text-muted-foreground text-sm">Tidak ada pair aktif</p>
+                <p className="text-muted-foreground text-sm">{t('no_active_pairs')}</p>
               ) : (
                 <div className="flex flex-wrap gap-2">
                   {pairs.map((pair) => (
@@ -85,18 +88,18 @@ export default function MyVpsSettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Shield className="w-4 h-4" /> Parameter Risiko
+                <Shield className="w-4 h-4" /> {t('risk_params_title')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <InfoRow label="Manajemen Risiko" value="Otomatis oleh AI" />
-                <InfoRow label="Max Posisi Bersamaan" value="Dikontrol oleh bot" />
-                <InfoRow label="Stop Loss" value="Dinamis per pair" />
-                <InfoRow label="Take Profit" value="Dinamis per pair" />
+                <InfoRow label={t('row_risk_management')} value={t('row_risk_management_value')} />
+                <InfoRow label={t('row_max_positions')} value={t('row_max_positions_value')} />
+                <InfoRow label={t('row_stop_loss')} value={t('row_stop_loss_value')} />
+                <InfoRow label={t('row_take_profit')} value={t('row_take_profit_value')} />
               </div>
               <div className="mt-4 p-3 rounded-md bg-amber-500/10 border border-amber-500/20 text-sm text-amber-400">
-                Parameter risiko dikelola secara otomatis oleh AI trading bot. Hubungi admin untuk perubahan khusus.
+                {t('risk_note')}
               </div>
             </CardContent>
           </Card>
@@ -105,18 +108,18 @@ export default function MyVpsSettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Settings2 className="w-4 h-4" /> Informasi Bot
+                <Settings2 className="w-4 h-4" /> {t('bot_info_title')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <InfoRow label="Versi Bot" value={status?.code_version || '-'} />
-                <InfoRow label="Status Bot" value={status?.bot_status || '-'} />
-                <InfoRow label="Status Lisensi" value={status?.license_status || '-'} />
+                <InfoRow label={t('row_bot_version')} value={status?.code_version || '-'} />
+                <InfoRow label={t('row_bot_status')} value={status?.bot_status || '-'} />
+                <InfoRow label={t('row_license_status')} value={status?.license_status || '-'} />
                 <InfoRow
-                  label="Lisensi Berakhir"
+                  label={t('row_license_expiry')}
                   value={status?.license_expiry
-                    ? new Date(status.license_expiry).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+                    ? new Date(status.license_expiry).toLocaleDateString(locale === 'en' ? 'en-US' : 'id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
                     : '-'
                   }
                 />
@@ -129,10 +132,10 @@ export default function MyVpsSettingsPage() {
             <CardContent className="pt-6">
               <div className="text-center">
                 <p className="text-sm text-muted-foreground mb-3">
-                  Ingin mengubah pengaturan atau menambah pair? Hubungi admin kami.
+                  {t('contact_admin_text')}
                 </p>
                 <Link href="/portal/my-vps/support">
-                  <Button variant="outline" size="sm">Hubungi Support</Button>
+                  <Button variant="outline" size="sm">{t('contact_admin_cta')}</Button>
                 </Link>
               </div>
             </CardContent>

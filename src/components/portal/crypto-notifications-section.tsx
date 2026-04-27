@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -23,14 +24,14 @@ import {
 } from '@/lib/whatsapp/client';
 import { formatWhatsappDisplay, isValidWhatsappTarget, maskWhatsappNumber, toE164 } from '@/lib/whatsapp/format';
 
-const KNOWN_EVENTS: { id: string; label: string; hint: string }[] = [
-  { id: 'signal.emitted', label: 'Signal baru', hint: 'Saat bot emit sinyal trading.' },
-  { id: 'position.opened', label: 'Posisi terbuka', hint: 'Saat order entry tereksekusi.' },
-  { id: 'position.closed', label: 'Posisi tertutup', hint: 'Saat TP/SL/manual close.' },
-  { id: 'kill_switch.activated', label: 'Kill-switch', hint: 'Emergency stop. Selalu disarankan ON.' },
-  { id: 'risk.limit_hit', label: 'Limit risk tercapai', hint: 'Daily loss / drawdown threshold.' },
-  { id: 'funding.alert', label: 'Funding alert', hint: 'Funding rate ekstrem.' },
-];
+const KNOWN_EVENTS = [
+  { id: 'signal.emitted', labelKey: 'event_signal_label', hintKey: 'event_signal_hint' },
+  { id: 'position.opened', labelKey: 'event_position_opened_label', hintKey: 'event_position_opened_hint' },
+  { id: 'position.closed', labelKey: 'event_position_closed_label', hintKey: 'event_position_closed_hint' },
+  { id: 'kill_switch.activated', labelKey: 'event_kill_switch_label', hintKey: 'event_kill_switch_hint' },
+  { id: 'risk.limit_hit', labelKey: 'event_risk_limit_label', hintKey: 'event_risk_limit_hint' },
+  { id: 'funding.alert', labelKey: 'event_funding_alert_label', hintKey: 'event_funding_alert_hint' },
+] as const;
 
 type VerifyState =
   | { phase: 'idle' }
@@ -41,6 +42,8 @@ type VerifyState =
   | { phase: 'error'; message: string };
 
 export function CryptoNotificationsSection() {
+  const t = useTranslations('portal.crypto_notifications');
+  const locale = useLocale();
   const [prefs, setPrefs] = useState<CryptoNotificationPrefs | null>(null);
   const [loadStatus, setLoadStatus] = useState<'loading' | 'ready' | 'unavailable' | 'error'>('loading');
   const [errorMessage, setErrorMessage] = useState('');
@@ -51,6 +54,28 @@ export function CryptoNotificationsSection() {
   const [draftNumber, setDraftNumber] = useState('');
   const [verify, setVerify] = useState<VerifyState>({ phase: 'idle' });
   const [otpInput, setOtpInput] = useState('');
+
+  const humanizeCryptoError = useCallback((code: string): string => {
+    switch (code) {
+      case 'cannot_enable_telegram_no_chat_id':
+        return t('err_no_chat_id');
+      case 'cannot_enable_whatsapp_no_number':
+        return t('err_no_number');
+      case 'cannot_enable_whatsapp_unverified':
+        return t('err_unverified');
+      case 'invalid_whatsapp_number':
+      case 'invalid_e164':
+        return t('err_invalid_number');
+      case 'crypto_endpoint_not_found':
+        return t('err_endpoint_not_found');
+      case 'crypto_backend_unconfigured':
+        return t('err_backend_unconfigured');
+      case 'otp_invalid':
+        return t('err_otp_invalid');
+      default:
+        return code;
+    }
+  }, [t]);
 
   const refresh = useCallback(async () => {
     setLoadStatus('loading');
@@ -63,12 +88,12 @@ export function CryptoNotificationsSection() {
       if (err instanceof WhatsappAdapterError) {
         if (err.status === 503 || err.status === 404) {
           setLoadStatus('unavailable');
-          setErrorMessage('Backend crypto notification preferences belum dapat dijangkau.');
+          setErrorMessage(t('unavailable_backend'));
           return;
         }
         if (err.status === 403) {
           setLoadStatus('unavailable');
-          setErrorMessage('Subscription crypto belum aktif untuk akun Anda.');
+          setErrorMessage(t('unavailable_subscription'));
           return;
         }
         setLoadStatus('error');
@@ -76,9 +101,9 @@ export function CryptoNotificationsSection() {
         return;
       }
       setLoadStatus('error');
-      setErrorMessage('Gagal memuat preferensi.');
+      setErrorMessage(t('load_failed'));
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     void refresh();
@@ -90,28 +115,28 @@ export function CryptoNotificationsSection() {
     try {
       const next = await patchCryptoNotificationPrefs(patch);
       setPrefs(next);
-      setSavedMessage('Disimpan.');
+      setSavedMessage(t('saved'));
     } catch (err) {
       if (err instanceof WhatsappAdapterError) {
         setSavedMessage(humanizeCryptoError(err.message));
       } else {
-        setSavedMessage('Gagal menyimpan.');
+        setSavedMessage(t('save_failed'));
       }
     } finally {
       setSaving(false);
     }
-  }, []);
+  }, [humanizeCryptoError, t]);
 
   const handleSetNumber = useCallback(async () => {
     const e164 = toE164(draftNumber, draftCountryCode);
     if (!e164 || !isValidWhatsappTarget(e164)) {
-      setVerify({ phase: 'error', message: 'Nomor tidak valid. Gunakan format internasional (cth +6281234567890).' });
+      setVerify({ phase: 'error', message: t('invalid_number') });
       return;
     }
     setVerify({ phase: 'idle' });
     await submitPatch({ whatsappNumber: e164 });
     setDraftNumber('');
-  }, [draftCountryCode, draftNumber, submitPatch]);
+  }, [draftCountryCode, draftNumber, submitPatch, t]);
 
   const handleRequestOtp = useCallback(async () => {
     setVerify({ phase: 'requesting' });
@@ -124,22 +149,22 @@ export function CryptoNotificationsSection() {
       });
       setOtpInput('');
     } catch (err) {
-      const detail = err instanceof WhatsappAdapterError ? humanizeCryptoError(err.message) : 'Gagal mengirim OTP.';
+      const detail = err instanceof WhatsappAdapterError ? humanizeCryptoError(err.message) : t('otp_send_failed');
       setVerify({ phase: 'error', message: detail });
     }
-  }, []);
+  }, [humanizeCryptoError, t]);
 
   const handleConfirmOtp = useCallback(async () => {
     if (verify.phase !== 'awaiting_otp') return;
     if (!otpInput.trim()) {
-      setVerify({ phase: 'error', message: 'OTP tidak boleh kosong.' });
+      setVerify({ phase: 'error', message: t('otp_empty') });
       return;
     }
     setVerify({ phase: 'confirming' });
     try {
       const result = await confirmCryptoWhatsappOtp(otpInput.trim());
       if (result.status !== 'verified') {
-        setVerify({ phase: 'error', message: 'Verifikasi gagal.' });
+        setVerify({ phase: 'error', message: t('verify_failed') });
         return;
       }
       setVerify({ phase: 'verified' });
@@ -147,29 +172,29 @@ export function CryptoNotificationsSection() {
       // Refresh prefs to pick up new whatsappVerified flag.
       await refresh();
     } catch (err) {
-      const detail = err instanceof WhatsappAdapterError ? humanizeCryptoError(err.message) : 'OTP salah atau kadaluarsa.';
+      const detail = err instanceof WhatsappAdapterError ? humanizeCryptoError(err.message) : t('otp_invalid_or_expired');
       setVerify({ phase: 'error', message: detail });
     }
-  }, [otpInput, refresh, verify]);
+  }, [otpInput, refresh, verify, humanizeCryptoError, t]);
 
   if (loadStatus === 'loading') {
     return (
       <div className="flex items-center gap-2 text-muted-foreground py-6">
         <Loader2 className="h-4 w-4 animate-spin" />
-        <span className="text-sm">Memuat preferensi crypto…</span>
+        <span className="text-sm">{t('loading')}</span>
       </div>
     );
   }
 
   if (loadStatus === 'unavailable') {
-    return <Banner tone="info" title="Belum tersedia" body={errorMessage} />;
+    return <Banner tone="info" title={t('load_unavailable_title')} body={errorMessage} />;
   }
 
   if (loadStatus === 'error' || !prefs) {
     return (
       <div className="space-y-3">
-        <Banner tone="error" title="Gagal memuat" body={errorMessage || 'Silakan coba lagi.'} />
-        <Button variant="outline" size="sm" onClick={() => void refresh()}>Coba Lagi</Button>
+        <Banner tone="error" title={t('load_failed_title')} body={errorMessage || t('load_failed_body')} />
+        <Button variant="outline" size="sm" onClick={() => void refresh()}>{t('try_again')}</Button>
       </div>
     );
   }
@@ -178,22 +203,24 @@ export function CryptoNotificationsSection() {
     <div className="space-y-5">
       {/* Telegram channel */}
       <ChannelCard
-        title="Telegram"
+        title={t('telegram_title')}
         enabled={prefs.telegramEnabled}
         onToggle={(enabled) => submitPatch({ telegramEnabled: enabled })}
         disabled={saving || !prefs.telegramChatId}
         helperText={
           prefs.telegramChatId
-            ? `Terhubung ke chat ${prefs.telegramChatId.slice(-6)}…`
-            : 'Bind Telegram dulu lewat /portal/account → Telegram bot.'
+            ? t('telegram_connected_short', { value: prefs.telegramChatId.slice(-6) })
+            : t('telegram_bind_first')
         }
         statusBadge={
           prefs.telegramChatId ? (
-            <Badge tone="emerald">Connected</Badge>
+            <Badge tone="emerald">{t('badge_connected')}</Badge>
           ) : (
-            <Badge tone="amber">Not bound</Badge>
+            <Badge tone="amber">{t('badge_not_bound')}</Badge>
           )
         }
+        activeLabel={t('active')}
+        inactiveLabel={t('inactive')}
       />
 
       {/* WhatsApp channel */}
@@ -201,8 +228,8 @@ export function CryptoNotificationsSection() {
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-2">
             <MessageSquare className="h-4 w-4 text-emerald-300" />
-            <p className="text-sm font-semibold">WhatsApp</p>
-            {prefs.whatsappVerified ? <Badge tone="emerald">Verified</Badge> : prefs.whatsappNumber ? <Badge tone="amber">Pending verify</Badge> : <Badge tone="muted">No number</Badge>}
+            <p className="text-sm font-semibold">{t('whatsapp_title')}</p>
+            {prefs.whatsappVerified ? <Badge tone="emerald">{t('badge_verified')}</Badge> : prefs.whatsappNumber ? <Badge tone="amber">{t('badge_pending_verify')}</Badge> : <Badge tone="muted">{t('badge_no_number')}</Badge>}
           </div>
           <Button
             variant={prefs.whatsappEnabled ? 'default' : 'outline'}
@@ -211,15 +238,15 @@ export function CryptoNotificationsSection() {
             onClick={() => submitPatch({ whatsappEnabled: !prefs.whatsappEnabled })}
           >
             {prefs.whatsappEnabled ? <ShieldCheck className="h-4 w-4 mr-2" /> : <ShieldX className="h-4 w-4 mr-2" />}
-            {prefs.whatsappEnabled ? 'Aktif' : 'Nonaktif'}
+            {prefs.whatsappEnabled ? t('active') : t('inactive')}
           </Button>
         </div>
 
         {prefs.whatsappNumber && (
           <p className="text-xs text-muted-foreground">
-            Nomor terikat: <span className="font-mono">{maskWhatsappNumber(prefs.whatsappNumber)}</span>
+            {t('bound_number')} <span className="font-mono">{maskWhatsappNumber(prefs.whatsappNumber)}</span>
             {prefs.whatsappVerifiedAt && (
-              <> · diverifikasi {new Date(prefs.whatsappVerifiedAt).toLocaleDateString('id-ID')}</>
+              <> · {t('verified_at', { date: new Date(prefs.whatsappVerifiedAt).toLocaleDateString(locale === 'en' ? 'en-US' : 'id-ID') })}</>
             )}
             <button
               type="button"
@@ -227,7 +254,7 @@ export function CryptoNotificationsSection() {
               onClick={() => submitPatch({ whatsappNumber: null, whatsappEnabled: false })}
               disabled={saving}
             >
-              Hapus
+              {t('delete')}
             </button>
           </p>
         )}
@@ -235,7 +262,7 @@ export function CryptoNotificationsSection() {
         {/* Add / change number */}
         <div className="grid gap-2 sm:grid-cols-[120px_1fr_auto]">
           <div>
-            <label htmlFor="crypto-cc" className="text-[11px] uppercase tracking-wider text-muted-foreground">Country</label>
+            <label htmlFor="crypto-cc" className="text-[11px] uppercase tracking-wider text-muted-foreground">{t('country_label')}</label>
             <Input
               id="crypto-cc"
               value={draftCountryCode}
@@ -246,14 +273,14 @@ export function CryptoNotificationsSection() {
           </div>
           <div>
             <label htmlFor="crypto-num" className="text-[11px] uppercase tracking-wider text-muted-foreground">
-              {prefs.whatsappNumber ? 'Ganti nomor' : 'Tambah nomor'}
+              {prefs.whatsappNumber ? t('change_number') : t('add_number')}
             </label>
             <Input
               id="crypto-num"
               value={draftNumber}
               inputMode="tel"
               autoComplete="tel"
-              placeholder="0812 3456 7890"
+              placeholder={t('number_placeholder')}
               onChange={(e) => setDraftNumber(e.target.value)}
             />
           </div>
@@ -264,7 +291,7 @@ export function CryptoNotificationsSection() {
               disabled={saving || draftNumber.trim() === ''}
             >
               <Send className="h-4 w-4 mr-2" />
-              Simpan nomor
+              {t('save_number')}
             </Button>
           </div>
         </div>
@@ -272,17 +299,17 @@ export function CryptoNotificationsSection() {
         {/* OTP flow */}
         {prefs.whatsappNumber && !prefs.whatsappVerified && (
           <div className="space-y-2 rounded-md border border-amber-400/30 bg-amber-400/5 p-3">
-            <p className="text-sm">Verifikasi nomor <span className="font-mono">{formatWhatsappDisplay(prefs.whatsappNumber)}</span></p>
+            <p className="text-sm">{t('verify_number', { number: formatWhatsappDisplay(prefs.whatsappNumber) })}</p>
             {verify.phase === 'idle' && (
-              <Button size="sm" onClick={handleRequestOtp} disabled={saving}>Kirim OTP</Button>
+              <Button size="sm" onClick={handleRequestOtp} disabled={saving}>{t('send_otp')}</Button>
             )}
             {verify.phase === 'requesting' && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Mengirim OTP…</div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> {t('sending_otp')}</div>
             )}
             {verify.phase === 'awaiting_otp' && (
               <div className="space-y-2">
                 {verify.via === 'stub' && (
-                  <Banner tone="info" title="Phase 2 stub" body={verify.message ?? 'Backend belum kirim OTP nyata. Masukkan kode "000000" untuk testing.'} />
+                  <Banner tone="info" title={t('stub_title')} body={verify.message ?? t('stub_body')} />
                 )}
                 <div className="flex items-center gap-2 flex-wrap">
                   <Input
@@ -291,24 +318,24 @@ export function CryptoNotificationsSection() {
                     maxLength={6}
                     value={otpInput}
                     onChange={(e) => setOtpInput(e.target.value.replace(/\D+/g, '').slice(0, 6))}
-                    placeholder="000000"
+                    placeholder={t('otp_placeholder')}
                     className="w-32 font-mono tracking-widest text-center"
-                    aria-label="OTP code"
+                    aria-label={t('otp_aria')}
                   />
-                  <Button onClick={handleConfirmOtp} disabled={saving || otpInput.length === 0}>Verifikasi</Button>
-                  <Button variant="ghost" onClick={() => { setVerify({ phase: 'idle' }); setOtpInput(''); }}>Batal</Button>
+                  <Button onClick={handleConfirmOtp} disabled={saving || otpInput.length === 0}>{t('verify')}</Button>
+                  <Button variant="ghost" onClick={() => { setVerify({ phase: 'idle' }); setOtpInput(''); }}>{t('cancel')}</Button>
                 </div>
               </div>
             )}
             {verify.phase === 'confirming' && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Memverifikasi…</div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> {t('verifying')}</div>
             )}
             {verify.phase === 'verified' && (
-              <div className="flex items-center gap-2 text-sm text-emerald-300"><CheckCircle2 className="h-4 w-4" /> Nomor terverifikasi.</div>
+              <div className="flex items-center gap-2 text-sm text-emerald-300"><CheckCircle2 className="h-4 w-4" /> {t('verified')}</div>
             )}
             {verify.phase === 'error' && (
-              <Banner tone="error" title="Verifikasi gagal" body={verify.message} action={
-                <Button size="sm" variant="outline" onClick={() => setVerify({ phase: 'idle' })}>Coba lagi</Button>
+              <Banner tone="error" title={t('verify_failed')} body={verify.message} action={
+                <Button size="sm" variant="outline" onClick={() => setVerify({ phase: 'idle' })}>{t('try_again_btn')}</Button>
               } />
             )}
           </div>
@@ -318,12 +345,13 @@ export function CryptoNotificationsSection() {
       {/* Event opt-out matrix */}
       <div className="rounded-lg border border-border bg-card p-4 space-y-3">
         <div>
-          <p className="text-sm font-semibold">Event yang ingin Anda terima</p>
-          <p className="text-xs text-muted-foreground/80 mt-0.5">Toggle OFF untuk meredam jenis event tertentu di semua channel aktif.</p>
+          <p className="text-sm font-semibold">{t('events_title')}</p>
+          <p className="text-xs text-muted-foreground/80 mt-0.5">{t('events_subtitle')}</p>
         </div>
         <div className="grid gap-2 sm:grid-cols-2">
           {KNOWN_EVENTS.map((evt) => {
             const muted = prefs.eventOptouts[evt.id] === true;
+            const label = t(evt.labelKey);
             return (
               <label
                 key={evt.id}
@@ -338,11 +366,11 @@ export function CryptoNotificationsSection() {
                   checked={!muted}
                   onChange={(e) => submitPatch({ eventOptouts: { [evt.id]: !e.target.checked } })}
                   disabled={saving}
-                  aria-label={`Toggle event ${evt.label}`}
+                  aria-label={t('event_toggle_aria', { label })}
                 />
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium leading-tight">{evt.label}</div>
-                  <div className="text-[11px] text-muted-foreground mt-0.5 leading-snug">{evt.hint}</div>
+                  <div className="text-sm font-medium leading-tight">{label}</div>
+                  <div className="text-[11px] text-muted-foreground mt-0.5 leading-snug">{t(evt.hintKey)}</div>
                 </div>
               </label>
             );
@@ -364,6 +392,8 @@ function ChannelCard(props: {
   disabled?: boolean;
   helperText: string;
   statusBadge: React.ReactNode;
+  activeLabel: string;
+  inactiveLabel: string;
 }) {
   return (
     <div className="rounded-lg border border-border bg-card p-4 space-y-2">
@@ -379,7 +409,7 @@ function ChannelCard(props: {
           onClick={() => props.onToggle(!props.enabled)}
         >
           {props.enabled ? <ShieldCheck className="h-4 w-4 mr-2" /> : <ShieldX className="h-4 w-4 mr-2" />}
-          {props.enabled ? 'Aktif' : 'Nonaktif'}
+          {props.enabled ? props.activeLabel : props.inactiveLabel}
         </Button>
       </div>
       <p className="text-xs text-muted-foreground">{props.helperText}</p>
@@ -420,26 +450,4 @@ function Banner(props: { tone: 'info' | 'warn' | 'error'; title: string; body: s
       </div>
     </div>
   );
-}
-
-function humanizeCryptoError(code: string): string {
-  switch (code) {
-    case 'cannot_enable_telegram_no_chat_id':
-      return 'Bind Telegram bot dulu sebelum mengaktifkan channel.';
-    case 'cannot_enable_whatsapp_no_number':
-      return 'Tambah nomor WhatsApp dulu.';
-    case 'cannot_enable_whatsapp_unverified':
-      return 'Verifikasi nomor lewat OTP dulu sebelum mengaktifkan.';
-    case 'invalid_whatsapp_number':
-    case 'invalid_e164':
-      return 'Format nomor tidak valid.';
-    case 'crypto_endpoint_not_found':
-      return 'Endpoint backend belum tersedia.';
-    case 'crypto_backend_unconfigured':
-      return 'Backend crypto belum dikonfigurasi.';
-    case 'otp_invalid':
-      return 'Kode OTP salah atau kadaluarsa.';
-    default:
-      return code;
-  }
 }

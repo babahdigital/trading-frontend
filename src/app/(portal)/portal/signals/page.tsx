@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useTranslations, useLocale } from 'next-intl';
 import { TrendingUp, TrendingDown, AlertCircle, RefreshCw, Lock } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
 import { Button } from '@/components/ui/button';
@@ -42,18 +43,10 @@ function formatConfidence(value: unknown): string {
   return `${(n * 100).toFixed(0)}%`;
 }
 
-function formatTime(value?: string): string {
-  if (!value) return '';
-  try {
-    return new Date(value).toLocaleString('id-ID', {
-      day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
-    });
-  } catch {
-    return value;
-  }
-}
-
 export default function MySignalsPage() {
+  const t = useTranslations('portal.signals');
+  const tShared = useTranslations('portal.shared');
+  const locale = useLocale();
   const { getAuthHeaders } = useAuth();
   const [signals, setSignals] = useState<Signal[]>([]);
   const [loading, setLoading] = useState(true);
@@ -62,6 +55,19 @@ export default function MySignalsPage() {
   const [needSubscription, setNeedSubscription] = useState(false);
   const [source, setSource] = useState<string>('');
   const [tier, setTier] = useState<string>('');
+
+  const dateLocale = locale === 'id' ? 'id-ID' : 'en-US';
+
+  function formatTime(value?: string): string {
+    if (!value) return '';
+    try {
+      return new Date(value).toLocaleString(dateLocale, {
+        day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
+      });
+    } catch {
+      return value;
+    }
+  }
 
   const load = useCallback(async () => {
     setRefreshing(true);
@@ -100,16 +106,16 @@ export default function MySignalsPage() {
     return (
       <div className="max-w-2xl mx-auto py-12 text-center space-y-4">
         <Lock className="h-12 w-12 text-amber-400 mx-auto" />
-        <h1 className="text-2xl font-bold">Subscription Required</h1>
+        <h1 className="text-2xl font-bold">{t('subscription_required_title')}</h1>
         <p className="text-muted-foreground">
-          Berlangganan Signal Service untuk mengakses sinyal trading real-time dari bot BabahAlgo.
+          {t('subscription_required_desc')}
         </p>
         <div className="flex gap-3 justify-center pt-4">
           <Button asChild>
-            <Link href="/pricing">Lihat Paket Berlangganan</Link>
+            <Link href="/pricing">{t('view_plans')}</Link>
           </Button>
           <Button variant="outline" asChild>
-            <Link href="/research">Baca Riset Gratis</Link>
+            <Link href="/research">{t('read_research')}</Link>
           </Button>
         </div>
       </div>
@@ -120,26 +126,26 @@ export default function MySignalsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">My Signals</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
           <p className="text-muted-foreground mt-1">
-            Sinyal trading real-time dari bot — refresh otomatis tiap 30 detik.
+            {t('subtitle')}
           </p>
           {tier && (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 mt-2 rounded font-mono text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20">
-              Tier: {tier}
+              {t('tier_label')} {tier}
             </span>
           )}
         </div>
         <Button size="sm" variant="outline" onClick={load} disabled={refreshing}>
           <RefreshCw className={cn('h-4 w-4 mr-2', refreshing && 'animate-spin')} />
-          Refresh
+          {tShared('refresh')}
         </Button>
       </div>
 
       {source === 'local-fallback' && (
         <div className="p-3 rounded-md border border-amber-500/30 bg-amber-500/5 text-amber-200 text-sm flex items-center gap-2">
           <AlertCircle className="h-4 w-4 shrink-0" />
-          Backend signal API tidak tersedia. Menampilkan history lokal.
+          {t('fallback_warning')}
         </div>
       )}
 
@@ -163,8 +169,8 @@ export default function MySignalsPage() {
         <Card>
           <CardContent className="p-8 text-center text-muted-foreground">
             <AlertCircle className="h-8 w-8 mx-auto mb-3 opacity-50" />
-            <p>Belum ada sinyal yang dikirim.</p>
-            <p className="text-xs mt-1">Bot scanner aktif — sinyal muncul saat kondisi entry terpenuhi.</p>
+            <p>{t('empty_title')}</p>
+            <p className="text-xs mt-1">{t('empty_hint')}</p>
           </CardContent>
         </Card>
       ) : (
@@ -204,7 +210,7 @@ export default function MySignalsPage() {
                           <span className="text-xs text-muted-foreground font-mono">{String(entryType)}</span>
                         )}
                         {confidence != null && (
-                          <span className="text-xs text-amber-400 font-mono">conf {formatConfidence(confidence)}</span>
+                          <span className="text-xs text-amber-400 font-mono">{t('confidence_short', { value: formatConfidence(confidence) })}</span>
                         )}
                         {s.outcome && s.outcome !== 'PENDING' && (
                           <span className={cn(
@@ -218,15 +224,15 @@ export default function MySignalsPage() {
 
                       <div className="grid grid-cols-3 gap-3 text-xs font-mono mt-2">
                         <div>
-                          <div className="text-muted-foreground text-[10px] uppercase">Entry</div>
+                          <div className="text-muted-foreground text-[10px] uppercase">{t('label_entry')}</div>
                           <div>{formatPrice(entryPrice)}</div>
                         </div>
                         <div>
-                          <div className="text-muted-foreground text-[10px] uppercase">SL</div>
+                          <div className="text-muted-foreground text-[10px] uppercase">{t('label_sl')}</div>
                           <div className="text-red-300/80">{formatPrice(stopLoss)}</div>
                         </div>
                         <div>
-                          <div className="text-muted-foreground text-[10px] uppercase">TP</div>
+                          <div className="text-muted-foreground text-[10px] uppercase">{t('label_tp')}</div>
                           <div className="text-green-300/80">{formatPrice(takeProfit)}</div>
                         </div>
                       </div>

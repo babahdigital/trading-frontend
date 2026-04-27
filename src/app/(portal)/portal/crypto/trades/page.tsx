@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { History, ChevronLeft, Filter, Download } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
 import { Button } from '@/components/ui/button';
@@ -28,12 +29,12 @@ interface Trade {
   strategy_name: string;
 }
 
-const CLOSE_REASON_LABEL: Record<string, string> = {
-  tp: 'Take Profit',
-  sl: 'Stop Loss',
-  manual: 'Manual Close',
-  kill_switch: 'Kill Switch',
-  funding_exit: 'Funding Exit',
+const CLOSE_REASON_KEY: Record<string, string> = {
+  tp: 'reason_tp',
+  sl: 'reason_sl',
+  manual: 'reason_manual',
+  kill_switch: 'reason_kill_switch',
+  funding_exit: 'reason_funding_exit',
 };
 
 const CLOSE_REASON_TONE: Record<string, string> = {
@@ -56,6 +57,7 @@ function fmtDuration(seconds: number): string {
 }
 
 export default function CryptoTradesPage() {
+  const t = useTranslations('portal.crypto.trades');
   const { getAuthHeaders } = useAuth();
   const [trades, setTrades] = useState<Trade[]>([]);
   const [source, setSource] = useState('');
@@ -78,14 +80,14 @@ export default function CryptoTradesPage() {
   }, [getAuthHeaders]);
 
   const filtered = useMemo(
-    () => trades.filter((t) => marketFilter === 'all' || t.market_type === marketFilter),
+    () => trades.filter((tr) => marketFilter === 'all' || tr.market_type === marketFilter),
     [trades, marketFilter],
   );
 
   const totals = useMemo(() => {
-    const wins = filtered.filter((t) => t.net_pnl_usdt > 0);
-    const losses = filtered.filter((t) => t.net_pnl_usdt < 0);
-    const totalNet = filtered.reduce((s, t) => s + t.net_pnl_usdt, 0);
+    const wins = filtered.filter((tr) => tr.net_pnl_usdt > 0);
+    const losses = filtered.filter((tr) => tr.net_pnl_usdt < 0);
+    const totalNet = filtered.reduce((s, tr) => s + tr.net_pnl_usdt, 0);
     return {
       total: filtered.length,
       wins: wins.length,
@@ -98,8 +100,8 @@ export default function CryptoTradesPage() {
   function exportCsv() {
     if (filtered.length === 0) return;
     const headers = ['symbol', 'market', 'side', 'qty', 'entry', 'exit', 'leverage', 'net_pnl_usdt', 'close_reason', 'strategy', 'closed_at'];
-    const rows = filtered.map((t) =>
-      [t.symbol, t.market_type, t.side, t.quantity, t.entry_price, t.exit_price, t.leverage, t.net_pnl_usdt, t.close_reason, t.strategy_name, t.closed_at].join(','),
+    const rows = filtered.map((tr) =>
+      [tr.symbol, tr.market_type, tr.side, tr.quantity, tr.entry_price, tr.exit_price, tr.leverage, tr.net_pnl_usdt, tr.close_reason, tr.strategy_name, tr.closed_at].join(','),
     );
     const csv = [headers.join(','), ...rows].join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -111,33 +113,38 @@ export default function CryptoTradesPage() {
     URL.revokeObjectURL(url);
   }
 
+  function reasonLabel(reason: string): string {
+    const key = CLOSE_REASON_KEY[reason];
+    return key ? t(key) : reason;
+  }
+
   return (
     <div className="space-y-6">
       <Link href="/portal/crypto" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
-        <ChevronLeft className="h-4 w-4" /> Kembali
+        <ChevronLeft className="h-4 w-4" /> {t('back')}
       </Link>
 
       <div className="flex items-end justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-3">
             <History className="h-6 w-6 sm:h-7 sm:w-7 text-amber-400" />
-            Trade History
+            {t('heading')}
           </h1>
-          <p className="text-muted-foreground mt-1.5 text-sm">100 trade terakhir.</p>
+          <p className="text-muted-foreground mt-1.5 text-sm">{t('tagline')}</p>
         </div>
         {source === 'mock' && (
           <span className="px-2.5 py-1 rounded-md text-xs font-mono bg-amber-500/10 border border-amber-500/30 text-amber-300">
-            data preview
+            {t('data_preview_badge')}
           </span>
         )}
       </div>
 
       {/* Stats summary */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <Card><CardContent className="p-3.5"><div className="text-[10px] uppercase text-muted-foreground">Total Trade</div><div className="text-xl font-bold font-mono mt-1">{totals.total}</div></CardContent></Card>
-        <Card><CardContent className="p-3.5"><div className="text-[10px] uppercase text-muted-foreground">Win Rate</div><div className="text-xl font-bold font-mono mt-1 text-green-300">{totals.winRate.toFixed(1)}%</div></CardContent></Card>
-        <Card><CardContent className="p-3.5"><div className="text-[10px] uppercase text-muted-foreground">Win / Loss</div><div className="text-xl font-bold font-mono mt-1"><span className="text-green-300">{totals.wins}</span> / <span className="text-red-300">{totals.losses}</span></div></CardContent></Card>
-        <Card><CardContent className="p-3.5"><div className="text-[10px] uppercase text-muted-foreground">Net PnL USDT</div><div className={cn('text-xl font-bold font-mono mt-1', totals.totalNet >= 0 ? 'text-green-300' : 'text-red-300')}>{totals.totalNet >= 0 ? '+' : ''}{fmtNum(totals.totalNet)}</div></CardContent></Card>
+        <Card><CardContent className="p-3.5"><div className="text-[10px] uppercase text-muted-foreground">{t('kpi_total')}</div><div className="text-xl font-bold font-mono mt-1">{totals.total}</div></CardContent></Card>
+        <Card><CardContent className="p-3.5"><div className="text-[10px] uppercase text-muted-foreground">{t('kpi_winrate')}</div><div className="text-xl font-bold font-mono mt-1 text-green-300">{totals.winRate.toFixed(1)}%</div></CardContent></Card>
+        <Card><CardContent className="p-3.5"><div className="text-[10px] uppercase text-muted-foreground">{t('kpi_winloss')}</div><div className="text-xl font-bold font-mono mt-1"><span className="text-green-300">{totals.wins}</span> / <span className="text-red-300">{totals.losses}</span></div></CardContent></Card>
+        <Card><CardContent className="p-3.5"><div className="text-[10px] uppercase text-muted-foreground">{t('kpi_net')}</div><div className={cn('text-xl font-bold font-mono mt-1', totals.totalNet >= 0 ? 'text-green-300' : 'text-red-300')}>{totals.totalNet >= 0 ? '+' : ''}{fmtNum(totals.totalNet)}</div></CardContent></Card>
       </div>
 
       {/* Filter bar */}
@@ -154,20 +161,20 @@ export default function CryptoTradesPage() {
                   marketFilter === m ? 'bg-amber-500/15 text-amber-300' : 'text-muted-foreground hover:text-foreground',
                 )}
               >
-                {m}
+                {t(`filter_${m}`)}
               </button>
             ))}
           </div>
         </div>
         <Button size="sm" variant="outline" onClick={exportCsv} disabled={filtered.length === 0}>
-          <Download className="h-4 w-4 mr-2" /> Export CSV
+          <Download className="h-4 w-4 mr-2" /> {t('export_csv')}
         </Button>
       </div>
 
       {loading ? (
         <div className="space-y-2">{[1, 2, 3, 4, 5].map((i) => <div key={i} className="h-14 rounded-md bg-white/5 animate-pulse" />)}</div>
       ) : filtered.length === 0 ? (
-        <Card><CardContent className="p-8 text-center text-muted-foreground">Belum ada trade pada filter ini.</CardContent></Card>
+        <Card><CardContent className="p-8 text-center text-muted-foreground">{t('empty')}</CardContent></Card>
       ) : (
         <Card>
           <CardContent className="p-0">
@@ -175,35 +182,35 @@ export default function CryptoTradesPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-white/10">
-                    <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase">Symbol</th>
-                    <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase hidden sm:table-cell">Side</th>
-                    <th className="text-right p-3 font-medium text-muted-foreground text-xs uppercase">Net PnL</th>
-                    <th className="text-right p-3 font-medium text-muted-foreground text-xs uppercase hidden md:table-cell">Entry</th>
-                    <th className="text-right p-3 font-medium text-muted-foreground text-xs uppercase hidden md:table-cell">Exit</th>
-                    <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase hidden lg:table-cell">Reason</th>
-                    <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase hidden xl:table-cell">Strategy</th>
-                    <th className="text-right p-3 font-medium text-muted-foreground text-xs uppercase hidden sm:table-cell">Duration</th>
+                    <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase">{t('col_symbol')}</th>
+                    <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase hidden sm:table-cell">{t('col_side')}</th>
+                    <th className="text-right p-3 font-medium text-muted-foreground text-xs uppercase">{t('col_net_pnl')}</th>
+                    <th className="text-right p-3 font-medium text-muted-foreground text-xs uppercase hidden md:table-cell">{t('col_entry')}</th>
+                    <th className="text-right p-3 font-medium text-muted-foreground text-xs uppercase hidden md:table-cell">{t('col_exit')}</th>
+                    <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase hidden lg:table-cell">{t('col_reason')}</th>
+                    <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase hidden xl:table-cell">{t('col_strategy')}</th>
+                    <th className="text-right p-3 font-medium text-muted-foreground text-xs uppercase hidden sm:table-cell">{t('col_duration')}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((t) => (
-                    <tr key={t.id} className="border-b border-white/5 hover:bg-white/[0.02]">
-                      <td className="p-3 font-mono font-semibold">{t.symbol}<div className="text-[10px] uppercase text-muted-foreground font-normal">{t.market_type}{t.leverage > 1 && ` · ${t.leverage}x`}</div></td>
+                  {filtered.map((tr) => (
+                    <tr key={tr.id} className="border-b border-white/5 hover:bg-white/[0.02]">
+                      <td className="p-3 font-mono font-semibold">{tr.symbol}<div className="text-[10px] uppercase text-muted-foreground font-normal">{tr.market_type}{tr.leverage > 1 && ` · ${tr.leverage}x`}</div></td>
                       <td className="p-3 hidden sm:table-cell">
-                        <span className={cn('px-2 py-0.5 rounded text-xs font-mono', t.side === 'LONG' ? 'bg-green-500/15 text-green-300' : 'bg-red-500/15 text-red-300')}>{t.side}</span>
+                        <span className={cn('px-2 py-0.5 rounded text-xs font-mono', tr.side === 'LONG' ? 'bg-green-500/15 text-green-300' : 'bg-red-500/15 text-red-300')}>{tr.side}</span>
                       </td>
-                      <td className={cn('p-3 text-right font-mono font-semibold', t.net_pnl_usdt >= 0 ? 'text-green-300' : 'text-red-300')}>
-                        {t.net_pnl_usdt >= 0 ? '+' : ''}{fmtNum(t.net_pnl_usdt)}
+                      <td className={cn('p-3 text-right font-mono font-semibold', tr.net_pnl_usdt >= 0 ? 'text-green-300' : 'text-red-300')}>
+                        {tr.net_pnl_usdt >= 0 ? '+' : ''}{fmtNum(tr.net_pnl_usdt)}
                       </td>
-                      <td className="p-3 text-right font-mono hidden md:table-cell">{fmtNum(t.entry_price)}</td>
-                      <td className="p-3 text-right font-mono hidden md:table-cell">{fmtNum(t.exit_price)}</td>
+                      <td className="p-3 text-right font-mono hidden md:table-cell">{fmtNum(tr.entry_price)}</td>
+                      <td className="p-3 text-right font-mono hidden md:table-cell">{fmtNum(tr.exit_price)}</td>
                       <td className="p-3 hidden lg:table-cell">
-                        <span className={cn('px-2 py-0.5 rounded text-xs font-mono', CLOSE_REASON_TONE[t.close_reason] ?? 'bg-slate-500/15 text-slate-300')}>
-                          {CLOSE_REASON_LABEL[t.close_reason] ?? t.close_reason}
+                        <span className={cn('px-2 py-0.5 rounded text-xs font-mono', CLOSE_REASON_TONE[tr.close_reason] ?? 'bg-slate-500/15 text-slate-300')}>
+                          {reasonLabel(tr.close_reason)}
                         </span>
                       </td>
-                      <td className="p-3 text-xs text-muted-foreground hidden xl:table-cell">{t.strategy_name}</td>
-                      <td className="p-3 text-right font-mono text-muted-foreground hidden sm:table-cell">{fmtDuration(t.duration_seconds)}</td>
+                      <td className="p-3 text-xs text-muted-foreground hidden xl:table-cell">{tr.strategy_name}</td>
+                      <td className="p-3 text-right font-mono text-muted-foreground hidden sm:table-cell">{fmtDuration(tr.duration_seconds)}</td>
                     </tr>
                   ))}
                 </tbody>

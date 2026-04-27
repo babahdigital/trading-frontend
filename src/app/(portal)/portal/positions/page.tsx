@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth/auth-context';
@@ -26,6 +27,8 @@ const POLL_FAST_MS = 3000;
 const POLL_SLOW_MS = 15000;
 
 export default function PositionsPage() {
+  const t = useTranslations('portal.positions');
+  const tShared = useTranslations('portal.shared');
   const { getAuthHeaders, getAccessToken } = useAuth();
   const [positions, setPositions] = useState<Position[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,17 +45,17 @@ export default function PositionsPage() {
   const fetchPositions = useCallback(async (): Promise<void> => {
     try {
       const res = await fetch('/api/client/positions', { headers: getAuthHeaders() });
-      if (!res.ok) throw new Error('Failed to fetch positions');
+      if (!res.ok) throw new Error(t('fetch_failed'));
       const data = await res.json();
       setPositions(Array.isArray(data) ? data : data.positions || []);
       setLastUpdated(new Date());
       setError('');
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Connection error');
+      setError(err instanceof Error ? err.message : tShared('connection_error'));
     } finally {
       setLoading(false);
     }
-  }, [getAuthHeaders]);
+  }, [getAuthHeaders, t, tShared]);
 
   useEffect(() => {
     void fetchPositions();
@@ -80,7 +83,7 @@ export default function PositionsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <h1 className="text-2xl font-bold">Posisi Terbuka</h1>
+        <h1 className="text-2xl font-bold">{t('title')}</h1>
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
           <span
             className={cn(
@@ -95,9 +98,9 @@ export default function PositionsPage() {
               className={cn('w-1.5 h-1.5 rounded-full', wsConnected ? 'bg-emerald-400 animate-pulse' : 'bg-muted-foreground/40')}
               aria-hidden
             />
-            {wsConnected ? 'Live' : 'Polling'}
+            {wsConnected ? tShared('live_label') : tShared('polling_label')}
           </span>
-          <span>Refresh: {wsConnected ? 'on event' : '3s'}</span>
+          <span>{t('refresh_label')} {wsConnected ? t('refresh_on_event') : t('refresh_3s')}</span>
           {lastUpdated && (
             <span>{lastUpdated.toLocaleTimeString()}</span>
           )}
@@ -112,9 +115,9 @@ export default function PositionsPage() {
       <div className="hidden md:block">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-sm font-medium">Open Positions ({positions.length})</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('open_count', { count: positions.length })}</CardTitle>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Floating PnL:</span>
+              <span className="text-sm text-muted-foreground">{t('floating_pnl_label')}</span>
               <span className={cn('font-mono font-semibold', totalPnl >= 0 ? 'text-green-400' : 'text-red-400')}>
                 {totalPnl >= 0 ? '+' : ''}${totalPnl.toFixed(2)}
               </span>
@@ -122,21 +125,21 @@ export default function PositionsPage() {
           </CardHeader>
           <CardContent>
             {loading ? (
-              <p className="text-muted-foreground text-sm">Loading...</p>
+              <p className="text-muted-foreground text-sm">{tShared('loading')}</p>
             ) : positions.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">Tidak ada posisi terbuka</div>
+              <div className="text-center py-12 text-muted-foreground">{t('empty')}</div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b text-left">
-                      <th className="pb-3 font-medium text-muted-foreground">Pair</th>
-                      <th className="pb-3 font-medium text-muted-foreground">Arah</th>
-                      <th className="pb-3 font-medium text-muted-foreground text-right">PnL ($)</th>
-                      <th className="pb-3 font-medium text-muted-foreground text-right">PnL (pips)</th>
-                      <th className="pb-3 font-medium text-muted-foreground text-right">Durasi</th>
-                      <th className="pb-3 font-medium text-muted-foreground">Strategi</th>
-                      <th className="pb-3 font-medium text-muted-foreground">Status</th>
+                      <th className="pb-3 font-medium text-muted-foreground">{t('table_pair')}</th>
+                      <th className="pb-3 font-medium text-muted-foreground">{t('table_direction')}</th>
+                      <th className="pb-3 font-medium text-muted-foreground text-right">{t('table_pnl_usd')}</th>
+                      <th className="pb-3 font-medium text-muted-foreground text-right">{t('table_pnl_pips')}</th>
+                      <th className="pb-3 font-medium text-muted-foreground text-right">{t('table_duration')}</th>
+                      <th className="pb-3 font-medium text-muted-foreground">{t('table_strategy')}</th>
+                      <th className="pb-3 font-medium text-muted-foreground">{t('table_status')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -157,14 +160,14 @@ export default function PositionsPage() {
                           {pos.pnl_pips !== undefined ? `${pos.pnl_pips >= 0 ? '+' : ''}${pos.pnl_pips}` : '-'}
                         </td>
                         <td className="py-3 text-right font-mono text-xs text-muted-foreground">
-                          {pos.duration_seconds ? `${Math.floor(pos.duration_seconds / 60)} menit` : '-'}
+                          {pos.duration_seconds ? t('duration_minutes', { minutes: Math.floor(pos.duration_seconds / 60) }) : '-'}
                         </td>
                         <td className="py-3 text-xs text-muted-foreground">{genericSetup(pos.setup)}</td>
                         <td className="py-3">
                           <span className={cn('px-2 py-0.5 rounded text-xs',
                             pos.status === 'holding' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'
                           )}>
-                            {pos.status === 'holding' ? 'Holding' : pos.status || 'Active'}
+                            {pos.status === 'holding' ? t('status_holding') : pos.status || t('status_active')}
                           </span>
                         </td>
                       </tr>
@@ -180,10 +183,10 @@ export default function PositionsPage() {
       {/* Mobile Card View */}
       <div className="md:hidden space-y-3">
         {loading ? (
-          <p className="text-muted-foreground text-sm">Loading...</p>
+          <p className="text-muted-foreground text-sm">{tShared('loading')}</p>
         ) : positions.length === 0 ? (
           <Card>
-            <CardContent className="py-8 text-center text-muted-foreground">Tidak ada posisi terbuka</CardContent>
+            <CardContent className="py-8 text-center text-muted-foreground">{t('empty')}</CardContent>
           </Card>
         ) : (
           <>
@@ -206,17 +209,17 @@ export default function PositionsPage() {
                     </span>
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
-                    <div>Durasi: {pos.duration_seconds ? `${Math.floor(pos.duration_seconds / 60)} menit` : '-'}</div>
-                    <div>Strategi: {genericSetup(pos.setup)}</div>
-                    <div>Status: {pos.status || 'Active'}</div>
-                    {pos.pnl_pips !== undefined && <div>Pips: {pos.pnl_pips >= 0 ? '+' : ''}{pos.pnl_pips}</div>}
+                    <div>{t('mobile_duration_label')} {pos.duration_seconds ? t('duration_minutes', { minutes: Math.floor(pos.duration_seconds / 60) }) : '-'}</div>
+                    <div>{t('mobile_strategy_label')} {genericSetup(pos.setup)}</div>
+                    <div>{t('mobile_status_label')} {pos.status || t('status_active')}</div>
+                    {pos.pnl_pips !== undefined && <div>{t('mobile_pips_label')} {pos.pnl_pips >= 0 ? '+' : ''}{pos.pnl_pips}</div>}
                   </div>
                 </CardContent>
               </Card>
             ))}
             <Card>
               <CardContent className="py-3 flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Total Floating PnL</span>
+                <span className="text-sm text-muted-foreground">{t('total_floating_pnl')}</span>
                 <span className={cn('font-mono font-bold', totalPnl >= 0 ? 'text-green-400' : 'text-red-400')}>
                   {totalPnl >= 0 ? '+' : ''}${totalPnl.toFixed(2)}
                 </span>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import { Bell, RefreshCw, Inbox, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth/auth-context';
@@ -17,18 +18,18 @@ interface RecentResponse {
 }
 
 const SEVERITY_FILTERS = [
-  { id: 'all', label: 'Semua' },
-  { id: 'info', label: 'Info' },
-  { id: 'warning', label: 'Warning' },
-  { id: 'critical', label: 'Critical' },
+  { id: 'all', labelKey: 'filter_severity_all' },
+  { id: 'info', labelKey: 'filter_severity_info' },
+  { id: 'warning', labelKey: 'filter_severity_warning' },
+  { id: 'critical', labelKey: 'filter_severity_critical' },
 ] as const;
 
 const CHANNEL_FILTERS = [
-  { id: 'all', label: 'Semua' },
-  { id: 'WHATSAPP', label: 'WhatsApp' },
-  { id: 'TELEGRAM', label: 'Telegram' },
-  { id: 'EMAIL', label: 'Email' },
-  { id: 'INAPP', label: 'In-App' },
+  { id: 'all', labelKey: 'filter_channel_all' },
+  { id: 'WHATSAPP', labelKey: 'filter_channel_whatsapp' },
+  { id: 'TELEGRAM', labelKey: 'filter_channel_telegram' },
+  { id: 'EMAIL', labelKey: 'filter_channel_email' },
+  { id: 'INAPP', labelKey: 'filter_channel_inapp' },
 ] as const;
 
 type SeverityFilter = (typeof SEVERITY_FILTERS)[number]['id'];
@@ -40,6 +41,8 @@ function matchesChannel(notif: BackendNotification, filter: ChannelFilter): bool
 }
 
 export default function NotificationsPage() {
+  const t = useTranslations('portal.notifications');
+  const tShared = useTranslations('portal.shared');
   const { getAuthHeaders } = useAuth();
   const [items, setItems] = useState<BackendNotification[]>([]);
   const [source, setSource] = useState<string>('');
@@ -65,8 +68,8 @@ export default function NotificationsPage() {
 
   useEffect(() => {
     load();
-    const t = setInterval(load, 30_000);
-    return () => clearInterval(t);
+    const tm = setInterval(load, 30_000);
+    return () => clearInterval(tm);
   }, [load]);
 
   const filtered = items.filter((n) => {
@@ -81,25 +84,25 @@ export default function NotificationsPage() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-3">
             <Bell className="h-6 w-6 sm:h-7 sm:w-7 text-amber-400" />
-            Notifikasi
+            {t('title')}
           </h1>
           <p className="text-muted-foreground mt-1.5 text-sm sm:text-base">
-            Event dari trading bot — open/close posisi, kill switch, margin call. Auto-refresh tiap 30 detik.
+            {t('subtitle')}
           </p>
         </div>
         <div className="flex items-center gap-2">
           {source === 'local-fallback' && (
             <span className="px-2.5 py-1 rounded-md text-xs font-mono bg-amber-500/10 border border-amber-500/30 text-amber-300">
-              local fallback
+              {tShared('local_fallback_badge')}
             </span>
           )}
           <Button size="sm" variant="outline" asChild>
             <Link href="/portal/account#notifications">
-              <Settings className="h-4 w-4 mr-2" /> Preferensi
+              <Settings className="h-4 w-4 mr-2" /> {t('preferences_button')}
             </Link>
           </Button>
           <Button size="sm" variant="outline" onClick={load} disabled={refreshing}>
-            <RefreshCw className={cn('h-4 w-4 mr-2', refreshing && 'animate-spin')} /> Refresh
+            <RefreshCw className={cn('h-4 w-4 mr-2', refreshing && 'animate-spin')} /> {tShared('refresh')}
           </Button>
         </div>
       </div>
@@ -117,7 +120,7 @@ export default function NotificationsPage() {
               )}
               aria-pressed={filter === f.id}
             >
-              {f.label}
+              {t(f.labelKey)}
               {filter === f.id && f.id !== 'all' && (
                 <span className="ml-1.5 text-[10px] opacity-70">
                   ({items.filter((n) => n.severity === f.id).length})
@@ -137,7 +140,7 @@ export default function NotificationsPage() {
               )}
               aria-pressed={channelFilter === c.id}
             >
-              {c.label}
+              {t(c.labelKey)}
               {channelFilter === c.id && c.id !== 'all' && (
                 <span className="ml-1.5 text-[10px] opacity-70">
                   ({items.filter((n) => matchesChannel(n, c.id)).length})
@@ -156,10 +159,9 @@ export default function NotificationsPage() {
         <Card>
           <CardContent className="p-8 text-center text-muted-foreground space-y-3">
             <Inbox className="h-10 w-10 mx-auto opacity-40" />
-            <p className="font-medium">{filter === 'all' ? 'Belum ada notifikasi' : `Tidak ada notifikasi dengan severity ${filter}`}</p>
+            <p className="font-medium">{filter === 'all' ? t('empty_all') : t('empty_filtered', { severity: filter })}</p>
             <p className="text-xs">
-              Notifikasi muncul saat bot membuka/menutup posisi atau memicu safeguard. Cek preferensi untuk
-              mengontrol kanal pengiriman (Telegram, email, in-app).
+              {t('empty_hint')}
             </p>
           </CardContent>
         </Card>

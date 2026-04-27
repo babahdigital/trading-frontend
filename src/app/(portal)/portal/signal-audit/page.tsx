@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, Fragment } from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -47,6 +48,8 @@ function outcomeClass(outcome: SignalRow['outcome']) {
 }
 
 export default function SignalAuditPage() {
+  const t = useTranslations('portal.signal_audit');
+  const locale = useLocale();
   const { getAuthHeaders } = useAuth();
   const [rows, setRows] = useState<SignalRow[]>([]);
   const [total, setTotal] = useState(0);
@@ -59,6 +62,8 @@ export default function SignalAuditPage() {
   const [minConf, setMinConf] = useState('');
   const [offset, setOffset] = useState(0);
   const limit = 50;
+
+  const dateLocale = locale === 'id' ? 'id-ID' : 'en-US';
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -73,13 +78,13 @@ export default function SignalAuditPage() {
       const res = await fetch(`/api/client/signal-audit?${params.toString()}`, {
         headers: getAuthHeaders(),
       });
-      if (!res.ok) throw new Error(`Failed (${res.status})`);
+      if (!res.ok) throw new Error(t('fetch_failed', { status: res.status }));
       const data = await res.json();
       setRows(data.items ?? []);
       setTotal(data.total ?? 0);
       setError('');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      setError(err instanceof Error ? err.message : t('unknown_error'));
     } finally {
       setLoading(false);
     }
@@ -99,9 +104,9 @@ export default function SignalAuditPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Signal Audit</h1>
+        <h1 className="text-2xl font-bold text-foreground">{t('title')}</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Jejak lengkap sinyal dari mesin produksi — entry, stop loss, take profit, dan hasilnya.
+          {t('subtitle')}
         </p>
       </div>
 
@@ -113,36 +118,36 @@ export default function SignalAuditPage() {
 
       <Card className="bg-card border-border">
         <CardHeader>
-          <CardTitle className="text-base font-semibold">Filter</CardTitle>
+          <CardTitle className="text-base font-semibold">{t('filter_title')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid gap-3 md:grid-cols-4">
             <div>
-              <label htmlFor="pair" className="text-xs text-muted-foreground mb-1 block">Pair</label>
+              <label htmlFor="pair" className="text-xs text-muted-foreground mb-1 block">{t('filter_pair')}</label>
               <Input id="pair" placeholder="XAUUSD" value={pair} onChange={(e) => setPair(e.target.value)} />
             </div>
             <div>
-              <label htmlFor="outcome" className="text-xs text-muted-foreground mb-1 block">Outcome</label>
+              <label htmlFor="outcome" className="text-xs text-muted-foreground mb-1 block">{t('filter_outcome')}</label>
               <select
                 id="outcome"
                 className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60"
                 value={outcome}
                 onChange={(e) => setOutcome(e.target.value)}
               >
-                {OUTCOMES.map((o) => <option key={o} value={o}>{o || 'Semua'}</option>)}
+                {OUTCOMES.map((o) => <option key={o} value={o}>{o || t('filter_outcome_all')}</option>)}
               </select>
             </div>
             <div>
-              <label htmlFor="conf" className="text-xs text-muted-foreground mb-1 block">Min confidence</label>
+              <label htmlFor="conf" className="text-xs text-muted-foreground mb-1 block">{t('filter_min_confidence')}</label>
               <Input id="conf" type="number" step="0.01" min="0" max="1" placeholder="0.70"
                 value={minConf} onChange={(e) => setMinConf(e.target.value)} />
             </div>
             <div className="flex items-end gap-2">
               <Button type="button" onClick={() => { setOffset(0); load(); }} className="flex-1">
-                Terapkan
+                {t('apply')}
               </Button>
               <Button type="button" variant="outline" onClick={() => { setPair(''); setOutcome(''); setMinConf(''); setOffset(0); }}>
-                Reset
+                {t('reset')}
               </Button>
             </div>
           </div>
@@ -152,16 +157,16 @@ export default function SignalAuditPage() {
       <Card className="bg-card border-border">
         <CardHeader className="flex-row items-center justify-between">
           <CardTitle className="text-base font-semibold">
-            {loading ? 'Memuat…' : `${total.toLocaleString()} record`}
+            {loading ? t('loading') : t('records_count', { count: total.toLocaleString() })}
           </CardTitle>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" disabled={offset === 0 || loading}
-              onClick={() => setOffset(Math.max(0, offset - limit))}>‹ Sebelumnya</Button>
+              onClick={() => setOffset(Math.max(0, offset - limit))}>{t('prev_page')}</Button>
             <span className="text-xs text-muted-foreground">
               {total === 0 ? '0' : `${offset + 1}–${Math.min(offset + rows.length, total)}`} / {total}
             </span>
             <Button variant="outline" size="sm" disabled={offset + rows.length >= total || loading}
-              onClick={() => setOffset(offset + limit)}>Berikutnya ›</Button>
+              onClick={() => setOffset(offset + limit)}>{t('next_page')}</Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -169,21 +174,21 @@ export default function SignalAuditPage() {
             <table className="w-full text-sm">
               <thead className="text-xs uppercase text-muted-foreground border-b border-border/50">
                 <tr>
-                  <th className="text-left py-2 px-2">Waktu</th>
-                  <th className="text-left py-2 px-2">Pair</th>
-                  <th className="text-left py-2 px-2">Dir</th>
-                  <th className="text-right py-2 px-2">Entry</th>
-                  <th className="text-right py-2 px-2">SL</th>
-                  <th className="text-right py-2 px-2">TP</th>
-                  <th className="text-right py-2 px-2">Conf</th>
-                  <th className="text-right py-2 px-2">P/L</th>
-                  <th className="text-center py-2 px-2">Outcome</th>
+                  <th className="text-left py-2 px-2">{t('table_time')}</th>
+                  <th className="text-left py-2 px-2">{t('table_pair')}</th>
+                  <th className="text-left py-2 px-2">{t('table_dir')}</th>
+                  <th className="text-right py-2 px-2">{t('table_entry')}</th>
+                  <th className="text-right py-2 px-2">{t('table_sl')}</th>
+                  <th className="text-right py-2 px-2">{t('table_tp')}</th>
+                  <th className="text-right py-2 px-2">{t('table_conf')}</th>
+                  <th className="text-right py-2 px-2">{t('table_pl')}</th>
+                  <th className="text-center py-2 px-2">{t('table_outcome')}</th>
                 </tr>
               </thead>
               <tbody>
                 {rows.length === 0 && !loading && (
                   <tr><td colSpan={9} className="py-8 text-center text-muted-foreground">
-                    Belum ada sinyal yang cocok dengan filter ini.
+                    {t('empty')}
                   </td></tr>
                 )}
                 {rows.map((r) => (
@@ -194,7 +199,7 @@ export default function SignalAuditPage() {
                         tabIndex={0}
                         onKeyDown={(e) => { if (e.key === 'Enter') toggleExpand(r.id); }}>
                       <td className="py-2 px-2 text-xs text-muted-foreground tabular-nums">
-                        {new Date(r.emittedAt).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' })}
+                        {new Date(r.emittedAt).toLocaleString(dateLocale, { dateStyle: 'short', timeStyle: 'short' })}
                       </td>
                       <td className="py-2 px-2 font-medium">{r.pair}</td>
                       <td className="py-2 px-2">
@@ -223,12 +228,12 @@ export default function SignalAuditPage() {
                       <tr className="border-b border-border/30 bg-white/[0.02]">
                         <td colSpan={9} className="py-3 px-4 text-xs text-muted-foreground">
                           <div className="grid gap-2 md:grid-cols-3">
-                            <div><span className="text-foreground/60">Source ID:</span> <span className="font-mono">{r.sourceId}</span></div>
-                            <div><span className="text-foreground/60">Entry Type:</span> {r.entryType ?? '—'}</div>
-                            <div><span className="text-foreground/60">Lot:</span> {r.lot ?? '—'}</div>
-                            {r.closedAt && <div><span className="text-foreground/60">Closed at:</span> {new Date(r.closedAt).toLocaleString('id-ID')}</div>}
-                            {r.closePrice && <div><span className="text-foreground/60">Close price:</span> {r.closePrice}</div>}
-                            {r.closeReason && <div><span className="text-foreground/60">Close reason:</span> {r.closeReason}</div>}
+                            <div><span className="text-foreground/60">{t('detail_source_id')}</span> <span className="font-mono">{r.sourceId}</span></div>
+                            <div><span className="text-foreground/60">{t('detail_entry_type')}</span> {r.entryType ?? '—'}</div>
+                            <div><span className="text-foreground/60">{t('detail_lot')}</span> {r.lot ?? '—'}</div>
+                            {r.closedAt && <div><span className="text-foreground/60">{t('detail_closed_at')}</span> {new Date(r.closedAt).toLocaleString(dateLocale)}</div>}
+                            {r.closePrice && <div><span className="text-foreground/60">{t('detail_close_price')}</span> {r.closePrice}</div>}
+                            {r.closeReason && <div><span className="text-foreground/60">{t('detail_close_reason')}</span> {r.closeReason}</div>}
                           </div>
                           {r.reasoning && (
                             <p className="mt-3 whitespace-pre-wrap text-foreground/80">{r.reasoning}</p>

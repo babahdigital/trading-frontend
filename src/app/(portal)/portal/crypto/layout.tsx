@@ -2,20 +2,29 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { LayoutDashboard, KeyRound, Cpu, Activity, History, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const TABS = [
-  { href: '/portal/crypto', label: 'Overview', icon: LayoutDashboard, exact: true },
-  { href: '/portal/crypto/connect', label: 'Connect', icon: KeyRound },
-  { href: '/portal/crypto/strategy', label: 'Strategy', icon: Cpu },
-  { href: '/portal/crypto/positions', label: 'Positions', icon: Activity },
-  { href: '/portal/crypto/trades', label: 'Trades', icon: History },
-  { href: '/portal/crypto/risk', label: 'Risk', icon: Shield },
+interface CryptoTab {
+  href: string;
+  labelKey: 'tab_overview' | 'tab_connect' | 'tab_strategy' | 'tab_positions' | 'tab_trades' | 'tab_risk';
+  icon: typeof LayoutDashboard;
+  exact?: boolean;
+}
+
+const TABS: CryptoTab[] = [
+  { href: '/portal/crypto', labelKey: 'tab_overview', icon: LayoutDashboard, exact: true },
+  { href: '/portal/crypto/connect', labelKey: 'tab_connect', icon: KeyRound },
+  { href: '/portal/crypto/strategy', labelKey: 'tab_strategy', icon: Cpu },
+  { href: '/portal/crypto/positions', labelKey: 'tab_positions', icon: Activity },
+  { href: '/portal/crypto/trades', labelKey: 'tab_trades', icon: History },
+  { href: '/portal/crypto/risk', labelKey: 'tab_risk', icon: Shield },
 ];
 
 export default function CryptoLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const t = useTranslations('portal.crypto.layout');
 
   return (
     <div className="space-y-5">
@@ -36,7 +45,7 @@ export default function CryptoLayout({ children }: { children: React.ReactNode }
                 )}
               >
                 <tab.icon className="h-4 w-4" />
-                {tab.label}
+                {t(tab.labelKey)}
               </Link>
             );
           })}

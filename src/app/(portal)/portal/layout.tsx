@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard,
@@ -33,54 +34,54 @@ import { AuthProvider, useAuth } from '@/lib/auth/auth-context';
 
 interface NavItem {
   href: string;
-  label: string;
+  labelKey: string;
   icon: typeof LayoutDashboard;
 }
 
 interface NavSection {
-  label: string | null;
+  labelKey: string | null;
   items: NavItem[];
 }
 
 const NAV_SECTIONS: NavSection[] = [
   {
-    label: null,
+    labelKey: null,
     items: [
-      { href: '/portal', label: 'Dashboard', icon: LayoutDashboard },
-      { href: '/portal/notifications', label: 'Notifikasi', icon: Bell },
-      { href: '/portal/features', label: 'Fitur & Capabilities', icon: Sparkles },
+      { href: '/portal', labelKey: 'nav_dashboard', icon: LayoutDashboard },
+      { href: '/portal/notifications', labelKey: 'nav_notifications', icon: Bell },
+      { href: '/portal/features', labelKey: 'nav_features', icon: Sparkles },
     ],
   },
   {
-    label: 'Forex',
+    labelKey: 'nav_section_forex',
     items: [
-      { href: '/portal/signals', label: 'My Signals', icon: Zap },
-      { href: '/portal/positions', label: 'Open Positions', icon: TrendingUp },
-      { href: '/portal/history', label: 'Trade History', icon: History },
-      { href: '/portal/performance', label: 'Performance', icon: BarChart3 },
-      { href: '/portal/market', label: 'Market Scanner', icon: Radio },
-      { href: '/portal/signal-audit', label: 'Signal Audit', icon: ScrollText },
-      { href: '/portal/pair-briefs', label: 'Pair Briefs', icon: BookOpen },
-      { href: '/portal/reports', label: 'Reports', icon: FileText },
-      { href: '/portal/my-vps', label: 'VPS Saya', icon: Server },
+      { href: '/portal/signals', labelKey: 'nav_my_signals', icon: Zap },
+      { href: '/portal/positions', labelKey: 'nav_open_positions', icon: TrendingUp },
+      { href: '/portal/history', labelKey: 'nav_trade_history', icon: History },
+      { href: '/portal/performance', labelKey: 'nav_performance', icon: BarChart3 },
+      { href: '/portal/market', labelKey: 'nav_market_scanner', icon: Radio },
+      { href: '/portal/signal-audit', labelKey: 'nav_signal_audit', icon: ScrollText },
+      { href: '/portal/pair-briefs', labelKey: 'nav_pair_briefs', icon: BookOpen },
+      { href: '/portal/reports', labelKey: 'nav_reports', icon: FileText },
+      { href: '/portal/my-vps', labelKey: 'nav_my_vps', icon: Server },
     ],
   },
   {
-    label: 'Crypto',
+    labelKey: 'nav_section_crypto',
     items: [
-      { href: '/portal/crypto', label: 'Overview', icon: Bitcoin },
-      { href: '/portal/crypto/connect', label: 'Connect Binance', icon: KeyRound },
-      { href: '/portal/crypto/strategy', label: 'Strategy', icon: Cpu },
-      { href: '/portal/crypto/positions', label: 'Live Positions', icon: Activity },
-      { href: '/portal/crypto/trades', label: 'Trade History', icon: History },
-      { href: '/portal/crypto/risk', label: 'Risk Profile', icon: Shield },
+      { href: '/portal/crypto', labelKey: 'nav_crypto_overview', icon: Bitcoin },
+      { href: '/portal/crypto/connect', labelKey: 'nav_crypto_connect', icon: KeyRound },
+      { href: '/portal/crypto/strategy', labelKey: 'nav_crypto_strategy', icon: Cpu },
+      { href: '/portal/crypto/positions', labelKey: 'nav_crypto_positions', icon: Activity },
+      { href: '/portal/crypto/trades', labelKey: 'nav_crypto_trades', icon: History },
+      { href: '/portal/crypto/risk', labelKey: 'nav_crypto_risk', icon: Shield },
     ],
   },
   {
-    label: 'Akun',
+    labelKey: 'nav_section_account',
     items: [
-      { href: '/portal/kyc', label: 'Verifikasi (KYC)', icon: IdCard },
-      { href: '/portal/account', label: 'Profil & Billing', icon: User },
+      { href: '/portal/kyc', labelKey: 'nav_kyc', icon: IdCard },
+      { href: '/portal/account', labelKey: 'nav_account', icon: User },
     ],
   },
 ];
@@ -96,6 +97,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
 function PortalLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { logout } = useAuth();
+  const t = useTranslations('portal.shared');
 
   return (
     <div className="min-h-screen flex">
@@ -105,7 +107,7 @@ function PortalLayoutInner({ children }: { children: React.ReactNode }) {
           <Link href="/portal" className="flex items-center gap-2">
             <Image
               src="/logo/babahalgo-header-dark.png"
-              alt="BabahAlgo"
+              alt={t('logo_alt')}
               width={120}
               height={24}
               className="h-6 w-auto hidden dark:block"
@@ -113,22 +115,22 @@ function PortalLayoutInner({ children }: { children: React.ReactNode }) {
             />
             <Image
               src="/logo/babahalgo-header-light.png"
-              alt="BabahAlgo"
+              alt={t('logo_alt')}
               width={120}
               height={24}
               className="h-6 w-auto dark:hidden"
               priority
             />
           </Link>
-          <p className="text-[11px] text-muted-foreground mt-2 font-mono uppercase tracking-wider">Client Portal</p>
+          <p className="text-[11px] text-muted-foreground mt-2 font-mono uppercase tracking-wider">{t('client_portal_label')}</p>
         </div>
 
-        <nav className="flex-1 px-3 py-4 overflow-y-auto" aria-label="Portal navigation">
+        <nav className="flex-1 px-3 py-4 overflow-y-auto" aria-label={t('navigation_aria')}>
           {NAV_SECTIONS.map((section, idx) => (
             <div key={idx} className={cn(idx > 0 && 'mt-5')}>
-              {section.label && (
+              {section.labelKey && (
                 <div className="px-3 mb-1.5 text-[10px] uppercase tracking-wider font-mono text-muted-foreground/60 font-semibold">
-                  {section.label}
+                  {t(section.labelKey)}
                 </div>
               )}
               <div className="space-y-0.5">
@@ -149,7 +151,7 @@ function PortalLayoutInner({ children }: { children: React.ReactNode }) {
                       )}
                     >
                       <item.icon className="h-4 w-4 shrink-0" />
-                      <span className="truncate">{item.label}</span>
+                      <span className="truncate">{t(item.labelKey)}</span>
                     </Link>
                   );
                 })}
@@ -161,7 +163,7 @@ function PortalLayoutInner({ children }: { children: React.ReactNode }) {
         <div className="p-3 border-t border-white/10 flex items-center gap-2">
           <Button variant="ghost" className="flex-1 justify-start gap-2.5 text-sm" onClick={logout}>
             <LogOut className="h-4 w-4" />
-            Logout
+            {t('logout')}
           </Button>
           <ThemeToggle />
         </div>

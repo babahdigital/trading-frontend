@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useTranslations, useLocale } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { EquityCurve } from '@/components/charts/equity-curve';
@@ -41,6 +42,8 @@ interface StatusData {
 }
 
 export default function MyVpsPage() {
+  const t = useTranslations('portal.vps.dashboard');
+  const locale = useLocale();
   const { getAuthHeaders } = useAuth();
   const [status, setStatus] = useState<StatusData | null>(null);
   const [equityData, setEquityData] = useState<{ time: string; value: number }[]>([]);
@@ -58,11 +61,11 @@ export default function MyVpsPage() {
       try {
         const res = await fetch('/api/client/status', { headers: getAuthHeaders() });
         if (res.status === 401) { window.location.href = '/login'; return; }
-        if (!res.ok) throw new Error('Gagal memuat status VPS');
+        if (!res.ok) throw new Error(t('load_failed'));
         const data = await res.json();
         if (active) { setStatus(data); setError(''); }
       } catch (err: unknown) {
-        if (active) setError(err instanceof Error ? err.message : 'Koneksi error');
+        if (active) setError(err instanceof Error ? err.message : t('load_failed'));
       } finally {
         if (active) setLoading(false);
       }
@@ -117,11 +120,11 @@ export default function MyVpsPage() {
   }, []);
 
   function botStatusLabel(s?: string) {
-    if (!s) return { label: 'Tidak Diketahui', color: 'text-muted-foreground', bg: 'bg-muted' };
+    if (!s) return { label: t('bot_status_unknown'), color: 'text-muted-foreground', bg: 'bg-muted' };
     const lower = s.toLowerCase();
-    if (lower === 'active' || lower === 'running') return { label: 'Aktif', color: 'text-green-400', bg: 'bg-green-500/20' };
-    if (lower === 'error') return { label: 'Error', color: 'text-red-400', bg: 'bg-red-500/20' };
-    if (lower === 'stopped') return { label: 'Berhenti', color: 'text-orange-400', bg: 'bg-orange-500/20' };
+    if (lower === 'active' || lower === 'running') return { label: t('bot_status_active'), color: 'text-green-400', bg: 'bg-green-500/20' };
+    if (lower === 'error') return { label: t('bot_status_error'), color: 'text-red-400', bg: 'bg-red-500/20' };
+    if (lower === 'stopped') return { label: t('bot_status_stopped'), color: 'text-orange-400', bg: 'bg-orange-500/20' };
     return { label: s, color: 'text-yellow-400', bg: 'bg-yellow-500/20' };
   }
 
@@ -133,10 +136,10 @@ export default function MyVpsPage() {
   function licenseInfo() {
     if (!status?.license_expiry) return null;
     const diff = new Date(status.license_expiry).getTime() - Date.now();
-    if (diff <= 0) return { text: 'Expired', urgent: true };
+    if (diff <= 0) return { text: t('license_expired'), urgent: true };
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    if (days <= 7) return { text: `${days} hari lagi`, urgent: true };
-    return { text: `${days} hari tersisa`, urgent: false };
+    if (days <= 7) return { text: t('license_days_left', { days }), urgent: true };
+    return { text: t('license_days_remaining', { days }), urgent: false };
   }
 
   function formatUptime(seconds?: number) {
@@ -151,7 +154,7 @@ export default function MyVpsPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold">VPS Saya</h1>
+        <h1 className="text-2xl font-bold">{t('heading')}</h1>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map((i) => <SkeletonCard key={i} />)}
         </div>
@@ -171,8 +174,8 @@ export default function MyVpsPage() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
-          <h1 className="text-2xl font-bold">VPS Saya</h1>
-          <p className="text-sm text-muted-foreground">Ringkasan status VPS dan trading bot Anda</p>
+          <h1 className="text-2xl font-bold">{t('heading')}</h1>
+          <p className="text-sm text-muted-foreground">{t('tagline')}</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <span className={cn('inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium', botSt.bg, botSt.color)}>
@@ -181,14 +184,14 @@ export default function MyVpsPage() {
               botSt.color === 'text-red-400' ? 'bg-red-400' :
               botSt.color === 'text-orange-400' ? 'bg-orange-400' : 'bg-yellow-400'
             )} />
-            Bot: {botSt.label}
+            {t('bot_label', { status: botSt.label })}
           </span>
           {license && (
             <span className={cn('inline-flex items-center rounded-full px-3 py-1 text-xs font-medium',
               license.urgent ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'
             )}>
               <Shield className="w-3 h-3 mr-1" />
-              Lisensi: {license.text}
+              {t('license_label', { value: license.text })}
             </span>
           )}
         </div>
@@ -202,7 +205,7 @@ export default function MyVpsPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Equity</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t('kpi_equity')}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold font-mono">
@@ -217,7 +220,7 @@ export default function MyVpsPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">PnL Hari Ini</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t('kpi_today_pnl')}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className={cn('text-2xl font-bold font-mono',
@@ -227,31 +230,31 @@ export default function MyVpsPage() {
             </p>
             {(status?.wins_today !== undefined || status?.losses_today !== undefined) && (
               <p className="text-xs text-muted-foreground">
-                {status?.wins_today ?? 0}W / {status?.losses_today ?? 0}L
+                {t('win_loss_short', { wins: status?.wins_today ?? 0, losses: status?.losses_today ?? 0 })}
               </p>
             )}
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Posisi Terbuka</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t('kpi_open_positions')}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold font-mono">{status?.open_trades ?? positions.length}</p>
             <p className={cn('text-xs font-mono',
               (status?.floating_pnl || 0) >= 0 ? 'text-green-400' : 'text-red-400'
             )}>
-              Floating: {formatPnl(status?.floating_pnl)}
+              {t('floating_label', { value: formatPnl(status?.floating_pnl) })}
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Pair Aktif</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t('kpi_active_pairs')}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold font-mono">{status?.active_pairs ?? aiStates.length}</p>
-            <p className="text-xs text-muted-foreground">dari 14 pair</p>
+            <p className="text-xs text-muted-foreground">{t('from_total_pairs')}</p>
           </CardContent>
         </Card>
       </div>
@@ -260,26 +263,26 @@ export default function MyVpsPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Clock className="w-4 h-4" />
-          <span>Uptime: {formatUptime(status?.uptime_seconds)}</span>
+          <span>{t('uptime_label', { value: formatUptime(status?.uptime_seconds) })}</span>
         </div>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Wifi className={cn('w-4 h-4', status?.mt5_connected ? 'text-green-400' : 'text-red-400')} />
-          <span>MT5: {status?.mt5_connected ? 'Terhubung' : 'Terputus'}</span>
+          <span>{t('mt5_label', { value: status?.mt5_connected ? t('mt5_connected') : t('mt5_disconnected') })}</span>
         </div>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Activity className="w-4 h-4" />
-          <span>Versi: {status?.code_version || '-'}</span>
+          <span>{t('version_label', { value: status?.code_version || '-' })}</span>
         </div>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Shield className="w-4 h-4" />
-          <span>Sync: {status?.last_sync ? new Date(status.last_sync).toLocaleDateString('id-ID') : '-'}</span>
+          <span>{t('sync_label', { value: status?.last_sync ? new Date(status.last_sync).toLocaleDateString(locale === 'en' ? 'en-US' : 'id-ID') : '-' })}</span>
         </div>
       </div>
 
       {/* Equity Curve */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-medium">Kurva Equity</CardTitle>
+          <CardTitle className="text-sm font-medium">{t('equity_chart_title')}</CardTitle>
         </CardHeader>
         <CardContent>
           {equityData.length > 0 ? (
@@ -292,7 +295,7 @@ export default function MyVpsPage() {
             />
           ) : (
             <div className="flex items-center justify-center h-[240px] sm:h-[280px] md:h-[320px] text-muted-foreground text-sm">
-              Data equity akan muncul saat terhubung ke trading backend
+              {t('equity_empty')}
             </div>
           )}
         </CardContent>
@@ -302,14 +305,14 @@ export default function MyVpsPage() {
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-sm font-medium">Posisi Terbuka</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('open_positions_title')}</CardTitle>
             <Link href="/portal/my-vps/trades" className="text-xs text-primary hover:underline flex items-center gap-1">
-              Semua Trade <ArrowRight className="w-3 h-3" />
+              {t('all_trades_link')} <ArrowRight className="w-3 h-3" />
             </Link>
           </CardHeader>
           <CardContent>
             {positions.length === 0 ? (
-              <p className="text-muted-foreground text-sm text-center py-4">Tidak ada posisi terbuka</p>
+              <p className="text-muted-foreground text-sm text-center py-4">{t('no_open_positions')}</p>
             ) : (
               <div className="space-y-2">
                 {positions.slice(0, 5).map((pos, i) => (
@@ -336,7 +339,7 @@ export default function MyVpsPage() {
                 ))}
                 {positions.length > 5 && (
                   <p className="text-xs text-center text-muted-foreground pt-1">
-                    +{positions.length - 5} posisi lainnya
+                    {t('more_positions', { count: positions.length - 5 })}
                   </p>
                 )}
               </div>
@@ -346,11 +349,11 @@ export default function MyVpsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium">Aktivitas Bot</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('bot_activity_title')}</CardTitle>
           </CardHeader>
           <CardContent>
             {aiStates.length === 0 ? (
-              <p className="text-muted-foreground text-sm text-center py-4">Tidak ada data aktivitas</p>
+              <p className="text-muted-foreground text-sm text-center py-4">{t('no_activity')}</p>
             ) : (
               <div className="space-y-2 max-h-[300px] overflow-y-auto">
                 {aiStates.map(([pair, state]) => (
@@ -359,7 +362,7 @@ export default function MyVpsPage() {
                     <div>
                       <span className="font-mono font-semibold">{pair}</span>
                       <span className="text-muted-foreground ml-2">
-                        {state.runtime_status_label || 'Memantau pasar'}
+                        {state.runtime_status_label || t('default_runtime_status')}
                       </span>
                     </div>
                     {state.updated_seconds_ago !== undefined && (
@@ -376,14 +379,14 @@ export default function MyVpsPage() {
       {/* Daily PnL */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-medium">PnL Harian (7 Hari Terakhir)</CardTitle>
+          <CardTitle className="text-sm font-medium">{t('daily_pnl_title')}</CardTitle>
         </CardHeader>
         <CardContent>
           {weeklyPnl.length > 0 ? (
             <PnlBarChart data={weeklyPnl} height={160} />
           ) : (
             <div className="flex items-center justify-center h-[160px] text-muted-foreground text-sm">
-              Data PnL harian akan muncul saat terhubung
+              {t('daily_pnl_empty')}
             </div>
           )}
         </CardContent>

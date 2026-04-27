@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,17 +27,9 @@ function genericSetup(setup?: string): string {
   return strategyDisplayName(setup, isStrategyObfuscationEnabled());
 }
 
-function closeReasonBadge(reason?: string) {
-  if (!reason) return null;
-  const r = reason.toLowerCase();
-  if (r.includes('take_profit') || r.includes('tp')) return { label: 'Take Profit', cls: 'bg-green-500/20 text-green-400' };
-  if (r.includes('stop_loss') || r.includes('sl')) return { label: 'Stop Loss', cls: 'bg-red-500/20 text-red-400' };
-  if (r.includes('manual')) return { label: 'Manual', cls: 'bg-blue-500/20 text-blue-400' };
-  if (r.includes('max_hold')) return { label: 'Max Hold', cls: 'bg-yellow-500/20 text-yellow-400' };
-  return { label: reason, cls: 'bg-slate-500/20 text-slate-400' };
-}
-
 export default function MyVpsTradesPage() {
+  const t = useTranslations('portal.vps.trades');
+  const tShared = useTranslations('portal.shared');
   const { getAuthHeaders } = useAuth();
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,17 +37,27 @@ export default function MyVpsTradesPage() {
   const [days, setDays] = useState(30);
   const [pairFilter, setPairFilter] = useState('');
 
+  function closeReasonBadge(reason?: string) {
+    if (!reason) return null;
+    const r = reason.toLowerCase();
+    if (r.includes('take_profit') || r.includes('tp')) return { label: t('reason_tp'), cls: 'bg-green-500/20 text-green-400' };
+    if (r.includes('stop_loss') || r.includes('sl')) return { label: t('reason_sl'), cls: 'bg-red-500/20 text-red-400' };
+    if (r.includes('manual')) return { label: t('reason_manual'), cls: 'bg-blue-500/20 text-blue-400' };
+    if (r.includes('max_hold')) return { label: t('reason_max_hold'), cls: 'bg-yellow-500/20 text-yellow-400' };
+    return { label: reason, cls: 'bg-slate-500/20 text-slate-400' };
+  }
+
   const fetchTrades = useCallback(async (d: number) => {
     setLoading(true);
     try {
       const res = await fetch(`/api/client/trades?days=${d}`, { headers: getAuthHeaders() });
       if (res.status === 401) { window.location.href = '/login'; return; }
-      if (!res.ok) throw new Error('Gagal memuat riwayat trade');
+      if (!res.ok) throw new Error(t('load_failed'));
       const data = await res.json();
       setTrades(Array.isArray(data) ? data : data.trades || []);
       setError('');
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Koneksi error');
+      setError(err instanceof Error ? err.message : tShared('connection_error'));
     } finally {
       setLoading(false);
     }
@@ -64,36 +67,44 @@ export default function MyVpsTradesPage() {
   useEffect(() => { fetchTrades(days); }, [days, fetchTrades]);
 
   const filtered = pairFilter
-    ? trades.filter((t) => t.pair?.toLowerCase().includes(pairFilter.toLowerCase()))
+    ? trades.filter((tr) => tr.pair?.toLowerCase().includes(pairFilter.toLowerCase()))
     : trades;
 
-  const totalPnl = filtered.reduce((sum, t) => sum + (t.pnl || 0), 0);
-  const wins = filtered.filter((t) => t.pnl > 0).length;
-  const losses = filtered.filter((t) => t.pnl < 0).length;
+  const totalPnl = filtered.reduce((sum, tr) => sum + (tr.pnl || 0), 0);
+  const wins = filtered.filter((tr) => tr.pnl > 0).length;
+  const losses = filtered.filter((tr) => tr.pnl < 0).length;
   const winRate = filtered.length > 0 ? ((wins / filtered.length) * 100).toFixed(1) : '0';
 
   // Build cumulative PnL data
   const cumulativeData = (() => {
     let cum = 0;
-    return filtered.map((t, i) => {
-      cum += t.pnl || 0;
+    return filtered.map((tr, i) => {
+      cum += tr.pnl || 0;
       return { trade: i + 1, pnl: Math.round(cum * 100) / 100 };
     });
   })();
 
   function exportCsv() {
     if (filtered.length === 0) return;
-    const headers = ['Tanggal', 'Pair', 'Arah', 'Hasil (USD)', 'Durasi', 'Strategi', 'Alasan Tutup'];
-    const rows = filtered.map((t) => [
-      csvEscape(t.date), csvEscape(t.pair), csvEscape(t.type), csvEscape(t.pnl),
-      csvEscape(t.duration || ''), csvEscape(genericSetup(t.setup)), csvEscape(t.close_reason || ''),
+    const headers = [
+      t('csv_header_date'),
+      t('csv_header_pair'),
+      t('csv_header_direction'),
+      t('csv_header_result'),
+      t('csv_header_duration'),
+      t('csv_header_strategy'),
+      t('csv_header_close_reason'),
+    ];
+    const rows = filtered.map((tr) => [
+      csvEscape(tr.date), csvEscape(tr.pair), csvEscape(tr.type), csvEscape(tr.pnl),
+      csvEscape(tr.duration || ''), csvEscape(genericSetup(tr.setup)), csvEscape(tr.close_reason || ''),
     ]);
     const csv = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
-    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `riwayat-trade-${days}hari.csv`;
+    a.download = t('csv_filename', { days });
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -105,16 +116,16 @@ export default function MyVpsTradesPage() {
         <div className="flex items-center gap-3">
           <Link href="/portal/my-vps">
             <Button variant="ghost" size="sm">
-              <ArrowLeft className="w-4 h-4 mr-1" /> Kembali
+              <ArrowLeft className="w-4 h-4 mr-1" /> {t('back')}
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold">Riwayat Trade</h1>
-            <p className="text-sm text-muted-foreground">Histori lengkap semua transaksi VPS Anda</p>
+            <h1 className="text-2xl font-bold">{t('heading')}</h1>
+            <p className="text-sm text-muted-foreground">{t('tagline')}</p>
           </div>
         </div>
         <Button variant="outline" size="sm" onClick={exportCsv} disabled={filtered.length === 0}>
-          <Download className="w-4 h-4 mr-1" /> Export CSV
+          <Download className="w-4 h-4 mr-1" /> {t('export_csv')}
         </Button>
       </div>
 
@@ -122,13 +133,13 @@ export default function MyVpsTradesPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-6">
-            <p className="text-sm text-muted-foreground">Total Trade</p>
+            <p className="text-sm text-muted-foreground">{t('kpi_total')}</p>
             <p className="text-xl font-bold font-mono">{filtered.length}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-sm text-muted-foreground">Total PnL</p>
+            <p className="text-sm text-muted-foreground">{t('kpi_total_pnl')}</p>
             <p className={cn('text-xl font-bold font-mono', totalPnl >= 0 ? 'text-green-400' : 'text-red-400')}>
               {totalPnl >= 0 ? '+' : ''}${totalPnl.toFixed(2)}
             </p>
@@ -136,7 +147,7 @@ export default function MyVpsTradesPage() {
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-sm text-muted-foreground">Win / Loss</p>
+            <p className="text-sm text-muted-foreground">{t('kpi_winloss')}</p>
             <p className="text-xl font-bold font-mono">
               <span className="text-green-400">{wins}</span>
               <span className="text-muted-foreground mx-1">/</span>
@@ -146,7 +157,7 @@ export default function MyVpsTradesPage() {
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-sm text-muted-foreground">Win Rate</p>
+            <p className="text-sm text-muted-foreground">{t('kpi_winrate')}</p>
             <p className="text-xl font-bold font-mono">{winRate}%</p>
           </CardContent>
         </Card>
@@ -157,12 +168,12 @@ export default function MyVpsTradesPage() {
         <div className="flex items-center gap-1">
           {[7, 30, 90].map((d) => (
             <Button key={d} variant={days === d ? 'default' : 'outline'} size="sm" onClick={() => setDays(d)}>
-              {d}H
+              {t('filter_days', { days: d })}
             </Button>
           ))}
         </div>
         <Input
-          placeholder="Cari pair..."
+          placeholder={t('search_pair_placeholder')}
           value={pairFilter}
           onChange={(e) => setPairFilter(e.target.value)}
           className="w-48 bg-background"
@@ -176,46 +187,46 @@ export default function MyVpsTradesPage() {
       {/* Desktop Table */}
       <Card className="hidden md:block">
         <CardHeader>
-          <CardTitle className="text-sm font-medium">Daftar Trade</CardTitle>
+          <CardTitle className="text-sm font-medium">{t('list_title')}</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <p className="text-muted-foreground text-sm">Memuat data...</p>
+            <p className="text-muted-foreground text-sm">{t('loading')}</p>
           ) : filtered.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">Tidak ada trade ditemukan</div>
+            <div className="text-center py-12 text-muted-foreground">{t('empty')}</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b text-left">
-                    <th className="pb-3 font-medium text-muted-foreground">Tanggal</th>
-                    <th className="pb-3 font-medium text-muted-foreground">Pair</th>
-                    <th className="pb-3 font-medium text-muted-foreground">Arah</th>
-                    <th className="pb-3 font-medium text-muted-foreground text-right">Hasil ($)</th>
-                    <th className="pb-3 font-medium text-muted-foreground text-right">Durasi</th>
-                    <th className="pb-3 font-medium text-muted-foreground">Strategi</th>
-                    <th className="pb-3 font-medium text-muted-foreground">Alasan Tutup</th>
+                    <th className="pb-3 font-medium text-muted-foreground">{t('col_date')}</th>
+                    <th className="pb-3 font-medium text-muted-foreground">{t('col_pair')}</th>
+                    <th className="pb-3 font-medium text-muted-foreground">{t('col_direction')}</th>
+                    <th className="pb-3 font-medium text-muted-foreground text-right">{t('col_result')}</th>
+                    <th className="pb-3 font-medium text-muted-foreground text-right">{t('col_duration')}</th>
+                    <th className="pb-3 font-medium text-muted-foreground">{t('col_strategy')}</th>
+                    <th className="pb-3 font-medium text-muted-foreground">{t('col_close_reason')}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((t, i) => {
-                    const badge = closeReasonBadge(t.close_reason);
+                  {filtered.map((tr, i) => {
+                    const badge = closeReasonBadge(tr.close_reason);
                     return (
                       <tr key={i} className={cn('border-b border-border/50 last:border-0',
-                        t.pnl >= 0 ? 'bg-green-500/[0.02]' : 'bg-red-500/[0.02]'
+                        tr.pnl >= 0 ? 'bg-green-500/[0.02]' : 'bg-red-500/[0.02]'
                       )}>
-                        <td className="py-3 text-muted-foreground text-xs">{t.date}</td>
-                        <td className="py-3 font-mono font-medium">{t.pair}</td>
+                        <td className="py-3 text-muted-foreground text-xs">{tr.date}</td>
+                        <td className="py-3 font-mono font-medium">{tr.pair}</td>
                         <td className="py-3">
                           <span className={cn('px-2 py-0.5 rounded text-xs font-medium',
-                            t.type?.toLowerCase() === 'buy' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
-                          )}>{t.type}</span>
+                            tr.type?.toLowerCase() === 'buy' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                          )}>{tr.type}</span>
                         </td>
-                        <td className={cn('py-3 text-right font-mono font-medium', t.pnl >= 0 ? 'text-green-400' : 'text-red-400')}>
-                          {t.pnl >= 0 ? '+' : ''}${t.pnl.toFixed(2)}
+                        <td className={cn('py-3 text-right font-mono font-medium', tr.pnl >= 0 ? 'text-green-400' : 'text-red-400')}>
+                          {tr.pnl >= 0 ? '+' : ''}${tr.pnl.toFixed(2)}
                         </td>
-                        <td className="py-3 text-right text-muted-foreground">{t.duration || '-'}</td>
-                        <td className="py-3 text-muted-foreground text-xs">{genericSetup(t.setup)}</td>
+                        <td className="py-3 text-right text-muted-foreground">{tr.duration || '-'}</td>
+                        <td className="py-3 text-muted-foreground text-xs">{genericSetup(tr.setup)}</td>
                         <td className="py-3">
                           {badge && <span className={cn('px-2 py-0.5 rounded text-xs', badge.cls)}>{badge.label}</span>}
                         </td>
@@ -232,37 +243,37 @@ export default function MyVpsTradesPage() {
       {/* Mobile Card View */}
       <div className="md:hidden space-y-3">
         {loading ? (
-          <p className="text-muted-foreground text-sm text-center py-4">Memuat data...</p>
+          <p className="text-muted-foreground text-sm text-center py-4">{t('loading')}</p>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground">Tidak ada trade ditemukan</div>
+          <div className="text-center py-12 text-muted-foreground">{t('empty')}</div>
         ) : (
-          filtered.map((t, i) => {
-            const badge = closeReasonBadge(t.close_reason);
+          filtered.map((tr, i) => {
+            const badge = closeReasonBadge(tr.close_reason);
             return (
               <Card key={i} className={cn(
                 'border',
-                t.pnl >= 0 ? 'border-green-500/20' : 'border-red-500/20'
+                tr.pnl >= 0 ? 'border-green-500/20' : 'border-red-500/20'
               )}>
                 <CardContent className="pt-4 pb-3">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <span className="font-mono font-semibold text-sm">{t.pair}</span>
+                      <span className="font-mono font-semibold text-sm">{tr.pair}</span>
                       <span className={cn('px-2 py-0.5 rounded text-xs font-medium',
-                        t.type?.toLowerCase() === 'buy' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
-                      )}>{t.type}</span>
+                        tr.type?.toLowerCase() === 'buy' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                      )}>{tr.type}</span>
                     </div>
                     <span className={cn('font-mono font-semibold text-sm',
-                      t.pnl >= 0 ? 'text-green-400' : 'text-red-400'
+                      tr.pnl >= 0 ? 'text-green-400' : 'text-red-400'
                     )}>
-                      {t.pnl >= 0 ? '+' : ''}${t.pnl.toFixed(2)}
+                      {tr.pnl >= 0 ? '+' : ''}${tr.pnl.toFixed(2)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{t.date}</span>
-                    <span>{t.duration || '-'}</span>
+                    <span>{tr.date}</span>
+                    <span>{tr.duration || '-'}</span>
                   </div>
                   <div className="flex items-center justify-between mt-1.5 text-xs">
-                    <span className="text-muted-foreground">{genericSetup(t.setup)}</span>
+                    <span className="text-muted-foreground">{genericSetup(tr.setup)}</span>
                     {badge && <span className={cn('px-2 py-0.5 rounded', badge.cls)}>{badge.label}</span>}
                   </div>
                 </CardContent>
@@ -276,7 +287,7 @@ export default function MyVpsTradesPage() {
       {cumulativeData.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium">PnL Kumulatif</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('cumulative_title')}</CardTitle>
           </CardHeader>
           <CardContent>
             <CumulativePnl data={cumulativeData} height={200} />

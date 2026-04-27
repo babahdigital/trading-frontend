@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -48,6 +49,8 @@ function genericSetup(setup: string): string {
 }
 
 export default function PerformancePage() {
+  const t = useTranslations('portal.performance');
+  const tShared = useTranslations('portal.shared');
   const { getAuthHeaders } = useAuth();
   const [data, setData] = useState<PerformanceData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -58,11 +61,11 @@ export default function PerformancePage() {
     setLoading(true);
     try {
       const res = await fetch(`/api/client/performance?days=${d}`, { headers: getAuthHeaders() });
-      if (!res.ok) throw new Error('Failed to fetch performance');
+      if (!res.ok) throw new Error(t('fetch_failed'));
       setData(await res.json());
       setError('');
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Connection error');
+      setError(err instanceof Error ? err.message : tShared('connection_error'));
     } finally {
       setLoading(false);
     }
@@ -93,7 +96,7 @@ export default function PerformancePage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Analisa Performa</h1>
+        <h1 className="text-2xl font-bold">{t('title')}</h1>
         <div className="flex items-center gap-1">
           {[30, 90].map((d) => (
             <Button key={d} variant={days === d ? 'default' : 'outline'} size="sm" onClick={() => setDays(d)}>
@@ -108,33 +111,33 @@ export default function PerformancePage() {
       )}
 
       {loading ? (
-        <p className="text-muted-foreground text-sm">Loading...</p>
+        <p className="text-muted-foreground text-sm">{tShared('loading')}</p>
       ) : (
         <>
           {/* ROW 1: 6 KPI Cards */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground">Win Rate</CardTitle></CardHeader>
+              <CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground">{t('kpi_win_rate')}</CardTitle></CardHeader>
               <CardContent><p className="text-xl font-bold font-mono">{fmt(data?.win_rate, '', '%')}</p></CardContent>
             </Card>
             <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground">Profit Factor</CardTitle></CardHeader>
+              <CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground">{t('kpi_profit_factor')}</CardTitle></CardHeader>
               <CardContent><p className="text-xl font-bold font-mono">{fmt(data?.profit_factor)}</p></CardContent>
             </Card>
             <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground">Avg Win</CardTitle></CardHeader>
+              <CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground">{t('kpi_avg_win')}</CardTitle></CardHeader>
               <CardContent><p className="text-xl font-bold font-mono text-green-400">{fmt(data?.avg_win, '+$')}</p></CardContent>
             </Card>
             <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground">Avg Loss</CardTitle></CardHeader>
+              <CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground">{t('kpi_avg_loss')}</CardTitle></CardHeader>
               <CardContent><p className="text-xl font-bold font-mono text-red-400">{fmt(data?.avg_loss, '-$')}</p></CardContent>
             </Card>
             <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground">Best Day</CardTitle></CardHeader>
+              <CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground">{t('kpi_best_day')}</CardTitle></CardHeader>
               <CardContent><p className="text-xl font-bold font-mono text-green-400">{fmt(data?.best_day, '+$')}</p></CardContent>
             </Card>
             <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground">Worst Day</CardTitle></CardHeader>
+              <CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground">{t('kpi_worst_day')}</CardTitle></CardHeader>
               <CardContent><p className="text-xl font-bold font-mono text-red-400">{fmt(data?.worst_day, '-$')}</p></CardContent>
             </Card>
           </div>
@@ -143,7 +146,7 @@ export default function PerformancePage() {
           {donutData.length > 0 && (
             <div className="grid gap-4 lg:grid-cols-2">
               <Card>
-                <CardHeader><CardTitle className="text-sm font-medium">Distribusi Strategi</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-sm font-medium">{t('strategy_distribution')}</CardTitle></CardHeader>
                 <CardContent>
                   <StrategyDonut
                     data={donutData}
@@ -153,7 +156,7 @@ export default function PerformancePage() {
                 </CardContent>
               </Card>
               <Card>
-                <CardHeader><CardTitle className="text-sm font-medium">Win Rate per Strategi</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-sm font-medium">{t('strategy_win_rate')}</CardTitle></CardHeader>
                 <CardContent>
                   <WinRateBar data={winRateData} height={280} />
                 </CardContent>
@@ -164,7 +167,7 @@ export default function PerformancePage() {
           {/* ROW 3: Hourly Heatmap */}
           {data?.hourly_pnl && data.hourly_pnl.length > 0 && (
             <Card>
-              <CardHeader><CardTitle className="text-sm font-medium">PnL per Jam (Heatmap)</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="text-sm font-medium">{t('hourly_heatmap')}</CardTitle></CardHeader>
               <CardContent>
                 <HourlyHeatmap data={data.hourly_pnl} />
               </CardContent>
@@ -174,7 +177,7 @@ export default function PerformancePage() {
           {/* ROW 4: Monthly Calendar */}
           {data?.daily_pnl && data.daily_pnl.length > 0 && (
             <Card>
-              <CardHeader><CardTitle className="text-sm font-medium">Kalender PnL Bulanan</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="text-sm font-medium">{t('monthly_calendar')}</CardTitle></CardHeader>
               <CardContent>
                 <MonthlyCalendar
                   data={data.daily_pnl}
@@ -188,7 +191,7 @@ export default function PerformancePage() {
           {/* ROW 5: Close Reason Breakdown */}
           {data?.close_reasons && data.close_reasons.length > 0 && (
             <Card>
-              <CardHeader><CardTitle className="text-sm font-medium">Alasan Penutupan</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="text-sm font-medium">{t('close_reasons')}</CardTitle></CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   {data.close_reasons.map((cr, i) => (
@@ -200,7 +203,7 @@ export default function PerformancePage() {
                         <span className="text-sm">{cr.reason}</span>
                       </div>
                       <div className="text-right">
-                        <span className="text-sm font-mono">{cr.trades} trades</span>
+                        <span className="text-sm font-mono">{cr.trades} {t('trades_suffix')}</span>
                         <span className={cn('ml-3 text-sm font-mono', cr.pnl >= 0 ? 'text-green-400' : 'text-red-400')}>
                           {cr.pnl >= 0 ? '+' : ''}${cr.pnl.toFixed(2)}
                         </span>
@@ -215,16 +218,16 @@ export default function PerformancePage() {
           {/* Pair Breakdown Table */}
           {data?.pair_breakdown && data.pair_breakdown.length > 0 && (
             <Card>
-              <CardHeader><CardTitle className="text-sm font-medium">Performa per Pair</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="text-sm font-medium">{t('pair_breakdown_title')}</CardTitle></CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b text-left">
-                        <th className="pb-3 font-medium text-muted-foreground">Pair</th>
-                        <th className="pb-3 font-medium text-muted-foreground text-right">Trades</th>
-                        <th className="pb-3 font-medium text-muted-foreground text-right">Win Rate</th>
-                        <th className="pb-3 font-medium text-muted-foreground text-right">P&L</th>
+                        <th className="pb-3 font-medium text-muted-foreground">{t('table_pair')}</th>
+                        <th className="pb-3 font-medium text-muted-foreground text-right">{t('table_trades')}</th>
+                        <th className="pb-3 font-medium text-muted-foreground text-right">{t('table_win_rate')}</th>
+                        <th className="pb-3 font-medium text-muted-foreground text-right">{t('table_pnl')}</th>
                       </tr>
                     </thead>
                     <tbody>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import {
   Bitcoin,
   Lock,
@@ -61,12 +62,6 @@ interface OverviewResponse {
   kill_switch_active?: boolean;
 }
 
-const TIER_LABEL: Record<string, string> = {
-  CRYPTO_BASIC: 'Crypto Basic',
-  CRYPTO_PRO: 'Crypto Pro',
-  CRYPTO_HNWI: 'Crypto HNWI',
-};
-
 const STATUS_TONE: Record<string, string> = {
   ACTIVE: 'bg-green-500/10 text-green-300 border-green-500/30',
   PENDING: 'bg-amber-500/10 text-amber-300 border-amber-500/30',
@@ -83,12 +78,20 @@ function formatUsd(raw: string | undefined | null): string {
 }
 
 export default function CryptoOverviewPage() {
+  const t = useTranslations('portal.crypto.dashboard');
+  const tShared = useTranslations('portal.shared');
   const { getAuthHeaders } = useAuth();
   const [data, setData] = useState<SubscriptionResponse | null>(null);
   const [overview, setOverview] = useState<OverviewResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const TIER_LABEL: Record<string, string> = {
+    CRYPTO_BASIC: t('tier_basic_full_name'),
+    CRYPTO_PRO: t('tier_pro_full_name'),
+    CRYPTO_HNWI: t('tier_hnwi_full_name'),
+  };
 
   const load = useCallback(async () => {
     setRefreshing(true);
@@ -116,8 +119,8 @@ export default function CryptoOverviewPage() {
 
   useEffect(() => {
     load();
-    const t = setInterval(load, 15_000);
-    return () => clearInterval(t);
+    const tmr = setInterval(load, 15_000);
+    return () => clearInterval(tmr);
   }, [load]);
 
   if (loading) {
@@ -133,7 +136,7 @@ export default function CryptoOverviewPage() {
   if (error) {
     return (
       <div className="p-3 rounded-md border border-red-500/30 bg-red-500/5 text-red-300 text-sm">
-        Gagal memuat status: {error}
+        {t('load_failed_prefix')}: {error}
       </div>
     );
   }
@@ -143,25 +146,31 @@ export default function CryptoOverviewPage() {
   const isMock = overview?.source === 'mock';
   const pnl24 = overview?.realized_pnl_24h_usdt ? parseFloat(overview.realized_pnl_24h_usdt) : 0;
 
+  const tiers = [
+    { label: t('tier_basic_label'), price: t('tier_basic_price'), features: t('tier_basic_features') },
+    { label: t('tier_pro_label'), price: t('tier_pro_price'), features: t('tier_pro_features') },
+    { label: t('tier_hnwi_label'), price: t('tier_hnwi_price'), features: t('tier_hnwi_features') },
+  ];
+
   return (
     <div className="space-y-6">
       <div className="flex items-end justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-3">
-            <Bitcoin className="h-6 w-6 sm:h-7 sm:w-7 text-amber-400" /> Crypto Bot
+            <Bitcoin className="h-6 w-6 sm:h-7 sm:w-7 text-amber-400" /> {t('heading')}
           </h1>
           <p className="text-muted-foreground mt-1.5 text-sm sm:text-base">
-            Bot Binance Futures — SMC + Wyckoff + AI risk overlay, 24/7.
+            {t('tagline')}
           </p>
         </div>
         <div className="flex items-center gap-2">
           {isMock && (
             <span className="px-2.5 py-1 rounded-md text-xs font-mono bg-amber-500/10 border border-amber-500/30 text-amber-300">
-              data preview
+              {t('data_preview_badge')}
             </span>
           )}
           <Button size="sm" variant="outline" onClick={load} disabled={refreshing}>
-            <RefreshCw className={cn('h-4 w-4 mr-2', refreshing && 'animate-spin')} /> Refresh
+            <RefreshCw className={cn('h-4 w-4 mr-2', refreshing && 'animate-spin')} /> {tShared('refresh')}
           </Button>
         </div>
       </div>
@@ -169,14 +178,14 @@ export default function CryptoOverviewPage() {
       {backendDown && (
         <div className="p-3 rounded-md border border-amber-500/30 bg-amber-500/5 text-amber-200 text-sm flex items-center gap-2">
           <AlertTriangle className="h-4 w-4 shrink-0" />
-          Crypto backend belum aktif di environment ini — data ditampilkan dari mock fallback.
+          {t('backend_unavailable')}
         </div>
       )}
 
       {overview?.kill_switch_active && (
         <div className="p-3 rounded-md border border-red-500/40 bg-red-500/10 text-red-200 text-sm flex items-center gap-2">
           <AlertOctagon className="h-4 w-4 shrink-0" />
-          Kill switch aktif — bot tidak menerima entry baru. Cabut di /portal/crypto/risk untuk lanjutkan trading.
+          {t('kill_switch_active')}
         </div>
       )}
 
@@ -184,30 +193,25 @@ export default function CryptoOverviewPage() {
         <Card>
           <CardContent className="p-8 space-y-5 text-center">
             <Lock className="h-12 w-12 text-amber-400 mx-auto" />
-            <h2 className="text-2xl font-bold">Belum Berlangganan Crypto Bot</h2>
+            <h2 className="text-2xl font-bold">{t('empty_heading')}</h2>
             <p className="text-muted-foreground max-w-xl mx-auto">
-              Hubungkan akun Binance Anda dan biarkan algoritma kami menjalankan strategi institusional di pasar
-              kripto 24 jam — tanpa Anda harus monitor sepanjang malam.
+              {t('empty_body')}
             </p>
             <div className="grid sm:grid-cols-3 gap-3 max-w-2xl mx-auto pt-2 text-left">
-              {[
-                { label: 'Crypto Basic', price: '$49 / bln', features: '3 pair · 5x leverage · 1 strategi' },
-                { label: 'Crypto Pro', price: '$199 / bln', features: '8 pair · 10x leverage · 4 strategi' },
-                { label: 'Crypto HNWI', price: '$499 / bln', features: '12 pair · 15x leverage · all strategi' },
-              ].map((t) => (
-                <div key={t.label} className="rounded-lg border border-white/10 p-4 bg-white/5">
-                  <div className="text-xs text-amber-400 font-mono uppercase tracking-wider">{t.label}</div>
-                  <div className="text-xl font-bold mt-1">{t.price}</div>
-                  <div className="text-xs text-muted-foreground mt-2">{t.features}</div>
+              {tiers.map((tier) => (
+                <div key={tier.label} className="rounded-lg border border-white/10 p-4 bg-white/5">
+                  <div className="text-xs text-amber-400 font-mono uppercase tracking-wider">{tier.label}</div>
+                  <div className="text-xl font-bold mt-1">{tier.price}</div>
+                  <div className="text-xs text-muted-foreground mt-2">{tier.features}</div>
                 </div>
               ))}
             </div>
             <div className="flex gap-3 justify-center pt-4">
               <Button asChild>
-                <Link href="/pricing#crypto">Lihat Paket Lengkap</Link>
+                <Link href="/pricing#crypto">{t('cta_pricing')}</Link>
               </Button>
               <Button variant="outline" asChild>
-                <Link href="/contact">Konsultasi Gratis</Link>
+                <Link href="/contact">{t('cta_consult')}</Link>
               </Button>
             </div>
           </CardContent>
@@ -220,11 +224,11 @@ export default function CryptoOverviewPage() {
               <Card>
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
-                    <Wallet className="h-3.5 w-3.5" /> Equity USDT
+                    <Wallet className="h-3.5 w-3.5" /> {t('kpi_equity_label')}
                   </div>
                   <div className="text-xl font-bold font-mono">{formatUsd(overview.latest_equity_usdt)}</div>
                   <div className="text-[11px] text-muted-foreground/70 font-mono mt-0.5">
-                    Available: {formatUsd(overview.latest_available_balance)}
+                    {t('kpi_equity_available', { value: formatUsd(overview.latest_available_balance) })}
                   </div>
                 </CardContent>
               </Card>
@@ -232,38 +236,41 @@ export default function CryptoOverviewPage() {
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
                     {pnl24 >= 0 ? <TrendingUp className="h-3.5 w-3.5 text-green-400" /> : <TrendingDown className="h-3.5 w-3.5 text-red-400" />}
-                    PnL 24 Jam
+                    {t('kpi_pnl_label')}
                   </div>
                   <div className={cn('text-xl font-bold font-mono', pnl24 >= 0 ? 'text-green-300' : 'text-red-300')}>
                     {pnl24 >= 0 ? '+' : ''}{formatUsd(overview.realized_pnl_24h_usdt)}
                   </div>
                   <div className="text-[11px] text-muted-foreground/70 font-mono mt-0.5">
-                    {overview.trades_24h_count ?? 0} trade tertutup
+                    {t('kpi_pnl_trades', { count: overview.trades_24h_count ?? 0 })}
                   </div>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
-                    <Activity className="h-3.5 w-3.5" /> Open Positions
+                    <Activity className="h-3.5 w-3.5" /> {t('kpi_open_label')}
                   </div>
                   <div className="text-xl font-bold font-mono">{overview.open_positions_count ?? 0}</div>
                   <div className="text-[11px] text-muted-foreground/70 font-mono mt-0.5">
-                    {overview.closing_positions_count ?? 0} closing
+                    {t('kpi_open_closing', { count: overview.closing_positions_count ?? 0 })}
                   </div>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4">
-                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Risk Status</div>
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">{t('kpi_risk_label')}</div>
                   <div className={cn(
                     'text-xl font-bold',
                     overview.kill_switch_active ? 'text-red-300' : 'text-green-300',
                   )}>
-                    {overview.kill_switch_active ? 'PAUSED' : 'ACTIVE'}
+                    {overview.kill_switch_active ? t('kpi_risk_paused') : t('kpi_risk_active')}
                   </div>
                   <div className="text-[11px] text-muted-foreground/70 font-mono mt-0.5">
-                    Lev {overview.risk_profile_max_leverage ?? sub.maxLeverage}x · {overview.risk_profile_risk_per_trade_pct ?? '1'}% per trade
+                    {t('kpi_risk_meta', {
+                      leverage: overview.risk_profile_max_leverage ?? sub.maxLeverage,
+                      risk: overview.risk_profile_risk_per_trade_pct ?? '1',
+                    })}
                   </div>
                 </CardContent>
               </Card>
@@ -276,10 +283,13 @@ export default function CryptoOverviewPage() {
               <CardContent className="p-5 sm:p-6">
                 <div className="flex items-start justify-between gap-3 flex-wrap">
                   <div>
-                    <div className="text-xs uppercase tracking-wider text-muted-foreground">Tier</div>
+                    <div className="text-xs uppercase tracking-wider text-muted-foreground">{t('tier_label')}</div>
                     <div className="text-2xl font-bold mt-1">{TIER_LABEL[sub.tier] ?? sub.tier}</div>
                     <div className="text-sm text-muted-foreground mt-1">
-                      ${sub.monthlyFeeUsd.toFixed(0)} / bulan + {Number(sub.profitSharePct).toFixed(0)}% profit share
+                      {t('tier_pricing', {
+                        fee: sub.monthlyFeeUsd.toFixed(0),
+                        share: Number(sub.profitSharePct).toFixed(0),
+                      })}
                     </div>
                   </div>
                   <span className={cn('text-xs font-mono uppercase px-2 py-1 rounded border', STATUS_TONE[sub.status] ?? STATUS_TONE.PENDING)}>
@@ -289,19 +299,19 @@ export default function CryptoOverviewPage() {
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
                   <div>
-                    <div className="text-[10px] uppercase text-muted-foreground">Max Leverage</div>
+                    <div className="text-[10px] uppercase text-muted-foreground">{t('max_leverage_label')}</div>
                     <div className="font-mono text-lg">{sub.maxLeverage}x</div>
                   </div>
                   <div>
-                    <div className="text-[10px] uppercase text-muted-foreground">Max Pairs</div>
+                    <div className="text-[10px] uppercase text-muted-foreground">{t('max_pairs_label')}</div>
                     <div className="font-mono text-lg">{sub.maxPairs}</div>
                   </div>
                   <div>
-                    <div className="text-[10px] uppercase text-muted-foreground">Strategi</div>
+                    <div className="text-[10px] uppercase text-muted-foreground">{t('strategy_label')}</div>
                     <div className="font-mono text-sm truncate">{sub.selectedStrategy ?? '—'}</div>
                   </div>
                   <div>
-                    <div className="text-[10px] uppercase text-muted-foreground">Renewal</div>
+                    <div className="text-[10px] uppercase text-muted-foreground">{t('renewal_label')}</div>
                     <div className="font-mono text-sm">
                       {sub.nextBillingAt ? new Date(sub.nextBillingAt).toLocaleDateString('id-ID') : '—'}
                     </div>
@@ -318,21 +328,23 @@ export default function CryptoOverviewPage() {
                   ) : (
                     <KeyRound className="h-5 w-5 text-amber-400" />
                   )}
-                  <span className="font-semibold">Binance Connection</span>
+                  <span className="font-semibold">{t('binance_connection')}</span>
                 </div>
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   {sub.apiKeyConnected
-                    ? `Terhubung ${sub.apiKeyVerifiedAt ? new Date(sub.apiKeyVerifiedAt).toLocaleString('id-ID') : '—'}.`
-                    : 'API key belum disubmit. Hubungkan Binance untuk mengaktifkan bot.'}
+                    ? t('binance_connected', {
+                      timestamp: sub.apiKeyVerifiedAt ? new Date(sub.apiKeyVerifiedAt).toLocaleString('id-ID') : '—',
+                    })
+                    : t('binance_not_connected')}
                 </p>
                 {overview?.telegram_bound && (
                   <p className="text-xs text-green-300 font-mono">
-                    Telegram: terhubung · lang {overview.notification_lang}
+                    {t('telegram_connected', { lang: overview.notification_lang ?? '' })}
                   </p>
                 )}
                 <Button asChild variant={sub.apiKeyConnected ? 'outline' : 'default'} className="w-full">
                   <Link href="/portal/crypto/connect">
-                    {sub.apiKeyConnected ? 'Update API Key' : 'Hubungkan Binance'}
+                    {sub.apiKeyConnected ? t('cta_update_key') : t('cta_connect_binance')}
                   </Link>
                 </Button>
               </CardContent>

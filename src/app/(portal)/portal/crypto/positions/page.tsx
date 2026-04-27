@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { Activity, ChevronLeft, RefreshCw, TrendingUp, TrendingDown } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
 import { Button } from '@/components/ui/button';
@@ -40,6 +41,8 @@ function fmtAge(opened: string): string {
 }
 
 export default function CryptoPositionsPage() {
+  const t = useTranslations('portal.crypto.positions');
+  const tShared = useTranslations('portal.shared');
   const { getAuthHeaders } = useAuth();
   const [positions, setPositions] = useState<Position[]>([]);
   const [source, setSource] = useState('');
@@ -63,32 +66,32 @@ export default function CryptoPositionsPage() {
 
   useEffect(() => {
     load();
-    const t = setInterval(load, 10_000);
-    return () => clearInterval(t);
+    const tmr = setInterval(load, 10_000);
+    return () => clearInterval(tmr);
   }, [load]);
 
   return (
     <div className="space-y-6">
       <Link href="/portal/crypto" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
-        <ChevronLeft className="h-4 w-4" /> Kembali
+        <ChevronLeft className="h-4 w-4" /> {t('back')}
       </Link>
 
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-3">
             <Activity className="h-6 w-6 sm:h-7 sm:w-7 text-amber-400" />
-            Live Positions
+            {t('heading')}
           </h1>
-          <p className="text-muted-foreground mt-1.5 text-sm">Auto-refresh tiap 10 detik.</p>
+          <p className="text-muted-foreground mt-1.5 text-sm">{t('tagline')}</p>
         </div>
         <div className="flex items-center gap-2">
           {source === 'mock' && (
             <span className="px-2.5 py-1 rounded-md text-xs font-mono bg-amber-500/10 border border-amber-500/30 text-amber-300">
-              data preview
+              {t('data_preview_badge')}
             </span>
           )}
           <Button size="sm" variant="outline" onClick={load} disabled={refreshing}>
-            <RefreshCw className={cn('h-4 w-4 mr-2', refreshing && 'animate-spin')} /> Refresh
+            <RefreshCw className={cn('h-4 w-4 mr-2', refreshing && 'animate-spin')} /> {tShared('refresh')}
           </Button>
         </div>
       </div>
@@ -102,7 +105,7 @@ export default function CryptoPositionsPage() {
       ) : positions.length === 0 ? (
         <Card>
           <CardContent className="p-8 text-center text-muted-foreground">
-            Tidak ada posisi terbuka saat ini.
+            {t('empty')}
           </CardContent>
         </Card>
       ) : (
@@ -135,12 +138,12 @@ export default function CryptoPositionsPage() {
                       </div>
                     </div>
                     <div className="grid grid-cols-3 gap-2 text-xs font-mono">
-                      <div><div className="text-[10px] uppercase text-muted-foreground">Entry</div><div>{fmtNum(p.entry_price, 2)}</div></div>
-                      <div><div className="text-[10px] uppercase text-muted-foreground">SL</div><div className="text-red-300/80">{fmtNum(p.sl_price, 2)}</div></div>
-                      <div><div className="text-[10px] uppercase text-muted-foreground">TP</div><div className="text-green-300/80">{fmtNum(p.tp_price, 2)}</div></div>
+                      <div><div className="text-[10px] uppercase text-muted-foreground">{t('col_entry')}</div><div>{fmtNum(p.entry_price, 2)}</div></div>
+                      <div><div className="text-[10px] uppercase text-muted-foreground">{t('col_sl')}</div><div className="text-red-300/80">{fmtNum(p.sl_price, 2)}</div></div>
+                      <div><div className="text-[10px] uppercase text-muted-foreground">{t('col_tp')}</div><div className="text-green-300/80">{fmtNum(p.tp_price, 2)}</div></div>
                     </div>
                     <div className="flex items-center justify-between text-[10px] font-mono text-muted-foreground">
-                      <span>qty {fmtNum(p.quantity, 4)}</span>
+                      <span>{t('qty_short', { value: fmtNum(p.quantity, 4) })}</span>
                       <span>{fmtAge(p.opened_at)}</span>
                     </div>
                   </CardContent>
@@ -156,16 +159,16 @@ export default function CryptoPositionsPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-white/10">
-                      <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase">Symbol</th>
-                      <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase">Side</th>
-                      <th className="text-right p-3 font-medium text-muted-foreground text-xs uppercase">Qty</th>
-                      <th className="text-right p-3 font-medium text-muted-foreground text-xs uppercase">Entry</th>
-                      <th className="text-right p-3 font-medium text-muted-foreground text-xs uppercase">SL</th>
-                      <th className="text-right p-3 font-medium text-muted-foreground text-xs uppercase">TP</th>
-                      <th className="text-right p-3 font-medium text-muted-foreground text-xs uppercase">PnL USDT</th>
-                      <th className="text-right p-3 font-medium text-muted-foreground text-xs uppercase">Lev</th>
-                      <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase">Strategy</th>
-                      <th className="text-right p-3 font-medium text-muted-foreground text-xs uppercase">Age</th>
+                      <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase">{t('col_symbol')}</th>
+                      <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase">{t('col_side')}</th>
+                      <th className="text-right p-3 font-medium text-muted-foreground text-xs uppercase">{t('col_qty')}</th>
+                      <th className="text-right p-3 font-medium text-muted-foreground text-xs uppercase">{t('col_entry')}</th>
+                      <th className="text-right p-3 font-medium text-muted-foreground text-xs uppercase">{t('col_sl')}</th>
+                      <th className="text-right p-3 font-medium text-muted-foreground text-xs uppercase">{t('col_tp')}</th>
+                      <th className="text-right p-3 font-medium text-muted-foreground text-xs uppercase">{t('col_pnl')}</th>
+                      <th className="text-right p-3 font-medium text-muted-foreground text-xs uppercase">{t('col_lev')}</th>
+                      <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase">{t('col_strategy')}</th>
+                      <th className="text-right p-3 font-medium text-muted-foreground text-xs uppercase">{t('col_age')}</th>
                     </tr>
                   </thead>
                   <tbody>

@@ -64,11 +64,32 @@ export async function PUT(request: NextRequest) {
   const { id, features_en, ...data } = body;
   if (!id) return NextResponse.json({ error: 'id is required' }, { status: 400 });
 
+  // Detect ID source change → invalidate en_synced_at so zero-touch worker
+  // picks it up on next tick. Manual EN edits set en_synced_at = now().
+  const existing = await prisma.pricingTier.findUnique({ where: { id } });
+  let syncOverride: { en_synced_at?: Date | null } = {};
+  if (existing) {
+    const idChanged = ['name', 'subtitle', 'features', 'ctaLabel'].some((k) => {
+      const v = (data as Record<string, unknown>)[k];
+      return v !== undefined && JSON.stringify(v) !== JSON.stringify((existing as Record<string, unknown>)[k]);
+    });
+    const enManuallyEdited = ['name_en', 'subtitle_en', 'ctaLabel_en'].some((k) => {
+      const v = (data as Record<string, unknown>)[k];
+      return v !== undefined && v !== (existing as Record<string, unknown>)[k];
+    }) || (features_en !== undefined && JSON.stringify(features_en) !== JSON.stringify(existing.features_en));
+    if (idChanged && !enManuallyEdited) {
+      syncOverride = { en_synced_at: null };
+    } else if (enManuallyEdited) {
+      syncOverride = { en_synced_at: new Date() };
+    }
+  }
+
   const updateData: Prisma.PricingTierUpdateInput = {
     ...data,
     ...(features_en !== undefined
       ? { features_en: features_en === null ? Prisma.JsonNull : features_en }
       : {}),
+    ...syncOverride,
   };
 
   const tier = await prisma.pricingTier.update({ where: { id }, data: updateData });

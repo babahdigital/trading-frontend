@@ -7,6 +7,7 @@ import { runResearchIngester } from '@/lib/ingesters/research';
 import { runPairBriefWorker } from '@/lib/workers/pair-brief';
 import { runBlogArticleGenerator } from '@/lib/workers/blog-article-generator';
 import { runDailyResearch } from '@/lib/workers/daily-research';
+import { runCmsI18nSync } from '@/lib/workers/cms-i18n-sync';
 import { expireSubscriptions } from '@/lib/subscription/lifecycle';
 import { createLogger } from '@/lib/logger';
 
@@ -110,6 +111,31 @@ export function initCronJobs() {
     }, 24 * 60 * 60 * 1000);
     setTimeout(() => runDailyResearch().catch((err) => log.error('Daily research startup error:', err)), 90_000);
     log.info('Daily research enabled (24h interval, kickoff +90s, day-of-week rotation)');
+  }
+
+  // CMS i18n auto-sync — every 5 min, zero-touch.
+  //
+  // Detects rows in Faq/PricingTier/LandingSection/Article where the EN
+  // translation is missing or stale (Indonesian text edited after last
+  // sync) and auto-translates via OpenRouter. Admin only writes Indonesian;
+  // English columns auto-fill in next tick. Re-edits to Indonesian
+  // automatically invalidate stale EN and trigger retranslation.
+  //
+  // Auto-enabled when OPENROUTER_API_KEY is set. Force-disable with
+  // ENABLE_CMS_I18N_AUTO="0".
+  const cmsI18nFlag = process.env.ENABLE_CMS_I18N_AUTO;
+  const cmsI18nEnabled = cmsI18nFlag === undefined
+    ? openRouterConfigured
+    : cmsI18nFlag === '1' || cmsI18nFlag.toLowerCase() === 'true';
+  if (cmsI18nEnabled) {
+    const cmsI18nIntervalMs = parseInt(process.env.CMS_I18N_AUTO_INTERVAL_MS || '', 10) || 5 * 60 * 1000;
+    setInterval(async () => {
+      try { await runCmsI18nSync(); } catch (err) { log.error('CMS i18n sync error:', err); }
+    }, cmsI18nIntervalMs);
+    setTimeout(() => runCmsI18nSync().catch((err) => log.error('CMS i18n sync startup error:', err)), 75_000);
+    log.info(`CMS i18n auto-sync enabled (${Math.round(cmsI18nIntervalMs / 60000)}min interval, kickoff +75s)`);
+  } else if (!openRouterConfigured) {
+    log.info('CMS i18n auto-sync idle — OPENROUTER_API_KEY not configured');
   }
 
   // Subscription expiry — every hour (expire + send renewal reminders)

@@ -33,95 +33,25 @@ export async function generateMetadata() {
   });
 }
 
-// Robot Meta tier ladder — auto-execution di MT5 customer (mirror landing
-// PRICING_PLANS.forex). Naming aligned per Pak Abdullah feedback.
-const SIGNAL_TIERS = [
-  {
-    name: 'Tier 1 · Swing',
-    price: '$19',
-    period: '/bulan',
-    features: [
-      '3 pair major (EURUSD · GBPUSD · USDJPY)',
-      'Strategi swing only (durasi 4–24 jam)',
-      'Indikator dasar SMC + Wyckoff',
-      'Notifikasi Email + Dashboard',
-      'Auto-eksekusi di MT5 Anda',
-    ],
-    cta: '/register/signal?tier=swing',
-  },
-  {
-    name: 'Tier 2 · Scalping',
-    price: '$79',
-    period: '/bulan',
-    popular: true,
-    features: [
-      '8 pair (Major · Cross · Gold · Silver)',
-      'Strategi swing + scalping',
-      'Indikator advanced SMC + Wyckoff + AI Momentum',
-      'Notifikasi WhatsApp + Telegram + Email',
-      'Mid-tier AI explainability per trade',
-    ],
-    cta: '/register/signal?tier=scalping',
-  },
-  {
-    name: 'Tier 3 · All-In',
-    price: '$299',
-    period: '/bulan',
-    features: [
-      'Unlimited pair (Major · Cross · Metals · Index)',
-      'Semua 6 strategi paralel',
-      'Premium AI advisor + copy-trade dashboard',
-      'Notifikasi all channels + dedicated support 24/7',
-      'Custom backtest sweep + Payout API',
-    ],
-    cta: '/register/signal?tier=all',
-  },
+// Tier metadata: prices, hrefs, popular flag stay hardcoded (universal).
+// Names + features + periods resolved from i18n at render. Tier slugs (`t1`,
+// `t2`, `t3`) map to feature key suffixes in pricing_page namespace.
+const SIGNAL_TIER_META = [
+  { slug: 't1', name: 'Tier 1 · Swing', price: '$19', cta: '/register/signal?tier=swing' },
+  { slug: 't2', name: 'Tier 2 · Scalping', price: '$79', popular: true, cta: '/register/signal?tier=scalping' },
+  { slug: 't3', name: 'Tier 3 · All-In', price: '$299', cta: '/register/signal?tier=all' },
 ];
 
-const CRYPTO_TIERS = [
-  {
-    name: 'Tier Basic',
-    price: '$49',
-    period: '/bulan + 20% PS',
-    features: [
-      '3 pair otomatis (top-3 dynamic)',
-      'Leverage maksimal 5x',
-      'Strategi scalping momentum',
-      'Notifikasi Telegram + dashboard',
-    ],
-    cta: '/register/crypto?tier=basic',
-  },
-  {
-    name: 'Tier Pro',
-    price: '$199',
-    period: '/bulan + 15% PS',
-    popular: true,
-    features: [
-      '8 pair + 1 manual whitelist',
-      'Leverage maksimal 10x',
-      '4 strategi (SMC · Wyckoff · Momentum · Mean Reversion)',
-      'Telegram VIP + priority support',
-    ],
-    cta: '/register/crypto?tier=pro',
-  },
-  {
-    name: 'Tier HNWI',
-    price: '$499',
-    period: '/bulan + 10% PS',
-    features: [
-      '12 pair + custom whitelist/blacklist',
-      'Leverage maksimal 15x',
-      'Semua strategi + parameter tuning',
-      'Dedicated account manager + SLA 99.9%',
-    ],
-    cta: '/contact?subject=crypto-hnwi',
-  },
+const CRYPTO_TIER_META = [
+  { slug: 't1', name: 'Tier Basic', price: '$49', periodKey: 'crypto_period_t1', cta: '/register/crypto?tier=basic' },
+  { slug: 't2', name: 'Tier Pro', price: '$199', periodKey: 'crypto_period_t2', popular: true, cta: '/register/crypto?tier=pro' },
+  { slug: 't3', name: 'Tier HNWI', price: '$499', periodKey: 'crypto_period_t3', cta: '/contact?subject=crypto-hnwi' },
 ];
 
-const VPS_TIERS = [
-  { name: 'VPS Standard', price: '$3,000', period: 'setup + $150/bulan', features: ['Dedicated VPS broker-level', 'Full bot access + risk parameter', 'Affiliate broker discount', 'Konfigurasi kustom'], cta: '/register/vps' },
-  { name: 'VPS Premium', price: '$7,500', period: 'setup + $300/bulan', popular: true, features: ['Multi-broker bridge (MT4 + MT5)', 'Up to 3 akun paralel', 'Custom strategy parameter', 'Priority support 24/7'], cta: '/register/vps' },
-  { name: 'Dedicated Tier', price: '$1,499', period: '/bulan', features: ['VPS isolated single-customer', 'Dedicated MT5 bridge', 'Isolated DB schema', '24/7 Telegram incident channel'], cta: '/contact?subject=dedicated-vps' },
+const VPS_TIER_META = [
+  { slug: 't1', name: 'VPS Standard', price: '$3,000', periodKey: 'vps_period_setup_150', cta: '/register/vps' },
+  { slug: 't2', name: 'VPS Premium', price: '$7,500', periodKey: 'vps_period_setup_300', popular: true, cta: '/register/vps' },
+  { slug: 't3', name: 'Dedicated Tier', price: '$1,499', periodKey: 'vps_period_dedicated', cta: '/contact?subject=dedicated-vps' },
 ];
 
 const PUBLIC_APIS = [
@@ -174,6 +104,32 @@ const PUBLIC_APIS = [
 export default async function PricingPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const t = await getTranslations('pricing');
+  const tp = await getTranslations('pricing_page');
+
+  const signalTiers = SIGNAL_TIER_META.map((m) => ({
+    name: m.name,
+    price: m.price,
+    period: tp('signal_period_monthly'),
+    features: tp.raw(`signal_${m.slug}_features`) as string[],
+    cta: m.cta,
+    popular: m.popular,
+  }));
+  const cryptoTiers = CRYPTO_TIER_META.map((m) => ({
+    name: m.name,
+    price: m.price,
+    period: tp(m.periodKey as 'crypto_period_t1' | 'crypto_period_t2' | 'crypto_period_t3'),
+    features: tp.raw(`crypto_${m.slug}_features`) as string[],
+    cta: m.cta,
+    popular: m.popular,
+  }));
+  const vpsTiers = VPS_TIER_META.map((m) => ({
+    name: m.name,
+    price: m.price,
+    period: tp(m.periodKey as 'vps_period_setup_150' | 'vps_period_setup_300' | 'vps_period_dedicated'),
+    features: tp.raw(`vps_${m.slug}_features`) as string[],
+    cta: m.cta,
+    popular: m.popular,
+  }));
 
   let cmsTiers: Array<{
     slug: string; name: string; price: string; subtitle: string | null;
@@ -207,22 +163,24 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
         {/* Hero */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6 text-center">
-            <p className="t-eyebrow mb-4">Pricing</p>
+            <p className="t-eyebrow mb-4">{tp('hero_eyebrow')}</p>
             <h1 className="t-display-page mb-4">{t('title')}</h1>
             <p className="t-lead text-foreground/60 max-w-2xl mx-auto">{t('subtitle')}</p>
             <p className="text-xs text-amber-300 font-mono uppercase tracking-wider mt-6">
-              Zero-custody · Anda pegang dana di akun broker / Binance Anda sendiri
+              {tp('hero_disclaimer')}
             </p>
           </div>
         </section>
 
         {/* Robot Meta — MT5 auto-execution */}
         <ProductSection
-          eyebrow="Robot Meta · MT5"
+          eyebrow={tp('signal_eyebrow')}
           icon={TrendingUp}
-          title="Tiga tier auto-trading di MetaTrader 5"
-          subtitle="Bot eksekusi langsung di akun MT5 Anda lewat bridge ZeroMQ. Modal tetap di akun broker partner (Exness) — kami tidak custody dana sama sekali."
-          tiers={SIGNAL_TIERS}
+          title={tp('signal_title')}
+          subtitle={tp('signal_subtitle')}
+          tiers={signalTiers}
+          popularLabel={tp('popular_badge')}
+          selectLabel={(name) => tp('select_tier', { name })}
         />
 
         {/* Capability ladder — sourced from /v1/capabilities backend */}
@@ -230,30 +188,34 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
 
         {/* Robot Crypto — Binance auto-trading */}
         <ProductSection
-          eyebrow="Robot Crypto · Binance"
+          eyebrow={tp('crypto_eyebrow')}
           icon={Bitcoin}
-          title="Auto-trading di Binance Spot + Futures"
-          subtitle="Anda pegang Binance API key (Read + Trade scope, tanpa Withdraw permission). Modal tetap di akun Binance Anda. Profit share dipotong dari realized PnL bulanan."
-          tiers={CRYPTO_TIERS}
+          title={tp('crypto_title')}
+          subtitle={tp('crypto_subtitle')}
+          tiers={cryptoTiers}
+          popularLabel={tp('popular_badge')}
+          selectLabel={(name) => tp('select_tier', { name })}
         />
 
         {/* VPS License */}
         <ProductSection
-          eyebrow="VPS License · One-time + Maintenance"
+          eyebrow={tp('vps_eyebrow')}
           icon={Server}
-          title="Bot di VPS pribadi Anda"
-          subtitle="Konfigurasi penuh, kontrol penuh, di server Anda sendiri. Cocok untuk trader serius yang butuh customization mendalam."
-          tiers={VPS_TIERS}
+          title={tp('vps_title')}
+          subtitle={tp('vps_subtitle')}
+          tiers={vpsTiers}
+          popularLabel={tp('popular_badge')}
+          selectLabel={(name) => tp('select_tier', { name })}
         />
 
         {/* Developer API Marketplace */}
         <section id="apis" className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-3">Developer APIs</p>
-            <h2 className="t-display-section mb-3 max-w-2xl">8 API container untuk integrasi developer</h2>
+            <p className="t-eyebrow mb-3">{tp('apis_eyebrow')}</p>
+            <h2 className="t-display-section mb-3 max-w-2xl">{tp('apis_title')}</h2>
             <p className="t-body text-foreground/60 max-w-2xl mb-12">
-              REST + WebSocket dengan rate limit per tier. API key issued setelah pembayaran. Untuk schema lengkap dan integrasi technical, hubungi
-              {' '}<Link href="/contact?subject=api-docs" className="text-amber-400 hover:underline">tim engineering kami</Link>.
+              {tp('apis_subtitle_prefix')}
+              {' '}<Link href="/contact?subject=api-docs" className="text-amber-400 hover:underline">{tp('apis_subtitle_link')}</Link>.
             </p>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
               {PUBLIC_APIS.map((api) => (
@@ -270,7 +232,7 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
                       <h3 className="font-semibold text-base leading-tight">{api.name}</h3>
                       {api.popular && (
                         <span className="inline-block mt-1 text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300">
-                          Populer
+                          {tp('api_popular_label')}
                         </span>
                       )}
                     </div>
@@ -295,7 +257,7 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
                 href="/contact?subject=api-marketplace"
                 className="btn-secondary inline-flex items-center gap-2 px-5 py-2.5 rounded-md text-sm"
               >
-                Konsultasi API Custom <ArrowRight className="w-4 h-4" />
+                {tp('apis_consult_cta')} <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
           </div>
@@ -304,41 +266,36 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
         {/* Institutional / B2B */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-3">Institutional & B2B</p>
-            <h2 className="t-display-section mb-3 max-w-2xl">API access + Backtest as a Service</h2>
+            <p className="t-eyebrow mb-3">{tp('inst_eyebrow')}</p>
+            <h2 className="t-display-section mb-3 max-w-2xl">{tp('inst_title')}</h2>
             <p className="t-body text-foreground/60 max-w-2xl mb-12">
-              Untuk trading firm, family office, dan high-net-worth individuals. <strong>Tidak ada Managed Account</strong> —
-              kami tetap zero-custody. Yang kami sediakan: API integration, white-label tech, backtest engine on-demand.
+              {tp('inst_subtitle_part1')} <strong>{tp('inst_subtitle_strong')}</strong> {tp('inst_subtitle_part2')}
             </p>
             <div className="grid md:grid-cols-2 gap-5 max-w-4xl">
               <div className="card-enterprise">
-                <h3 className="text-xl font-semibold mb-2">API Access</h3>
-                <p className="font-display text-3xl font-medium mb-1">Custom</p>
-                <p className="text-xs text-amber-400 font-mono uppercase tracking-wider mb-6">usage-based pricing</p>
+                <h3 className="text-xl font-semibold mb-2">{tp('inst_api_title')}</h3>
+                <p className="font-display text-3xl font-medium mb-1">{tp('inst_api_price')}</p>
+                <p className="text-xs text-amber-400 font-mono uppercase tracking-wider mb-6">{tp('inst_api_period')}</p>
                 <ul className="space-y-2.5 mb-6">
-                  <FeatureItem>REST + WebSocket API priority lane</FeatureItem>
-                  <FeatureItem>Signal streaming dedicated infra</FeatureItem>
-                  <FeatureItem>Custom integration support</FeatureItem>
-                  <FeatureItem>Dedicated engineering contact</FeatureItem>
-                  <FeatureItem>White-label tersedia</FeatureItem>
+                  {(tp.raw('inst_api_features') as string[]).map((f, i) => (
+                    <FeatureItem key={i}>{f}</FeatureItem>
+                  ))}
                 </ul>
                 <Link href="/register/institutional" className="btn-secondary w-full justify-center">
-                  Speak with IR <ArrowRight className="w-4 h-4" />
+                  {tp('inst_api_cta')} <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
               <div className="card-enterprise">
-                <h3 className="text-xl font-semibold mb-2">Backtest as a Service</h3>
-                <p className="font-display text-3xl font-medium mb-1">$99 — $999</p>
-                <p className="text-xs text-amber-400 font-mono uppercase tracking-wider mb-6">/bulan</p>
+                <h3 className="text-xl font-semibold mb-2">{tp('inst_backtest_title')}</h3>
+                <p className="font-display text-3xl font-medium mb-1">{tp('inst_backtest_price')}</p>
+                <p className="text-xs text-amber-400 font-mono uppercase tracking-wider mb-6">{tp('inst_backtest_period')}</p>
                 <ul className="space-y-2.5 mb-6">
-                  <FeatureItem>Walk-forward + Monte Carlo</FeatureItem>
-                  <FeatureItem>5 tahun tick data 14 instrumen</FeatureItem>
-                  <FeatureItem>Strategy parameter optimization</FeatureItem>
-                  <FeatureItem>Whitelabel report PDF</FeatureItem>
-                  <FeatureItem>API integration + automation</FeatureItem>
+                  {(tp.raw('inst_backtest_features') as string[]).map((f, i) => (
+                    <FeatureItem key={i}>{f}</FeatureItem>
+                  ))}
                 </ul>
                 <Link href="/contact?subject=backtest-service" className="btn-secondary w-full justify-center">
-                  Konsultasi B2B <ArrowRight className="w-4 h-4" />
+                  {tp('inst_backtest_cta')} <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
             </div>
@@ -349,8 +306,8 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
         {cmsTiers.length > 0 && (
           <section className="section-padding border-b border-border/60">
             <div className="container-default px-4 sm:px-6">
-              <p className="t-eyebrow mb-3">Plans (CMS)</p>
-              <h2 className="t-display-sub mb-12">Plan dari admin CMS</h2>
+              <p className="t-eyebrow mb-3">{tp('cms_eyebrow')}</p>
+              <h2 className="t-display-sub mb-12">{tp('cms_title')}</h2>
               <div className="grid md:grid-cols-3 gap-6">
                 {cmsTiers.map((tier) => (
                   <div key={tier.slug} className="card-enterprise flex flex-col">
@@ -373,17 +330,16 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
         {/* Free Demo CTA */}
         <section className="section-padding">
           <div className="container-default px-4 sm:px-6 text-center max-w-3xl mx-auto">
-            <h2 className="t-display-section mb-4">Coba dulu, gratis.</h2>
+            <h2 className="t-display-section mb-4">{tp('demo_title')}</h2>
             <p className="t-body text-foreground/60 mb-8">
-              Sebelum bayar tier apapun, coba sinyal kami di akun MT5 demo. Indicator confluence juga tersedia
-              gratis untuk discretionary trader. Tidak masuk track record live, tidak ada batas waktu untuk evaluasi.
+              {tp('demo_body')}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link href="/demo" className="btn-primary inline-flex items-center justify-center gap-2 px-6 py-3 rounded-md text-sm font-medium">
-                Mulai Demo Gratis <ArrowRight className="w-4 h-4" />
+                {tp('demo_cta_primary')} <ArrowRight className="w-4 h-4" />
               </Link>
               <Link href="/contact" className="btn-secondary inline-flex items-center justify-center gap-2 px-6 py-3 rounded-md text-sm font-medium">
-                Konsultasi Tier Cocok
+                {tp('demo_cta_secondary')}
               </Link>
             </div>
           </div>
@@ -410,12 +366,16 @@ function ProductSection({
   title,
   subtitle,
   tiers,
+  popularLabel,
+  selectLabel,
 }: {
   eyebrow: string;
   icon: React.ComponentType<{ className?: string }>;
   title: string;
   subtitle: string;
   tiers: PricingTier[];
+  popularLabel: string;
+  selectLabel: (name: string) => string;
 }) {
   return (
     <section className="section-padding border-b border-border/60">
@@ -434,7 +394,7 @@ function ProductSection({
             >
               {tier.popular && (
                 <span className="absolute -top-3 left-6 inline-flex items-center px-2 py-0.5 rounded-full bg-amber-500 text-amber-50 text-[10px] font-bold uppercase tracking-wider">
-                  Populer
+                  {popularLabel}
                 </span>
               )}
               <h3 className="text-xl font-semibold mb-1">{tier.name}</h3>
@@ -454,7 +414,7 @@ function ProductSection({
                     : 'border border-border hover:bg-accent hover:border-amber-500/40'
                 }`}
               >
-                Pilih {tier.name} <ArrowRight className="w-4 h-4" />
+                {selectLabel(tier.name)} <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
           ))}

@@ -1929,5 +1929,29 @@
     "newsletter_email_placeholder": "anda@contoh.com",
     "newsletter_submit": "Berlangganan",
     "newsletter_disclaimer": "Dengan berlangganan Anda menyetujui kebijakan privasi kami. Kami tidak akan pernah membagikan email Anda."
+  },
+  "cookie_consent": {
+    "body_pre": "Kami menggunakan cookies untuk meningkatkan pengalaman Anda. Dengan melanjutkan, Anda menyetujui",
+    "body_link": "Kebijakan Privasi",
+    "body_post": "kami.",
+    "accept": "Saya Setuju"
+  },
+  "not_found": {
+    "code_subtitle": "Resource not found",
+    "title": "Halaman tidak ditemukan",
+    "body": "Halaman yang Anda cari mungkin sudah dipindahkan, dihapus, atau tidak pernah ada. Silakan kembali ke beranda atau hubungi tim kami jika Anda yakin ini adalah kesalahan.",
+    "cta_home": "Kembali ke Beranda",
+    "cta_report": "Laporkan masalah",
+    "logo_alt": "Beranda BabahAlgo"
+  },
+  "error_page": {
+    "title": "Terjadi Kesalahan",
+    "body": "Sistem mengalami gangguan saat memproses permintaan Anda. Tim kami otomatis mendapat notifikasi.",
+    "error_id_label": "Error ID",
+    "cta_retry": "Coba Lagi",
+    "cta_home": "Kembali ke Beranda",
+    "support_pre": "Hubungi",
+    "support_link": "support",
+    "support_post": "jika masalah berlanjut."
   }
 }

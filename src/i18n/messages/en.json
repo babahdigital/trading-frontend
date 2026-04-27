@@ -1929,5 +1929,29 @@
     "newsletter_email_placeholder": "you@example.com",
     "newsletter_submit": "Subscribe",
     "newsletter_disclaimer": "By subscribing you agree to our privacy policy. We will never share your email."
+  },
+  "cookie_consent": {
+    "body_pre": "We use cookies to improve your experience. By continuing, you agree to our",
+    "body_link": "Privacy Policy",
+    "body_post": ".",
+    "accept": "I Agree"
+  },
+  "not_found": {
+    "code_subtitle": "Resource not found",
+    "title": "Page not found",
+    "body": "The page you're looking for may have been moved, removed, or never existed. Return to the homepage or contact our team if you believe this is an error.",
+    "cta_home": "Back to Home",
+    "cta_report": "Report an issue",
+    "logo_alt": "BabahAlgo home"
+  },
+  "error_page": {
+    "title": "Something went wrong",
+    "body": "Our system encountered an issue while processing your request. Our team has been automatically notified.",
+    "error_id_label": "Error ID",
+    "cta_retry": "Try Again",
+    "cta_home": "Back to Home",
+    "support_pre": "Contact",
+    "support_link": "support",
+    "support_post": "if the issue persists."
   }
 }

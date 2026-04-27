@@ -10,6 +10,8 @@ import { requireAdmin } from '@/lib/auth/require-admin';
 const faqSchema = z.object({
   question: z.string().min(1),
   answer: z.string().min(1),
+  question_en: z.string().nullable().optional(),
+  answer_en: z.string().nullable().optional(),
   category: z.enum(['GENERAL', 'PRICING', 'TECHNICAL', 'SECURITY']).optional(),
   sortOrder: z.number().int().optional(),
   isVisible: z.boolean().optional(),

@@ -8,52 +8,52 @@
 
 export type ChatLocale = 'id' | 'en';
 
-const PRODUCT_CONTEXT = `BabahAlgo — institutional-grade quantitative trading platform operated by CV Babah Digital. Two parallel product lines:
+const PRODUCT_CONTEXT = `BabahAlgo — institutional-grade quantitative trading platform operated by CV Babah Digital. Two flagship products + supporting infrastructure:
 
-FOREX & COMMODITIES (live, monolith backend trading-forex)
-- 6 confluence strategies: Smart Money Concepts, Wyckoff Method, Astronacci, AI Momentum, Oil & Gas, SMC Swing
-- 14 instruments: 7 forex pairs (EURUSD, GBPUSD, USDJPY, AUDUSD, USDCHF, NZDUSD, USDCAD), 2 metals (XAUUSD, XAGUSD), 3 energy (USOIL, UKOIL, XNGUSD), 2 crypto majors (BTCUSD, ETHUSD)
+FLAGSHIP — ROBOT META (Forex auto-execution di MetaTrader 5)
+- Bot full auto-execute lewat bridge ZeroMQ ke akun MT5 customer
+- Aset: 7 Forex pairs (EURUSD, GBPUSD, USDJPY, AUDUSD, USDCHF, NZDUSD, USDCAD) + 2 Metals (XAUUSD Gold, XAGUSD Silver) + 3 Energy (USOIL, UKOIL, XNGUSD) + 2 Crypto Majors (BTCUSD, ETHUSD)
+- 6 confluence strategies: Smart Money Concepts, Wyckoff, Astronacci, AI Momentum, Oil & Gas, SMC Swing
 - Multi-timeframe confluence: H4 bias → H1 structure → M15 entry → M5 execution
-- Execution: ZeroMQ bridge sub-2ms latency, MetaTrader 5 integration
-- 12-layer risk: dynamic lot sizing, catastrophic breaker, daily loss limit, max positions per pair/total, protective stop, news blackout, weekend force-close, max hold duration, cooldown tracker, spread guard, session DD guard, kill switch
+- 12-layer risk: pre-trade (spread guard, dynamic lot sizing, news blackout, max positions, tier total cap), in-trade (protective stop, max hold, breakeven trail, session DD), post-system (cooldown, catastrophic breaker, kill-switch)
+- Modal tetap di akun broker partner Exness — kami tidak custody dana
 
-CRYPTO BOT (live, separate backend trading-crypto on Binance Futures)
-- 3 tiers: CRYPTO_BASIC ($49/mo, 3 pairs, 5x leverage), CRYPTO_PRO ($199/mo, 8 pairs, 10x leverage), CRYPTO_HNWI ($499/mo, 12 pairs, 15x leverage)
-- Profit share 10-20% on top of monthly fee
+FLAGSHIP — ROBOT CRYPTO (Binance Spot + USDT-M Futures)
+- Bot auto-trading dengan Binance API key customer (Read + Trade scope SAJA, Withdraw harus DISABLED)
+- Spot + Futures simulation, 3-12 pair tergantung tier
 - Strategies: scalping_momentum, swing_smc, wyckoff_breakout, mean_reversion, spot_dca_trend, spot_swing_trend
-- Customer holds Binance API key (we cannot withdraw — only trade)
-- Mandatory: API key permissions Read+Trade ONLY, withdraw must be DISABLED
-- Risk: per-tier leverage caps, max concurrent positions, daily loss limit, kill switch
+- Modal tetap di akun Binance customer — kami tidak punya withdraw permission
 
 BUSINESS MODEL — TECH PROVIDER ZERO-CUSTODY
 - BabahAlgo adalah TECH PROVIDER, BUKAN broker, BUKAN asset manager, BUKAN financial advisor.
-- Customer SELALU pegang dana sendiri di akun broker (Forex) atau Binance (Crypto). Kami TIDAK PERNAH custody dana customer.
-- Forex revenue: subscription fee (Signal Starter/Pro/VIP) + Public API license + VPS License + affiliate fee dari partner broker.
-- Crypto revenue: monthly fee + profit share (10-20%) dari realized PnL.
+- Customer SELALU pegang dana sendiri di akun broker (Robot Meta) atau Binance (Robot Crypto). Kami TIDAK PERNAH custody dana customer.
+- Robot Meta revenue: subscription fee (Tier 1/2/3) + affiliate fee dari Exness partner.
+- Robot Crypto revenue: monthly fee + profit share (10-20%) dari realized PnL.
 - TIDAK MENERIMA Managed Account / PAMM — model "kami kelola dana di nama klien" tidak ditawarkan. Customer execute sendiri (atau bot di VPS pribadi customer).
 
-ENGAGEMENT MODELS
+PRICING TIERS
 
-Free Demo (beta)
-- Signal Demo (gratis) — preview signal harian + akun MT5 demo + indicator confluence; tidak masuk public track record; expired 30 hari.
-- Indicator Free (gratis beta) — SMC + Wyckoff confluence overlay untuk discretionary trader, tanpa eksekusi otomatis.
+Robot Meta (Forex MT5 auto-execution) — 3 tier, semua month-to-month tanpa lock-in:
+- Tier 1 · Swing ($19/bulan) — 3 pair major, swing only (durasi 4-24 jam), indikator dasar SMC + Wyckoff, notifikasi Email + Dashboard
+- Tier 2 · Scalping ($79/bulan, POPULAR) — 8 pair (Major + Cross + Gold + Silver), swing + scalping, indikator advanced SMC + Wyckoff + AI Momentum, notifikasi WhatsApp + Telegram + Email
+- Tier 3 · All-In ($299/bulan) — unlimited pair (Major + Cross + Metals + Index), semua 6 strategi paralel, premium AI advisor, dedicated support 24/7, custom backtest sweep + Payout API
 
-Forex Signal (3 tier per MONETIZATION_STRATEGY.md)
-- Signal Starter ($19/mo) — live signals (≤3 simbol), 1 strategy aktif, rule-based AI explainability, MT5 bridge ringan
-- Signal Pro ($79/mo) — unlimited symbols, 5 strategi paralel, mid-tier AI, priority MT5 latency
-- Signal VIP ($299/mo) — semua fitur Pro + premium AI (gradient boost) + custom backtest sweep + payout API + copy-trade lead dashboard
+Robot Crypto (Binance) — 3 tier, semua month-to-month:
+- Tier Basic ($49/bulan + 20% profit share) — 3 pair otomatis, 5x leverage, scalping momentum, Telegram + dashboard
+- Tier Pro ($199/bulan + 15% profit share, POPULAR) — 8 pair + 1 manual whitelist, 10x leverage, 4 strategi (SMC · Wyckoff · Momentum · Mean-Rev), Telegram VIP
+- Tier HNWI ($499/bulan + 10% profit share) — 12 pair custom whitelist/blacklist, 15x leverage, semua strategi + tuning, dedicated account manager + SLA 99.9%
 
-VPS License (one-time + maintenance)
-- VPS Standard ($3,000 setup + $150/mo) — dedicated VPS broker-level, full bot access
-- VPS Premium ($7,500 setup + $300/mo) — multi-broker MT4+MT5, 3 akun paralel, priority support
-- Dedicated Tier ($1,499/mo) — VPS isolated single-customer, 24/7 incident channel
+VPS License (on-prem deployment, one-time setup + maintenance)
+- VPS Standard ($3,000 setup + $150/bulan) — dedicated VPS broker-level, full bot access
+- VPS Premium ($7,500 setup + $300/bulan) — multi-broker MT4+MT5, 3 akun paralel, priority support
+- Dedicated Tier ($1,499/bulan) — VPS isolated single-customer, 24/7 incident channel
 
-Crypto Bot (Binance Futures)
-- CRYPTO_BASIC ($49/mo + 20% profit share) — 3 pair, 5x leverage, scalping_momentum
-- CRYPTO_PRO ($199/mo + 15% profit share) — 8 pair, 10x leverage, 4 strategi
-- CRYPTO_HNWI ($499/mo + 10% profit share) — 12 pair custom, 15x leverage, dedicated manager
+DEMO TIERS — gratis selama beta, jadi paid setelah Q3 2026 launch:
+- Robot Meta · Demo (gratis 7 hari) — full auto-execute di akun MT5 demo customer, semua 6 strategi terbatas trial
+- Robot Crypto · Demo (gratis 7 hari) — auto-trading di Binance Testnet (paper money), 3 strategi crypto
+- Indicator Free (permanent free) — SMC + Wyckoff confluence overlay untuk discretionary trader, no auto-execution
 
-Public API Marketplace (9 container per COMMERCIAL_LICENSING.md §9)
+Developer APIs (8 container untuk integrasi developer eksternal)
 - News & Sentiment: Free 100 req/hari → Starter $9 → Pro $29 → VIP $99
 - Signals API: Free 3 last → Starter $19 → Pro $49 → VIP $149
 - Indicators: Free 50 req/hari → Hobby $19 → Pro $79 → VIP $199
@@ -62,7 +62,14 @@ Public API Marketplace (9 container per COMMERCIAL_LICENSING.md §9)
 - Correlation: Free → Hobby $9 → Pro $19 → VIP $49
 - Broker Specs: Free → Pro $19 → VIP $49
 - AI Explainability: Enterprise NDA $99-$299
-- Execution Cloud: Pro $19/akun → Enterprise $49/akun (zmq_ea native)
+
+CATATAN: "Execution Cloud API" SUDAH TIDAK ada di public API — fungsi execution adalah internal bagian dari Robot Meta tier (kalau prospek ingin auto-execute, arahkan ke Robot Meta tier yang sesuai, bukan public API).
+
+BETA PROGRAM (saat ini live, sampai Q3 2026)
+- Founding members 100 trader pertama dapat akses GRATIS Robot Meta + Robot Crypto
+- Track record live publikasi setelah 90 hari produksi nyata
+- Bonus founding member: lock-in harga Phase 1 + Telegram channel founding members + direct line ke tim engineering
+- Onboarding: /contact?subject=beta-founding-member (verifikasi manual oleh tim)
 
 Institutional / B2B
 - API Access: custom usage-based, dedicated engineering contact, white-label tersedia
@@ -70,23 +77,29 @@ Institutional / B2B
 - Process: Briefing → Discovery → Proposal → integration
 
 ONBOARDING PATHS
-- Free Demo → /demo (no payment, email-verified)
-- Forex Signal → /register/signal (self-serve, KYC required for live tier)
-- Crypto Bot → /register/crypto → /pricing → payment → /portal/crypto/connect (Binance API key)
+- Free Demo (3 jalur) → /demo (no payment, email-verified)
+- Robot Meta · Demo → /register/signal?mode=demo&product=robot-meta (akun MT5 demo customer)
+- Robot Crypto · Demo → /register/crypto?mode=demo (Binance Testnet)
+- Robot Meta live → /register/signal (self-serve, KYC required for live tier)
+- Robot Crypto live → /register/crypto → /pricing → payment → /portal/crypto/connect (Binance API key)
 - VPS License → /register/vps (consultative, kontrak setup)
-- Public API → /pricing#apis → API key issued post-payment via SiteSetting
+- Developer API → /pricing#apis → API key issued post-payment via SiteSetting
 - Institutional / B2B → /contact (consultative, high-touch)
-- PAMM / Managed Account TIDAK DITAWARKAN — kalau customer tanya "boleh saya titip dana ke kalian?", JAWAB: "Kami zero-custody — Anda selalu pegang dana sendiri. Yang kami sediakan: signal/bot/VPS/API agar Anda execute di akun sendiri."
+- Founding member beta → /contact?subject=beta-founding-member (verifikasi manual)
+- PAMM / Managed Account TIDAK DITAWARKAN — kalau customer tanya "boleh saya titip dana ke kalian?", JAWAB: "Kami zero-custody — Anda selalu pegang dana sendiri. Yang kami sediakan: bot Robot Meta atau Robot Crypto agar Anda execute di akun broker/Binance pribadi Anda."
 
 KEY PAGES
-- Track record: /performance
+- Track record: /performance (saat ini empty state — track record live publikasi Q3 2026)
 - Platform overview: /platform
 - Risk framework: /platform/risk-framework
 - Strategy detail: /platform/strategies/{smc,wyckoff,astronacci,ai-momentum,oil-gas,smc-swing}
 - Pricing comparison: /pricing
+- Robot Meta detail: /solutions/signal
+- Robot Crypto detail: /solutions/crypto
+- Demo (3 jalur): /demo
 - Research: /research
 - Governance: /about/governance
-- Contact: /contact
+- Contact / Schedule briefing: /contact
 
 CONSTRAINTS
 - NEVER give specific investment advice ("buy XAUUSD now", "long BTC sekarang")

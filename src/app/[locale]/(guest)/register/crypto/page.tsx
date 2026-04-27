@@ -21,25 +21,25 @@ interface Tier {
 const TIERS: Tier[] = [
   {
     value: 'CRYPTO_BASIC',
-    label: 'Crypto Basic',
+    label: 'Tier Basic',
     price: '$49/bulan',
     profitShare: '+ 20% profit share',
-    desc: '3 pair · 5x leverage · scalping_momentum · email support',
+    desc: '3 pair · 5x leverage · scalping momentum · email support',
   },
   {
     value: 'CRYPTO_PRO',
-    label: 'Crypto Pro',
+    label: 'Tier Pro',
     price: '$199/bulan',
     profitShare: '+ 15% profit share',
-    desc: '8 pair · 10x leverage · 4 strategi · Telegram VIP',
+    desc: '8 pair · 10x leverage · 4 strategi (SMC · Wyckoff · Momentum · Mean-Rev) · Telegram VIP',
     highlight: 'Pilihan Populer',
   },
   {
     value: 'CRYPTO_HNWI',
-    label: 'Crypto HNWI',
+    label: 'Tier HNWI',
     price: '$499/bulan',
     profitShare: '+ 10% profit share',
-    desc: '12 pair custom · 15x leverage · all strategi · dedicated manager',
+    desc: '12 pair custom · 15x leverage · semua strategi + tuning · dedicated account manager',
   },
 ];
 
@@ -114,8 +114,8 @@ function CryptoRegisterInner() {
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
             <div className="max-w-md mx-auto">
-              <p className="t-eyebrow mb-4">Registrasi · Crypto Bot</p>
-              <h1 className="t-display-sub mb-2">Aktivasi Crypto Bot</h1>
+              <p className="t-eyebrow mb-4">Registrasi · Robot Crypto</p>
+              <h1 className="t-display-sub mb-2">Aktivasi Robot Crypto</h1>
               <p className="t-lead text-foreground/60 mb-10">
                 Bot Binance Futures dengan strategi institusional. Anda akan diminta hubungkan API key Binance setelah verifikasi email.
               </p>

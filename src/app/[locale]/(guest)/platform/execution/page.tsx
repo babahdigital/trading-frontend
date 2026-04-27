@@ -2,10 +2,12 @@ import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { Link } from '@/i18n/navigation';
 import { ArrowLeft } from 'lucide-react';
+import { getTranslations } from 'next-intl/server';
 
 export const dynamic = 'force-dynamic';
 
 export default async function ExecutionPage() {
+  const t = await getTranslations('platform_execution');
   return (
     <div className="min-h-screen bg-background text-foreground">
       <EnterpriseNav />
@@ -18,17 +20,14 @@ export default async function ExecutionPage() {
               href="/platform"
               className="inline-flex items-center gap-1.5 text-sm text-amber-400 hover:text-amber-400/80 transition-colors mb-8"
             >
-              <ArrowLeft className="w-3.5 h-3.5" /> Platform overview
+              <ArrowLeft className="w-3.5 h-3.5" /> {t('back_link')}
             </Link>
-            <p className="t-eyebrow mb-4">Execution Infrastructure</p>
+            <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
             <h1 className="t-display-page mb-6">
-              Sub-millisecond execution, institutional infrastructure.
+              {t('hero_title')}
             </h1>
             <p className="text-foreground/60 leading-relaxed mb-8 max-w-2xl">
-              Execution quality determines whether a valid signal becomes a profitable
-              trade. The BabahAlgo execution infrastructure is engineered for minimal
-              latency, maximum reliability, and complete auditability at every stage of the
-              order lifecycle.
+              {t('hero_lead')}
             </p>
           </div>
         </section>
@@ -36,43 +35,34 @@ export default async function ExecutionPage() {
         {/* Latency */}
         <section className="section-padding border-b border-white/8">
           <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-4">Performance</p>
-            <h2 className="t-display-sub mb-4">Latency architecture</h2>
+            <p className="t-eyebrow mb-4">{t('latency_eyebrow')}</p>
+            <h2 className="t-display-sub mb-4">{t('latency_title')}</h2>
             <div className="card-enterprise">
               <h3 className="font-display text-lg text-foreground mb-3">
-                ZeroMQ bridge specifications
+                {t('latency_card_title')}
               </h3>
               <p className="text-foreground/60 leading-relaxed mb-4">
-                The ZeroMQ bridge is the critical link between the strategy engine (running
-                in Docker on Linux) and MetaTrader 5 (running on Windows). Communication
-                occurs over TCP sockets on localhost, eliminating network latency entirely.
-                Messages are serialized using a compact binary protocol that encodes trade
-                commands (OPEN, MODIFY, CLOSE) with full parameters (symbol, direction, lot
-                size, stop-loss, take-profit) in under 100 bytes per message.
+                {t('latency_card_p1')}
               </p>
               <p className="text-foreground/60 leading-relaxed mb-6">
-                The bridge operates in a request-reply pattern: the strategy engine sends a
-                command and blocks until the MT5 EA confirms receipt and processing. This
-                synchronous pattern ensures order integrity -- no command is lost or
-                duplicated. Measured round-trip latency in production consistently falls
-                below 2 milliseconds.
+                {t('latency_card_p2')}
               </p>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="border border-white/8 rounded-lg p-4 bg-background text-center">
-                  <p className="font-mono text-lg text-amber-400 mb-1">&lt;2ms</p>
-                  <p className="t-body-sm text-foreground/60">Round-trip latency</p>
+                  <p className="font-mono text-lg text-amber-400 mb-1">{t('latency_metric_rtt_value')}</p>
+                  <p className="t-body-sm text-foreground/60">{t('latency_metric_rtt_label')}</p>
                 </div>
                 <div className="border border-white/8 rounded-lg p-4 bg-background text-center">
-                  <p className="font-mono text-lg text-amber-400 mb-1">&lt;100B</p>
-                  <p className="t-body-sm text-foreground/60">Message size</p>
+                  <p className="font-mono text-lg text-amber-400 mb-1">{t('latency_metric_size_value')}</p>
+                  <p className="t-body-sm text-foreground/60">{t('latency_metric_size_label')}</p>
                 </div>
                 <div className="border border-white/8 rounded-lg p-4 bg-background text-center">
-                  <p className="font-mono text-lg text-amber-400 mb-1">TCP</p>
-                  <p className="t-body-sm text-foreground/60">Transport</p>
+                  <p className="font-mono text-lg text-amber-400 mb-1">{t('latency_metric_transport_value')}</p>
+                  <p className="t-body-sm text-foreground/60">{t('latency_metric_transport_label')}</p>
                 </div>
                 <div className="border border-white/8 rounded-lg p-4 bg-background text-center">
-                  <p className="font-mono text-lg text-amber-400 mb-1">REQ/REP</p>
-                  <p className="t-body-sm text-foreground/60">Pattern</p>
+                  <p className="font-mono text-lg text-amber-400 mb-1">{t('latency_metric_pattern_value')}</p>
+                  <p className="t-body-sm text-foreground/60">{t('latency_metric_pattern_label')}</p>
                 </div>
               </div>
             </div>
@@ -82,29 +72,17 @@ export default async function ExecutionPage() {
         {/* Broker Integration */}
         <section className="section-padding border-b border-white/8">
           <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-4">Connectivity</p>
-            <h2 className="t-display-sub mb-4">Broker integration</h2>
+            <p className="t-eyebrow mb-4">{t('broker_eyebrow')}</p>
+            <h2 className="t-display-sub mb-4">{t('broker_title')}</h2>
             <div className="card-enterprise">
               <p className="text-foreground/60 leading-relaxed mb-4">
-                MetaTrader 5 serves as the broker connectivity layer. The MT5 expert advisor
-                is a stateless order executor -- it receives commands from the ZeroMQ bridge,
-                validates them against the broker&apos;s trading conditions, and submits them to
-                the liquidity pool. The EA performs pre-submission checks including symbol
-                availability, minimum lot size compliance, margin sufficiency, and trading
-                hours validation.
+                {t('broker_p1')}
               </p>
               <p className="text-foreground/60 leading-relaxed mb-4">
-                Order types supported include market orders (immediate execution), pending
-                limit orders, and stop orders. All orders include attached stop-loss and
-                take-profit levels set at the time of submission. Position modifications
-                (stop adjustment, trailing stop ratchet) are handled as separate MODIFY
-                commands through the bridge.
+                {t('broker_p2')}
               </p>
               <p className="text-foreground/60 leading-relaxed">
-                Fill confirmations are returned to the strategy engine through the same
-                ZeroMQ channel, including the actual fill price, slippage (if any), and the
-                broker-assigned ticket number. This data is logged to PostgreSQL for
-                reconciliation and slippage analysis.
+                {t('broker_p3')}
               </p>
             </div>
           </div>
@@ -113,32 +91,23 @@ export default async function ExecutionPage() {
         {/* VPS Infrastructure */}
         <section className="section-padding border-b border-white/8">
           <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-4">Infrastructure</p>
-            <h2 className="t-display-sub mb-4">VPS infrastructure</h2>
+            <p className="t-eyebrow mb-4">{t('vps_eyebrow')}</p>
+            <h2 className="t-display-sub mb-4">{t('vps_title')}</h2>
             <div className="space-y-6">
               <div className="card-enterprise">
                 <h3 className="font-display text-lg text-foreground mb-3">
-                  Dedicated hardware
+                  {t('vps_hardware_title')}
                 </h3>
                 <p className="text-foreground/60 leading-relaxed">
-                  The trading engine runs on a dedicated VPS with guaranteed resources: no
-                  shared CPU cores, no memory overcommitment, and NVMe SSD storage for
-                  database I/O. The server is located in a data center with redundant power,
-                  cooling, and network connectivity. Physical proximity to major broker
-                  servers minimizes network latency for the final leg of order transmission.
+                  {t('vps_hardware_body')}
                 </p>
               </div>
               <div className="card-enterprise">
                 <h3 className="font-display text-lg text-foreground mb-3">
-                  Network security
+                  {t('vps_security_title')}
                 </h3>
                 <p className="text-foreground/60 leading-relaxed">
-                  All external access is routed through Cloudflare Tunnel. The VPS has no
-                  publicly exposed ports. Administrative access requires Cloudflare Access
-                  authentication. Internal communication between Docker containers occurs on
-                  an isolated bridge network. The MT5 terminal communicates with the broker
-                  through its native encrypted protocol, and with the strategy engine
-                  exclusively through the localhost ZeroMQ socket.
+                  {t('vps_security_body')}
                 </p>
               </div>
             </div>
@@ -148,49 +117,39 @@ export default async function ExecutionPage() {
         {/* Monitoring and Failover */}
         <section className="section-padding">
           <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-4">Operations</p>
-            <h2 className="t-display-sub mb-4">Monitoring and failover</h2>
+            <p className="t-eyebrow mb-4">{t('ops_eyebrow')}</p>
+            <h2 className="t-display-sub mb-4">{t('ops_title')}</h2>
             <div className="space-y-6">
               <div className="card-enterprise">
                 <h3 className="font-display text-lg text-foreground mb-3">
-                  Health check system
+                  {t('ops_health_title')}
                 </h3>
                 <p className="text-foreground/60 leading-relaxed">
-                  A dedicated monitoring service polls all critical components every 60
-                  seconds: ZeroMQ bridge connectivity, MT5 terminal status, broker connection
-                  state, PostgreSQL availability, and system resource utilization (CPU,
-                  memory, disk). Each check has a defined healthy/degraded/critical threshold.
-                  Degraded status triggers a warning notification. Critical status triggers
-                  the automated response protocol.
+                  {t('ops_health_body')}
                 </p>
               </div>
               <div className="card-enterprise">
                 <h3 className="font-display text-lg text-foreground mb-3">
-                  Automated response protocol
+                  {t('ops_response_title')}
                 </h3>
                 <p className="text-foreground/60 leading-relaxed mb-4">
-                  When a critical health check failure is detected, the system follows a
-                  deterministic response sequence:
+                  {t('ops_response_intro')}
                 </p>
                 <ol className="list-decimal list-inside space-y-2 text-foreground/60 text-sm">
-                  <li>Immediately pause all new trade signals</li>
-                  <li>Attempt automated recovery (service restart, reconnection)</li>
-                  <li>If recovery fails within 30 seconds, close all open positions at market</li>
-                  <li>Disable the strategy engine and enter safe mode</li>
-                  <li>Send critical alert to the operations team with full diagnostic payload</li>
-                  <li>Log the entire incident timeline for post-mortem analysis</li>
+                  <li>{t('ops_response_step_1')}</li>
+                  <li>{t('ops_response_step_2')}</li>
+                  <li>{t('ops_response_step_3')}</li>
+                  <li>{t('ops_response_step_4')}</li>
+                  <li>{t('ops_response_step_5')}</li>
+                  <li>{t('ops_response_step_6')}</li>
                 </ol>
               </div>
               <div className="card-enterprise">
                 <h3 className="font-display text-lg text-foreground mb-3">
-                  Uptime targets
+                  {t('ops_uptime_title')}
                 </h3>
                 <p className="text-foreground/60 leading-relaxed">
-                  The system targets 99.9% uptime during market hours (Sunday 17:00 ET to
-                  Friday 17:00 ET). Scheduled maintenance windows are limited to weekends
-                  when markets are closed. Unscheduled downtime triggers the automated
-                  response protocol described above, ensuring that positions are never left
-                  unmanaged during an outage.
+                  {t('ops_uptime_body')}
                 </p>
               </div>
             </div>

@@ -1,3 +1,4 @@
+import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
@@ -18,76 +19,57 @@ export async function generateMetadata() {
   });
 }
 
-const DEMO_TRACKS = [
+interface TrackMeta {
+  icon: typeof TrendingUp;
+  eyebrowKey: 'track1_eyebrow' | 'track2_eyebrow' | 'track3_eyebrow';
+  titleKey: 'track1_title' | 'track2_title' | 'track3_title';
+  taglineKey: 'track1_tagline' | 'track2_tagline' | 'track3_tagline';
+  bulletKeys: readonly ['track1_b1' | 'track2_b1' | 'track3_b1', string, string, string, string];
+  ctaKey: 'track1_cta' | 'track2_cta' | 'track3_cta';
+  href: string;
+  popular?: boolean;
+}
+
+const TRACK_META: TrackMeta[] = [
   {
     icon: TrendingUp,
-    eyebrow: 'ROBOT META · MT5 DEMO',
-    title: 'Forex auto-execute, paper money',
-    tagline: '7 hari trial · akun MT5 demo Anda · semua 6 strategi terbatas',
-    bullets: [
-      'Bot full eksekusi di akun MT5 demo Anda',
-      'Akses semua strategi (SMC · Wyckoff · Astronacci · AI Momentum · Mean-Rev · Oil/Gas)',
-      'Dashboard live + signal preview',
-      'Notifikasi via Email selama trial',
-      'Upgrade ke tier Swing / Scalping / All-In kapan saja',
-    ],
-    cta: { label: 'Mulai Robot Meta Demo', href: '/register/signal?mode=demo&product=robot-meta' },
+    eyebrowKey: 'track1_eyebrow',
+    titleKey: 'track1_title',
+    taglineKey: 'track1_tagline',
+    bulletKeys: ['track1_b1', 'track1_b2', 'track1_b3', 'track1_b4', 'track1_b5'],
+    ctaKey: 'track1_cta',
+    href: '/register/signal?mode=demo&product=robot-meta',
     popular: true,
   },
   {
     icon: Bitcoin,
-    eyebrow: 'ROBOT CRYPTO · BINANCE TESTNET',
-    title: 'Bot crypto, paper money Binance',
-    tagline: '7 hari trial · Binance Testnet · Spot + Futures simulation',
-    bullets: [
-      'Auto-trading di Binance Testnet (uang simulasi)',
-      '3 strategi crypto aktif (scalping_momentum · SMC · Mean-Rev)',
-      'Dashboard live + Telegram channel preview',
-      'API key submission flow real (testnet scope)',
-      'Upgrade ke Basic / Pro / HNWI kapan saja',
-    ],
-    cta: { label: 'Mulai Robot Crypto Demo', href: '/register/crypto?mode=demo' },
+    eyebrowKey: 'track2_eyebrow',
+    titleKey: 'track2_title',
+    taglineKey: 'track2_tagline',
+    bulletKeys: ['track2_b1', 'track2_b2', 'track2_b3', 'track2_b4', 'track2_b5'],
+    ctaKey: 'track2_cta',
+    href: '/register/crypto?mode=demo',
   },
   {
     icon: Sparkles,
-    eyebrow: 'INDICATOR FREE',
-    title: 'Overlay analitik, tanpa eksekusi',
-    tagline: 'Permanent free · untuk discretionary trader',
-    bullets: [
-      'SMC + Wyckoff confluence overlay untuk MetaTrader 5',
-      'Real-time scoring 14 instrumen',
-      '12-layer risk score live preview',
-      'Tidak ada eksekusi otomatis — Anda yang pegang kendali',
-      'Untuk trader manual yang ingin edge analitik',
-    ],
-    cta: { label: 'Aktifkan Indicator', href: '/contact?subject=indicator-beta' },
+    eyebrowKey: 'track3_eyebrow',
+    titleKey: 'track3_title',
+    taglineKey: 'track3_tagline',
+    bulletKeys: ['track3_b1', 'track3_b2', 'track3_b3', 'track3_b4', 'track3_b5'],
+    ctaKey: 'track3_cta',
+    href: '/contact?subject=indicator-beta',
   },
 ];
 
-const STEPS = [
-  {
-    step: '01',
-    title: 'Daftar email',
-    desc: 'Email saja — verifikasi standar, tidak perlu KYC untuk demo. 30 detik.',
-  },
-  {
-    step: '02',
-    title: 'Pilih track demo',
-    desc: 'Robot Meta (MT5 demo), Robot Crypto (Binance Testnet), atau Indicator overlay. Bisa coba lebih dari satu.',
-  },
-  {
-    step: '03',
-    title: 'Connect akun demo Anda',
-    desc: 'Buat akun MT5 demo di broker pilihan (Exness/IC Markets) atau API key Binance Testnet — submit di dashboard.',
-  },
-  {
-    step: '04',
-    title: 'Evaluate sampai trial habis',
-    desc: 'Pakai sebanyak Anda mau. Saat upgrade ke live, status Anda dipertahankan + ada bonus founding member.',
-  },
-];
+const STEP_META = [
+  { step: '01', titleKey: 'step1_title', descKey: 'step1_desc' },
+  { step: '02', titleKey: 'step2_title', descKey: 'step2_desc' },
+  { step: '03', titleKey: 'step3_title', descKey: 'step3_desc' },
+  { step: '04', titleKey: 'step4_title', descKey: 'step4_desc' },
+] as const;
 
-export default function DemoPage() {
+export default async function DemoPage() {
+  const t = await getTranslations('demo_page');
   const breadcrumb = breadcrumbSchema([
     { name: 'Home', url: '/' },
     { name: 'Demo', url: '/demo' },
@@ -113,31 +95,27 @@ export default function DemoPage() {
             <div className="max-w-3xl">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-xs font-mono uppercase tracking-wider text-amber-300 mb-6">
                 <Sparkles className="w-3.5 h-3.5" />
-                Free · Beta Program
+                {t('hero_pill')}
               </div>
               <h1 className="t-display-page mb-5">
-                Coba dulu —<br className="hidden sm:block" /> tanpa risiko modal nyata.
+                {t('hero_title_l1')}<br className="hidden sm:block" /> {t('hero_title_l2')}
               </h1>
               <p className="t-lead text-foreground/70 mb-8 max-w-2xl">
-                Tiga jalur demo paralel: Robot Meta di akun MT5 demo, Robot Crypto di
-                Binance Testnet, atau Indicator overlay untuk discretionary trader.
-                Semua gratis selama beta — tidak masuk track record live, tidak menyentuh
-                modal nyata.
+                {t('hero_subtitle')}
               </p>
               <div className="flex flex-col sm:flex-row flex-wrap gap-3">
                 <Link href="/register/signal?mode=demo&product=robot-meta" className="btn-primary inline-flex items-center justify-center gap-2 px-6 py-3 rounded-md text-sm font-medium">
-                  Mulai Robot Meta <ArrowRight className="w-4 h-4" />
+                  {t('hero_cta_meta')} <ArrowRight className="w-4 h-4" />
                 </Link>
                 <Link href="/register/crypto?mode=demo" className="btn-secondary inline-flex items-center justify-center gap-2 px-6 py-3 rounded-md text-sm font-medium">
-                  Mulai Robot Crypto
+                  {t('hero_cta_crypto')}
                 </Link>
                 <Link href="/contact?subject=indicator-beta" className="btn-tertiary inline-flex items-center justify-center gap-2 px-6 py-3 rounded-md text-sm font-medium">
-                  Request Indicator
+                  {t('hero_cta_indicator')}
                 </Link>
               </div>
               <p className="text-xs text-muted-foreground mt-6">
-                Tanpa kartu kredit. Email verification cukup. Demo expired 7 hari
-                (auto-archive); Indicator permanent.
+                {t('hero_note')}
               </p>
             </div>
           </div>
@@ -150,15 +128,12 @@ export default function DemoPage() {
               <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400 shrink-0 mt-0.5" />
               <div>
                 <h2 className="font-semibold text-amber-200 mb-1.5">
-                  Demo = simulasi penuh, bukan modal nyata
+                  {t('isolation_title')}
                 </h2>
                 <p className="text-sm text-amber-200/80 leading-relaxed">
-                  Trade di akun MT5 demo / Binance Testnet 100% simulasi. Tidak
-                  menyentuh modal nyata, tidak ditampilkan di public track record,
-                  dan tidak dihitung untuk verified performance. Equity demo selalu
-                  ditandai{' '}
-                  <code className="font-mono px-1 bg-amber-500/10 rounded">(simulasi)</code>{' '}
-                  di seluruh dashboard untuk hindari kebingungan.
+                  {t('isolation_body_part1')}{' '}
+                  <code className="font-mono px-1 bg-amber-500/10 rounded">{t('isolation_simulation')}</code>{' '}
+                  {t('isolation_body_part2')}
                 </p>
               </div>
             </div>
@@ -168,51 +143,49 @@ export default function DemoPage() {
         {/* 3-track demo cards */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-3">PILIH JALUR DEMO</p>
-            <h2 className="t-display-sub mb-4">Tiga track, satu disiplin</h2>
+            <p className="t-eyebrow mb-3">{t('tracks_eyebrow')}</p>
+            <h2 className="t-display-sub mb-4">{t('tracks_title')}</h2>
             <p className="t-body text-foreground/60 max-w-2xl mb-12">
-              Boleh coba ketiga track — banyak founding members evaluate Robot Meta
-              + Robot Crypto secara paralel sebelum memilih tier live. Indicator gratis
-              permanen untuk pelengkap analisa manual.
+              {t('tracks_subtitle')}
             </p>
             <div className="grid md:grid-cols-3 gap-6">
-              {DEMO_TRACKS.map((t) => (
+              {TRACK_META.map((track) => (
                 <div
-                  key={t.title}
+                  key={track.titleKey}
                   className={`rounded-xl p-6 sm:p-7 border transition-colors ${
-                    t.popular
+                    track.popular
                       ? 'border-amber-500 ring-1 ring-amber-500 bg-amber-500/[0.02]'
                       : 'border-border/80 bg-card hover:border-amber-500/30'
                   }`}
                 >
                   <div className="flex items-start justify-between mb-5">
                     <div className="icon-container">
-                      <t.icon className="w-5 h-5 text-amber-400" />
+                      <track.icon className="w-5 h-5 text-amber-400" />
                     </div>
-                    {t.popular && (
+                    {track.popular && (
                       <span className="px-2 py-0.5 rounded-full bg-amber-500 text-black text-[11px] font-medium tracking-wider uppercase">
-                        Popular
+                        {t('popular_badge')}
                       </span>
                     )}
                   </div>
-                  <p className="t-eyebrow text-amber-400 mb-2">{t.eyebrow}</p>
-                  <h3 className="font-display text-xl font-medium mb-2">{t.title}</h3>
+                  <p className="t-eyebrow text-amber-400 mb-2">{t(track.eyebrowKey)}</p>
+                  <h3 className="font-display text-xl font-medium mb-2">{t(track.titleKey)}</h3>
                   <p className="t-body-sm text-foreground/65 leading-relaxed mb-5">
-                    {t.tagline}
+                    {t(track.taglineKey)}
                   </p>
                   <ul className="space-y-2 mb-6">
-                    {t.bullets.map((b) => (
-                      <li key={b} className="flex items-start gap-2 t-body-sm text-foreground/85">
+                    {track.bulletKeys.map((bk) => (
+                      <li key={bk} className="flex items-start gap-2 t-body-sm text-foreground/85">
                         <Check className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
-                        <span>{b}</span>
+                        <span>{t(bk as Parameters<typeof t>[0])}</span>
                       </li>
                     ))}
                   </ul>
                   <Link
-                    href={t.cta.href}
-                    className={`w-full justify-center ${t.popular ? 'btn-primary' : 'btn-secondary'}`}
+                    href={track.href}
+                    className={`w-full justify-center ${track.popular ? 'btn-primary' : 'btn-secondary'}`}
                   >
-                    {t.cta.label}
+                    {t(track.ctaKey)}
                     <ArrowRight className="w-4 h-4" />
                   </Link>
                 </div>
@@ -224,18 +197,17 @@ export default function DemoPage() {
         {/* Steps */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-3">CARA MULAI</p>
-            <h2 className="t-display-sub mb-4">Empat langkah, kurang dari 10 menit</h2>
+            <p className="t-eyebrow mb-3">{t('steps_eyebrow')}</p>
+            <h2 className="t-display-sub mb-4">{t('steps_title')}</h2>
             <p className="t-body text-foreground/60 max-w-2xl mb-12">
-              Onboarding sengaja dibuat ringkas — kami percaya prospek institusional
-              menghargai waktu. Tidak ada call wajib sebelum coba demo.
+              {t('steps_subtitle')}
             </p>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
-              {STEPS.map((s) => (
+              {STEP_META.map((s) => (
                 <div key={s.step} className="rounded-xl border border-border/80 bg-card p-6">
                   <div className="t-eyebrow mb-3 text-amber-400">{s.step}</div>
-                  <h3 className="text-base font-semibold mb-2">{s.title}</h3>
-                  <p className="t-body-sm text-foreground/65 leading-relaxed">{s.desc}</p>
+                  <h3 className="text-base font-semibold mb-2">{t(s.titleKey)}</h3>
+                  <p className="t-body-sm text-foreground/65 leading-relaxed">{t(s.descKey)}</p>
                 </div>
               ))}
             </div>
@@ -247,32 +219,29 @@ export default function DemoPage() {
           <div className="container-default px-4 sm:px-6">
             <div className="grid lg:grid-cols-5 gap-12">
               <div className="lg:col-span-2">
-                <p className="t-eyebrow mb-3">SETELAH DEMO</p>
-                <h2 className="t-display-sub">Upgrade tanpa kehilangan progress</h2>
+                <p className="t-eyebrow mb-3">{t('after_eyebrow')}</p>
+                <h2 className="t-display-sub">{t('after_title')}</h2>
               </div>
               <div className="lg:col-span-3 space-y-5 t-body text-foreground/70">
                 <div className="flex items-start gap-3">
                   <ShieldCheck className="w-5 h-5 text-amber-400 mt-0.5 shrink-0" />
                   <p>
-                    <span className="font-medium text-foreground">Status dipertahankan.</span>{' '}
-                    Saat Anda upgrade ke tier live, dashboard config + strategi favorit +
-                    notifikasi preferensi yang diatur saat demo otomatis ter-migrate.
+                    <span className="font-medium text-foreground">{t('after_p1_strong')}</span>{' '}
+                    {t('after_p1_body')}
                   </p>
                 </div>
                 <div className="flex items-start gap-3">
                   <Sparkles className="w-5 h-5 text-amber-400 mt-0.5 shrink-0" />
                   <p>
-                    <span className="font-medium text-foreground">Bonus founding member.</span>{' '}
-                    Bagi yang upgrade sebelum public launch (Q3 2026), kami lock-in harga
-                    Phase 1 + akses Telegram channel founding members.
+                    <span className="font-medium text-foreground">{t('after_p2_strong')}</span>{' '}
+                    {t('after_p2_body')}
                   </p>
                 </div>
                 <div className="flex items-start gap-3">
                   <ArrowRight className="w-5 h-5 text-amber-400 mt-0.5 shrink-0" />
                   <p>
-                    <span className="font-medium text-foreground">Tidak ada lock-in.</span>{' '}
-                    Semua tier month-to-month. Anda boleh upgrade, downgrade, atau cancel
-                    kapan saja sesuai komitmen Anda terhadap modal sendiri.
+                    <span className="font-medium text-foreground">{t('after_p3_strong')}</span>{' '}
+                    {t('after_p3_body')}
                   </p>
                 </div>
               </div>
@@ -283,18 +252,16 @@ export default function DemoPage() {
         {/* CTA */}
         <section className="section-padding">
           <div className="container-default px-4 sm:px-6 text-center max-w-3xl mx-auto">
-            <h2 className="t-display-sub mb-4">Mau lihat sendiri?</h2>
+            <h2 className="t-display-sub mb-4">{t('cta_title')}</h2>
             <p className="t-body text-foreground/60 mb-8">
-              Daftar demo dan dapatkan akses dalam 5 menit. Tidak perlu kartu kredit,
-              tidak perlu KYC. Saat siap upgrade, tier mulai dari $19/bulan
-              (Robot Meta Swing) atau $49/bulan (Robot Crypto Basic).
+              {t('cta_body')}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link href="/register/signal?mode=demo&product=robot-meta" className="btn-primary inline-flex items-center justify-center gap-2 px-6 py-3 rounded-md text-sm font-medium">
-                Daftar Demo Gratis <ArrowRight className="w-4 h-4" />
+                {t('cta_primary')} <ArrowRight className="w-4 h-4" />
               </Link>
               <Link href="/pricing" className="btn-secondary inline-flex items-center justify-center gap-2 px-6 py-3 rounded-md text-sm font-medium">
-                Lihat tier live
+                {t('cta_secondary')}
               </Link>
             </div>
           </div>

@@ -12,7 +12,6 @@ import {
   TrendingUp,
   Bitcoin,
   Server,
-  Zap,
   Database,
   Calendar,
   GitMerge,
@@ -30,20 +29,93 @@ export async function generateMetadata() {
   return getPageMetadata('/pricing', {
     title: `${t('title')} — BabahAlgo`,
     description:
-      'Forex Signal $19-$299/mo, Crypto Bot $49-$499/mo, VPS License $3K+, 9 Public API marketplace, dan Institutional API access. Zero-custody — Anda selalu pegang dana sendiri.',
+      'Robot Meta MT5 $19-$299/bulan, Robot Crypto Binance $49-$499/bulan, VPS License $3K+, 8 Developer API marketplace, dan akses Institusional. Zero-custody — modal selalu di akun broker / Binance Anda.',
   });
 }
 
+// Robot Meta tier ladder — auto-execution di MT5 customer (mirror landing
+// PRICING_PLANS.forex). Naming aligned per Pak Abdullah feedback.
 const SIGNAL_TIERS = [
-  { name: 'Starter', price: '$19', period: '/bulan', features: ['Live signals (≤3 simbol)', '1 strategy aktif', 'Rule-based AI explainability', 'MT5 bridge ringan', 'Email support'], cta: '/register/signal' },
-  { name: 'Pro', price: '$79', period: '/bulan', popular: true, features: ['Unlimited symbols', '5 strategi paralel', 'Mid-tier AI explainability', 'Priority MT5 latency', 'Email + Telegram support'], cta: '/register/signal' },
-  { name: 'VIP', price: '$299', period: '/bulan', features: ['Semua fitur Pro', 'Premium AI (gradient boost)', 'Custom backtest sweep (≤10/bulan)', 'Payout API', 'Copy-trade lead dashboard', 'Priority support 24/7'], cta: '/register/signal' },
+  {
+    name: 'Tier 1 · Swing',
+    price: '$19',
+    period: '/bulan',
+    features: [
+      '3 pair major (EURUSD · GBPUSD · USDJPY)',
+      'Strategi swing only (durasi 4–24 jam)',
+      'Indikator dasar SMC + Wyckoff',
+      'Notifikasi Email + Dashboard',
+      'Auto-eksekusi di MT5 Anda',
+    ],
+    cta: '/register/signal?tier=swing',
+  },
+  {
+    name: 'Tier 2 · Scalping',
+    price: '$79',
+    period: '/bulan',
+    popular: true,
+    features: [
+      '8 pair (Major · Cross · Gold · Silver)',
+      'Strategi swing + scalping',
+      'Indikator advanced SMC + Wyckoff + AI Momentum',
+      'Notifikasi WhatsApp + Telegram + Email',
+      'Mid-tier AI explainability per trade',
+    ],
+    cta: '/register/signal?tier=scalping',
+  },
+  {
+    name: 'Tier 3 · All-In',
+    price: '$299',
+    period: '/bulan',
+    features: [
+      'Unlimited pair (Major · Cross · Metals · Index)',
+      'Semua 6 strategi paralel',
+      'Premium AI advisor + copy-trade dashboard',
+      'Notifikasi all channels + dedicated support 24/7',
+      'Custom backtest sweep + Payout API',
+    ],
+    cta: '/register/signal?tier=all',
+  },
 ];
 
 const CRYPTO_TIERS = [
-  { name: 'Crypto Basic', price: '$49', period: '/bulan + 20% PS', features: ['3 pair otomatis', 'Leverage maks 5x', 'Strategi scalping_momentum', 'Telegram + dashboard'], cta: '/register/crypto?tier=basic' },
-  { name: 'Crypto Pro', price: '$199', period: '/bulan + 15% PS', popular: true, features: ['8 pair otomatis + 1 manual whitelist', 'Leverage maks 10x', '4 strategi (SMC, Wyckoff, Momentum, Mean Reversion)', 'Telegram VIP + priority support'], cta: '/register/crypto?tier=pro' },
-  { name: 'Crypto HNWI', price: '$499', period: '/bulan + 10% PS', features: ['12 pair custom whitelist/blacklist', 'Leverage maks 15x', 'Semua strategi + parameter tuning', 'Dedicated account manager + SLA 99.9%'], cta: '/contact?subject=crypto-hnwi' },
+  {
+    name: 'Tier Basic',
+    price: '$49',
+    period: '/bulan + 20% PS',
+    features: [
+      '3 pair otomatis (top-3 dynamic)',
+      'Leverage maksimal 5x',
+      'Strategi scalping momentum',
+      'Notifikasi Telegram + dashboard',
+    ],
+    cta: '/register/crypto?tier=basic',
+  },
+  {
+    name: 'Tier Pro',
+    price: '$199',
+    period: '/bulan + 15% PS',
+    popular: true,
+    features: [
+      '8 pair + 1 manual whitelist',
+      'Leverage maksimal 10x',
+      '4 strategi (SMC · Wyckoff · Momentum · Mean Reversion)',
+      'Telegram VIP + priority support',
+    ],
+    cta: '/register/crypto?tier=pro',
+  },
+  {
+    name: 'Tier HNWI',
+    price: '$499',
+    period: '/bulan + 10% PS',
+    features: [
+      '12 pair + custom whitelist/blacklist',
+      'Leverage maksimal 15x',
+      'Semua strategi + parameter tuning',
+      'Dedicated account manager + SLA 99.9%',
+    ],
+    cta: '/contact?subject=crypto-hnwi',
+  },
 ];
 
 const VPS_TIERS = [
@@ -82,10 +154,6 @@ const PUBLIC_APIS = [
     { tier: 'Pro', price: '$99/mo', spec: '5y history + tick data' },
     { tier: 'VIP', price: '$249/mo', spec: 'WebSocket stream + aggregation' },
     { tier: 'Enterprise', price: 'Custom', spec: 'Custom feed, redundant edge' },
-  ] },
-  { id: 'execution', icon: Zap, name: 'Execution Cloud API', desc: 'Order routing langsung MT5 lewat ZeroMQ bridge sub-2ms latency', tiers: [
-    { tier: 'Pro', price: '$19/akun/mo', spec: 'REST + WebSocket execution' },
-    { tier: 'Enterprise', price: '$49/akun/mo', spec: 'zmq_ea native + slippage budget per order' },
   ] },
   { id: 'correlation', icon: GitMerge, name: 'Correlation API', desc: 'Korelasi pair real-time + heatmap multi-timeframe', tiers: [
     { tier: 'Free', price: '$0', spec: '30 req/hari H1 matrix' },
@@ -148,24 +216,24 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
           </div>
         </section>
 
-        {/* Forex Signal */}
+        {/* Robot Meta — MT5 auto-execution */}
         <ProductSection
-          eyebrow="Forex Signal"
+          eyebrow="Robot Meta · MT5"
           icon={TrendingUp}
-          title="Sinyal trading Forex multi-tier"
-          subtitle="3 tier sesuai intensitas trading Anda. Eksekusi tetap di akun broker pribadi Anda — kami tech provider, bukan asset manager."
+          title="Tiga tier auto-trading di MetaTrader 5"
+          subtitle="Bot eksekusi langsung di akun MT5 Anda lewat bridge ZeroMQ. Modal tetap di akun broker partner (Exness) — kami tidak custody dana sama sekali."
           tiers={SIGNAL_TIERS}
         />
 
         {/* Capability ladder — sourced from /v1/capabilities backend */}
         <CapabilityLadder />
 
-        {/* Crypto Bot */}
+        {/* Robot Crypto — Binance auto-trading */}
         <ProductSection
-          eyebrow="Crypto Bot · Binance Futures"
+          eyebrow="Robot Crypto · Binance"
           icon={Bitcoin}
-          title="Bot trading kripto otomatis 24/7"
-          subtitle="Anda pegang Binance API key (Read + Trade saja, tidak ada Withdraw). Profit share dipotong dari realized PnL bulanan."
+          title="Auto-trading di Binance Spot + Futures"
+          subtitle="Anda pegang Binance API key (Read + Trade scope, tanpa Withdraw permission). Modal tetap di akun Binance Anda. Profit share dipotong dari realized PnL bulanan."
           tiers={CRYPTO_TIERS}
         />
 
@@ -178,11 +246,11 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
           tiers={VPS_TIERS}
         />
 
-        {/* Public API Marketplace */}
+        {/* Developer API Marketplace */}
         <section id="apis" className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-3">Public API Marketplace</p>
-            <h2 className="t-display-section mb-3 max-w-2xl">9 API container untuk integrasi pihak ketiga</h2>
+            <p className="t-eyebrow mb-3">Developer APIs</p>
+            <h2 className="t-display-section mb-3 max-w-2xl">8 API container untuk integrasi developer</h2>
             <p className="t-body text-foreground/60 max-w-2xl mb-12">
               REST + WebSocket dengan rate limit per tier. API key issued setelah pembayaran. Untuk schema lengkap dan integrasi technical, hubungi
               {' '}<Link href="/contact?subject=api-docs" className="text-amber-400 hover:underline">tim engineering kami</Link>.

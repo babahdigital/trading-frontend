@@ -58,6 +58,7 @@ const TRACKING_PILLARS = [
 export default function PerformancePage() {
   const [equityData, setEquityData] = useState<{ time: string; value: number }[]>([]);
   const [kpi, setKpi] = useState<KpiData | null>(null);
+  const [source, setSource] = useState<string>('');
   const [sessionData, setSessionData] = useState<SessionRow[]>([]);
   const [dowData, setDowData] = useState<DowRow[]>([]);
   const [period, setPeriod] = useState('90D');
@@ -69,6 +70,7 @@ export default function PerformancePage() {
       .then((data) => {
         setEquityData(data.equity || []);
         setKpi(data.kpi || null);
+        setSource(data.source || '');
         setSessionData(Array.isArray(data.session) ? data.session : []);
         setDowData(Array.isArray(data.dayOfWeek) ? data.dayOfWeek : []);
         setLoading(false);
@@ -82,7 +84,12 @@ export default function PerformancePage() {
   })();
 
   const hasLiveData = !loading && filteredEquity.length > 0;
-  const hasKpi = !loading && kpi !== null;
+  // KPI grid only shows when we have real data — if Sharpe (the keystone
+  // institutional metric) is "—" the rest is noise, hide it entirely.
+  const kpiHasRealData = kpi !== null
+    && kpi.sharpeRatio !== '—'
+    && source !== 'empty';
+  const hasKpi = !loading && kpiHasRealData;
 
   const KPI_METRICS = kpi ? [
     { label: 'Total Return', value: kpi.totalReturn, note: 'Sejak inception' },

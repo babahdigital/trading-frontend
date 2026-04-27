@@ -376,46 +376,59 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
         }} />
 
         <div className="container-default w-full px-4 sm:px-6 py-16 sm:py-20 lg:py-24 relative z-10">
-          <div className="grid lg:grid-cols-5 gap-16 lg:gap-20 items-center">
-            {/* Left column — Copy */}
-            <div className="lg:col-span-3">
+          <div className="grid lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+            {/* Left column — Copy (7/12) */}
+            <div className="lg:col-span-7">
               <AnimatedSection>
-                <div className="t-eyebrow mb-6">
+                <div className="t-eyebrow mb-5">
                   CV BABAH DIGITAL &middot; QUANTITATIVE INFRASTRUCTURE
                 </div>
               </AnimatedSection>
 
               <AnimatedSection delay={0.1}>
-                <h1 className="t-display-hero text-foreground mb-8">
+                <h1 className="t-display-hero text-foreground mb-7">
                   {hero?.title || (<>Capital, with<br />conviction.</>)}
                 </h1>
               </AnimatedSection>
 
               <AnimatedSection delay={0.2}>
-                <p className="t-lead text-muted-foreground max-w-lg mb-10">
+                <p className="t-lead text-muted-foreground max-w-xl mb-9">
                   {hero?.subtitle || 'Sistem trading kuantitatif yang diaudit, dieksekusi, dan dijaga oleh disiplin — bukan emosi.'}
                 </p>
               </AnimatedSection>
 
               <AnimatedSection delay={0.3}>
-                <div className="flex flex-wrap gap-4 mb-16">
+                <div className="flex flex-wrap gap-3 mb-10">
                   <Link href="/contact" className="btn-primary">
                     Schedule a briefing
                     <ArrowRight className="w-4 h-4" />
                   </Link>
-                  <Link href="/performance" className="btn-tertiary">
-                    View track record
+                  <Link href="/demo" className="btn-secondary">
+                    Coba demo gratis
                     <ArrowUpRight className="w-4 h-4" />
                   </Link>
                 </div>
               </AnimatedSection>
+
+              {/* Tech trust strip — minimal, institutional */}
+              <AnimatedSection delay={0.4}>
+                <div className="flex items-center gap-4 text-xs text-muted-foreground/70 pt-6 border-t border-border/40 max-w-md">
+                  <span className="font-mono uppercase tracking-wider text-[10px]">Built on</span>
+                  <span className="font-mono">MT5</span>
+                  <span aria-hidden className="w-px h-3 bg-border" />
+                  <span className="font-mono">ZeroMQ</span>
+                  <span aria-hidden className="w-px h-3 bg-border" />
+                  <span className="font-mono">Postgres</span>
+                  <span aria-hidden className="w-px h-3 bg-border" />
+                  <span className="font-mono">Cloudflare</span>
+                </div>
+              </AnimatedSection>
             </div>
 
-            {/* Right column — Equity card when data exists, otherwise
-                Capability quadrant. Per Pak Abdullah: "chart kita kosong"
-                — empty chart is uninformative; replace with factual
-                snapshot of what the platform actually offers today. */}
-            <div className="lg:col-span-2">
+            {/* Right column — Equity card (live data) atau Founding-Members
+                invitation card (refined replacement for capability quadrant
+                — more institutional + inviting, less visually noisy) */}
+            <div className="lg:col-span-5">
               <AnimatedSection delay={0.35}>
                 {filteredEquity.length > 0 ? (
                   <div className="card-enterprise">
@@ -446,96 +459,59 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
                     </div>
                   </div>
                 ) : (
-                  <div className="card-enterprise">
-                    <div className="flex items-center justify-between mb-5">
-                      <div className="t-eyebrow">CAPABILITIES</div>
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono uppercase tracking-wider text-amber-400 bg-amber-500/10 ring-1 ring-amber-500/30">
-                        Beta · Founding members
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <CapabilityQuadrant
-                        icon={<Brain className="w-5 h-5" />}
-                        value="6"
-                        label="Strategi confluence"
-                      />
-                      <CapabilityQuadrant
-                        icon={<Shield className="w-5 h-5" />}
-                        value="12"
-                        label="Lapisan risiko"
-                      />
-                      <CapabilityQuadrant
-                        icon={<TrendingUp className="w-5 h-5" />}
-                        value="14+"
-                        label="Aset (Forex · Metal · Crypto)"
-                      />
-                      <CapabilityQuadrant
-                        icon={<Sparkles className="w-5 h-5" />}
-                        value="0"
-                        label="Custody dana"
-                        valueClass="text-emerald-400"
-                      />
-                    </div>
-                    <div className="mt-5 pt-4 border-t border-border">
-                      <p className="text-xs text-muted-foreground leading-relaxed">
-                        Track record live publikasi setelah 90 hari produksi (Q3 2026).
-                        Sebelum itu, founding members coba demo MT5 + Binance Testnet gratis.
+                  <div className="rounded-2xl border border-border bg-card p-7 sm:p-8 relative overflow-hidden">
+                    {/* Subtle amber radial accent */}
+                    <div className="absolute -top-1/3 -right-1/4 w-[300px] h-[300px] rounded-full bg-amber-500/[0.06] blur-3xl pointer-events-none" />
+
+                    <div className="relative">
+                      <div className="flex items-center justify-between mb-5">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono uppercase tracking-wider text-amber-300 bg-amber-500/10 ring-1 ring-amber-500/30">
+                          <span className="relative flex h-1.5 w-1.5">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-60" />
+                            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-400" />
+                          </span>
+                          Beta · Founding members
+                        </span>
+                      </div>
+
+                      <h2 className="font-display text-2xl md:text-3xl leading-tight text-foreground mb-2">
+                        Akses awal —<br /> gratis selama beta.
+                      </h2>
+                      <p className="text-sm text-muted-foreground leading-relaxed mb-6">
+                        100 founding members pertama dapat akses penuh Robot Meta + Robot
+                        Crypto tanpa biaya, hingga track record live publikasi Q3 2026.
                       </p>
-                      <Link
-                        href="/demo"
-                        className="inline-flex items-center gap-1.5 mt-3 text-xs font-medium text-amber-400 hover:text-amber-300 transition-colors"
-                      >
-                        Coba demo gratis
-                        <ArrowRight className="w-3 h-3" />
-                      </Link>
+
+                      {/* Inline mini stats — tight, institutional */}
+                      <div className="grid grid-cols-2 gap-x-6 gap-y-3 mb-6 pb-6 border-b border-border/50">
+                        <CapabilityInline value="6" label="Strategi" />
+                        <CapabilityInline value="12" label="Lapisan risiko" />
+                        <CapabilityInline value="14+" label="Aset support" />
+                        <CapabilityInline value="0" label="Custody dana" valueClass="text-emerald-400" />
+                      </div>
+
+                      <div className="flex flex-wrap gap-2">
+                        <Link
+                          href="/contact?subject=beta-founding-member"
+                          className="btn-primary text-sm flex-1 justify-center"
+                        >
+                          Apply
+                          <ArrowRight className="w-4 h-4" />
+                        </Link>
+                        <Link
+                          href="/demo"
+                          className="btn-tertiary text-sm justify-center px-4"
+                        >
+                          Coba demo gratis
+                          <ArrowRight className="w-3 h-3" />
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 )}
               </AnimatedSection>
             </div>
           </div>
-
-          {/* KPI Strip — factual capability claims (no fake metrics) */}
-          <AnimatedSection delay={0.4}>
-            <div className="mt-16 pt-12 border-t border-border">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-16">
-                <KpiItem
-                  label="STRATEGI AKTIF"
-                  value="6"
-                  sublabel="SMC · Wyckoff · Astronacci · AI Momentum · Mean-Rev · Oil/Gas"
-                />
-                <KpiItem
-                  label="ASET TERSUPPORT"
-                  value="14+"
-                  sublabel="Forex Major · Metal · Index · Crypto Binance"
-                />
-                <KpiItem
-                  label="LAPISAN RISIKO"
-                  value="12"
-                  sublabel="Pre-trade · In-trade · Post-system framework"
-                />
-                <KpiItem
-                  label="PROGRAM"
-                  value="BETA"
-                  sublabel="Free akses untuk founding members"
-                />
-              </div>
-            </div>
-          </AnimatedSection>
-
-          {/* Tech trust strip */}
-          <AnimatedSection delay={0.45}>
-            <div className="mt-12 flex items-center gap-6 text-xs text-muted-foreground">
-              <span className="uppercase tracking-wider">Built on</span>
-              <span className="font-mono">MetaTrader 5</span>
-              <span className="w-px h-3 bg-border" />
-              <span className="font-mono">ZeroMQ</span>
-              <span className="w-px h-3 bg-border" />
-              <span className="font-mono">PostgreSQL</span>
-              <span className="w-px h-3 bg-border" />
-              <span className="font-mono">Cloudflare</span>
-            </div>
-          </AnimatedSection>
         </div>
       </section>
 
@@ -1201,6 +1177,21 @@ function KpiItem({ label, value, sublabel }: { label: string; value: string; sub
       <div className="t-eyebrow mb-2">{label}</div>
       <div className="font-mono text-2xl md:text-3xl font-medium text-foreground tabular-nums">{value}</div>
       <div className="t-body-sm text-muted-foreground mt-1">{sublabel}</div>
+    </div>
+  );
+}
+
+function CapabilityInline({ value, label, valueClass }: {
+  value: string;
+  label: string;
+  valueClass?: string;
+}) {
+  return (
+    <div className="flex items-baseline gap-2">
+      <span className={`font-mono text-xl font-medium tabular-nums ${valueClass ?? 'text-foreground'}`}>
+        {value}
+      </span>
+      <span className="text-xs text-muted-foreground">{label}</span>
     </div>
   );
 }

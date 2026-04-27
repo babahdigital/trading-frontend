@@ -42,7 +42,19 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || t('login_failed'));
+        // API returns { code: 'invalid_credentials', error: 'English fallback' }.
+        // Prefer locale-aware lookup via errors.auth.<code>; fall back to API
+        // string then generic translated label.
+        const code = typeof data.code === 'string' ? data.code : null;
+        let message: string | null = null;
+        if (code) {
+          try {
+            message = tErr(`auth.${code}`);
+          } catch {
+            message = null;
+          }
+        }
+        setError(message || data.error || t('login_failed'));
         return;
       }
 
@@ -66,9 +78,6 @@ export default function LoginPage() {
       setLoading(false);
     }
   }
-
-  // Suppress unused t for translations; namespace lookup
-  void tErr;
 
   return (
     <div className="min-h-screen grid lg:grid-cols-5">

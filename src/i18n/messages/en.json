@@ -1318,7 +1318,14 @@
     "auth": {
       "invalid_token": "Your session has expired. Please log in again.",
       "product_not_subscribed": "You are not subscribed to this product.",
-      "forbidden": "You do not have permission for this action."
+      "forbidden": "You do not have permission for this action.",
+      "password_required": "Password is required.",
+      "email_required": "Email or license key is required.",
+      "invalid_credentials": "Invalid email or password.",
+      "invalid_license": "License is invalid or inactive.",
+      "mt5_account_mismatch": "MT5 account does not match the license.",
+      "internal_error": "An internal error occurred. Please try again.",
+      "rate_limited": "Too many login attempts. Please wait a moment."
     },
     "idempotency": {
       "conflict": "This action was already processed with different parameters.",

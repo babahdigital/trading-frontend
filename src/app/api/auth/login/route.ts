@@ -8,13 +8,20 @@ import { createLogger } from '@/lib/logger';
 
 const log = createLogger('api/auth/login');
 
+// Error response helper — returns both `code` (stable, locale-agnostic for
+// frontend lookup in errors.auth.* namespace) and `error` (English string
+// for non-i18n consumers / logs / curl).
+function errorResponse(code: string, message: string, status: number) {
+  return NextResponse.json({ code, error: message }, { status });
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { email, password, licenseKey, mt5Account } = body;
 
     if (!password) {
-      return NextResponse.json({ error: 'Password is required' }, { status: 400 });
+      return errorResponse('password_required', 'Password is required', 400);
     }
 
     let user;
@@ -27,17 +34,17 @@ export async function POST(request: NextRequest) {
       });
 
       if (!license || license.status !== 'ACTIVE') {
-        return NextResponse.json({ error: 'Invalid or inactive license' }, { status: 401 });
+        return errorResponse('invalid_license', 'Invalid or inactive license', 401);
       }
 
       if (mt5Account && license.user.mt5Account !== mt5Account) {
-        return NextResponse.json({ error: 'MT5 account mismatch' }, { status: 401 });
+        return errorResponse('mt5_account_mismatch', 'MT5 account mismatch', 401);
       }
 
       user = license.user;
       const valid = await verifyPassword(password, user.passwordHash);
       if (!valid) {
-        return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+        return errorResponse('invalid_credentials', 'Invalid credentials', 401);
       }
 
       const payload: JwtPayload = {
@@ -91,17 +98,17 @@ export async function POST(request: NextRequest) {
 
     // Standard login: email + password (Admin or Model B)
     if (!email) {
-      return NextResponse.json({ error: 'Email or licenseKey is required' }, { status: 400 });
+      return errorResponse('email_required', 'Email or licenseKey is required', 400);
     }
 
     user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+      return errorResponse('invalid_credentials', 'Invalid credentials', 401);
     }
 
     const valid = await verifyPassword(password, user.passwordHash);
     if (!valid) {
-      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+      return errorResponse('invalid_credentials', 'Invalid credentials', 401);
     }
 
     const scope = user.role === 'ADMIN' ? ['*'] : ['read:pamm_stats'];
@@ -151,6 +158,6 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     log.error('Login error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return errorResponse('internal_error', 'Internal server error', 500);
   }
 }

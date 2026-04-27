@@ -1342,6 +1342,19 @@
       "internal": "An internal error occurred. Our team has been notified.",
       "unavailable": "The service is unavailable right now. Please try again shortly."
     },
+    "register": {
+      "validation_failed": "Registration data is invalid. Please review your inputs.",
+      "email_already_registered": "Email is already registered. Please log in or use a different email.",
+      "mt5_already_registered": "MT5 account is already registered to another user.",
+      "internal_error": "An error occurred while processing registration. Please try again."
+    },
+    "billing": {
+      "unauthorized": "You must be logged in to check out.",
+      "invalid_tier": "Invalid tier.",
+      "free_tier": "Free tier does not require checkout. Activate directly via /demo signup.",
+      "invalid_provider": "Invalid payment provider. Use \"midtrans\" or \"xendit\".",
+      "user_not_found": "Account not found."
+    },
     "not_found": "Resource not found.",
     "unknown": "An unknown error occurred."
   },

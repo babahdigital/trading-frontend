@@ -1342,6 +1342,19 @@
       "internal": "Terjadi kesalahan internal. Tim kami sudah diberi tahu.",
       "unavailable": "Layanan tidak tersedia saat ini. Coba lagi dalam beberapa saat."
     },
+    "register": {
+      "validation_failed": "Data registrasi tidak valid. Periksa kembali isian Anda.",
+      "email_already_registered": "Email sudah terdaftar. Silakan login atau gunakan email lain.",
+      "mt5_already_registered": "Akun MT5 sudah terdaftar dengan user lain.",
+      "internal_error": "Terjadi kesalahan saat memproses registrasi. Silakan coba lagi."
+    },
+    "billing": {
+      "unauthorized": "Anda harus login untuk melakukan checkout.",
+      "invalid_tier": "Tier tidak valid.",
+      "free_tier": "Tier gratis tidak butuh checkout. Aktivasi langsung via /demo signup.",
+      "invalid_provider": "Penyedia pembayaran tidak valid. Gunakan \"midtrans\" atau \"xendit\".",
+      "user_not_found": "Akun tidak ditemukan."
+    },
     "not_found": "Data tidak ditemukan.",
     "unknown": "Terjadi kesalahan yang tidak diketahui."
   },

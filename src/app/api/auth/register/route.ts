@@ -4,8 +4,16 @@ import { hashPassword } from '@/lib/auth/password';
 import { sendEmail } from '@/lib/notifier/email';
 import { z } from 'zod';
 import { createLogger } from '@/lib/logger';
+import { detectRequestLocale } from '@/lib/i18n/server-locale';
+import { renderWelcomeEmail } from '@/lib/email/welcome-template';
 
 const log = createLogger('api/auth/register');
+
+// Returns { code, error } shape so frontend can resolve via errors.register.<code>
+// localized lookup. English string preserved as fallback for non-i18n consumers.
+function errorResponse(code: string, message: string, status: number) {
+  return NextResponse.json({ code, error: message }, { status });
+}
 
 // Canonical tier slugs per audit 2026-04-26 (PAMM tiers deprecated, zero-custody model).
 // SIGNAL_BASIC retained as alias for SIGNAL_STARTER for backward-compat with existing rows.
@@ -31,7 +39,11 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const parsed = registerSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json({ error: parsed.error.flatten().fieldErrors }, { status: 400 });
+      return NextResponse.json({
+        code: 'validation_failed',
+        error: 'Validation failed',
+        fieldErrors: parsed.error.flatten().fieldErrors,
+      }, { status: 400 });
     }
 
     const { name, email, password, tier, brokerName, mt5Account } = parsed.data;
@@ -39,14 +51,14 @@ export async function POST(request: NextRequest) {
     // Cek email duplikat
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
-      return NextResponse.json({ error: 'Email sudah terdaftar' }, { status: 409 });
+      return errorResponse('email_already_registered', 'Email already registered', 409);
     }
 
     // Cek MT5 account duplikat (jika diberikan)
     if (mt5Account) {
       const existingMt5 = await prisma.user.findUnique({ where: { mt5Account } });
       if (existingMt5) {
-        return NextResponse.json({ error: 'MT5 account sudah terdaftar' }, { status: 409 });
+        return errorResponse('mt5_already_registered', 'MT5 account already registered', 409);
       }
     }
 
@@ -121,34 +133,18 @@ export async function POST(request: NextRequest) {
       }).catch(() => {});
     }
 
-    // Kirim welcome email ke user (fire-and-forget)
-    sendEmail(
-      email,
-      'Selamat Datang di BabahAlgo',
-      `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#333">
-        <h2 style="color:#d97706">Selamat Datang, ${name}!</h2>
-        <p>Terima kasih telah mendaftar di <strong>BabahAlgo</strong>.</p>
-        <p>Paket yang dipilih: <strong>${tier.replace('_', ' ')}</strong></p>
-        <h3>Langkah Selanjutnya:</h3>
-        <ol>
-          <li>Tunggu aktivasi akun oleh tim kami (maks 24 jam)</li>
-          <li>Setup Telegram Bot: buka <a href="https://t.me/babahalgo_bot">@babahalgo_bot</a> → ketik /start → copy Chat ID</li>
-          <li>Paste Chat ID di <a href="https://babahalgo.com/portal/account">Portal > Settings > Notifications</a></li>
-          <li>Setelah aktif, sinyal trading akan otomatis masuk ke Telegram & email Anda</li>
-        </ol>
-        <p style="margin-top:24px;padding:16px;background:#fef3c7;border-radius:8px">
-          <strong>Butuh bantuan?</strong> Balas email ini atau hubungi kami di
-          <a href="mailto:hello@babahalgo.com">hello@babahalgo.com</a>
-        </p>
-        <hr style="border:none;border-top:1px solid #eee;margin:24px 0">
-        <p style="font-size:12px;color:#999">
-          <em>Disclaimer: Trading berisiko tinggi. Sinyal bukan saran investasi. Pastikan memahami risiko sebelum trading.</em>
-        </p>
-      </div>`,
-    ).catch((err) => log.warn(`Welcome email failed for ${email}: ${err}`));
+    // Kirim welcome email ke user (fire-and-forget) — locale-aware template
+    // berdasarkan NEXT_LOCALE cookie / accept-language header dari registrasi.
+    const locale = detectRequestLocale(request);
+    const welcomeContent = renderWelcomeEmail(locale, { name, tier });
+    sendEmail(email, welcomeContent.subject, welcomeContent.html)
+      .catch((err) => log.warn(`Welcome email failed for ${email}: ${err}`));
 
     return NextResponse.json({
-      message: 'Registrasi berhasil. Akun Anda akan diaktivasi oleh admin.',
+      code: 'register_success',
+      // Locale-agnostic English message; frontend should display via
+      // i18n register.* success keys.
+      message: 'Registration successful. Your account will be activated by an admin.',
       user: {
         id: result.user.id,
         email: result.user.email,
@@ -162,6 +158,6 @@ export async function POST(request: NextRequest) {
     }, { status: 201 });
   } catch (error) {
     log.error('Register error:', error);
-    return NextResponse.json({ error: 'Terjadi kesalahan server' }, { status: 500 });
+    return errorResponse('internal_error', 'Internal server error', 500);
   }
 }

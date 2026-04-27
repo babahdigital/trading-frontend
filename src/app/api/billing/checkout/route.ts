@@ -4,6 +4,7 @@ import { createMidtransTransaction } from '@/lib/payment/midtrans';
 import { createXenditInvoice } from '@/lib/payment/xendit';
 import { randomUUID } from 'crypto';
 import { resolveIdempotencyKey } from '@/lib/api/idempotency';
+import { detectRequestLocale, type AppLocale } from '@/lib/i18n/server-locale';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -11,6 +12,10 @@ export const runtime = 'nodejs';
 // Canonical pricing per audit 2026-04-26 (MONETIZATION_STRATEGY.md).
 // IDR rates pakai estimasi USD→IDR ~16,500 (revisit saat business confirm).
 // SIGNAL_BASIC = legacy alias = same price as SIGNAL_STARTER ($19).
+//
+// `description` stored ID-canonical; locale swap on render via
+// localizeDescription() so EN payment-gateway page shows "1 Month" instead
+// of "1 Bulan".
 const TIER_PRICES: Record<string, { amountIdr: number; description: string }> = {
   // Forex Signal
   SIGNAL_STARTER: { amountIdr: 315_000, description: 'Signal Starter — 1 Bulan' },
@@ -29,31 +34,46 @@ const TIER_PRICES: Record<string, { amountIdr: number; description: string }> = 
   DEMO: { amountIdr: 0, description: 'Demo (gratis) — checkout tidak diperlukan' },
 };
 
+function localizeDescription(text: string, locale: AppLocale): string {
+  if (locale !== 'en') return text;
+  return text
+    .replace(/\b1 Bulan\b/g, '1 Month')
+    .replace(/\bSetup\b/g, 'Setup')
+    .replace(/\(gratis\)/g, '(free)')
+    .replace(/checkout tidak diperlukan/g, 'checkout not required');
+}
+
 type PaymentProvider = 'midtrans' | 'xendit';
+
+// Returns { code, error } shape. Code is locale-agnostic for frontend i18n
+// lookup; error string is English fallback.
+function errorResponse(code: string, message: string, status: number, extra?: Record<string, unknown>) {
+  return NextResponse.json({ code, error: message, ...extra }, { status });
+}
 
 export async function POST(req: NextRequest) {
   const userId = req.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!userId) return errorResponse('unauthorized', 'Unauthorized', 401);
 
+  const locale = detectRequestLocale(req);
   const { key: idempotencyKey, clientSupplied } = resolveIdempotencyKey(req.headers, 'checkout');
 
   const body = await req.json();
   const { tier, provider = 'midtrans' } = body as { tier: string; provider?: PaymentProvider };
   const pricing = TIER_PRICES[tier];
-  if (!pricing) return NextResponse.json({ error: 'Invalid tier' }, { status: 400 });
+  if (!pricing) return errorResponse('invalid_tier', 'Invalid tier', 400);
   if (pricing.amountIdr === 0) {
-    return NextResponse.json(
-      { error: 'free_tier', message: 'Tier gratis tidak butuh checkout. Aktivasi langsung via /demo signup.' },
-      { status: 400 },
-    );
+    return errorResponse('free_tier', 'Free tier does not require checkout. Activate directly via /demo signup.', 400);
   }
 
   if (provider !== 'midtrans' && provider !== 'xendit') {
-    return NextResponse.json({ error: 'Invalid payment provider. Use "midtrans" or "xendit"' }, { status: 400 });
+    return errorResponse('invalid_provider', 'Invalid payment provider. Use "midtrans" or "xendit"', 400);
   }
 
   const user = await prisma.user.findUnique({ where: { id: userId } });
-  if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
+  if (!user) return errorResponse('user_not_found', 'User not found', 404);
+
+  const localizedDescription = localizeDescription(pricing.description, locale);
 
   // Idempotency: if this key already produced an invoice, return existing (no duplicate charge).
   const existing = await prisma.invoice.findFirst({
@@ -82,7 +102,7 @@ export async function POST(req: NextRequest) {
       amountUsd: pricing.amountIdr / 16000,
       status: 'DUE',
       dueAt,
-      description: pricing.description,
+      description: localizedDescription,
       subscriptionId: null,
       metadata: { tier, amountIdr: pricing.amountIdr, provider, idempotencyKey, clientSupplied },
     },
@@ -94,7 +114,7 @@ export async function POST(req: NextRequest) {
       amountIdr: pricing.amountIdr,
       customerName: user.name || user.email,
       customerEmail: user.email,
-      description: pricing.description,
+      description: localizedDescription,
     });
 
     await prisma.invoice.update({
@@ -116,7 +136,7 @@ export async function POST(req: NextRequest) {
     amountIdr: pricing.amountIdr,
     customerName: user.name || user.email,
     customerEmail: user.email,
-    itemDescription: pricing.description,
+    itemDescription: localizedDescription,
   });
 
   await prisma.invoice.update({

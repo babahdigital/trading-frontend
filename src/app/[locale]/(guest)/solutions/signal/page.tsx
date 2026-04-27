@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useEffect, useMemo, useState } from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
@@ -73,16 +73,24 @@ const STEP_META = [
   { step: '03', titleKey: 'step3_title', descKey: 'step3_desc' },
 ] as const;
 
-const FAQ_FALLBACK = [
-  { q: 'Apa beda Robot Meta dengan signal-only service?', a: 'Robot Meta auto-eksekusi penuh di MT5 Anda — bot yang taruh order, modify SL/TP, dan close. Signal-only kirim alert tapi Anda harus eksekusi manual. Modal tetap di akun broker Anda di kedua skenario.' },
-  { q: 'Apakah saya harus ganti broker?', a: 'Tidak wajib, tapi kami rekomendasikan partner broker Exness lewat link affiliate untuk discount commission. Bridge ZeroMQ kami compatible dengan MT5 broker mana saja yang allow EA/automated trading.' },
-  { q: 'Berapa modal minimal untuk mulai?', a: 'Tier Swing $19/bulan: rekomendasi $1K minimum agar position sizing optimal. Tier Scalping $79: $5K minimum. Tier All-In $299: $25K minimum untuk diversifikasi multi-strategi.' },
-  { q: 'Bagaimana risk management bekerja?', a: 'Setiap trade lewat 12-layer framework: pre-trade (spread guard, dynamic lot sizing, news blackout), in-trade (protective stop-loss, max hold time, breakeven trail), post-system (cooldown, catastrophic breaker, kill-switch). Detailnya di /platform/risk-framework.' },
-  { q: 'Apakah ada demo atau free trial?', a: 'Ya. Robot Meta · Demo gratis 7 hari di akun MT5 demo Anda — bot full eksekusi tapi di paper money. Akses /demo untuk daftar.' },
-  { q: 'Bisa cancel kapan saja?', a: 'Ya, semua tier month-to-month tanpa lock-in. Cancel kapan saja sebelum billing date berikutnya. Bot auto-detach dari MT5 Anda setelah cancel.' },
-];
+const FAQ_KEYS = [
+  { qKey: 'faq_q1', aKey: 'faq_a1' },
+  { qKey: 'faq_q2', aKey: 'faq_a2' },
+  { qKey: 'faq_q3', aKey: 'faq_a3' },
+  { qKey: 'faq_q4', aKey: 'faq_a4' },
+  { qKey: 'faq_q5', aKey: 'faq_a5' },
+  { qKey: 'faq_q6', aKey: 'faq_a6' },
+] as const;
 
 const AUDIENCE_KEYS = ['audience_b1', 'audience_b2', 'audience_b3', 'audience_b4'] as const;
+
+// Heuristic: detect Indonesian-language strings so we can fall back to i18n
+// when the CMS-provided FAQ is in the wrong locale. Looks for common Bahasa
+// Indonesian function words that don't appear in English.
+const ID_MARKERS = /\b(anda|tidak|adalah|atau|dengan|untuk|yang|tetap|kami|saja|bagaimana|apakah|apa|berapa|akun|bulan|hari)\b/i;
+function looksIndonesian(text: string): boolean {
+  return ID_MARKERS.test(text);
+}
 
 interface FaqItem {
   q: string;
@@ -91,28 +99,39 @@ interface FaqItem {
 
 export default function SignalPage() {
   const t = useTranslations('solutions_signal');
-  const [faq, setFaq] = useState<FaqItem[]>(FAQ_FALLBACK);
+  const locale = useLocale();
+  const fallbackFaq = useMemo<FaqItem[]>(
+    () => FAQ_KEYS.map((k) => ({ q: t(k.qKey), a: t(k.aKey) })),
+    [t]
+  );
+  const [faq, setFaq] = useState<FaqItem[]>(fallbackFaq);
 
   useEffect(() => {
+    let cancelled = false;
     async function loadFaq() {
       try {
-        const res = await fetch('/api/public/faq?category=PRICING');
+        const res = await fetch(`/api/public/faq?category=PRICING&locale=${locale}`);
         if (!res.ok) return;
         const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
-          setFaq(
-            data.map((item: Record<string, unknown>) => ({
-              q: (item.question as string) || (item.q as string) || '',
-              a: (item.answer as string) || (item.a as string) || '',
-            }))
-          );
+        if (!Array.isArray(data) || data.length === 0) return;
+        const cmsFaq: FaqItem[] = data.map((item: Record<string, unknown>) => ({
+          q: (item.question as string) || (item.q as string) || '',
+          a: (item.answer as string) || (item.a as string) || '',
+        }));
+        // If active locale is English but CMS returns Indonesian (no en
+        // translations populated yet), keep i18n fallback to avoid mixed-locale
+        // FAQ on the EN page.
+        if (locale === 'en' && cmsFaq.some((f) => looksIndonesian(f.q) || looksIndonesian(f.a))) {
+          return;
         }
+        if (!cancelled) setFaq(cmsFaq);
       } catch {
         // keep fallback
       }
     }
     loadFaq();
-  }, []);
+    return () => { cancelled = true; };
+  }, [locale]);
 
   const breadcrumb = breadcrumbSchema([
     { name: 'Home', url: '/' },
@@ -144,21 +163,21 @@ export default function SignalPage() {
             <h1 className="t-display-page mb-6">
               {t('hero_title_l1')}<br className="hidden sm:block" /> {t('hero_title_l2')}
             </h1>
-            <p className="t-lead text-foreground/60 max-w-2xl">
+            <p className="t-lead text-foreground/60 max-w-xl sm:max-w-2xl">
               {t('hero_subtitle')}
             </p>
-            <div className="flex flex-wrap gap-4 mt-10">
-              <Link href="/register/signal?tier=scalping" className="btn-primary">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4 mt-8 sm:mt-10">
+              <Link href="/register/signal?tier=scalping" className="btn-primary justify-center">
                 {t('hero_cta_register')} <ArrowRight className="w-4 h-4" />
               </Link>
-              <Link href="/demo?product=robot-meta" className="btn-secondary">
+              <Link href="/demo?product=robot-meta" className="btn-secondary justify-center">
                 {t('hero_cta_demo')}
               </Link>
-              <Link href="/performance" className="btn-tertiary">
+              <Link href="/performance" className="btn-tertiary justify-center">
                 {t('hero_cta_track')}
               </Link>
             </div>
-            <p className="text-xs text-foreground/50 mt-6 max-w-2xl">
+            <p className="text-xs text-foreground/50 mt-6 max-w-xl sm:max-w-2xl">
               {t('hero_beta_note')}
             </p>
           </div>
@@ -173,11 +192,11 @@ export default function SignalPage() {
               {t('pricing_body')}
             </p>
 
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-3 gap-5 sm:gap-6">
               {PRICING_META.map((tier) => (
                 <div
                   key={tier.name}
-                  className={`rounded-xl p-6 sm:p-7 border transition-colors ${
+                  className={`rounded-xl p-5 sm:p-6 md:p-7 border transition-colors ${
                     tier.popular
                       ? 'border-amber-500 ring-1 ring-amber-500 bg-amber-500/[0.02]'
                       : 'border-border/80 hover:border-amber-500/30 bg-card'
@@ -221,7 +240,7 @@ export default function SignalPage() {
         {/* Who it's for */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <div className="grid lg:grid-cols-5 gap-16">
+            <div className="grid lg:grid-cols-5 gap-y-8 lg:gap-y-12 lg:gap-x-16">
               <div className="lg:col-span-2">
                 <p className="t-eyebrow mb-3">{t('audience_eyebrow')}</p>
                 <h2 className="t-display-sub">{t('audience_title')}</h2>
@@ -242,10 +261,10 @@ export default function SignalPage() {
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-3">{t('features_eyebrow')}</p>
-            <h2 className="t-display-sub mb-12">{t('features_title')}</h2>
-            <div className="grid md:grid-cols-2 gap-x-12 gap-y-10">
+            <h2 className="t-display-sub mb-8 sm:mb-12">{t('features_title')}</h2>
+            <div className="grid md:grid-cols-2 gap-x-8 lg:gap-x-12 gap-y-8 sm:gap-y-10">
               {FEATURE_META.map((f) => (
-                <div key={f.titleKey} className="flex items-start gap-5">
+                <div key={f.titleKey} className="flex items-start gap-4 sm:gap-5">
                   <div className="w-11 h-11 rounded-lg border border-border/60 bg-muted/40 flex items-center justify-center shrink-0">
                     {FEATURE_ICONS[f.icon]}
                   </div>
@@ -263,8 +282,8 @@ export default function SignalPage() {
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-3">{t('onboard_eyebrow')}</p>
-            <h2 className="t-display-sub mb-12">{t('onboard_title')}</h2>
-            <div className="grid md:grid-cols-3 gap-8">
+            <h2 className="t-display-sub mb-8 sm:mb-12">{t('onboard_title')}</h2>
+            <div className="grid md:grid-cols-3 gap-6 sm:gap-8">
               {STEP_META.map((step, i) => (
                 <div key={step.step} className="relative">
                   <p className="font-mono text-5xl text-amber-500/20 mb-4">{step.step}</p>
@@ -282,14 +301,14 @@ export default function SignalPage() {
         {/* FAQ */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <div className="grid lg:grid-cols-5 gap-16">
+            <div className="grid lg:grid-cols-5 gap-y-8 lg:gap-y-12 lg:gap-x-16">
               <div className="lg:col-span-2">
                 <p className="t-eyebrow mb-3">{t('faq_eyebrow')}</p>
                 <h2 className="t-display-sub">{t('faq_title')}</h2>
               </div>
-              <div className="lg:col-span-3 space-y-8">
+              <div className="lg:col-span-3 space-y-6 sm:space-y-8">
                 {faq.map((item) => (
-                  <div key={item.q} className="border-b border-border/40 pb-8 last:border-b-0">
+                  <div key={item.q} className="border-b border-border/40 pb-6 sm:pb-8 last:border-b-0">
                     <h3 className="text-base font-medium mb-2">{item.q}</h3>
                     <p className="t-body-sm text-foreground/60 leading-relaxed">{item.a}</p>
                   </div>
@@ -306,11 +325,11 @@ export default function SignalPage() {
             <p className="t-body text-foreground/60 mb-8 max-w-lg mx-auto">
               {t('cta_body')}
             </p>
-            <div className="flex flex-wrap justify-center gap-4">
-              <Link href="/contact?subject=beta-founding-member" className="btn-primary">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap justify-center gap-3 sm:gap-4">
+              <Link href="/contact?subject=beta-founding-member" className="btn-primary justify-center">
                 {t('cta_primary')} <ArrowRight className="w-4 h-4" />
               </Link>
-              <Link href="/demo?product=robot-meta" className="btn-secondary">
+              <Link href="/demo?product=robot-meta" className="btn-secondary justify-center">
                 {t('cta_secondary')}
               </Link>
             </div>

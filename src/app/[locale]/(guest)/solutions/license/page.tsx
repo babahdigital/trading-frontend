@@ -75,7 +75,7 @@ export default async function LicensePage() {
             <h1 className="t-display-page mb-6">
               {t('hero_title')}
             </h1>
-            <p className="t-lead text-foreground/60 max-w-2xl">
+            <p className="t-lead text-foreground/60 max-w-xl sm:max-w-2xl">
               {t('hero_subtitle')}
             </p>
           </div>
@@ -86,7 +86,7 @@ export default async function LicensePage() {
           <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-3">{t('infra_eyebrow')}</p>
             <h2 className="t-display-sub mb-4">{t('infra_title')}</h2>
-            <p className="t-body text-foreground/60 mb-10 max-w-xl">
+            <p className="t-body text-foreground/60 mb-8 sm:mb-10 max-w-xl">
               {t('infra_subtitle')}
             </p>
             <div className="overflow-x-auto max-w-4xl">
@@ -94,17 +94,17 @@ export default async function LicensePage() {
               <table className="table-enterprise w-full">
                 <thead>
                   <tr className="border-b border-border/60">
-                    <th className="text-left px-6 py-3">{t('col_component')}</th>
-                    <th className="text-left px-6 py-3">{t('col_spec')}</th>
-                    <th className="text-left px-6 py-3 hidden md:table-cell">{t('col_notes')}</th>
+                    <th className="text-left px-4 sm:px-6 py-3">{t('col_component')}</th>
+                    <th className="text-left px-4 sm:px-6 py-3">{t('col_spec')}</th>
+                    <th className="text-left px-4 sm:px-6 py-3 hidden md:table-cell">{t('col_notes')}</th>
                   </tr>
                 </thead>
                 <tbody className="text-sm">
                   {SPEC_META.map((row) => (
                     <tr key={row.specKey} className="border-b border-border/60 last:border-0">
-                      <td className="px-6 py-3 font-medium text-foreground/80">{t(row.specKey)}</td>
-                      <td className="px-6 py-3 font-mono text-amber-400">{t(row.valueKey)}</td>
-                      <td className="px-6 py-3 text-foreground/50 hidden md:table-cell">{t(row.noteKey)}</td>
+                      <td className="px-4 sm:px-6 py-3 font-medium text-foreground/80">{t(row.specKey)}</td>
+                      <td className="px-4 sm:px-6 py-3 font-mono text-amber-400">{t(row.valueKey)}</td>
+                      <td className="px-4 sm:px-6 py-3 text-foreground/50 hidden md:table-cell">{t(row.noteKey)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -134,12 +134,12 @@ export default async function LicensePage() {
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">{t('cap_eyebrow')}</p>
-            <h2 className="t-display-sub mb-14">{t('cap_title')}</h2>
-            <div className="space-y-16">
+            <h2 className="t-display-sub mb-10 sm:mb-14">{t('cap_title')}</h2>
+            <div className="space-y-12 sm:space-y-16">
               {FEATURE_META.map((feature, i) => (
                 <div
                   key={feature.titleKey}
-                  className={`grid md:grid-cols-2 gap-8 md:gap-16 items-center ${
+                  className={`grid md:grid-cols-2 gap-6 sm:gap-8 md:gap-16 items-center ${
                     i % 2 === 1 ? 'md:[direction:rtl]' : ''
                   }`}
                 >
@@ -167,7 +167,7 @@ export default async function LicensePage() {
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">{t('pricing_eyebrow')}</p>
-            <h2 className="t-display-sub mb-12">{t('pricing_title')}</h2>
+            <h2 className="t-display-sub mb-8 sm:mb-12">{t('pricing_title')}</h2>
             <div className="card-enterprise max-w-xl">
               <div className="space-y-6">
                 <div>
@@ -198,11 +198,11 @@ export default async function LicensePage() {
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">{t('process_eyebrow')}</p>
-            <h2 className="t-display-sub mb-12">{t('process_title')}</h2>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+            <h2 className="t-display-sub mb-8 sm:mb-12">{t('process_title')}</h2>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-x-4 sm:gap-x-6 gap-y-6 sm:gap-y-8">
               {STEP_META.map((step, i) => (
                 <div key={step.step} className="relative">
-                  <p className="font-mono text-5xl text-amber-500/20 mb-3">{step.step}</p>
+                  <p className="font-mono text-4xl sm:text-5xl text-amber-500/20 mb-3">{step.step}</p>
                   <h3 className="font-semibold text-sm mb-2">{t(step.titleKey)}</h3>
                   <p className="text-xs text-foreground/60 leading-relaxed">{t(step.descKey)}</p>
                   {i < STEP_META.length - 1 && (
@@ -217,12 +217,12 @@ export default async function LicensePage() {
         {/* FAQ */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <div className="grid lg:grid-cols-5 gap-12">
+            <div className="grid lg:grid-cols-5 gap-y-8 lg:gap-y-12 lg:gap-x-12">
               <div className="lg:col-span-2">
                 <p className="t-eyebrow mb-4">{t('faq_eyebrow')}</p>
                 <h2 className="t-display-sub">{t('faq_title')}</h2>
               </div>
-              <div className="lg:col-span-3 space-y-8">
+              <div className="lg:col-span-3 space-y-6 sm:space-y-8">
                 {FAQ_META.map((item) => (
                   <div key={item.qKey}>
                     <h3 className="font-semibold mb-2">{t(item.qKey)}</h3>

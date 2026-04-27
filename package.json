@@ -14,7 +14,10 @@
     "db:studio": "prisma studio",
     "i18n:sync": "tsx scripts/translate-i18n.ts",
     "i18n:sync:force": "tsx scripts/translate-i18n.ts --force",
-    "i18n:sync:dry": "tsx scripts/translate-i18n.ts --dry"
+    "i18n:sync:dry": "tsx scripts/translate-i18n.ts --dry",
+    "cms:translate-faq": "tsx scripts/translate-cms-faq.ts",
+    "cms:translate-faq:dry": "tsx scripts/translate-cms-faq.ts --dry",
+    "cms:translate-faq:force": "tsx scripts/translate-cms-faq.ts --force"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.53",

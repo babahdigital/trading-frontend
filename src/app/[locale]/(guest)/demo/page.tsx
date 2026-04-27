@@ -100,10 +100,10 @@ export default async function DemoPage() {
               <h1 className="t-display-page mb-5">
                 {t('hero_title_l1')}<br className="hidden sm:block" /> {t('hero_title_l2')}
               </h1>
-              <p className="t-lead text-foreground/70 mb-8 max-w-2xl">
+              <p className="t-lead text-foreground/70 mb-8 max-w-xl sm:max-w-2xl">
                 {t('hero_subtitle')}
               </p>
-              <div className="flex flex-col sm:flex-row flex-wrap gap-3">
+              <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
                 <Link href="/register/signal?mode=demo&product=robot-meta" className="btn-primary inline-flex items-center justify-center gap-2 px-6 py-3 rounded-md text-sm font-medium">
                   {t('hero_cta_meta')} <ArrowRight className="w-4 h-4" />
                 </Link>
@@ -145,14 +145,14 @@ export default async function DemoPage() {
           <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-3">{t('tracks_eyebrow')}</p>
             <h2 className="t-display-sub mb-4">{t('tracks_title')}</h2>
-            <p className="t-body text-foreground/60 max-w-2xl mb-12">
+            <p className="t-body text-foreground/60 max-w-xl sm:max-w-2xl mb-8 sm:mb-12">
               {t('tracks_subtitle')}
             </p>
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-3 gap-5 sm:gap-6">
               {TRACK_META.map((track) => (
                 <div
                   key={track.titleKey}
-                  className={`rounded-xl p-6 sm:p-7 border transition-colors ${
+                  className={`rounded-xl p-5 sm:p-6 md:p-7 border transition-colors ${
                     track.popular
                       ? 'border-amber-500 ring-1 ring-amber-500 bg-amber-500/[0.02]'
                       : 'border-border/80 bg-card hover:border-amber-500/30'
@@ -199,12 +199,12 @@ export default async function DemoPage() {
           <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-3">{t('steps_eyebrow')}</p>
             <h2 className="t-display-sub mb-4">{t('steps_title')}</h2>
-            <p className="t-body text-foreground/60 max-w-2xl mb-12">
+            <p className="t-body text-foreground/60 max-w-xl sm:max-w-2xl mb-8 sm:mb-12">
               {t('steps_subtitle')}
             </p>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
               {STEP_META.map((s) => (
-                <div key={s.step} className="rounded-xl border border-border/80 bg-card p-6">
+                <div key={s.step} className="rounded-xl border border-border/80 bg-card p-5 sm:p-6">
                   <div className="t-eyebrow mb-3 text-amber-400">{s.step}</div>
                   <h3 className="text-base font-semibold mb-2">{t(s.titleKey)}</h3>
                   <p className="t-body-sm text-foreground/65 leading-relaxed">{t(s.descKey)}</p>
@@ -217,7 +217,7 @@ export default async function DemoPage() {
         {/* What happens after demo */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <div className="grid lg:grid-cols-5 gap-12">
+            <div className="grid lg:grid-cols-5 gap-y-8 lg:gap-y-12 lg:gap-x-12">
               <div className="lg:col-span-2">
                 <p className="t-eyebrow mb-3">{t('after_eyebrow')}</p>
                 <h2 className="t-display-sub">{t('after_title')}</h2>

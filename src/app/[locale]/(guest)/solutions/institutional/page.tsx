@@ -55,7 +55,7 @@ export default async function InstitutionalPage() {
             <h1 className="t-display-page mb-6">
               {t('hero_title')}
             </h1>
-            <p className="t-lead text-foreground/60 max-w-2xl">
+            <p className="t-lead text-foreground/60 max-w-xl sm:max-w-2xl">
               {t('hero_subtitle')}
             </p>
           </div>
@@ -81,8 +81,8 @@ export default async function InstitutionalPage() {
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">{t('cap_eyebrow')}</p>
-            <h2 className="t-display-sub mb-12">{t('cap_title')}</h2>
-            <div className="grid md:grid-cols-2 gap-8">
+            <h2 className="t-display-sub mb-8 sm:mb-12">{t('cap_title')}</h2>
+            <div className="grid md:grid-cols-2 gap-5 sm:gap-6 md:gap-8">
               {FEATURE_META.map((feature) => (
                 <div key={feature.titleKey} className="card-enterprise">
                   <h3 className="font-semibold mb-3">{t(feature.titleKey)}</h3>
@@ -97,7 +97,7 @@ export default async function InstitutionalPage() {
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">{t('pricing_eyebrow')}</p>
-            <h2 className="t-display-sub mb-12">{t('pricing_title')}</h2>
+            <h2 className="t-display-sub mb-8 sm:mb-12">{t('pricing_title')}</h2>
             <div className="card-enterprise max-w-xl">
               <p className="t-eyebrow mb-4">{t('pricing_label')}</p>
               <p className="font-display text-4xl font-medium mb-2">{t('pricing_value')}</p>
@@ -115,11 +115,11 @@ export default async function InstitutionalPage() {
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">{t('process_eyebrow')}</p>
-            <h2 className="t-display-sub mb-12">{t('process_title')}</h2>
-            <div className="grid md:grid-cols-5 gap-6">
+            <h2 className="t-display-sub mb-8 sm:mb-12">{t('process_title')}</h2>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-x-4 sm:gap-x-6 gap-y-6 sm:gap-y-8">
               {STEP_META.map((step, i) => (
                 <div key={step.step} className="relative">
-                  <p className="font-mono text-5xl text-amber-500/20 mb-3">{step.step}</p>
+                  <p className="font-mono text-4xl sm:text-5xl text-amber-500/20 mb-3">{step.step}</p>
                   <h3 className="font-semibold text-sm mb-2">{t(step.titleKey)}</h3>
                   <p className="text-xs text-foreground/60 leading-relaxed">{t(step.descKey)}</p>
                   {i < STEP_META.length - 1 && (
@@ -134,12 +134,12 @@ export default async function InstitutionalPage() {
         {/* FAQ */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <div className="grid lg:grid-cols-5 gap-12">
+            <div className="grid lg:grid-cols-5 gap-y-8 lg:gap-y-12 lg:gap-x-12">
               <div className="lg:col-span-2">
                 <p className="t-eyebrow mb-4">{t('faq_eyebrow')}</p>
                 <h2 className="t-display-sub">{t('faq_title')}</h2>
               </div>
-              <div className="lg:col-span-3 space-y-8">
+              <div className="lg:col-span-3 space-y-6 sm:space-y-8">
                 {FAQ_META.map((item) => (
                   <div key={item.qKey}>
                     <h3 className="font-semibold mb-2">{t(item.qKey)}</h3>

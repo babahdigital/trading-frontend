@@ -113,35 +113,18 @@ const STEP_META = [
   { step: '04', titleKey: 'step4_title', descKey: 'step4_desc' },
 ] as const;
 
-const FAQ_ITEMS = [
-  {
-    q: 'Bot ini berbeda dari copy-trading biasa?',
-    a: 'Berbeda. Copy-trading meniru posisi trader lain. Bot kami menjalankan algoritma kuantitatif independen — strategi sudah backtested, ada risk overlay, dan tidak bergantung pada satu trader. Performance reproducible.',
-  },
-  {
-    q: 'Bagaimana keamanan API key?',
-    a: 'Kami WAJIB customer membuat API key dengan permission "Enable Reading" dan "Enable Futures Trade" SAJA — JANGAN aktifkan "Enable Withdrawals". Backend kami juga akan REJECT key yang punya withdraw permission. Selain itu, key dienkripsi via Fernet + HashiCorp Vault.',
-  },
-  {
-    q: 'Berapa modal minimum untuk Crypto Basic?',
-    a: 'Rekomendasi minimum $500 USDT di Binance Futures untuk Basic ($1,000 untuk Pro, $10,000 untuk HNWI). Jumlah lebih kecil tetap bisa, namun position sizing 1% akan terbatas dan compound effect berkurang.',
-  },
-  {
-    q: 'Apa expected win rate dan drawdown?',
-    a: 'Berdasarkan backtest 2 tahun: win rate 55-62% (lebih rendah dari forex karena volatilitas), namun risk-reward rata-rata 1:2.3 sehingga profit factor positif. Max drawdown historis -12.5% pada periode crash 2024-Q3.',
-  },
-  {
-    q: 'Apakah bisa pakai testnet dulu?',
-    a: 'Bisa. Saat submit API key ada toggle "testnet". Bot akan menjalankan strategi di Binance Testnet (uang simulasi) dengan flow yang sama persis. Banyak customer pakai 1 minggu testnet sebelum live.',
-  },
-  {
-    q: 'Bagaimana kalau Binance maintenance atau saya mau pause sementara?',
-    a: 'Customer bisa trigger kill switch self-serve di /portal/crypto/risk dengan alasan. Bot halt dispatcher pass — posisi terbuka tetap dengan SL/TP, tidak force-close. Setelah maintenance selesai, kontak support untuk cabut kill switch.',
-  },
-];
+const FAQ_KEYS = [
+  { qKey: 'faq_q1', aKey: 'faq_a1' },
+  { qKey: 'faq_q2', aKey: 'faq_a2' },
+  { qKey: 'faq_q3', aKey: 'faq_a3' },
+  { qKey: 'faq_q4', aKey: 'faq_a4' },
+  { qKey: 'faq_q5', aKey: 'faq_a5' },
+  { qKey: 'faq_q6', aKey: 'faq_a6' },
+] as const;
 
 export default async function CryptoBotSolutionPage() {
   const t = await getTranslations('solutions_crypto');
+  const FAQ_ITEMS = FAQ_KEYS.map((k) => ({ q: t(k.qKey), a: t(k.aKey) }));
   const breadcrumb = breadcrumbSchema([
     { name: 'Home', url: '/' },
     { name: 'Solutions', url: '/solutions/signal' },
@@ -167,10 +150,10 @@ export default async function CryptoBotSolutionPage() {
               <h1 className="t-display-page mb-5">
                 {t('hero_title_l1')}<br />{t('hero_title_l2')}
               </h1>
-              <p className="t-lead text-foreground/70 mb-8 max-w-2xl">
+              <p className="t-lead text-foreground/70 mb-8 max-w-xl sm:max-w-2xl">
                 {t('hero_subtitle')}
               </p>
-              <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
                 <Link href="/register/crypto" className="btn-primary inline-flex items-center justify-center gap-2 px-6 py-3 rounded-md text-sm font-medium">
                   {t('hero_cta_register')} <ArrowRight className="w-4 h-4" />
                 </Link>
@@ -181,10 +164,10 @@ export default async function CryptoBotSolutionPage() {
                   {t('hero_cta_consult')}
                 </Link>
               </div>
-              <p className="text-xs text-foreground/50 mt-6 max-w-2xl">
+              <p className="text-xs text-foreground/50 mt-6 max-w-xl sm:max-w-2xl">
                 {t('hero_beta_note')}
               </p>
-              <div className="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-6 text-sm">
+              <div className="mt-8 sm:mt-10 grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 text-sm">
                 <Stat label={t('stat1_label')} value={t('stat1_value')} sub={t('stat1_sub')} />
                 <Stat label={t('stat2_label')} value={t('stat2_value')} sub={t('stat2_sub')} />
                 <Stat label={t('stat3_label')} value={t('stat3_value')} sub={t('stat3_sub')} />
@@ -198,7 +181,7 @@ export default async function CryptoBotSolutionPage() {
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-3">{t('feat_eyebrow')}</p>
-            <h2 className="t-display-section mb-12 max-w-2xl">
+            <h2 className="t-display-section mb-8 sm:mb-12 max-w-xl sm:max-w-2xl">
               {t('feat_title')}
             </h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -219,8 +202,8 @@ export default async function CryptoBotSolutionPage() {
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-3">{t('strat_eyebrow')}</p>
-            <h2 className="t-display-section mb-3 max-w-2xl">{t('strat_title')}</h2>
-            <p className="t-body text-foreground/60 max-w-2xl mb-12">
+            <h2 className="t-display-section mb-3 max-w-xl sm:max-w-2xl">{t('strat_title')}</h2>
+            <p className="t-body text-foreground/60 max-w-xl sm:max-w-2xl mb-8 sm:mb-12">
               {t('strat_subtitle')}
             </p>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -249,8 +232,8 @@ export default async function CryptoBotSolutionPage() {
         <section id="pricing" className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-3">{t('pricing_eyebrow')}</p>
-            <h2 className="t-display-section mb-3 max-w-2xl">{t('pricing_title')}</h2>
-            <p className="t-body text-foreground/60 max-w-2xl mb-12">
+            <h2 className="t-display-section mb-3 max-w-xl sm:max-w-2xl">{t('pricing_title')}</h2>
+            <p className="t-body text-foreground/60 max-w-xl sm:max-w-2xl mb-8 sm:mb-12">
               {t('pricing_subtitle')}
             </p>
             <div className="grid md:grid-cols-3 gap-5">
@@ -303,7 +286,7 @@ export default async function CryptoBotSolutionPage() {
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-3">{t('steps_eyebrow')}</p>
-            <h2 className="t-display-section mb-12 max-w-2xl">{t('steps_title')}</h2>
+            <h2 className="t-display-section mb-8 sm:mb-12 max-w-xl sm:max-w-2xl">{t('steps_title')}</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
               {STEP_META.map((s) => (
                 <div key={s.step} className="card-enterprise">
@@ -320,8 +303,8 @@ export default async function CryptoBotSolutionPage() {
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-3">{t('faq_eyebrow')}</p>
-            <h2 className="t-display-section mb-12 max-w-2xl">{t('faq_title')}</h2>
-            <div className="grid md:grid-cols-2 gap-x-10 gap-y-8 max-w-5xl">
+            <h2 className="t-display-section mb-8 sm:mb-12 max-w-xl sm:max-w-2xl">{t('faq_title')}</h2>
+            <div className="grid md:grid-cols-2 gap-x-8 lg:gap-x-10 gap-y-6 sm:gap-y-8 max-w-5xl">
               {FAQ_ITEMS.map((item) => (
                 <div key={item.q}>
                   <h3 className="text-base font-semibold mb-2 leading-snug">{item.q}</h3>

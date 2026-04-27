@@ -165,7 +165,7 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
           <div className="container-default px-4 sm:px-6 text-center">
             <p className="t-eyebrow mb-4">{tp('hero_eyebrow')}</p>
             <h1 className="t-display-page mb-4">{t('title')}</h1>
-            <p className="t-lead text-foreground/60 max-w-2xl mx-auto">{t('subtitle')}</p>
+            <p className="t-lead text-foreground/60 max-w-xl sm:max-w-2xl mx-auto">{t('subtitle')}</p>
             <p className="text-xs text-amber-300 font-mono uppercase tracking-wider mt-6">
               {tp('hero_disclaimer')}
             </p>
@@ -212,8 +212,8 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
         <section id="apis" className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-3">{tp('apis_eyebrow')}</p>
-            <h2 className="t-display-section mb-3 max-w-2xl">{tp('apis_title')}</h2>
-            <p className="t-body text-foreground/60 max-w-2xl mb-12">
+            <h2 className="t-display-section mb-3 max-w-xl sm:max-w-2xl">{tp('apis_title')}</h2>
+            <p className="t-body text-foreground/60 max-w-xl sm:max-w-2xl mb-8 sm:mb-12">
               {tp('apis_subtitle_prefix')}
               {' '}<Link href="/contact?subject=api-docs" className="text-amber-400 hover:underline">{tp('apis_subtitle_link')}</Link>.
             </p>
@@ -267,11 +267,11 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-3">{tp('inst_eyebrow')}</p>
-            <h2 className="t-display-section mb-3 max-w-2xl">{tp('inst_title')}</h2>
-            <p className="t-body text-foreground/60 max-w-2xl mb-12">
+            <h2 className="t-display-section mb-3 max-w-xl sm:max-w-2xl">{tp('inst_title')}</h2>
+            <p className="t-body text-foreground/60 max-w-xl sm:max-w-2xl mb-8 sm:mb-12">
               {tp('inst_subtitle_part1')} <strong>{tp('inst_subtitle_strong')}</strong> {tp('inst_subtitle_part2')}
             </p>
-            <div className="grid md:grid-cols-2 gap-5 max-w-4xl">
+            <div className="grid md:grid-cols-2 gap-5 sm:gap-6 max-w-4xl">
               <div className="card-enterprise">
                 <h3 className="text-xl font-semibold mb-2">{tp('inst_api_title')}</h3>
                 <p className="font-display text-3xl font-medium mb-1">{tp('inst_api_price')}</p>
@@ -307,8 +307,8 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
           <section className="section-padding border-b border-border/60">
             <div className="container-default px-4 sm:px-6">
               <p className="t-eyebrow mb-3">{tp('cms_eyebrow')}</p>
-              <h2 className="t-display-sub mb-12">{tp('cms_title')}</h2>
-              <div className="grid md:grid-cols-3 gap-6">
+              <h2 className="t-display-sub mb-8 sm:mb-12">{tp('cms_title')}</h2>
+              <div className="grid md:grid-cols-3 gap-5 sm:gap-6">
                 {cmsTiers.map((tier) => (
                   <div key={tier.slug} className="card-enterprise flex flex-col">
                     <h3 className="text-xl font-medium">{tier.name}</h3>
@@ -384,9 +384,9 @@ function ProductSection({
           <Icon className="h-4 w-4 text-amber-400" />
           <p className="t-eyebrow !mb-0">{eyebrow}</p>
         </div>
-        <h2 className="t-display-section mb-3 max-w-2xl">{title}</h2>
-        <p className="t-body text-foreground/60 max-w-2xl mb-12">{subtitle}</p>
-        <div className="grid md:grid-cols-3 gap-5">
+        <h2 className="t-display-section mb-3 max-w-xl sm:max-w-2xl">{title}</h2>
+        <p className="t-body text-foreground/60 max-w-xl sm:max-w-2xl mb-8 sm:mb-12">{subtitle}</p>
+        <div className="grid md:grid-cols-3 gap-5 sm:gap-6">
           {tiers.map((tier) => (
             <div
               key={tier.name}

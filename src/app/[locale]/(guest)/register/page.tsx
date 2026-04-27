@@ -7,11 +7,19 @@ export const dynamic = 'force-dynamic';
 
 const log = createLogger('app/register/page');
 
-export async function generateMetadata() {
-  return getPageMetadata('/register', {
-    title: 'Register — BabahAlgo',
-    description: 'Choose your trading package and get started with BabahAlgo',
-  });
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const isEn = locale === 'en';
+  return getPageMetadata(
+    '/register',
+    {
+      title: isEn ? 'Register — BabahAlgo' : 'Daftar — BabahAlgo',
+      description: isEn
+        ? 'Choose your trading package and get started with BabahAlgo.'
+        : 'Pilih paket trading Anda dan mulai onboarding bersama BabahAlgo.',
+    },
+    locale === 'en' ? 'en' : 'id',
+  );
 }
 
 export default async function RegisterPage() {

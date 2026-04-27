@@ -11,12 +11,21 @@ import { breadcrumbSchema, financialProductSchema, ldJson, organizationSchema } 
 
 export const dynamic = 'force-dynamic';
 
-export async function generateMetadata() {
-  return getPageMetadata('/demo', {
-    title: 'Demo Gratis — Robot Meta · Robot Crypto · Indicator | BabahAlgo',
-    description:
-      'Coba Robot Meta (MT5 demo) atau Robot Crypto (Binance Testnet) gratis selama beta. Tidak masuk track record live. Upgrade ke tier berbayar kapan saja.',
-  });
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const isEn = locale === 'en';
+  return getPageMetadata(
+    '/demo',
+    {
+      title: isEn
+        ? 'Free Demo — Robot Meta · Robot Crypto · Indicator | BabahAlgo'
+        : 'Demo Gratis — Robot Meta · Robot Crypto · Indicator | BabahAlgo',
+      description: isEn
+        ? 'Try Robot Meta (MT5 demo) or Robot Crypto (Binance Testnet) for free during beta. Not counted in the live track record. Upgrade to a paid tier any time.'
+        : 'Coba Robot Meta (MT5 demo) atau Robot Crypto (Binance Testnet) gratis selama beta. Tidak masuk track record live. Upgrade ke tier berbayar kapan saja.',
+    },
+    locale === 'en' ? 'en' : 'id',
+  );
 }
 
 interface TrackMeta {

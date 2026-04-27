@@ -17,12 +17,21 @@ import {
   TrendingUp,
 } from 'lucide-react';
 
-export async function generateMetadata() {
-  return getPageMetadata('/solutions/crypto', {
-    title: 'Robot Crypto — Auto-trading di Binance | BabahAlgo',
-    description:
-      'Robot Crypto institusional untuk Binance Spot + USDT-M Futures. Strategi SMC, Wyckoff, dan momentum 24/7 dengan framework risiko 12-layer. Modal tetap di akun Binance Anda — tidak ada custody dana.',
-  });
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const isEn = locale === 'en';
+  return getPageMetadata(
+    '/solutions/crypto',
+    {
+      title: isEn
+        ? 'Robot Crypto — Auto-trading on Binance | BabahAlgo'
+        : 'Robot Crypto — Auto-trading di Binance | BabahAlgo',
+      description: isEn
+        ? 'Institutional Robot Crypto for Binance Spot + USDT-M Futures. SMC, Wyckoff, and momentum strategies running 24/7 under a 12-layer risk framework. Capital stays in your Binance account — no fund custody.'
+        : 'Robot Crypto institusional untuk Binance Spot + USDT-M Futures. Strategi SMC, Wyckoff, dan momentum 24/7 dengan framework risiko 12-layer. Modal tetap di akun Binance Anda — tidak ada custody dana.',
+    },
+    locale === 'en' ? 'en' : 'id',
+  );
 }
 
 const FEATURE_META = [

@@ -24,13 +24,20 @@ type Tier = Parameters<typeof localizePricingTier>[0];
 
 export const dynamic = 'force-dynamic';
 
-export async function generateMetadata() {
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
   const t = await getTranslations('pricing');
-  return getPageMetadata('/pricing', {
-    title: `${t('title')} — BabahAlgo`,
-    description:
-      'Robot Meta MT5 $19-$299/bulan, Robot Crypto Binance $49-$499/bulan, VPS License $3K+, 8 Developer API marketplace, dan akses Institusional. Zero-custody — modal selalu di akun broker / Binance Anda.',
-  });
+  const isEn = locale === 'en';
+  return getPageMetadata(
+    '/pricing',
+    {
+      title: `${t('title')} — BabahAlgo`,
+      description: isEn
+        ? 'Robot Meta MT5 $19-$299/mo, Robot Crypto Binance $49-$499/mo, VPS License from $3K, 8 Developer API marketplace, and Institutional access. Zero-custody — capital always stays in your broker / Binance account.'
+        : 'Robot Meta MT5 $19-$299/bulan, Robot Crypto Binance $49-$499/bulan, VPS License mulai $3K, 8 Developer API marketplace, dan akses Institusional. Zero-custody — modal selalu di akun broker / Binance Anda.',
+    },
+    locale === 'en' ? 'en' : 'id',
+  );
 }
 
 // Tier metadata: prices, hrefs, popular flag stay hardcoded (universal).

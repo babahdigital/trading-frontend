@@ -8,12 +8,21 @@ import { breadcrumbSchema, ldJson, organizationSchema } from '@/lib/seo-jsonld';
 
 export const dynamic = 'force-dynamic';
 
-export async function generateMetadata() {
-  return getPageMetadata('/about', {
-    title: 'Tentang BabahAlgo — Quantitative Trading Infrastructure | CV Babah Digital',
-    description:
-      'BabahAlgo dioperasikan oleh CV Babah Digital. Tim quant Indonesia membangun infrastruktur trading kuantitatif: Robot Meta untuk Forex MT5 dan Robot Crypto untuk Binance Spot + Futures. Modal selalu di akun broker / Binance customer — zero-custody.',
-  });
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const isEn = locale === 'en';
+  return getPageMetadata(
+    '/about',
+    {
+      title: isEn
+        ? 'About BabahAlgo — Quantitative Trading Infrastructure | CV Babah Digital'
+        : 'Tentang BabahAlgo — Quantitative Trading Infrastructure | CV Babah Digital',
+      description: isEn
+        ? 'BabahAlgo is operated by CV Babah Digital. An Indonesian quant team building quantitative trading infrastructure: Robot Meta for Forex MT5 and Robot Crypto for Binance Spot + Futures. Capital always stays in the customer broker / Binance account — zero-custody.'
+        : 'BabahAlgo dioperasikan oleh CV Babah Digital. Tim quant Indonesia membangun infrastruktur trading kuantitatif: Robot Meta untuk Forex MT5 dan Robot Crypto untuk Binance Spot + Futures. Modal selalu di akun broker / Binance customer — zero-custody.',
+    },
+    locale === 'en' ? 'en' : 'id',
+  );
 }
 
 const MILESTONE_META = [

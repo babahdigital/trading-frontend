@@ -6,12 +6,19 @@ import { getPageMetadata } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
 
-export async function generateMetadata() {
-  return getPageMetadata('/solutions', {
-    title: 'Solutions — Robot Meta · Robot Crypto · VPS License · Developer APIs | BabahAlgo',
-    description:
-      'Pilihan engagement model: Robot Meta (Forex MT5) mulai $19/bulan, Robot Crypto (Binance) mulai $49/bulan, VPS License $3K+ setup, atau akses Developer APIs. Zero-custody — modal tetap di akun Anda.',
-  });
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const isEn = locale === 'en';
+  return getPageMetadata(
+    '/solutions',
+    {
+      title: 'Solutions — Robot Meta · Robot Crypto · VPS License · Developer APIs | BabahAlgo',
+      description: isEn
+        ? 'Choose your engagement model: Robot Meta (Forex MT5) from $19/mo, Robot Crypto (Binance) from $49/mo, VPS License from $3K setup, or Developer APIs access. Zero-custody — capital stays in your account.'
+        : 'Pilihan engagement model: Robot Meta (Forex MT5) mulai $19/bulan, Robot Crypto (Binance) mulai $49/bulan, VPS License $3K+ setup, atau akses Developer APIs. Zero-custody — modal tetap di akun Anda.',
+    },
+    locale === 'en' ? 'en' : 'id',
+  );
 }
 
 const SOLUTIONS = [

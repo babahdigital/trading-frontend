@@ -5,12 +5,19 @@ import { getPageMetadata } from '@/lib/seo';
 import { breadcrumbSchema, ldJson, organizationSchema, professionalServiceSchema } from '@/lib/seo-jsonld';
 import { getTranslations } from 'next-intl/server';
 
-export async function generateMetadata() {
-  return getPageMetadata('/platform', {
-    title: 'Platform Overview — Quantitative Trading Infrastructure | BabahAlgo',
-    description:
-      'Tiga pilar BabahAlgo: AI Confluence Engine, Sub-2ms ZeroMQ Bridge, 12-Layer Risk Framework. Multi-strategi (SMC, Wyckoff, Momentum) untuk Forex + Crypto.',
-  });
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const isEn = locale === 'en';
+  return getPageMetadata(
+    '/platform',
+    {
+      title: 'Platform Overview — Quantitative Trading Infrastructure | BabahAlgo',
+      description: isEn
+        ? 'Three BabahAlgo pillars: AI Confluence Engine, Sub-2ms ZeroMQ Bridge, 12-Layer Risk Framework. Multi-strategy (SMC, Wyckoff, Momentum) across Forex + Crypto.'
+        : 'Tiga pilar BabahAlgo: AI Confluence Engine, Sub-2ms ZeroMQ Bridge, 12-Layer Risk Framework. Multi-strategi (SMC, Wyckoff, Momentum) untuk Forex + Crypto.',
+    },
+    locale === 'en' ? 'en' : 'id',
+  );
 }
 import { ArrowRight } from 'lucide-react';
 

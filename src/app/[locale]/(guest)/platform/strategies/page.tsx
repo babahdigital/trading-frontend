@@ -70,11 +70,16 @@ export default async function StrategiesPage() {
             <h1 className="t-display-page mb-6">
               Strategy framework
             </h1>
-            <p className="text-foreground/60 leading-relaxed mb-8 max-w-2xl">
+            <p className="text-foreground/60 leading-relaxed mb-3 max-w-2xl">
               Six independently validated strategies, each operating on a strict
               multi-timeframe confluence model. Every strategy is backtested across a
               minimum of 24 months of historical data and validated through walk-forward
               analysis before deployment.
+            </p>
+            <p className="text-xs text-foreground/50 italic max-w-2xl mb-8">
+              Win-rate values below are from in-house backtest (24-month walk-forward,
+              Q1 2024–Q4 2025). Live track record publishes after Q3 2026 — past performance
+              does not guarantee future results.
             </p>
           </div>
         </section>

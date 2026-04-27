@@ -51,7 +51,7 @@ const TRACKING_PILLARS = [
   {
     icon: ScanLine,
     title: 'Independent verification',
-    desc: 'Equity statement diaudit pihak ketiga (MyFxBook + partner broker statement). Akses read-only investor password tersedia atas permintaan briefing.',
+    desc: 'Equity statement direkonsiliasi terhadap partner broker statement setiap kuartal. Database produksi internal (forex + crypto backend) sebagai source of truth. Akses verifikasi tersedia atas permintaan briefing klien institusional.',
   },
 ];
 
@@ -154,9 +154,9 @@ export default function PerformancePage() {
                 />
               </div>
               <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-foreground/50">
-                <span>Audited oleh MyFxBook (read-only)</span>
+                <span>Database produksi internal · forex + crypto backend</span>
                 <span aria-hidden className="w-px h-3 bg-border" />
-                <span>Partner broker — laporan kuartalan</span>
+                <span>Direkonsiliasi terhadap broker statement kuartalan</span>
               </div>
             </div>
           </section>
@@ -279,40 +279,29 @@ export default function PerformancePage() {
             <h2 className="t-display-sub mb-4">Kepercayaan dibangun bukan hanya dari klaim</h2>
             <p className="t-body text-foreground/60 max-w-2xl mb-12">
               Setiap angka yang nantinya kami publikasi datang dari data broker langsung
-              + audit pihak ketiga. Klien briefing dapat akses read-only investor password
-              untuk verifikasi independen.
+              + audit pihak ketiga. Klien briefing dapat akses verifikasi independen
+              ke equity log produksi.
             </p>
             <div className="grid md:grid-cols-3 gap-6">
               {[
                 {
-                  title: 'MyFxBook (planned)',
-                  desc: 'Production account akan terhubung dengan investor password read-only. Equity, trade history, dan drawdown ter-verifikasi independen.',
-                  link: { href: 'https://www.myfxbook.com', label: 'MyFxBook' },
+                  title: 'Database produksi internal',
+                  desc: 'Track record dibangun langsung dari database forex backend + crypto backend kami. Setiap trade ter-log dengan timestamp, harga eksekusi, dan rationale. Source of truth tunggal untuk audit.',
                 },
                 {
                   title: 'Partner broker teregulasi',
-                  desc: 'Eksekusi via Exness — broker partner dengan FCA, CySEC, dan FSCA license. Statement broker tersedia atas permintaan klien institusional.',
+                  desc: 'Eksekusi via Exness — broker partner dengan FCA, CySEC, dan FSCA license. Statement broker tersedia atas permintaan klien institusional sebagai cross-check independen.',
                 },
                 {
-                  title: 'Audit kuartalan internal',
-                  desc: 'Performance data direkonsiliasi setiap kuartal terhadap broker statement + on-chain proof (untuk Robot Crypto). Mismatch ≥0.1% di-investigasi penuh.',
+                  title: 'Rekonsiliasi kuartalan',
+                  desc: 'Performance data direkonsiliasi setiap kuartal terhadap broker statement + on-chain proof untuk Robot Crypto. Mismatch ≥0.1% di-investigasi penuh dan terdokumentasi.',
                 },
               ].map((card) => (
                 <div key={card.title} className="rounded-xl border border-border/80 bg-card p-6 sm:p-7">
                   <h3 className="text-lg font-medium mb-3">{card.title}</h3>
-                  <p className="t-body-sm text-foreground/65 leading-relaxed mb-4">
+                  <p className="t-body-sm text-foreground/65 leading-relaxed">
                     {card.desc}
                   </p>
-                  {card.link && (
-                    <a
-                      href={card.link.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn-tertiary text-sm"
-                    >
-                      {card.link.label} <ArrowRight className="w-4 h-4" />
-                    </a>
-                  )}
                 </div>
               ))}
             </div>

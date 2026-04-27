@@ -83,7 +83,12 @@ export default async function GovernancePage() {
             <div className="max-w-3xl space-y-4 text-foreground/60 leading-relaxed">
               <p>
                 All client trades execute through{' '}
-                <a href="#" className="text-foreground underline underline-offset-4 hover:text-amber-400 transition-colors">
+                <a
+                  href="https://www.exness.com/"
+                  target="_blank"
+                  rel="noopener noreferrer sponsored"
+                  className="text-foreground underline underline-offset-4 hover:text-amber-400 transition-colors"
+                >
                   Exness
                 </a>
                 , a globally regulated multi-asset broker. Exness is our primary broker partner, selected

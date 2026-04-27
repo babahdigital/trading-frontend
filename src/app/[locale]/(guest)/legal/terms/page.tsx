@@ -113,9 +113,10 @@ export default function TermsPage() {
               <section>
                 <h2 className="t-display-sub mb-6 text-foreground">4. Subscription Plans and Services</h2>
                 <p>
-                  BabahAlgo offers several service tiers including Signal Service, VPS License management,
-                  VPS License, and Institutional mandates. Each service tier has specific terms, pricing,
-                  and conditions that are presented during the subscription or onboarding process.
+                  BabahAlgo offers several engagement models including Robot Meta (MetaTrader 5 auto-execution),
+                  Robot Crypto (Binance auto-trading), VPS License (on-prem deployment), Developer APIs, and
+                  Institutional mandates. Each model has specific terms, pricing, and conditions that are
+                  presented during the subscription or onboarding process.
                 </p>
                 <p className="mt-3">
                   Service descriptions, features, and pricing are subject to change. We will provide
@@ -157,9 +158,10 @@ export default function TermsPage() {
               <section>
                 <h2 className="t-display-sub mb-6 text-foreground">6. Cancellation and Refunds</h2>
                 <p>
-                  Signal Service subscriptions can be cancelled at any time. Cancellation takes effect at
-                  the end of the current billing period. No partial refunds are provided for unused
-                  portions of a billing period.
+                  Robot Meta and Robot Crypto subscriptions can be cancelled at any time. Cancellation takes
+                  effect at the end of the current billing period. No partial refunds are provided for unused
+                  portions of a billing period. Bot auto-detaches from your MetaTrader 5 / Binance account
+                  upon cancellation.
                 </p>
                 <p className="mt-3">
                   VPS License mandates can be terminated with written notice. Withdrawal of funds from

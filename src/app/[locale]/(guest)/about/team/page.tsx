@@ -25,7 +25,7 @@ const TEAM_FALLBACK = [
   {
     name: 'Client Success & Compliance',
     role: 'Onboarding · KYC · Customer Operations',
-    bio: `Customer-facing function yang menangani onboarding KYC institusional, dukungan teknis pelanggan, billing, dan compliance reporting. Tim menjamin setiap Signal/Crypto Bot/VPS License/API subscriber dilayani sesuai SLA tier-nya. Mereka juga mengelola review berkala dengan klien Institutional API access dan menjadi kontak utama untuk audit eksternal serta query regulator.`,
+    bio: `Customer-facing function yang menangani onboarding KYC institusional, dukungan teknis pelanggan, billing, dan compliance reporting. Tim menjamin setiap subscriber Robot Meta · MT5, Robot Crypto · Binance, VPS License, atau Developer APIs dilayani sesuai SLA tier-nya. Mereka juga mengelola review berkala dengan klien Institutional API access dan menjadi kontak utama untuk audit eksternal serta query regulator.`,
   },
 ];
 

@@ -53,7 +53,7 @@ export default async function RegisterInstitutionalPage() {
               <div className="card-enterprise">
                 <h3 className="font-display text-lg font-semibold mb-2">API Access</h3>
                 <p className="t-body-sm text-foreground/60 mb-4">
-                  Integrasi 9 Public API container kami ke infrastruktur Anda — News, Signals, Indicators, Calendar, Market Data, Execution Cloud, Correlation, Broker Specs, AI Explainability.
+                  Integrasi 8 Developer API container kami ke infrastruktur Anda — News, Signals, Indicators, Calendar, Market Data, Correlation, Broker Specs, AI Explainability.
                 </p>
                 <p className="font-mono text-amber-400 text-sm">Custom usage-based pricing</p>
               </div>

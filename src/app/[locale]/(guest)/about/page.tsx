@@ -26,7 +26,7 @@ const MILESTONES = [
 const PRINCIPLES = [
   { title: 'Focus over breadth', body: 'We trade 14 instruments, not 50. We use three timeframes, not twelve. Depth of understanding beats superficial coverage.' },
   { title: 'Build, don\'t buy', body: 'Every component — from signal generation to risk framework to client dashboard — is designed and built in-house. No white-label, no resold signals.' },
-  { title: 'Transparency is non-negotiable', body: 'Production track record on MyFxBook. Risk framework documented publicly. Fee structures with no hidden charges.' },
+  { title: 'Transparency is non-negotiable', body: 'Track record dibangun dari database produksi internal (forex backend + crypto backend), direkonsiliasi terhadap broker statement setiap kuartal. Equity statement broker tersedia atas permintaan klien institusional.' },
 ];
 
 export default async function AboutPage() {

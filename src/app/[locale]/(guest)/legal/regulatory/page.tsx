@@ -166,10 +166,11 @@ export default function RegulatoryPage() {
 
                 <h3 className="font-semibold text-foreground mt-6 mb-3">Performance reporting</h3>
                 <p>
-                  All performance data is reconciled quarterly against broker statements. We maintain
-                  independent verification through MyFxBook and provide detailed trade-level reporting
-                  to all clients. Performance marketing materials are reviewed for accuracy and
-                  compliance with applicable advertising standards.
+                  All performance data is reconciled quarterly against partner broker statements.
+                  Our internal forex and crypto production databases serve as the source of truth,
+                  with trade-level audit logs available to clients on request. Performance marketing
+                  materials are reviewed for accuracy and compliance with applicable advertising
+                  standards.
                 </p>
 
                 <h3 className="font-semibold text-foreground mt-6 mb-3">Conflict of interest management</h3>

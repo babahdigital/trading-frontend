@@ -10,7 +10,7 @@ const FEATURES = [
   {
     title: 'Priority API access',
     description:
-      'Akses prioritas ke 9 Public API container kami (News, Signals, Indicators, Calendar, Market Data, Execution Cloud, Correlation, Broker Specs, AI Explainability) dengan rate limit khusus + dedicated infrastructure lane.',
+      'Akses prioritas ke 8 Developer API container kami (News, Signals, Indicators, Calendar, Market Data, Correlation, Broker Specs, AI Explainability) dengan rate limit khusus + dedicated infrastructure lane.',
   },
   {
     title: 'White-label capability',

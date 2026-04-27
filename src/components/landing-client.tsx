@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
@@ -292,6 +293,7 @@ const EMPTY_KPI: PerfKpi = {
 };
 
 export function LandingClient({ sections, testimonials, faqs }: LandingClientProps) {
+  const t = useTranslations('landing');
   const [equityData, setEquityData] = useState<{ time: string; value: number }[]>([]);
   const [equityPeriod, setEquityPeriod] = useState('90D');
   const [pricingTab, setPricingTab] = useState('forex');
@@ -381,30 +383,30 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
             <div className="lg:col-span-7">
               <AnimatedSection>
                 <div className="t-eyebrow mb-5">
-                  CV BABAH DIGITAL &middot; QUANTITATIVE INFRASTRUCTURE
+                  {t('hero_eyebrow')}
                 </div>
               </AnimatedSection>
 
               <AnimatedSection delay={0.1}>
                 <h1 className="t-display-hero text-foreground mb-7">
-                  {hero?.title || (<>Capital, with<br />conviction.</>)}
+                  {hero?.title || (<>{t('hero_title_fallback_l1')}<br />{t('hero_title_fallback_l2')}</>)}
                 </h1>
               </AnimatedSection>
 
               <AnimatedSection delay={0.2}>
                 <p className="t-lead text-muted-foreground max-w-xl mb-9">
-                  {hero?.subtitle || 'Sistem trading kuantitatif yang diaudit, dieksekusi, dan dijaga oleh disiplin — bukan emosi.'}
+                  {hero?.subtitle || t('hero_subtitle_fallback')}
                 </p>
               </AnimatedSection>
 
               <AnimatedSection delay={0.3}>
                 <div className="flex flex-wrap gap-3 mb-10">
                   <Link href="/contact" className="btn-primary">
-                    Schedule a briefing
+                    {t('hero_cta_primary')}
                     <ArrowRight className="w-4 h-4" />
                   </Link>
                   <Link href="/demo" className="btn-secondary">
-                    Coba demo gratis
+                    {t('hero_cta_secondary')}
                     <ArrowUpRight className="w-4 h-4" />
                   </Link>
                 </div>
@@ -470,24 +472,23 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-60" />
                             <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-400" />
                           </span>
-                          Beta · Founding members
+                          {t('founding_pill')}
                         </span>
                       </div>
 
                       <h2 className="font-display text-2xl md:text-3xl leading-tight text-foreground mb-2">
-                        Akses awal —<br /> gratis selama beta.
+                        {t('founding_card_title_l1')}<br /> {t('founding_card_title_l2')}
                       </h2>
                       <p className="text-sm text-muted-foreground leading-relaxed mb-6">
-                        100 founding members pertama dapat akses penuh Robot Meta + Robot
-                        Crypto tanpa biaya, hingga track record live publikasi Q3 2026.
+                        {t('founding_card_body')}
                       </p>
 
                       {/* Inline mini stats — tight, institutional */}
                       <div className="grid grid-cols-2 gap-x-6 gap-y-3 mb-6 pb-6 border-b border-border/50">
-                        <CapabilityInline value="6" label="Strategi" />
-                        <CapabilityInline value="12" label="Lapisan risiko" />
-                        <CapabilityInline value="14+" label="Aset support" />
-                        <CapabilityInline value="0" label="Custody dana" valueClass="text-emerald-400" />
+                        <CapabilityInline value="6" label={t('capability_strategy')} />
+                        <CapabilityInline value="12" label={t('capability_risk')} />
+                        <CapabilityInline value="14+" label={t('capability_assets')} />
+                        <CapabilityInline value="0" label={t('capability_custody')} valueClass="text-emerald-400" />
                       </div>
 
                       <div className="flex flex-wrap gap-2">
@@ -495,14 +496,14 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
                           href="/contact?subject=beta-founding-member"
                           className="btn-primary text-sm flex-1 justify-center"
                         >
-                          Apply
+                          {t('founding_apply')}
                           <ArrowRight className="w-4 h-4" />
                         </Link>
                         <Link
                           href="/demo"
                           className="btn-tertiary text-sm justify-center px-4"
                         >
-                          Coba demo gratis
+                          {t('founding_demo')}
                           <ArrowRight className="w-3 h-3" />
                         </Link>
                       </div>
@@ -526,7 +527,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
               <AnimatedSection>
                 <div className="flex items-center gap-2 mb-4">
                   <Sparkles className="w-4 h-4 text-amber-400" />
-                  <span className="t-eyebrow text-amber-400">FOUNDING MEMBERS BETA</span>
+                  <span className="t-eyebrow text-amber-400">{t('beta_eyebrow')}</span>
                 </div>
                 <h2 className="t-display-section text-foreground mb-4">
                   {betaSection.title}
@@ -622,7 +623,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
       <section className="section-padding border-t border-border/60">
         <div className="container-default px-4 sm:px-6">
           <AnimatedSection>
-            <div className="t-eyebrow mb-4">PRODUK ANDALAN</div>
+            <div className="t-eyebrow mb-4">{t('products_eyebrow')}</div>
             <h2 className="t-display-section text-foreground mb-4">
               {productsSection.title}
             </h2>
@@ -671,17 +672,17 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
       <section className="section-padding border-t border-border/60">
         <div className="container-default px-4 sm:px-6">
           <AnimatedSection>
-            <div className="t-eyebrow mb-4">TRACK RECORD</div>
+            <div className="t-eyebrow mb-4">{t('track_record_eyebrow')}</div>
             <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-10">
               <div>
                 <h2 className="t-display-section text-foreground mb-2">
                   {perfSource === 'empty' || filteredEquity.length === 0
-                    ? 'Sedang beta — track record live setelah 90 hari operasi.'
+                    ? t('track_record_beta_title')
                     : (perf?.title || 'Real money. Real audits.')}
                 </h2>
                 <p className="t-body-sm text-muted-foreground">
                   {perfSource === 'empty' || filteredEquity.length === 0
-                    ? 'Kami publikasi equity statement dan KPI hanya setelah produksi live ≥90 hari. Tidak ada angka palsu.'
+                    ? t('track_record_beta_subtitle')
                     : 'Verified · Production account · Updated every 4 hours'}
                 </p>
               </div>
@@ -690,7 +691,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
                   href="/performance"
                   className="btn-tertiary mt-4 md:mt-0"
                 >
-                  Full performance details
+                  {t('track_record_full_details')}
                   <ArrowRight className="w-4 h-4" />
                 </Link>
               )}
@@ -803,10 +804,10 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
       <section className="section-padding border-t border-border/60">
         <div className="container-default px-4 sm:px-6">
           <AnimatedSection>
-            <div className="t-eyebrow mb-4">PLATFORM</div>
-            <h2 className="t-display-section text-foreground mb-4">Built on three pillars.</h2>
+            <div className="t-eyebrow mb-4">{t('pillars_eyebrow')}</div>
+            <h2 className="t-display-section text-foreground mb-4">{t('pillars_title')}</h2>
             <p className="t-lead text-muted-foreground max-w-2xl mb-16">
-              Every trade passes through intelligence, execution, and risk control — in that order, every time.
+              {t('pillars_subtitle')}
             </p>
           </AnimatedSection>
 
@@ -845,10 +846,10 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
       <section className="section-padding border-t border-border/60">
         <div className="container-default px-4 sm:px-6">
           <AnimatedSection>
-            <div className="t-eyebrow mb-4">RISK FRAMEWORK</div>
-            <h2 className="t-display-section text-foreground mb-2">12 layers, every trade.</h2>
+            <div className="t-eyebrow mb-4">{t('risk_eyebrow')}</div>
+            <h2 className="t-display-section text-foreground mb-2">{t('risk_title')}</h2>
             <p className="t-lead text-muted-foreground max-w-2xl mb-16">
-              Risk control isn&apos;t a feature — it&apos;s the substrate every strategy runs on.
+              {t('risk_subtitle')}
             </p>
           </AnimatedSection>
 
@@ -878,8 +879,8 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
             {/* Left column — heading, description, tabs */}
             <div className="lg:col-span-4 lg:sticky lg:top-28 lg:self-start">
               <AnimatedSection>
-                <div className="t-eyebrow mb-4">PRICING</div>
-                <h2 className="t-display-section text-foreground mb-4">Choose your path.</h2>
+                <div className="t-eyebrow mb-4">{t('pricing_eyebrow')}</div>
+                <h2 className="t-display-section text-foreground mb-4">{t('pricing_title')}</h2>
                 <p className="t-body text-muted-foreground mb-8">
                   Three engagement models, each designed for a different type of capital.
                 </p>
@@ -1027,7 +1028,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
         <section className="section-padding border-t border-border/60">
           <div className="container-default px-4 sm:px-6">
             <AnimatedSection>
-              <div className="t-eyebrow mb-4">DIBANGUN DI ATAS</div>
+              <div className="t-eyebrow mb-4">{t('trust_eyebrow')}</div>
               <h2 className="t-display-section text-foreground mb-4">
                 Stack institusional, bukan kemasan.
               </h2>
@@ -1057,7 +1058,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
 
             <div className="rounded-xl border border-border/80 bg-card p-6 md:p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
-                <p className="t-eyebrow text-amber-400 mb-2">UNDANGAN</p>
+                <p className="t-eyebrow text-amber-400 mb-2">{t('trust_invite_eyebrow')}</p>
                 <p className="t-body text-foreground">
                   Founding members feedback masuk langsung ke roadmap engineering kami.
                 </p>
@@ -1079,15 +1080,15 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
           {/* Header row — heading left, CTA right */}
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-12">
             <AnimatedSection>
-              <div className="t-eyebrow mb-4">FAQ</div>
-              <h2 className="t-display-section text-foreground mb-2">Common questions.</h2>
+              <div className="t-eyebrow mb-4">{t('faq_eyebrow')}</div>
+              <h2 className="t-display-section text-foreground mb-2">{t('faq_title')}</h2>
               <p className="t-body text-muted-foreground">
-                Can&apos;t find what you&apos;re looking for?
+                {t('faq_subtitle')}
               </p>
             </AnimatedSection>
             <AnimatedSection delay={0.1}>
               <Link href="/contact" className="btn-tertiary shrink-0">
-                Schedule a 30-min briefing
+                {t('faq_briefing')}
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </AnimatedSection>
@@ -1134,28 +1135,28 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
 
         <div className="container-prose px-4 sm:px-6 text-center relative z-10">
           <AnimatedSection>
-            <div className="t-eyebrow mb-6">GET STARTED</div>
+            <div className="t-eyebrow mb-6">{t('cta_eyebrow')}</div>
             <h2 className="t-display-section text-foreground mb-6">
-              The next step is a conversation.
+              {t('cta_title')}
             </h2>
             <p className="t-lead text-muted-foreground mb-12">
-              A 30-minute briefing with our team to walk through the platform, framework, and fit for your capital.
+              {t('cta_subtitle')}
             </p>
           </AnimatedSection>
 
           <AnimatedSection delay={0.15}>
             <div className="flex flex-wrap justify-center gap-4 mb-8">
               <Link href="/contact" className="btn-primary">
-                Schedule a briefing
+                {t('hero_cta_primary')}
                 <ArrowRight className="w-4 h-4" />
               </Link>
               <Link href="/performance" className="btn-secondary">
-                View track record
+                {t('hero_view_track_record')}
                 <ArrowUpRight className="w-4 h-4" />
               </Link>
             </div>
             <p className="t-body-sm text-muted-foreground">
-              No commitment. No fee. No high-pressure sales.
+              {t('cta_no_pressure')}
             </p>
           </AnimatedSection>
         </div>

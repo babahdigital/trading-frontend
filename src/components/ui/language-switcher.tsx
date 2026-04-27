@@ -11,6 +11,14 @@ export function LanguageSwitcher() {
 
   const toggleLocale = () => {
     const newLocale = locale === 'id' ? 'en' : 'id';
+    // Persist explicit user choice via NEXT_LOCALE cookie. Without this, the
+    // geo-IP middleware's older cookie or next-intl's internal cookie may
+    // override the URL on subsequent visits — causing "I'm in Indonesia but
+    // pages still show English". Cookie matches geo-middleware's settings:
+    // 1-year persistence, root path, SameSite=lax, server-readable.
+    if (typeof document !== 'undefined') {
+      document.cookie = `NEXT_LOCALE=${newLocale}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`;
+    }
     router.replace(pathname, { locale: newLocale });
   };
 

@@ -33,11 +33,20 @@ if (typeof globalThis !== 'undefined') {
   setInterval(cleanup, 5 * 60 * 1000);
 }
 
-// next-intl middleware for locale detection on guest pages
+// next-intl middleware for locale detection on guest pages.
+//
+// localeDetection: false → URL is the single source of truth. With auto-detect
+// enabled (the default), next-intl reads the NEXT_LOCALE cookie and rewrites
+// `/` to `/en/` whenever the cookie says 'en' — even if the visitor is in
+// Indonesia. That causes "I'm in Indonesia but pages still show English"
+// when the cookie was locked to 'en' on a prior visit. Our outer
+// detectGeoLocale already handles first-visit redirect; once the cookie is
+// set, the URL is trusted.
 const intlMiddleware = createIntlMiddleware({
   locales,
   defaultLocale,
   localePrefix: 'as-needed',
+  localeDetection: false,
 });
 
 /**

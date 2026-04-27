@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { Input } from '@/components/ui/input';
@@ -8,6 +9,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Link } from '@/i18n/navigation';
 
 export default function RegisterVpsPage() {
+  const t = useTranslations('register');
+  const tVps = useTranslations('register.vps');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
@@ -34,11 +37,11 @@ export default function RegisterVpsPage() {
         setError(
           data.error?.fieldErrors
             ? Object.values(data.error.fieldErrors).flat().join(', ')
-            : 'Terjadi kesalahan'
+            : t('error_generic')
         );
       }
     } catch {
-      setError('Gagal mengirim. Silakan coba lagi.');
+      setError(tVps('error_submit_failed'));
     } finally {
       setLoading(false);
     }
@@ -55,73 +58,65 @@ export default function RegisterVpsPage() {
               {submitted ? (
                 <div className="card-enterprise text-center">
                   <div className="text-4xl mb-4">&#9989;</div>
-                  <h2 className="t-display-sub mb-2">Terima Kasih!</h2>
-                  <p className="t-lead text-foreground/60 mb-6">
-                    Tim kami akan menghubungi Anda dalam 1x24 jam untuk konsultasi lebih lanjut
-                    mengenai VPS License.
-                  </p>
+                  <h2 className="t-display-sub mb-2">{tVps('success_title')}</h2>
+                  <p className="t-lead text-foreground/60 mb-6">{tVps('success_body')}</p>
                   <Link
                     href="/"
                     className="text-foreground/50 hover:text-amber-400 transition-colors text-sm"
                   >
-                    Kembali ke Beranda
+                    {tVps('success_back')}
                   </Link>
                 </div>
               ) : (
                 <>
-                  <p className="t-eyebrow mb-4">Register</p>
-                  <h1 className="t-display-sub mb-2">Konsultasi VPS License</h1>
-                  <p className="t-lead text-foreground/60 mb-10">
-                    VPS License dimulai dari $3,000 setup fee. Isi form di bawah dan tim kami akan
-                    menghubungi Anda.
-                  </p>
+                  <p className="t-eyebrow mb-4">{tVps('eyebrow')}</p>
+                  <h1 className="t-display-sub mb-2">{tVps('title')}</h1>
+                  <p className="t-lead text-foreground/60 mb-10">{tVps('subtitle')}</p>
 
                   <div className="card-enterprise">
                     <form onSubmit={handleSubmit} className="space-y-4">
                       <div>
-                        <label className="text-sm font-medium mb-1 block">Nama Lengkap *</label>
+                        <label className="text-sm font-medium mb-1 block">{t('field_full_name_required')}</label>
                         <Input
                           value={form.name}
                           onChange={(e) => set('name', e.target.value)}
-                          placeholder="John Doe"
+                          placeholder={t('placeholder_name_generic')}
                           required
                         />
                       </div>
                       <div>
-                        <label className="text-sm font-medium mb-1 block">Email *</label>
+                        <label className="text-sm font-medium mb-1 block">{t('field_email_required')}</label>
                         <Input
                           type="email"
                           value={form.email}
                           onChange={(e) => set('email', e.target.value)}
-                          placeholder="john@example.com"
+                          placeholder={t('placeholder_email_generic')}
                           required
                         />
                       </div>
                       <div>
-                        <label className="text-sm font-medium mb-1 block">WhatsApp / Phone</label>
+                        <label className="text-sm font-medium mb-1 block">{t('field_phone')}</label>
                         <Input
                           className="font-mono"
                           value={form.phone}
                           onChange={(e) => set('phone', e.target.value)}
-                          placeholder="+628123456789"
+                          placeholder={t('placeholder_phone')}
                         />
                       </div>
                       <div>
-                        <label className="text-sm font-medium mb-1 block">
-                          Perusahaan / Institusi
-                        </label>
+                        <label className="text-sm font-medium mb-1 block">{t('field_company')}</label>
                         <Input
                           value={form.company}
                           onChange={(e) => set('company', e.target.value)}
-                          placeholder="Opsional"
+                          placeholder={t('placeholder_company_optional')}
                         />
                       </div>
                       <div>
-                        <label className="text-sm font-medium mb-1 block">Pesan *</label>
+                        <label className="text-sm font-medium mb-1 block">{t('field_message_required')}</label>
                         <Textarea
                           value={form.message}
                           onChange={(e) => set('message', e.target.value)}
-                          placeholder="Ceritakan kebutuhan trading Anda, jumlah akun, budget estimasi, dll."
+                          placeholder={tVps('placeholder_message')}
                           rows={4}
                           required
                         />
@@ -132,7 +127,7 @@ export default function RegisterVpsPage() {
                         </div>
                       )}
                       <button type="submit" className="btn-primary w-full" disabled={loading}>
-                        {loading ? 'Mengirim...' : 'Kirim Permintaan Konsultasi'}
+                        {loading ? tVps('btn_submitting') : tVps('btn_submit')}
                       </button>
                     </form>
                   </div>

@@ -1,19 +1,21 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 
-const TOPICS = [
-  { value: 'signal', label: 'Signal Service' },
-  { value: 'pamm', label: 'PAMM Account' },
-  { value: 'license', label: 'VPS License' },
-  { value: 'institutional', label: 'Institutional Mandate' },
-  { value: 'partnership', label: 'Partnership' },
-  { value: 'support', label: 'Technical Support' },
-  { value: 'compliance', label: 'Compliance' },
-  { value: 'other', label: 'Other' },
-];
+const TOPIC_VALUES = [
+  'signal',
+  'pamm',
+  'license',
+  'institutional',
+  'partnership',
+  'support',
+  'compliance',
+  'other',
+] as const;
 
 export default function ContactForm() {
+  const t = useTranslations('contact');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -43,29 +45,29 @@ export default function ContactForm() {
 
       if (!response.ok) {
         const data = await response.json().catch(() => null);
-        throw new Error(data?.message || 'Failed to submit inquiry. Please try again.');
+        throw new Error(data?.message || t('form_error_submit_failed'));
       }
 
       setStatus('success');
       setFormData({ name: '', email: '', topic: '', message: '' });
     } catch (err) {
       setStatus('error');
-      setErrorMessage(err instanceof Error ? err.message : 'An unexpected error occurred.');
+      setErrorMessage(err instanceof Error ? err.message : t('form_error_unexpected'));
     }
   };
 
   if (status === 'success') {
     return (
       <div className="border border-border rounded-lg p-8 bg-card text-center">
-        <h3 className="font-semibold mb-2">Message sent</h3>
+        <h3 className="font-semibold mb-2">{t('form_success_title')}</h3>
         <p className="text-sm text-muted-foreground mb-6">
-          Thank you for reaching out. We will respond within 1-2 business days.
+          {t('form_success_body')}
         </p>
         <button
           onClick={() => setStatus('idle')}
           className="border border-border rounded-md px-6 py-3 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
         >
-          Send another message
+          {t('form_success_reset')}
         </button>
       </div>
     );
@@ -75,7 +77,7 @@ export default function ContactForm() {
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
         <label htmlFor="name" className="block text-sm font-medium mb-2">
-          Name
+          {t('name')}
         </label>
         <input
           type="text"
@@ -85,13 +87,13 @@ export default function ContactForm() {
           onChange={handleChange}
           required
           className="w-full border border-border rounded-md px-4 py-3 bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-accent"
-          placeholder="Your full name"
+          placeholder={t('form_name_placeholder')}
         />
       </div>
 
       <div>
         <label htmlFor="email" className="block text-sm font-medium mb-2">
-          Email
+          {t('email')}
         </label>
         <input
           type="email"
@@ -101,13 +103,13 @@ export default function ContactForm() {
           onChange={handleChange}
           required
           className="w-full border border-border rounded-md px-4 py-3 bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-accent"
-          placeholder="you@example.com"
+          placeholder={t('form_email_placeholder')}
         />
       </div>
 
       <div>
         <label htmlFor="topic" className="block text-sm font-medium mb-2">
-          Topic
+          {t('topic')}
         </label>
         <select
           id="topic"
@@ -118,11 +120,19 @@ export default function ContactForm() {
           className="w-full border border-border rounded-md px-4 py-3 bg-background text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-accent"
         >
           <option value="" disabled>
-            Select a topic
+            {t('form_topic_placeholder')}
           </option>
-          {TOPICS.map((topic) => (
-            <option key={topic.value} value={topic.value}>
-              {topic.label}
+          {TOPIC_VALUES.map((value) => (
+            <option key={value} value={value}>
+              {t(`topic_${value}` as
+                | 'topic_signal'
+                | 'topic_pamm'
+                | 'topic_license'
+                | 'topic_institutional'
+                | 'topic_partnership'
+                | 'topic_support'
+                | 'topic_compliance'
+                | 'topic_other')}
             </option>
           ))}
         </select>
@@ -130,7 +140,7 @@ export default function ContactForm() {
 
       <div>
         <label htmlFor="message" className="block text-sm font-medium mb-2">
-          Message
+          {t('message')}
         </label>
         <textarea
           id="message"
@@ -140,7 +150,7 @@ export default function ContactForm() {
           required
           rows={6}
           className="w-full border border-border rounded-md px-4 py-3 bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-accent resize-none"
-          placeholder="How can we help?"
+          placeholder={t('form_message_placeholder')}
         />
       </div>
 
@@ -155,7 +165,7 @@ export default function ContactForm() {
         disabled={status === 'submitting'}
         className="w-full bg-accent text-accent-foreground rounded-md px-6 py-3 text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {status === 'submitting' ? 'Sending...' : 'Send message'}
+        {status === 'submitting' ? t('form_submitting') : t('submit')}
       </button>
     </form>
   );

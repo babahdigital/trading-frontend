@@ -1,18 +1,20 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 
 const LEGAL_LINKS = [
-  { href: '/legal/terms', label: 'Terms of Service' },
-  { href: '/legal/risk-disclosure', label: 'Risk Disclosure' },
-  { href: '/legal/regulatory', label: 'Regulatory Information' },
-  { href: '/legal/cookies', label: 'Cookie Policy' },
+  { href: '/legal/terms', labelKey: 'page_terms' as const },
+  { href: '/legal/risk-disclosure', labelKey: 'page_risk_disclosure' as const },
+  { href: '/legal/regulatory', labelKey: 'page_regulatory' as const },
+  { href: '/legal/cookies', labelKey: 'page_cookies' as const },
 ];
 
 export default function PrivacyPage() {
+  const t = useTranslations('legal_chrome');
   const [cmsBody, setCmsBody] = useState<string | null>(null);
 
   useEffect(() => {
@@ -38,9 +40,9 @@ export default function PrivacyPage() {
         {/* Hero */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-4">Legal</p>
-            <h1 className="t-display-page mb-2">Privacy Policy</h1>
-            <p className="t-body-sm text-foreground/60">Last updated: April 1, 2026</p>
+            <p className="t-eyebrow mb-4">{t('eyebrow')}</p>
+            <h1 className="t-display-page mb-2">{t('page_privacy')}</h1>
+            <p className="t-body-sm text-foreground/60">{t('last_updated')}</p>
           </div>
         </section>
 
@@ -313,7 +315,7 @@ export default function PrivacyPage() {
         {/* Related Documents */}
         <section className="section-padding border-t border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-4">Related Documents</p>
+            <p className="t-eyebrow mb-4">{t('related_eyebrow')}</p>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {LEGAL_LINKS.map((doc) => (
                 <Link
@@ -322,7 +324,7 @@ export default function PrivacyPage() {
                   className="card-enterprise group hover:border-amber-500/30 transition-colors"
                 >
                   <p className="text-sm font-medium group-hover:text-amber-400 transition-colors">
-                    {doc.label}
+                    {t(doc.labelKey)}
                   </p>
                 </Link>
               ))}

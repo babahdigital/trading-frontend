@@ -2,22 +2,36 @@
 
 import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useLocale, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AlertTriangle } from 'lucide-react';
 
-const STEPS = ['Account Information', 'Select Tier', 'Confirmation'];
+interface SignalTier {
+  value: 'SIGNAL_STARTER' | 'SIGNAL_PRO' | 'SIGNAL_VIP';
+  labelKey: 'tier1_label' | 'tier2_label' | 'tier3_label';
+  price: string;
+  descKey: 'tier1_desc' | 'tier2_desc' | 'tier3_desc';
+  popular?: boolean;
+}
+
+const SIGNAL_TIERS: SignalTier[] = [
+  { value: 'SIGNAL_STARTER', labelKey: 'tier1_label', price: '$19/mo', descKey: 'tier1_desc' },
+  { value: 'SIGNAL_PRO', labelKey: 'tier2_label', price: '$79/mo', descKey: 'tier2_desc', popular: true },
+  { value: 'SIGNAL_VIP', labelKey: 'tier3_label', price: '$299/mo', descKey: 'tier3_desc' },
+];
 
 function RegisterSignalInner() {
+  const t = useTranslations('register');
+  const tSignal = useTranslations('register.signal');
+  const tDemo = useTranslations('demo');
   const router = useRouter();
   const searchParams = useSearchParams();
   const isDemoMode = searchParams.get('mode') === 'demo';
-  const locale = useLocale();
-  const tDemo = useTranslations('demo');
-  const isEn = locale === 'en';
+
+  const STEPS = [t('step_account_info'), t('step_select_tier'), t('step_confirmation')];
 
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -59,16 +73,24 @@ function RegisterSignalInner() {
       if (res.ok) {
         setError('');
         setStep(2);
-        alert(data.message || (isEn ? 'Registration successful! Your account will be activated by admin.' : 'Pendaftaran berhasil! Cek email untuk verifikasi.'));
+        alert(data.message || tSignal('success_register'));
         router.push('/login');
       } else {
-        setError(data.error || (isEn ? 'Registration failed. Please try again.' : 'Pendaftaran gagal. Silakan coba lagi.'));
+        setError(data.error || t('error_register_failed'));
       }
     } catch {
-      setError(isEn ? 'An error occurred. Please try again.' : 'Terjadi gangguan jaringan. Silakan coba lagi.');
+      setError(t('error_network'));
     } finally {
       setLoading(false);
     }
+  }
+
+  function planLabel(tierValue: string): string {
+    if (isDemoMode) return tSignal('plan_demo');
+    if (tierValue === 'SIGNAL_STARTER') return tSignal('plan_tier1');
+    if (tierValue === 'SIGNAL_PRO') return tSignal('plan_tier2');
+    if (tierValue === 'SIGNAL_VIP') return tSignal('plan_tier3');
+    return tierValue;
   }
 
   return (
@@ -79,16 +101,12 @@ function RegisterSignalInner() {
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
             <div className="max-w-md mx-auto">
-              <p className="t-eyebrow mb-4">{isDemoMode ? (isEn ? 'Demo Registration' : 'Daftar Demo') : 'Register'}</p>
+              <p className="t-eyebrow mb-4">{isDemoMode ? tSignal('eyebrow_demo') : tSignal('eyebrow_register')}</p>
               <h1 className="t-display-sub mb-2">
-                {isDemoMode
-                  ? (isEn ? 'Free Demo Signup' : 'Daftar Demo Gratis')
-                  : (isEn ? 'Robot Meta Registration' : 'Pendaftaran Robot Meta')}
+                {isDemoMode ? tSignal('title_demo') : tSignal('title_register')}
               </h1>
               <p className="t-lead text-foreground/60 mb-6">
-                {isDemoMode
-                  ? (isEn ? 'Test our signals on a simulated MT5 account — no payment, no live capital.' : 'Coba sinyal kami di akun MT5 simulasi — tanpa biaya, tanpa modal nyata.')
-                  : (isEn ? 'AI-powered trading signals delivered to your dashboard.' : 'Sinyal trading AI dikirim langsung ke dashboard Anda.')}
+                {isDemoMode ? tSignal('subtitle_demo') : tSignal('subtitle_register')}
               </p>
 
               {/* Demo isolation banner per DEMO_UX_GUIDE §3.4 */}
@@ -131,29 +149,29 @@ function RegisterSignalInner() {
                   {step === 0 && (
                     <>
                       <div>
-                        <label className="text-sm font-medium mb-1 block">Full Name</label>
+                        <label className="text-sm font-medium mb-1 block">{t('field_full_name')}</label>
                         <Input
                           value={form.name}
                           onChange={(e) => set('name', e.target.value)}
-                          placeholder="John Doe"
+                          placeholder={t('placeholder_name_generic')}
                         />
                       </div>
                       <div>
-                        <label className="text-sm font-medium mb-1 block">Email</label>
+                        <label className="text-sm font-medium mb-1 block">{t('field_email')}</label>
                         <Input
                           type="email"
                           value={form.email}
                           onChange={(e) => set('email', e.target.value)}
-                          placeholder="john@example.com"
+                          placeholder={t('placeholder_email_generic')}
                         />
                       </div>
                       <div>
-                        <label className="text-sm font-medium mb-1 block">Password</label>
+                        <label className="text-sm font-medium mb-1 block">{t('field_password')}</label>
                         <Input
                           type="password"
                           value={form.password}
                           onChange={(e) => set('password', e.target.value)}
-                          placeholder="Min 8 characters"
+                          placeholder={t('placeholder_password_short')}
                         />
                       </div>
                       <button
@@ -162,7 +180,7 @@ function RegisterSignalInner() {
                         onClick={() => setStep(isDemoMode ? 2 : 1)}
                         disabled={!form.name || !form.email || !form.password}
                       >
-                        Continue
+                        {t('btn_continue')}
                       </button>
                     </>
                   )}
@@ -170,27 +188,7 @@ function RegisterSignalInner() {
                   {step === 1 && !isDemoMode && (
                     <>
                       <div className="space-y-3">
-                        {[
-                          {
-                            value: 'SIGNAL_STARTER',
-                            label: 'Tier 1 · Swing',
-                            price: '$19/bulan',
-                            desc: '3 pair major · swing only · indikator dasar SMC + Wyckoff · email/dashboard',
-                          },
-                          {
-                            value: 'SIGNAL_PRO',
-                            label: 'Tier 2 · Scalping',
-                            price: '$79/bulan',
-                            desc: '8 pair (Major + Cross + Gold + Silver) · swing + scalping · WhatsApp + Telegram · mid-tier AI',
-                            popular: true,
-                          },
-                          {
-                            value: 'SIGNAL_VIP',
-                            label: 'Tier 3 · All-In',
-                            price: '$299/bulan',
-                            desc: 'Unlimited pair · semua 6 strategi · premium AI advisor · dedicated support 24/7',
-                          },
-                        ].map((tier) => (
+                        {SIGNAL_TIERS.map((tier) => (
                           <div
                             key={tier.value}
                             className={`relative border rounded-lg p-4 cursor-pointer transition-colors ${
@@ -202,14 +200,14 @@ function RegisterSignalInner() {
                           >
                             {tier.popular && (
                               <span className="absolute -top-2 right-3 inline-flex items-center px-2 py-0.5 rounded-full bg-amber-500 text-amber-50 text-[10px] font-bold uppercase tracking-wider">
-                                Populer
+                                {tSignal('popular')}
                               </span>
                             )}
                             <div className="flex justify-between items-baseline gap-2 flex-wrap">
-                              <span className="font-semibold">{tier.label}</span>
+                              <span className="font-semibold">{tSignal(tier.labelKey)}</span>
                               <span className="text-amber-400 font-mono font-bold text-sm">{tier.price}</span>
                             </div>
-                            <p className="t-body-sm text-foreground/60 mt-1">{tier.desc}</p>
+                            <p className="t-body-sm text-foreground/60 mt-1">{tSignal(tier.descKey)}</p>
                           </div>
                         ))}
                       </div>
@@ -219,10 +217,10 @@ function RegisterSignalInner() {
                           className="flex-1 border-border/60 text-foreground/50 hover:text-amber-400"
                           onClick={() => setStep(0)}
                         >
-                          Back
+                          {t('btn_back')}
                         </Button>
                         <button className="btn-primary flex-1" onClick={() => setStep(2)}>
-                          Continue
+                          {t('btn_continue')}
                         </button>
                       </div>
                     </>
@@ -232,23 +230,16 @@ function RegisterSignalInner() {
                     <>
                       <div className="border border-border/60 rounded-lg p-4 space-y-2 text-sm bg-muted/30">
                         <div className="flex justify-between">
-                          <span className="text-foreground/60">{isEn ? 'Name' : 'Nama'}</span>
+                          <span className="text-foreground/60">{t('field_name')}</span>
                           <span>{form.name}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-foreground/60">Email</span>
+                          <span className="text-foreground/60">{t('field_email')}</span>
                           <span className="font-mono text-xs sm:text-sm truncate ml-2">{form.email}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-foreground/60">{isEn ? 'Plan' : 'Paket'}</span>
-                          <span className="font-semibold text-amber-400">
-                            {isDemoMode
-                              ? (isEn ? 'Free Demo (Beta)' : 'Demo Gratis (Beta)')
-                              : form.tier === 'SIGNAL_STARTER' ? 'Robot Meta · Tier 1 Swing ($19/mo)'
-                              : form.tier === 'SIGNAL_PRO' ? 'Robot Meta · Tier 2 Scalping ($79/mo)'
-                              : form.tier === 'SIGNAL_VIP' ? 'Robot Meta · Tier 3 All-In ($299/mo)'
-                              : `${form.tier}`}
-                          </span>
+                          <span className="text-foreground/60">{t('field_plan')}</span>
+                          <span className="font-semibold text-amber-400">{planLabel(form.tier)}</span>
                         </div>
                       </div>
 
@@ -277,7 +268,7 @@ function RegisterSignalInner() {
                           className="flex-1"
                           onClick={() => setStep(isDemoMode ? 0 : 1)}
                         >
-                          {isEn ? 'Back' : 'Kembali'}
+                          {t('btn_back')}
                         </Button>
                         <button
                           type="button"
@@ -286,10 +277,10 @@ function RegisterSignalInner() {
                           disabled={loading || (isDemoMode && !form.demoAcknowledged)}
                         >
                           {loading
-                            ? (isEn ? 'Processing...' : 'Memproses…')
+                            ? t('btn_processing')
                             : isDemoMode
-                              ? (isEn ? 'Activate Demo' : 'Aktifkan Demo')
-                              : (isEn ? 'Confirm Registration' : 'Konfirmasi Pendaftaran')}
+                              ? tSignal('btn_activate_demo')
+                              : tSignal('btn_confirm')}
                         </button>
                       </div>
                     </>
@@ -298,14 +289,14 @@ function RegisterSignalInner() {
               </div>
 
               <p className="text-xs text-foreground/50 text-center mt-6">
-                We recommend{' '}
+                {tSignal('footer_broker_part1')}{' '}
                 <a href="#" className="text-amber-400 hover:text-amber-300 underline underline-offset-2 transition-colors">
                   Exness
                 </a>{' '}
-                as your broker for optimal signal execution.
+                {tSignal('footer_broker_part2')}
               </p>
               <p className="t-body-sm text-foreground/60 text-center mt-4">
-                Trading involves significant risk of loss. Past performance does not guarantee future results.
+                {tSignal('footer_risk')}
               </p>
             </div>
           </div>

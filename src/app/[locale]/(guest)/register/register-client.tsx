@@ -44,28 +44,49 @@ function pickIcon(slug: string) {
 
 export function RegisterClient({ packages }: { packages: PackageData[] }) {
   const t = useTranslations('register');
+  const tFallback = useTranslations('register.fallback_packages');
 
   // Local fallback uses translations for resilience when DB empty.
   const FALLBACK_PACKAGES: PackageData[] = [
     {
-      slug: 'signal', name: t('tier_signal_name'), price: '$49 — $149 / bulan', subtitle: t('tier_signal_desc'),
-      features: ['Dashboard real-time', 'Sinyal Forex + Komoditas', 'Audit log + transparency', 'Telegram notification'],
+      slug: 'signal', name: t('tier_signal_name'), price: tFallback('signal_price'), subtitle: t('tier_signal_desc'),
+      features: [
+        tFallback('signal_feature_1'),
+        tFallback('signal_feature_2'),
+        tFallback('signal_feature_3'),
+        tFallback('signal_feature_4'),
+      ],
       note: null, ctaLabel: t('select_package'), ctaLink: '/register/signal',
     },
     {
-      slug: 'pamm', name: t('tier_pamm_name'), price: '20–30% profit share', subtitle: t('tier_pamm_desc'),
-      features: ['Bot kelola dana di akun Anda', 'Profit share transparan', 'Equity curve real-time', 'Withdraw kapan saja'],
+      slug: 'pamm', name: t('tier_pamm_name'), price: tFallback('pamm_price'), subtitle: t('tier_pamm_desc'),
+      features: [
+        tFallback('pamm_feature_1'),
+        tFallback('pamm_feature_2'),
+        tFallback('pamm_feature_3'),
+        tFallback('pamm_feature_4'),
+      ],
       note: null, ctaLabel: t('select_package'), ctaLink: '/register/pamm',
     },
     {
-      slug: 'vps', name: t('tier_vps_name'), price: '$3,000 — $7,500 setup', subtitle: t('tier_vps_desc'),
-      features: ['Dedicated VPS', 'Full bot access', 'Priority support 24/7', 'Konfigurasi kustom'],
-      note: '+ $150–300 / bulan maintenance', ctaLabel: t('select_package'), ctaLink: '/register/vps',
+      slug: 'vps', name: t('tier_vps_name'), price: tFallback('vps_price'), subtitle: t('tier_vps_desc'),
+      features: [
+        tFallback('vps_feature_1'),
+        tFallback('vps_feature_2'),
+        tFallback('vps_feature_3'),
+        tFallback('vps_feature_4'),
+      ],
+      note: tFallback('vps_note'), ctaLabel: t('select_package'), ctaLink: '/register/vps',
     },
     {
-      slug: 'crypto', name: t('tier_crypto_name'), price: '$49 — $499 / bulan', subtitle: t('tier_crypto_desc'),
-      features: ['Binance Futures bot', 'SMC + Wyckoff strategy', 'Risk management institusional', 'Kill switch ekstrem'],
-      note: '+ profit share 10–20%', ctaLabel: t('select_package'), ctaLink: '/register/crypto',
+      slug: 'crypto', name: t('tier_crypto_name'), price: tFallback('crypto_price'), subtitle: t('tier_crypto_desc'),
+      features: [
+        tFallback('crypto_feature_1'),
+        tFallback('crypto_feature_2'),
+        tFallback('crypto_feature_3'),
+        tFallback('crypto_feature_4'),
+      ],
+      note: tFallback('crypto_note'), ctaLabel: t('select_package'), ctaLink: '/register/crypto',
     },
   ];
 

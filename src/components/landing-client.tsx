@@ -22,6 +22,8 @@ interface LandingClientProps {
 }
 
 // ─── Risk Framework Layers ───
+// Layer descriptions kept English (institutional / technical terms). Names stay
+// English across both locales — they refer to specific guard implementations.
 const RISK_LAYERS = {
   preTrade: [
     { num: 1, name: 'Spread guard', desc: 'Rejects entry when spread exceeds threshold' },
@@ -43,232 +45,71 @@ const RISK_LAYERS = {
   ],
 };
 
-// ─── Pricing Data ───
+// ─── Pricing Tier Keys (i18n-driven) ───
+// Each tier holds *only* the static metadata (id slug for translation lookup,
+// price, period key, cta href, popular flag, feature count). Localized strings
+// (name, tagline, period label, cta label, feature[]) are resolved at render
+// time via t('tier_<id>_*'). Exact mirror keys must exist in id.json + en.json.
+type TierMeta = {
+  /** translation key prefix, e.g. "demo_meta" → tier_demo_meta_name etc */
+  id: string;
+  /** static, non-localized tier badge — stays as-is across locales */
+  tier: string;
+  price: string;
+  /** key into common period table — period_beta | period_permanent | … */
+  periodKey: string;
+  /** number of feature bullets (resolved as tier_<id>_f1..fN) */
+  featureCount: number;
+  href: string;
+  popular?: boolean;
+};
+
+const PRICING_TIERS: Record<string, TierMeta[]> = {
+  demo: [
+    { id: 'demo_meta', tier: 'DEMO MT5', price: 'tier_price_free', periodKey: 'period_beta', featureCount: 5, href: '/demo?product=robot-meta', popular: true },
+    { id: 'demo_crypto', tier: 'DEMO CRYPTO', price: 'tier_price_free', periodKey: 'period_beta', featureCount: 5, href: '/demo?product=robot-crypto' },
+    { id: 'demo_indicator', tier: 'INDICATOR', price: 'tier_price_free', periodKey: 'period_permanent', featureCount: 5, href: '/demo?product=indicator' },
+  ],
+  forex: [
+    { id: 'forex_swing', tier: 'TIER 1', price: '$19', periodKey: 'period_monthly', featureCount: 5, href: '/register/signal?tier=swing' },
+    { id: 'forex_scalping', tier: 'TIER 2', price: '$79', periodKey: 'period_monthly', featureCount: 5, href: '/register/signal?tier=scalping', popular: true },
+    { id: 'forex_allin', tier: 'TIER 3', price: '$299', periodKey: 'period_monthly', featureCount: 5, href: '/register/signal?tier=all' },
+  ],
+  crypto: [
+    { id: 'crypto_basic', tier: 'CRYPTO', price: '$49', periodKey: 'period_monthly_perf_20', featureCount: 5, href: '/register/crypto?tier=basic' },
+    { id: 'crypto_pro', tier: 'CRYPTO PRO', price: '$199', periodKey: 'period_monthly_perf_15', featureCount: 5, href: '/register/crypto?tier=pro', popular: true },
+    { id: 'crypto_hnwi', tier: 'CRYPTO HNWI', price: '$499', periodKey: 'period_monthly_perf_10', featureCount: 5, href: '/contact?subject=crypto-hnwi' },
+  ],
+  vps: [
+    { id: 'vps_license', tier: 'VPS', price: '$3,000', periodKey: 'period_one_time_setup', featureCount: 5, href: '/register/vps' },
+    { id: 'vps_premium', tier: 'VPS PRO', price: '$7,500', periodKey: 'period_one_time_setup', featureCount: 5, href: '/register/vps', popular: true },
+    { id: 'vps_dedicated', tier: 'DEDICATED', price: '$1,499', periodKey: 'period_monthly', featureCount: 5, href: '/contact?subject=dedicated-vps' },
+  ],
+  apis: [
+    { id: 'api_news', tier: 'NEWS', price: 'tier_price_free', periodKey: 'period_api_to_99', featureCount: 4, href: '/pricing/apis#news' },
+    { id: 'api_signals', tier: 'SIGNALS', price: 'tier_price_free', periodKey: 'period_api_to_149', featureCount: 4, href: '/pricing/apis#signals' },
+    { id: 'api_indicators', tier: 'INDICATORS', price: 'tier_price_free', periodKey: 'period_api_to_199', featureCount: 4, href: '/pricing/apis#indicators', popular: true },
+    { id: 'api_calendar', tier: 'CALENDAR', price: 'tier_price_free', periodKey: 'period_api_to_99', featureCount: 4, href: '/pricing/apis#calendar' },
+    { id: 'api_market', tier: 'MARKET', price: '$29', periodKey: 'period_api_to_249', featureCount: 4, href: '/pricing/apis#market' },
+    { id: 'api_correlation', tier: 'CORRELATION', price: '$9', periodKey: 'period_api_to_49', featureCount: 4, href: '/pricing/apis#correlation' },
+    { id: 'api_broker', tier: 'BROKER', price: 'tier_price_free', periodKey: 'period_api_to_49', featureCount: 3, href: '/pricing/apis#broker' },
+    { id: 'api_ai', tier: 'AI', price: '$99', periodKey: 'period_api_ai_nda', featureCount: 4, href: '/contact?subject=ai-explainability' },
+  ],
+  institutional: [
+    { id: 'inst_api', tier: 'API', price: 'tier_price_custom', periodKey: 'period_usage_based', featureCount: 5, href: '/register/institutional', popular: true },
+    { id: 'inst_b2b', tier: 'B2B', price: '$99', periodKey: 'period_b2b_to_999', featureCount: 5, href: '/contact?subject=backtest-service' },
+  ],
+};
+
 // Tab order rewires the product hierarchy per Pak Abdullah feedback
 // (2026-04-27): Robot Forex (MT5 bridge) and Robot Crypto (Binance API) are
 // the two main retail products — same idea, different exchange. VPS License
 // is the on-prem deployment tier. Public APIs are for developer integration
 // only (NOT execution-as-product).
-const PRICING_TABS = [
-  { id: 'demo', label: 'Free Demo' },
-  { id: 'forex', label: 'Robot Forex' },
-  { id: 'crypto', label: 'Robot Crypto' },
-  { id: 'vps', label: 'VPS License' },
-  { id: 'apis', label: 'Developer APIs' },
-  { id: 'institutional', label: 'Institutional' },
-];
+const PRICING_TAB_IDS = ['demo', 'forex', 'crypto', 'vps', 'apis', 'institutional'] as const;
 
-const PRICING_PLANS: Record<string, Array<{
-  name: string; tier: string; price: string; period: string;
-  tagline: string; features: string[]; cta: { label: string; href: string };
-  popular?: boolean;
-}>> = {
-  // Demo tiers — gratis selama beta, jual setelah launch. Cover dua produk
-  // andalan (Robot Meta MT5 + Robot Crypto Binance) plus Indicator overlay
-  // untuk discretionary trader. Akun MT5 demo / Binance testnet — tidak ada
-  // risiko modal real, tidak masuk track record live.
-  demo: [
-    {
-      name: 'Robot Meta · Demo', tier: 'DEMO MT5', price: 'Gratis', period: 'beta',
-      tagline: 'Bot Forex full auto-execute di akun MT5 demo Anda',
-      features: [
-        'Auto-eksekusi di akun MT5 demo (no real money)',
-        'Akses semua 6 strategi terbatas 7 hari',
-        'Dashboard live + signal preview',
-        'Notifikasi via Email selama trial',
-        'Upgrade ke tier Swing / Scalping / All-In kapan saja',
-      ],
-      cta: { label: 'Mulai Demo Robot Meta', href: '/demo?product=robot-meta' },
-      popular: true,
-    },
-    {
-      name: 'Robot Crypto · Demo', tier: 'DEMO CRYPTO', price: 'Gratis', period: 'beta',
-      tagline: 'Bot Crypto auto-trading di Binance Testnet — risk-free',
-      features: [
-        'Auto-trading di Binance Testnet (paper money)',
-        'Spot + USDT-M Futures simulation',
-        'Akses 3 strategi crypto selama 7 hari',
-        'Dashboard live + Telegram channel preview',
-        'Upgrade ke Basic / Pro / HNWI kapan saja',
-      ],
-      cta: { label: 'Mulai Demo Robot Crypto', href: '/demo?product=robot-crypto' },
-    },
-    {
-      name: 'Indicator Free', tier: 'INDICATOR', price: 'Gratis', period: 'permanent',
-      tagline: 'Overlay indikator confluence — untuk discretionary trader',
-      features: [
-        'SMC + Wyckoff confluence overlay',
-        '14 instrumen real-time',
-        'Risk score live (12-layer preview)',
-        'Tidak ada eksekusi otomatis',
-        'Untuk trader manual yang butuh edge analitik',
-      ],
-      cta: { label: 'Aktifkan Indicator', href: '/demo?product=indicator' },
-    },
-  ],
-  // Robot Meta tier ladder — execution bot di MT5 customer (mirror Robot
-  // Crypto Binance, beda venue saja). Bukan signal-only; bot autoeksekusi
-  // dengan strategi swing/scalping per tier.
-  forex: [
-    {
-      name: 'Robot Meta · Swing', tier: 'TIER 1', price: '$19', period: '/bulan',
-      tagline: 'Entry tier — strategi swing untuk modal kecil',
-      features: [
-        '3 pair major (EURUSD · GBPUSD · USDJPY)',
-        'Strategi swing only (durasi rata-rata 4–24 jam)',
-        'Indikator dasar: SMC + Wyckoff',
-        'Notifikasi: Email + Dashboard',
-        'Auto-eksekusi di MT5 Anda',
-      ],
-      cta: { label: 'Mulai Tier Swing', href: '/register/signal?tier=swing' },
-    },
-    {
-      name: 'Robot Meta · Scalping', tier: 'TIER 2', price: '$79', period: '/bulan',
-      tagline: 'Trader aktif — swing + scalping multi-strategi',
-      features: [
-        '8 pair (Major · Cross · Gold · Silver)',
-        'Strategi swing + scalping',
-        'Indikator advanced: SMC + Wyckoff + AI Momentum',
-        'Notifikasi: WhatsApp + Telegram + Email',
-        'Mid-tier AI explainability per trade',
-      ],
-      cta: { label: 'Mulai Tier Scalping', href: '/register/signal?tier=scalping' },
-      popular: true,
-    },
-    {
-      name: 'Robot Meta · All-In', tier: 'TIER 3', price: '$299', period: '/bulan',
-      tagline: 'Premium full-stack — semua strategi, semua pair',
-      features: [
-        'Unlimited pair (Major · Cross · Metals · Index)',
-        'Semua 6 strategi paralel (SMC · Wyckoff · Astronacci · AI Momentum · Mean-Rev · Oil/Gas)',
-        'Premium AI advisor + copy-trade dashboard',
-        'Notifikasi all channels + dedicated support 24/7',
-        'Custom backtest sweep (≤10/bulan) + Payout API',
-      ],
-      cta: { label: 'Mulai Tier All-In', href: '/register/signal?tier=all' },
-    },
-  ],
-  crypto: [
-    {
-      name: 'Crypto Basic', tier: 'CRYPTO', price: '$49', period: '/bulan + 20%',
-      tagline: 'Bot Binance Futures untuk trader pemula',
-      features: ['3 pair otomatis', 'Leverage maks 5x', 'Strategi scalping_momentum', 'Telegram + dashboard', 'Email support'],
-      cta: { label: 'Mulai Basic', href: '/register/crypto?tier=basic' },
-    },
-    {
-      name: 'Crypto Pro', tier: 'CRYPTO PRO', price: '$199', period: '/bulan + 15%',
-      tagline: 'Multi-strategi untuk trader aktif',
-      features: ['8 pair + 1 manual whitelist', 'Leverage maks 10x', '4 strategi (SMC, Wyckoff, Momentum, Mean Reversion)', 'Telegram VIP', 'Priority support'],
-      cta: { label: 'Mulai Pro', href: '/register/crypto?tier=pro' },
-      popular: true,
-    },
-    {
-      name: 'Crypto HNWI', tier: 'CRYPTO HNWI', price: '$499', period: '/bulan + 10%',
-      tagline: 'Capital besar dengan dedicated manager',
-      features: ['12 pair + custom whitelist/blacklist', 'Leverage maks 15x', 'Semua strategi + parameter tuning', 'Dedicated account manager', 'SLA 99.9%'],
-      cta: { label: 'Konsultasi HNWI', href: '/contact?subject=crypto-hnwi' },
-    },
-  ],
-  vps: [
-    {
-      name: 'VPS License', tier: 'VPS', price: '$3,000', period: 'one-time setup',
-      tagline: 'Bot terinstal di VPS pribadi Anda — kontrol penuh',
-      features: ['Dedicated VPS broker-level', 'Full bot access + risk parameter', 'Affiliate broker discount', 'Konfigurasi kustom', 'Maintenance $150/bulan'],
-      cta: { label: 'Konsultasi Setup', href: '/register/vps' },
-    },
-    {
-      name: 'VPS Premium', tier: 'VPS PRO', price: '$7,500', period: 'one-time setup',
-      tagline: 'Multi-broker, multi-akun, dedicated support',
-      features: ['Multi-broker bridge (MT4 + MT5)', 'Up to 3 akun paralel', 'Custom strategy parameter', 'Priority support 24/7', 'Maintenance $300/bulan'],
-      cta: { label: 'Konsultasi Setup', href: '/register/vps' },
-      popular: true,
-    },
-    {
-      name: 'Dedicated Tier', tier: 'DEDICATED', price: '$1,499', period: '/bulan',
-      tagline: 'VPS isolated single-customer',
-      features: ['Dedicated MT5 bridge VPS', 'Isolated DB schema', '24/7 Telegram incident channel', 'Custom risk framework', 'SLA 99.9%'],
-      cta: { label: 'Konsultasi Dedicated', href: '/contact?subject=dedicated-vps' },
-    },
-  ],
-  apis: [
-    {
-      name: 'News & Sentiment API', tier: 'NEWS', price: 'Free', period: '— $99/bulan',
-      tagline: 'Forex + Crypto news dengan sentiment scoring',
-      features: ['Free: 100 req/hari curated', 'Starter $9 — 500 req/hari', 'Pro $29 — 5K req/hari + sentiment', 'VIP $99 — unlimited + websocket'],
-      cta: { label: 'Lihat Tier News', href: '/pricing/apis#news' },
-    },
-    {
-      name: 'Signals API', tier: 'SIGNALS', price: 'Free', period: '— $149/bulan',
-      tagline: 'REST/WebSocket signal feed untuk integrasi',
-      features: ['Free: 3 last published', 'Starter $19 — last 50/hari', 'Pro $49 — full feed', 'VIP $149 — premium AI confidence'],
-      cta: { label: 'Lihat Tier Signals', href: '/pricing/apis#signals' },
-    },
-    {
-      name: 'Indicators API', tier: 'INDICATORS', price: 'Free', period: '— $199/bulan',
-      tagline: '14 indicator core + custom params',
-      features: ['Free: 50 req/hari core', 'Hobby $19 — 500 req/hari', 'Pro $79 — custom params', 'VIP $199 — backtest sweep'],
-      cta: { label: 'Lihat Tier Indicators', href: '/pricing/apis#indicators' },
-      popular: true,
-    },
-    {
-      name: 'Calendar API', tier: 'CALENDAR', price: 'Free', period: '— $99/bulan',
-      tagline: 'Economic calendar high-impact + sentiment',
-      features: ['Free: 100 req/hari high-impact', 'Hobby $19 — full calendar', 'Pro $49 — webhook delivery', 'VIP $99 — unlimited'],
-      cta: { label: 'Lihat Tier Calendar', href: '/pricing/apis#calendar' },
-    },
-    {
-      name: 'Market Data API', tier: 'MARKET', price: '$29', period: '— $249/bulan',
-      tagline: 'Tick + bar data 14 instrumen real-time',
-      features: ['Hobby $29 — 1y history', 'Pro $99 — 5y history + tick', 'VIP $249 — websocket stream', 'Enterprise: custom feed'],
-      cta: { label: 'Lihat Tier Market', href: '/pricing/apis#market' },
-    },
-    {
-      name: 'Correlation API', tier: 'CORRELATION', price: '$9', period: '— $49/bulan',
-      tagline: 'Korelasi pair real-time + heatmap',
-      features: ['Free: 30 req/hari H1 matrix', 'Hobby $9 — multi-timeframe', 'Pro $19 — custom basket', 'VIP $49 — historical backtest'],
-      cta: { label: 'Lihat Tier Correlation', href: '/pricing/apis#correlation' },
-    },
-    {
-      name: 'Broker Specs API', tier: 'BROKER', price: 'Free', period: '— $49/bulan',
-      tagline: 'Spec broker (spread, commission, leverage cap)',
-      features: ['Free: 100 req/hari shared', 'Pro $19 — unlimited query', 'VIP $49 — historical spread'],
-      cta: { label: 'Lihat Tier Broker', href: '/pricing/apis#broker' },
-    },
-    {
-      name: 'AI Explainability API', tier: 'AI', price: '$99', period: '— $299/bulan (NDA)',
-      tagline: 'Confidence scoring + decision rationale (Enterprise NDA)',
-      features: ['Enterprise only — kontrak NDA', 'Per-trade rationale + counterfactual', 'Custom model fine-tuning', 'Audit-grade explainability'],
-      cta: { label: 'Konsultasi NDA', href: '/contact?subject=ai-explainability' },
-    },
-  ],
-  institutional: [
-    {
-      name: 'API Access', tier: 'API', price: 'Custom', period: 'usage-based',
-      tagline: 'Integrasi API langsung ke infrastruktur Anda',
-      features: ['REST + WebSocket API', 'Signal streaming', 'Custom integration support', 'Dedicated engineering contact', 'White-label tersedia'],
-      cta: { label: 'Speak with IR', href: '/register/institutional' },
-      popular: true,
-    },
-    {
-      name: 'Backtest as a Service', tier: 'B2B', price: '$99', period: '— $999/bulan',
-      tagline: 'Backtest engine on-demand untuk trading firm',
-      features: ['Walk-forward + Monte Carlo', '5 tahun tick data 14 instrumen', 'Strategy parameter optimization', 'Whitelabel report PDF', 'API integration'],
-      cta: { label: 'Konsultasi B2B', href: '/contact?subject=backtest-service' },
-    },
-  ],
-};
-
-// ─── FAQ Data ───
-const FAQ_ITEMS = [
-  { q: 'Bagaimana cara verifikasi track record?', a: 'Equity statement kami diaudit secara independen dan tersedia atas permintaan. Kami menggunakan production account live di partner broker resmi. Anda dapat schedule briefing untuk meninjau audit trail lengkap termasuk trade-by-trade history.' },
-  { q: 'Apakah BabahAlgo diregulasi?', a: 'CV Babah Digital adalah perusahaan teknologi terdaftar di Indonesia. Kami adalah technology provider — bukan broker, bukan financial advisor, bukan asset manager. Eksekusi trading selalu lewat partner broker yang teregulasi. Transparansi penuh, audit report tersedia atas permintaan.' },
-  { q: 'Apakah ada free trial atau demo?', a: 'Ya. Signal Demo gratis untuk beta user — Anda dapat connect MT5 demo account dan lihat signal preview tanpa biaya. Indicator Free juga tersedia untuk discretionary trader. Demo tidak masuk public track record (per DEMO_UX_GUIDE).' },
-  { q: 'Apakah saya bisa cancel kapan saja?', a: 'Ya. Subscription Signal dan Crypto Bot bersifat month-to-month tanpa lock-in. Untuk VPS License (one-time setup), maintenance bisa dipause; bot tetap di VPS Anda. Modal selalu di akun broker/Binance Anda — bukan di kami.' },
-  { q: 'Bagaimana model affiliate broker bekerja?', a: 'Customer membuka akun di partner broker (Exness, IC Markets, dll) lewat link affiliate kami. Customer dapat discount commission/spread, kami dapat affiliate fee dari broker. Bot kami running di akun customer — modal tetap di broker, kami tidak custody dana sama sekali.' },
-  { q: 'Bagaimana skenario flash crash atau black swan?', a: '12-layer risk framework kami include catastrophic breaker yang otomatis shutdown semua trading saat drawdown melewati threshold kritis. Plus kill-switch manual override dan news blackout system. Modal terlindungi bahkan di kondisi pasar ekstrem.' },
-  { q: 'Apa beda Signal Basic vs Signal VIP?', a: 'Basic: signal harian + weekly report + dashboard. VIP: real-time alerts via Telegram VIP group dengan commentary live, daily detailed report, priority support, plus strategy deep-dive notes. Keduanya termasuk dashboard access.' },
-  { q: 'Bagaimana penanganan slippage dan rejected orders?', a: 'ZeroMQ execution bridge kami operasi sub-2ms untuk minimize slippage. Setiap trade punya deterministic slippage budget — kalau slippage melebihi threshold, order otomatis di-reject. Semua di-log dan auditable.' },
-];
+// FAQ — 8 entries; localized via faq_q1..q8 + faq_a1..a8.
+const FAQ_COUNT = 8;
 
 interface PerfKpi {
   totalReturn: string;
@@ -341,12 +182,21 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
     });
   })();
 
-  // Use CMS testimonials if available, otherwise empty
-  const displayTestimonials = testimonials?.length > 0 ? testimonials : [];
-  // Use CMS FAQs if available, otherwise use defaults
-  const displayFaqs = faqs?.length > 0
+  // Resolve a tier price token. Free / Custom go through translation; raw
+  // dollar prices ("$19") render as-is.
+  const resolvePrice = (price: string): string =>
+    price.startsWith('tier_price_') ? t(price) : price;
+
+  // FAQ — CMS overrides default i18n. When CMS rows exist we use their q/a
+  // verbatim (CMS owns the translation in that case). Default uses faq_q1..q8.
+  const displayFaqs: { q: string; a: string }[] = faqs?.length > 0
     ? faqs.map(f => ({ q: f.question, a: f.answer }))
-    : FAQ_ITEMS;
+    : Array.from({ length: FAQ_COUNT }, (_, i) => ({
+        q: t(`faq_q${i + 1}`),
+        a: t(`faq_a${i + 1}`),
+      }));
+
+  const displayTestimonials = testimonials?.length > 0 ? testimonials : [];
 
   // FAQPage JSON-LD untuk Google rich snippet
   const faqJsonLd = {
@@ -358,6 +208,8 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
       acceptedAnswer: { '@type': 'Answer', text: f.a },
     })),
   };
+
+  const activeTiers = PRICING_TIERS[pricingTab] || [];
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -415,7 +267,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
               {/* Tech trust strip — minimal, institutional */}
               <AnimatedSection delay={0.4}>
                 <div className="flex items-center gap-4 text-xs text-muted-foreground/70 pt-6 border-t border-border/40 max-w-md">
-                  <span className="font-mono uppercase tracking-wider text-[10px]">Built on</span>
+                  <span className="font-mono uppercase tracking-wider text-[10px]">{t('hero_built_on')}</span>
                   <span className="font-mono">MT5</span>
                   <span aria-hidden className="w-px h-3 bg-border" />
                   <span className="font-mono">ZeroMQ</span>
@@ -435,13 +287,13 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
                 {filteredEquity.length > 0 ? (
                   <div className="card-enterprise">
                     <div className="flex items-center justify-between mb-4">
-                      <div className="t-eyebrow">EQUITY CURVE</div>
+                      <div className="t-eyebrow">{t('hero_equity_eyebrow')}</div>
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono uppercase tracking-wider text-data-positive bg-data-positive/10 ring-1 ring-data-positive/20">
                         <span className="relative flex h-1.5 w-1.5">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-data-positive opacity-75" />
                           <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-data-positive" />
                         </span>
-                        Live
+                        {t('hero_equity_live')}
                       </span>
                     </div>
                     <EquityCurve
@@ -452,11 +304,11 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
                     />
                     <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
                       <div>
-                        <div className="text-xs text-muted-foreground">Verified · 90D</div>
+                        <div className="text-xs text-muted-foreground">{t('hero_equity_verified')}</div>
                       </div>
                       <div className="text-right">
                         <div className="font-mono text-lg font-medium text-amber-400">{kpi.sharpeRatio}</div>
-                        <div className="text-xs text-muted-foreground">Sharpe Ratio</div>
+                        <div className="text-xs text-muted-foreground">{t('hero_equity_sharpe_label')}</div>
                       </div>
                     </div>
                   </div>
@@ -533,32 +385,32 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
                   {betaSection.title}
                 </h2>
                 <p className="t-lead text-muted-foreground max-w-2xl mb-6">
-                  {betaSection.subtitle ?? 'Kami sedang fase beta. Track record live akan dipublikasi setelah 90 hari operasi produksi.'}
+                  {betaSection.subtitle ?? t('beta_section_subtitle_fallback')}
                 </p>
                 <ul className="grid sm:grid-cols-2 gap-x-8 gap-y-2 mb-8 max-w-2xl">
                   <li className="flex items-start gap-2 t-body-sm text-foreground/80">
                     <Check className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
-                    Akses penuh Robot Meta MT5 + Robot Crypto Binance
+                    {t('beta_bullet_full_access')}
                   </li>
                   <li className="flex items-start gap-2 t-body-sm text-foreground/80">
                     <Check className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
-                    Demo MT5 + Binance Testnet — coba dulu, no risk
+                    {t('beta_bullet_demo')}
                   </li>
                   <li className="flex items-start gap-2 t-body-sm text-foreground/80">
                     <Check className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
-                    Telegram channel founding members
+                    {t('beta_bullet_telegram')}
                   </li>
                   <li className="flex items-start gap-2 t-body-sm text-foreground/80">
                     <Check className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
-                    Lock-in harga Phase 1 setelah beta
+                    {t('beta_bullet_lockin')}
                   </li>
                   <li className="flex items-start gap-2 t-body-sm text-foreground/80">
                     <Check className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
-                    Direct line ke tim engineering
+                    {t('beta_bullet_eng')}
                   </li>
                   <li className="flex items-start gap-2 t-body-sm text-foreground/80">
                     <Check className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
-                    Upgrade tier setelah beta tanpa cancel
+                    {t('beta_bullet_upgrade')}
                   </li>
                 </ul>
               </AnimatedSection>
@@ -568,32 +420,31 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
                 <div className="rounded-xl border border-amber-500/30 bg-card p-6 md:p-8">
                   <div className="flex items-baseline gap-2 mb-2">
                     <span className="font-mono text-3xl font-semibold text-amber-400">
-                      {(betaSection.content as Record<string, unknown>)?.priceLabel as string ?? 'Gratis'}
+                      {(betaSection.content as Record<string, unknown>)?.priceLabel as string ?? t('beta_price_label')}
                     </span>
                     <span className="t-body-sm text-muted-foreground">
-                      {(betaSection.content as Record<string, unknown>)?.priceSubtext as string ?? 'selama beta'}
+                      {(betaSection.content as Record<string, unknown>)?.priceSubtext as string ?? t('beta_price_subtext')}
                     </span>
                   </div>
                   <p className="t-body-sm text-muted-foreground mb-6">
-                    Tidak ada biaya bulanan, tidak ada minimum deposit. Modal tetap di akun broker
-                    atau Binance Anda — kami tidak custody dana sama sekali.
+                    {t('beta_card_body')}
                   </p>
                   <Link
                     href={(betaSection.content as Record<string, unknown>)?.ctaHref as string ?? '/contact?subject=beta-founding-member'}
                     className="btn-primary w-full justify-center"
                   >
-                    {(betaSection.content as Record<string, unknown>)?.ctaLabel as string ?? 'Daftar founding member'}
+                    {(betaSection.content as Record<string, unknown>)?.ctaLabel as string ?? t('beta_apply_label')}
                     <ArrowRight className="w-4 h-4" />
                   </Link>
                   <Link
                     href="/demo"
                     className="btn-tertiary w-full justify-center mt-3 text-sm"
                   >
-                    Coba demo dulu (gratis)
+                    {t('beta_demo_secondary')}
                     <ArrowUpRight className="w-4 h-4" />
                   </Link>
                   <p className="text-[11px] text-muted-foreground/80 italic mt-4 text-center">
-                    Slot terbatas. Verifikasi manual oleh tim kami.
+                    {t('beta_slot_note')}
                   </p>
                 </div>
               </AnimatedSection>
@@ -609,7 +460,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
           ═══════════════════════════════════════════ */}
       {showcase && showcaseSlides.length > 0 && (
         <EditorialShowcase
-          eyebrow="HIGHLIGHT"
+          eyebrow={t('showcase_eyebrow')}
           title={showcase.title}
           subtitle={showcase.subtitle ?? undefined}
           slides={showcaseSlides}
@@ -628,38 +479,38 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
               {productsSection.title}
             </h2>
             <p className="t-lead text-muted-foreground max-w-2xl mb-12">
-              {productsSection.subtitle ?? 'Mesin trading otomatis untuk dua kelas aset, dibangun di atas framework risiko 12-layer yang sama.'}
+              {productsSection.subtitle ?? t('products_subtitle_fallback')}
             </p>
           </AnimatedSection>
 
           <div className="grid md:grid-cols-2 gap-6">
             <ProductCard
               icon={<TrendingUp className="w-6 h-6" />}
-              eyebrow="ROBOT META · MT5"
-              title="Forex · Metal · Index"
-              tagline="Auto-eksekusi di MetaTrader 5 Anda — bridge ZeroMQ institusional"
+              eyebrow={t('product_meta_eyebrow')}
+              title={t('product_meta_title')}
+              tagline={t('product_meta_tagline')}
               bullets={[
-                'Tier 1 Swing $19 — 3 pair major, indikator dasar',
-                'Tier 2 Scalping $79 — 8 pair + Gold/Silver, WhatsApp alert',
-                'Tier 3 All-In $299 — semua strategi, semua pair, dedicated support',
-                'Eksekusi via Exness partner broker (modal di akun Anda)',
+                t('product_meta_b1'),
+                t('product_meta_b2'),
+                t('product_meta_b3'),
+                t('product_meta_b4'),
               ]}
               href="/solutions/signal"
-              ctaLabel="Lihat tier Robot Meta"
+              ctaLabel={t('product_meta_cta')}
             />
             <ProductCard
               icon={<Bitcoin className="w-6 h-6" />}
-              eyebrow="ROBOT CRYPTO · BINANCE"
-              title="Binance Spot + Futures"
-              tagline="Auto-trading dengan API key Anda — modal tetap di Binance"
+              eyebrow={t('product_crypto_eyebrow')}
+              title={t('product_crypto_title')}
+              tagline={t('product_crypto_tagline')}
               bullets={[
-                'Tier Basic $49 — 3 pair, leverage 5x, scalping momentum',
-                'Tier Pro $199 — 8 pair, leverage 10x, multi-strategi',
-                'Tier HNWI $499 — 12 pair, leverage 15x, dedicated manager',
-                'API scope read+trade only — tidak ada withdraw permission',
+                t('product_crypto_b1'),
+                t('product_crypto_b2'),
+                t('product_crypto_b3'),
+                t('product_crypto_b4'),
               ]}
               href="/solutions/crypto"
-              ctaLabel="Lihat tier Robot Crypto"
+              ctaLabel={t('product_crypto_cta')}
             />
           </div>
         </div>
@@ -678,12 +529,12 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
                 <h2 className="t-display-section text-foreground mb-2">
                   {perfSource === 'empty' || filteredEquity.length === 0
                     ? t('track_record_beta_title')
-                    : (perf?.title || 'Real money. Real audits.')}
+                    : (perf?.title || t('track_record_live_title'))}
                 </h2>
                 <p className="t-body-sm text-muted-foreground">
                   {perfSource === 'empty' || filteredEquity.length === 0
                     ? t('track_record_beta_subtitle')
-                    : 'Verified · Production account · Updated every 4 hours'}
+                    : t('track_record_live_subtitle')}
                 </p>
               </div>
               {filteredEquity.length > 0 && (
@@ -716,36 +567,35 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
               <AnimatedSection delay={0.2}>
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-8">
                   <div className="kpi-card">
-                    <div className="t-eyebrow mb-3">TOTAL RETURN</div>
+                    <div className="t-eyebrow mb-3">{t('kpi_total_return')}</div>
                     <div className="t-data-kpi text-amber-400">{kpi.totalReturn}</div>
-                    <div className="t-body-sm text-muted-foreground mt-2">sejak akun aktif</div>
+                    <div className="t-body-sm text-muted-foreground mt-2">{t('kpi_total_return_sub')}</div>
                   </div>
                   <div className="kpi-card">
-                    <div className="t-eyebrow mb-3">MAX DRAWDOWN</div>
+                    <div className="t-eyebrow mb-3">{t('kpi_max_dd')}</div>
                     <div className="t-data-kpi text-data-negative">{kpi.maxDrawdown}</div>
-                    <div className="t-body-sm text-muted-foreground mt-2">peak-to-trough</div>
+                    <div className="t-body-sm text-muted-foreground mt-2">{t('kpi_max_dd_sub')}</div>
                   </div>
                   <div className="kpi-card">
-                    <div className="t-eyebrow mb-3">SHARPE RATIO</div>
+                    <div className="t-eyebrow mb-3">{t('kpi_sharpe')}</div>
                     <div className="t-data-kpi text-amber-400">{kpi.sharpeRatio}</div>
-                    <div className="t-body-sm text-muted-foreground mt-2">rolling 1y</div>
+                    <div className="t-body-sm text-muted-foreground mt-2">{t('kpi_sharpe_sub')}</div>
                   </div>
                   <div className="kpi-card">
-                    <div className="t-eyebrow mb-3">PROFIT FACTOR</div>
+                    <div className="t-eyebrow mb-3">{t('kpi_pf')}</div>
                     <div className="t-data-kpi text-amber-400">{kpi.profitFactor}</div>
-                    <div className="t-body-sm text-muted-foreground mt-2">wins / losses</div>
+                    <div className="t-body-sm text-muted-foreground mt-2">{t('kpi_pf_sub')}</div>
                   </div>
                   <div className="kpi-card">
-                    <div className="t-eyebrow mb-3">WIN RATE</div>
+                    <div className="t-eyebrow mb-3">{t('kpi_win')}</div>
                     <div className="t-data-kpi text-foreground">{kpi.winRate}</div>
-                    <div className="t-body-sm text-muted-foreground mt-2">closed trades</div>
+                    <div className="t-body-sm text-muted-foreground mt-2">{t('kpi_win_sub')}</div>
                   </div>
                 </div>
               </AnimatedSection>
 
               <div className="mt-6 text-xs text-muted-foreground italic">
-                Past performance does not guarantee future results. Verified equity statements
-                available on request.
+                {t('track_record_disclaimer')}
               </div>
             </>
           ) : (
@@ -754,44 +604,39 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
               <div className="rounded-xl border border-border/80 bg-card p-8 md:p-12">
                 <div className="grid md:grid-cols-3 gap-8">
                   <div>
-                    <div className="t-eyebrow text-amber-400 mb-3">FASE SEKARANG</div>
-                    <div className="font-display text-2xl text-foreground mb-2">Beta Tertutup</div>
+                    <div className="t-eyebrow text-amber-400 mb-3">{t('tr_phase_now_label')}</div>
+                    <div className="font-display text-2xl text-foreground mb-2">{t('tr_phase_now_title')}</div>
                     <p className="t-body-sm text-muted-foreground">
-                      Founding members trading dengan modal mereka sendiri. Kami kumpulkan data
-                      eksekusi real-money sebelum publikasi.
+                      {t('tr_phase_now_body')}
                     </p>
                   </div>
                   <div className="md:border-l md:border-border/60 md:pl-8">
-                    <div className="t-eyebrow text-amber-400 mb-3">90 HARI KE DEPAN</div>
-                    <div className="font-display text-2xl text-foreground mb-2">Soft Launch</div>
+                    <div className="t-eyebrow text-amber-400 mb-3">{t('tr_phase_next_label')}</div>
+                    <div className="font-display text-2xl text-foreground mb-2">{t('tr_phase_next_title')}</div>
                     <p className="t-body-sm text-muted-foreground">
-                      Equity statement, max drawdown, win rate, dan Sharpe ratio rolling akan
-                      dipublikasi mulai dari Q3 2026.
+                      {t('tr_phase_next_body')}
                     </p>
                   </div>
                   <div className="md:border-l md:border-border/60 md:pl-8">
-                    <div className="t-eyebrow text-amber-400 mb-3">AUDIT POLICY</div>
-                    <div className="font-display text-2xl text-foreground mb-2">Independen</div>
+                    <div className="t-eyebrow text-amber-400 mb-3">{t('tr_audit_label')}</div>
+                    <div className="font-display text-2xl text-foreground mb-2">{t('tr_audit_title')}</div>
                     <p className="t-body-sm text-muted-foreground">
-                      Equity statement diaudit pihak ketiga. Tersedia atas permintaan untuk
-                      institutional inquiry.
+                      {t('tr_audit_body')}
                     </p>
                   </div>
                 </div>
                 <div className="border-t border-border/60 mt-8 pt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <p className="t-body-sm text-muted-foreground">
-                    Mau melihat live demo dengan akun simulasi?
+                    {t('tr_demo_invite')}
                   </p>
                   <Link href="/demo" className="btn-tertiary shrink-0">
-                    Akses demo gratis
+                    {t('tr_demo_cta')}
                     <ArrowRight className="w-4 h-4" />
                   </Link>
                 </div>
               </div>
               <p className="mt-4 text-xs text-muted-foreground italic">
-                Kami menolak menampilkan chart simulasi atau angka backtest sebagai &ldquo;track
-                record&rdquo;. Kinerja masa lalu — termasuk simulasi — tidak menjamin hasil masa
-                depan.
+                {t('tr_empty_disclaimer')}
               </p>
             </AnimatedSection>
           )}
@@ -814,27 +659,27 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
           <div className="grid md:grid-cols-3 gap-6">
             <PillarCard
               icon={<Brain className="w-6 h-6" />}
-              eyebrow="INTELLIGENCE"
-              title="AI Confluence Engine"
-              description="Multi-timeframe scoring across H4, H1, M15, M5 confluence. Gemini 2.5 Flash advisory layer validates every signal."
+              eyebrow={t('pillar_intel_eyebrow')}
+              title={t('pillar_intel_title')}
+              description={t('pillar_intel_desc')}
               href="/platform/technology"
-              linkLabel="Read technical brief"
+              linkLabel={t('pillar_intel_link')}
             />
             <PillarCard
               icon={<Zap className="w-6 h-6" />}
-              eyebrow="EXECUTION"
-              title="Sub-2ms Bridge"
-              description="ZeroMQ-based execution to MT5. Deterministic slippage budget. Verifiable execution logs for every order."
+              eyebrow={t('pillar_exec_eyebrow')}
+              title={t('pillar_exec_title')}
+              description={t('pillar_exec_desc')}
               href="/platform/execution"
-              linkLabel="See architecture"
+              linkLabel={t('pillar_exec_link')}
             />
             <PillarCard
               icon={<Shield className="w-6 h-6" />}
-              eyebrow="RISK CONTROL"
-              title="12-Layer Framework"
-              description="Catastrophic breaker, daily DD guard, news blackout, kill-switch. Risk control isn't a feature — it's the substrate."
+              eyebrow={t('pillar_risk_eyebrow')}
+              title={t('pillar_risk_title')}
+              description={t('pillar_risk_desc')}
               href="/platform/risk-framework"
-              linkLabel="See framework"
+              linkLabel={t('pillar_risk_link')}
             />
           </div>
         </div>
@@ -854,15 +699,15 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
           </AnimatedSection>
 
           <div className="grid md:grid-cols-3 gap-8">
-            <RiskPhase title="PRE-TRADE" layers={RISK_LAYERS.preTrade} />
-            <RiskPhase title="IN-TRADE" layers={RISK_LAYERS.inTrade} />
-            <RiskPhase title="POST / SYSTEM" layers={RISK_LAYERS.postSystem} />
+            <RiskPhase title={t('risk_phase_pre')} layers={RISK_LAYERS.preTrade} />
+            <RiskPhase title={t('risk_phase_in')} layers={RISK_LAYERS.inTrade} />
+            <RiskPhase title={t('risk_phase_post')} layers={RISK_LAYERS.postSystem} />
           </div>
 
           <AnimatedSection delay={0.3}>
             <div className="mt-12 text-center">
               <Link href="/platform/risk-framework" className="btn-tertiary">
-                Read the full risk framework
+                {t('risk_full_link')}
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
@@ -882,31 +727,31 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
                 <div className="t-eyebrow mb-4">{t('pricing_eyebrow')}</div>
                 <h2 className="t-display-section text-foreground mb-4">{t('pricing_title')}</h2>
                 <p className="t-body text-muted-foreground mb-8">
-                  Three engagement models, each designed for a different type of capital.
+                  {t('pricing_subtitle')}
                 </p>
               </AnimatedSection>
 
               {/* Tab bar — vertical on desktop */}
               <AnimatedSection delay={0.1}>
                 <div className="flex lg:flex-col gap-2 mb-8 lg:mb-10">
-                  {PRICING_TABS.map(tab => (
+                  {PRICING_TAB_IDS.map(id => (
                     <button
-                      key={tab.id}
+                      key={id}
                       type="button"
                       className={`text-left px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                        pricingTab === tab.id
+                        pricingTab === id
                           ? 'bg-amber-500 text-black'
                           : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                       }`}
-                      onClick={() => setPricingTab(tab.id)}
+                      onClick={() => setPricingTab(id)}
                     >
-                      {tab.label}
+                      {t(`pricing_tab_${id}`)}
                     </button>
                   ))}
                 </div>
 
                 <Link href="/pricing" className="btn-tertiary text-sm hidden lg:inline-flex">
-                  Compare all plans <ArrowRight className="w-4 h-4" />
+                  {t('pricing_compare')} <ArrowRight className="w-4 h-4" />
                 </Link>
               </AnimatedSection>
             </div>
@@ -914,8 +759,12 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
             {/* Right column — pricing cards */}
             <div className="lg:col-span-8">
               <div className="space-y-6">
-                {(PRICING_PLANS[pricingTab] || []).map((plan, i) => (
-                  <AnimatedSection key={plan.name} delay={0.15 + i * 0.1}>
+                {activeTiers.map((plan, i) => {
+                  const features = Array.from({ length: plan.featureCount }, (_, fi) =>
+                    t(`tier_${plan.id}_f${fi + 1}`)
+                  );
+                  return (
+                  <AnimatedSection key={plan.id} delay={0.15 + i * 0.1}>
                     <div className={`rounded-xl p-6 sm:p-8 transition-all duration-300 border ${
                       plan.popular
                         ? 'border-amber-500 ring-1 ring-amber-500'
@@ -925,18 +774,18 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
                       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-1">
-                            <h3 className="text-lg font-medium text-foreground">{plan.name}</h3>
+                            <h3 className="text-lg font-medium text-foreground">{t(`tier_${plan.id}_name`)}</h3>
                             {plan.popular && (
                               <span className="px-2.5 py-0.5 rounded-full bg-amber-500 text-black text-[11px] font-medium tracking-wider uppercase">
-                                Popular
+                                {t('pricing_popular_badge')}
                               </span>
                             )}
                           </div>
-                          <p className="t-body-sm text-muted-foreground">{plan.tagline}</p>
+                          <p className="t-body-sm text-muted-foreground">{t(`tier_${plan.id}_tagline`)}</p>
                         </div>
                         <div className="flex items-baseline gap-1 sm:text-right shrink-0">
-                          <span className="font-mono text-3xl font-semibold text-foreground">{plan.price}</span>
-                          <span className="t-body-sm text-muted-foreground">/{plan.period}</span>
+                          <span className="font-mono text-3xl font-semibold text-foreground">{resolvePrice(plan.price)}</span>
+                          <span className="t-body-sm text-muted-foreground">{t(plan.periodKey)}</span>
                         </div>
                       </div>
 
@@ -946,7 +795,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
                           on lg+ next to the CTA button. */}
                       <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
                         <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5 flex-1 min-w-0">
-                          {plan.features.map(f => (
+                          {features.map(f => (
                             <li key={f} className="flex gap-2 t-body-sm min-w-0">
                               <Check className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
                               <span className="text-foreground/85 break-words">{f}</span>
@@ -954,28 +803,30 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
                           ))}
                         </ul>
                         <Link
-                          href={plan.cta.href}
+                          href={plan.href}
                           className={`shrink-0 text-center w-full lg:w-auto ${plan.popular ? 'btn-primary' : 'btn-secondary'} justify-center`}
                         >
-                          {plan.cta.label}
+                          {t(`tier_${plan.id}_cta`)}
                           <ArrowRight className="w-4 h-4" />
                         </Link>
                       </div>
                     </div>
                   </AnimatedSection>
-                ))}
+                  );
+                })}
               </div>
 
-              {/* VPS Enterprise CTA */}
+              {/* VPS Enterprise CTA — only on legacy "retail" tab (kept for
+                  backwards compat; current tab list omits it). */}
               {pricingTab === 'retail' && (
                 <AnimatedSection delay={0.3}>
                   <div className="mt-6 rounded-xl border border-amber-500/20 bg-amber-500/5 p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
-                      <div className="font-medium text-foreground mb-1">Need a dedicated VPS deployment?</div>
-                      <div className="t-body-sm text-muted-foreground">Custom installation with private infrastructure. From $3,000.</div>
+                      <div className="font-medium text-foreground mb-1">{t('pricing_vps_upsell_title')}</div>
+                      <div className="t-body-sm text-muted-foreground">{t('pricing_vps_upsell_body')}</div>
                     </div>
                     <Link href="/solutions/license" className="btn-tertiary shrink-0">
-                      Speak with our team
+                      {t('pricing_vps_upsell_cta')}
                       <ArrowRight className="w-4 h-4" />
                     </Link>
                   </div>
@@ -985,7 +836,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
               {/* Mobile: compare all plans link */}
               <div className="mt-6 lg:hidden">
                 <Link href="/pricing" className="btn-tertiary text-sm">
-                  Compare all plans <ArrowRight className="w-4 h-4" />
+                  {t('pricing_compare')} <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
             </div>
@@ -1003,20 +854,20 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
         <section className="section-padding border-t border-border/60">
           <div className="container-default px-4 sm:px-6">
             <AnimatedSection>
-              <div className="t-eyebrow mb-4">CLIENTS</div>
-              <h2 className="t-display-section text-foreground mb-16">What our partners say.</h2>
+              <div className="t-eyebrow mb-4">{t('testimonials_eyebrow')}</div>
+              <h2 className="t-display-section text-foreground mb-16">{t('testimonials_title')}</h2>
             </AnimatedSection>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {displayTestimonials.slice(0, 3).map((t, i) => (
-                <AnimatedSection key={t.id} delay={0.1 + i * 0.1}>
+              {displayTestimonials.slice(0, 3).map((tm, i) => (
+                <AnimatedSection key={tm.id} delay={0.1 + i * 0.1}>
                   <div className="card-enterprise p-8 h-full flex flex-col">
                     <blockquote className="t-lead text-foreground/90 italic flex-1 mb-6">
-                      &ldquo;{t.content}&rdquo;
+                      &ldquo;{tm.content}&rdquo;
                     </blockquote>
                     <div className="border-t border-border/60 pt-4">
-                      <div className="font-medium text-foreground">{t.name}</div>
-                      {t.role && <div className="t-body-sm text-muted-foreground">{t.role}</div>}
+                      <div className="font-medium text-foreground">{tm.name}</div>
+                      {tm.role && <div className="t-body-sm text-muted-foreground">{tm.role}</div>}
                     </div>
                   </div>
                 </AnimatedSection>
@@ -1030,29 +881,28 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
             <AnimatedSection>
               <div className="t-eyebrow mb-4">{t('trust_eyebrow')}</div>
               <h2 className="t-display-section text-foreground mb-4">
-                Stack institusional, bukan kemasan.
+                {t('trust_title')}
               </h2>
               <p className="t-lead text-muted-foreground max-w-2xl mb-12">
-                Kami belum menampilkan testimoni — slot founding member baru dibuka. Sebelum itu,
-                kepercayaan berdiri di atas teknologi, partner, dan disiplin kami.
+                {t('trust_subtitle')}
               </p>
             </AnimatedSection>
 
             <div className="grid md:grid-cols-3 gap-6 mb-12">
               <TrustCard
-                eyebrow="EKSEKUSI"
-                title="MetaTrader 5 + ZeroMQ"
-                description="Bridge native ke MT5 lewat ZeroMQ. Setiap order ber-deterministic slippage budget dan ter-log untuk audit."
+                eyebrow={t('trust_card_exec_eyebrow')}
+                title={t('trust_card_exec_title')}
+                description={t('trust_card_exec_desc')}
               />
               <TrustCard
-                eyebrow="BROKER"
-                title="Exness Partner"
-                description="Eksekusi via partner broker teregulasi (FCA, CySEC, FSCA). Modal di akun broker Anda — tidak ada custody dana."
+                eyebrow={t('trust_card_broker_eyebrow')}
+                title={t('trust_card_broker_title')}
+                description={t('trust_card_broker_desc')}
               />
               <TrustCard
-                eyebrow="CRYPTO"
-                title="Binance API"
-                description="Read + Trade scope only — kami tidak meminta withdraw permission. Modal tetap di Binance Anda."
+                eyebrow={t('trust_card_crypto_eyebrow')}
+                title={t('trust_card_crypto_title')}
+                description={t('trust_card_crypto_desc')}
               />
             </div>
 
@@ -1060,11 +910,11 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
               <div>
                 <p className="t-eyebrow text-amber-400 mb-2">{t('trust_invite_eyebrow')}</p>
                 <p className="t-body text-foreground">
-                  Founding members feedback masuk langsung ke roadmap engineering kami.
+                  {t('trust_invite_body')}
                 </p>
               </div>
               <Link href="/contact?subject=beta-founding-member" className="btn-primary shrink-0">
-                Daftar founding member
+                {t('beta_apply_label')}
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
@@ -1172,16 +1022,6 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
 
 // ─── Sub-components ───
 
-function KpiItem({ label, value, sublabel }: { label: string; value: string; sublabel: string }) {
-  return (
-    <div>
-      <div className="t-eyebrow mb-2">{label}</div>
-      <div className="font-mono text-2xl md:text-3xl font-medium text-foreground tabular-nums">{value}</div>
-      <div className="t-body-sm text-muted-foreground mt-1">{sublabel}</div>
-    </div>
-  );
-}
-
 function CapabilityInline({ value, label, valueClass }: {
   value: string;
   label: string;
@@ -1193,25 +1033,6 @@ function CapabilityInline({ value, label, valueClass }: {
         {value}
       </span>
       <span className="text-xs text-muted-foreground">{label}</span>
-    </div>
-  );
-}
-
-function CapabilityQuadrant({ icon, value, label, valueClass }: {
-  icon: React.ReactNode;
-  value: string;
-  label: string;
-  valueClass?: string;
-}) {
-  return (
-    <div className="rounded-lg border border-border/60 bg-background/40 p-3.5">
-      <div className="flex items-center justify-between mb-2 text-amber-400/80">
-        {icon}
-      </div>
-      <div className={`font-mono text-3xl font-medium tabular-nums ${valueClass ?? 'text-foreground'}`}>
-        {value}
-      </div>
-      <div className="text-[11px] text-muted-foreground mt-1 leading-snug">{label}</div>
     </div>
   );
 }

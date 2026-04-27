@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import Image from 'next/image';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
@@ -38,16 +38,17 @@ function formatDate(dateStr: string | undefined, locale: string): string {
   }
 }
 
-function shortAuthor(raw: string | undefined, isEn: boolean): string {
-  if (!raw) return isEn ? 'Research' : 'Riset';
-  // "BabahAlgo Research Desk" → "Research" / "Riset"
-  if (/research/i.test(raw)) return isEn ? 'Research' : 'Riset';
+function shortAuthor(raw: string | undefined, fallbackResearchLabel: string): string {
+  if (!raw) return fallbackResearchLabel;
+  // "BabahAlgo Research Desk" → fallbackResearchLabel
+  if (/research/i.test(raw)) return fallbackResearchLabel;
   return raw;
 }
 
 export default function ResearchPage() {
   const locale = useLocale();
   const isEn = locale === 'en';
+  const t = useTranslations('research_page');
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -87,14 +88,12 @@ export default function ResearchPage() {
         {/* Hero */}
         <section className="section-padding border-b border-white/8">
           <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-4">Research</p>
+            <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
             <h1 className="t-display-page mb-6">
-              {isEn ? 'Research & Insights' : 'Riset & Analisis'}
+              {t('hero_title')}
             </h1>
             <p className="t-lead text-foreground/60 max-w-2xl">
-              {isEn
-                ? 'Notes from the desk on markets, models, and execution.'
-                : 'Catatan dari meja riset tentang pasar, model, dan eksekusi.'}
+              {t('hero_lead')}
             </p>
           </div>
         </section>
@@ -108,14 +107,12 @@ export default function ResearchPage() {
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="t-eyebrow mb-2">Pair Intelligence</p>
+                  <p className="t-eyebrow mb-2">{t('briefs_eyebrow')}</p>
                   <h2 className="text-xl font-semibold mb-2 group-hover:text-amber-400 transition-colors">
-                    {isEn ? 'Pair Intelligence Briefs' : 'Laporan Intelijen Per Pair'}
+                    {t('briefs_title')}
                   </h2>
                   <p className="t-body-sm text-foreground/60">
-                    {isEn
-                      ? 'Actionable per-pair analysis with S/R levels, SND zones, and trade ideas — updated 3x daily.'
-                      : 'Analisis per pair yang actionable dengan level S/R, zona SND, dan ide trading — diperbarui 3x sehari.'}
+                    {t('briefs_desc')}
                   </p>
                 </div>
                 <svg className="w-6 h-6 text-foreground/30 group-hover:text-amber-400 transition-colors shrink-0 ml-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -144,7 +141,7 @@ export default function ResearchPage() {
             ) : articles.length === 0 ? (
               <div className="text-center py-16">
                 <p className="text-foreground/40 text-lg">
-                  {isEn ? 'No articles published yet.' : 'Belum ada artikel yang dipublikasikan.'}
+                  {t('empty_state')}
                 </p>
               </div>
             ) : (
@@ -164,7 +161,7 @@ export default function ResearchPage() {
                           <div className="relative w-[calc(100%+4rem)] aspect-[16/9] bg-muted/30 -ml-8 -mt-8 mb-6 overflow-hidden rounded-t-[var(--radius-lg)]">
                             <Image
                               src={article.imageUrl}
-                              alt={title || 'Research article cover'}
+                              alt={title || t('image_alt_fallback')}
                               fill
                               sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                               className="object-cover group-hover:scale-[1.02] transition-transform duration-500"
@@ -181,12 +178,12 @@ export default function ResearchPage() {
                         </p>
                         <div className="flex items-center gap-2 text-[11px] text-muted-foreground pt-4 border-t border-border/40 whitespace-nowrap overflow-hidden">
                           <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/30 font-mono uppercase tracking-wider text-[10px]">
-                            {shortAuthor(article.author, isEn)}
+                            {shortAuthor(article.author, t('author_research_label'))}
                           </span>
                           <span className="text-foreground/30">·</span>
                           <span>{formatDate(article.publishedAt, locale)}</span>
                           <span className="text-foreground/30">·</span>
-                          <span>{article.readTime} {isEn ? 'min read' : 'min baca'}</span>
+                          <span>{article.readTime} {t('min_read')}</span>
                         </div>
                       </Link>
                     );
@@ -198,10 +195,10 @@ export default function ResearchPage() {
                   perPage={PER_PAGE}
                   onPageChange={handlePageChange}
                   labels={{
-                    prev: isEn ? 'Prev' : 'Sebelumnya',
-                    next: isEn ? 'Next' : 'Berikutnya',
-                    page: isEn ? 'Page' : 'Halaman',
-                    of: isEn ? 'of' : 'dari',
+                    prev: t('pagination_prev'),
+                    next: t('pagination_next'),
+                    page: t('pagination_page'),
+                    of: t('pagination_of'),
                   }}
                 />
               </>
@@ -213,30 +210,26 @@ export default function ResearchPage() {
         <section className="section-padding">
           <div className="container-default px-4 sm:px-6">
             <div className="max-w-xl mx-auto text-center">
-              <p className="t-eyebrow mb-3">{isEn ? 'Stay Informed' : 'Tetap Terinformasi'}</p>
+              <p className="t-eyebrow mb-3">{t('newsletter_eyebrow')}</p>
               <h2 className="t-display-sub mb-3">
-                {isEn ? 'Quarterly research letter' : 'Surat riset kuartalan'}
+                {t('newsletter_title')}
               </h2>
               <p className="t-body-sm text-foreground/60 mb-8">
-                {isEn
-                  ? 'No marketing, no spam. Four times a year we share our latest research on strategy development, market microstructure, and systematic trading. Unsubscribe anytime.'
-                  : 'Tanpa marketing, tanpa spam. Empat kali setahun kami membagikan riset terbaru tentang pengembangan strategi, mikrostruktur pasar, dan trading sistematis. Berhenti berlangganan kapan saja.'}
+                {t('newsletter_lead')}
               </p>
               <form className="flex gap-3 max-w-md mx-auto">
                 <input
                   type="email"
-                  placeholder="you@example.com"
+                  placeholder={t('newsletter_email_placeholder')}
                   className="flex-1 border border-white/10 rounded-md px-4 py-3 bg-white/[0.03] text-foreground text-sm font-mono placeholder:text-foreground/30 focus:outline-none focus:ring-1 focus:ring-amber-500/50 transition-shadow"
                   required
                 />
                 <button type="submit" className="btn-primary shrink-0 py-3 px-6">
-                  {isEn ? 'Subscribe' : 'Berlangganan'}
+                  {t('newsletter_submit')}
                 </button>
               </form>
               <p className="text-xs text-foreground/40 mt-4">
-                {isEn
-                  ? 'By subscribing you agree to our privacy policy. We will never share your email.'
-                  : 'Dengan berlangganan Anda menyetujui kebijakan privasi kami. Kami tidak akan pernah membagikan email Anda.'}
+                {t('newsletter_disclaimer')}
               </p>
             </div>
           </div>

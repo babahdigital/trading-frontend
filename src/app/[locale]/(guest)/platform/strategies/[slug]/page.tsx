@@ -4,6 +4,7 @@ import { Link } from '@/i18n/navigation';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { notFound } from 'next/navigation';
 import { breadcrumbSchema, ldJson, organizationSchema } from '@/lib/seo-jsonld';
+import { getTranslations } from 'next-intl/server';
 import type { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
@@ -14,7 +15,9 @@ type StrategySlug = (typeof STRATEGY_SLUGS)[number];
 
 interface StrategyData {
   name: string;
-  subtitle: string;
+  subtitleKey: string;
+  // TODO Sesi 11: migrate STRATEGY_DETAILS body copy (abstract, mechanism, confluence roles)
+  // ke i18n namespace platform_strategy_detail. Saat ini masih English single-locale.
   abstract: [string, string];
   mechanism: string[];
   confluence: { timeframe: string; role: string }[];
@@ -29,7 +32,7 @@ interface StrategyData {
 const STRATEGY_DATA: Record<StrategySlug, StrategyData> = {
   smc: {
     name: 'SMC Intraday',
-    subtitle: 'Institutional order flow applied to intraday timeframes',
+    subtitleKey: 'smc_subtitle',
     abstract: [
       'Smart Money Concepts (SMC) is a structural approach to price action analysis that seeks to identify the footprints left by institutional participants -- banks, hedge funds, and proprietary trading desks -- as they accumulate and distribute positions. Unlike retail-oriented indicator strategies, SMC focuses on the mechanics of liquidity: where it rests, how it is engineered, and when it is harvested. The BabahAlgo SMC Intraday strategy automates this process through algorithmic detection of order blocks, fair value gaps, breaker blocks, and liquidity sweeps across multiple timeframes.',
       'The strategy operates primarily on the M5 to H1 range, using H4 for directional bias and H1 for structural context. Entry signals are generated when M15 structure aligns with the higher-timeframe narrative, with M5 providing precision timing. Every signal must pass through the full 12-layer risk framework before execution. The system is designed for high-frequency intraday operation, targeting 3-8 trades per day across the seven major forex pairs, with a strict maximum hold duration of 4 hours.',
@@ -57,7 +60,7 @@ const STRATEGY_DATA: Record<StrategySlug, StrategyData> = {
   },
   wyckoff: {
     name: 'Wyckoff Accumulation-Distribution',
-    subtitle: 'Classical volume-price methodology automated for modern markets',
+    subtitleKey: 'wyckoff_subtitle',
     abstract: [
       'The Wyckoff method, developed by Richard D. Wyckoff in the early 20th century, remains one of the most rigorous frameworks for understanding market structure. It posits that markets move through repeating phases of accumulation (institutional buying), markup (trending), distribution (institutional selling), and markdown (declining). The BabahAlgo Wyckoff strategy automates the identification of these phases through algorithmic volume-price analysis, spring/upthrust detection, and phase transition confirmation.',
       'This strategy operates on the M15 to H4 range, giving it a slightly longer holding period than the SMC Intraday approach. It is particularly effective in ranging markets where accumulation and distribution phases are clearly delineated. The system monitors volume divergences, effort-versus-result relationships, and the sequential appearance of Wyckoff events (preliminary support, selling climax, automatic rally, secondary test, spring) to build a probabilistic model of phase progression. Trades are only initiated when the phase model reaches high confidence and the entry aligns with a valid Wyckoff event.',
@@ -85,7 +88,7 @@ const STRATEGY_DATA: Record<StrategySlug, StrategyData> = {
   },
   astronacci: {
     name: 'Astronacci Harmonic',
-    subtitle: 'Fibonacci confluence zones with astro-cyclical timing alignment',
+    subtitleKey: 'astronacci_subtitle',
     abstract: [
       'The Astronacci strategy represents a proprietary synthesis of harmonic price geometry and cyclical timing analysis. At its core, the system identifies zones where multiple Fibonacci retracement and extension levels converge -- creating "clusters" of mathematical significance that historically correspond to high-probability reversal or continuation points. These geometric confluences are then cross-referenced with planetary cycle timing windows to filter entries to periods of heightened market sensitivity.',
       'Operating primarily on the H1 to H4 range, this strategy is designed for swing-style entries with moderate holding periods. The system continuously maps Fibonacci levels from multiple swing points across timeframes, scoring each zone by the density of overlapping levels. When a high-density zone coincides with a cyclical timing window, the system flags a potential setup. Entry is confirmed only when price action within the zone demonstrates a reversal pattern consistent with the expected direction. This multi-layer approach reduces false signals significantly compared to single-timeframe Fibonacci strategies.',
@@ -113,7 +116,7 @@ const STRATEGY_DATA: Record<StrategySlug, StrategyData> = {
   },
   'ai-momentum': {
     name: 'AI Momentum',
-    subtitle: 'Machine learning-driven momentum classification with AI confidence scoring',
+    subtitleKey: 'ai-momentum_subtitle',
     abstract: [
       'The AI Momentum strategy represents the convergence of traditional momentum analysis with modern large language model capabilities. At its foundation, the system uses Gemini 2.5 Flash to perform real-time analysis of market structure, news sentiment, and cross-pair correlation for each monitored instrument. The AI generates a structured assessment including directional bias, confidence score (0-100), key support/resistance levels, and a risk commentary. This AI layer acts as the first filter -- only setups where the AI confidence exceeds the strategy threshold proceed to the technical momentum engine.',
       'The technical momentum engine operates on M15 to H1, combining rate-of-change analysis, volume-weighted momentum scoring, and ADX trend strength filtering to classify the current momentum regime (strong trend, weak trend, ranging, or transitioning). Trades are initiated only when the AI directional bias aligns with a strong or accelerating momentum regime, creating a dual-confirmation system that reduces false signals in choppy or transitioning markets. The result is a strategy that captures genuine momentum moves while avoiding the whipsaws that plague traditional momentum approaches.',
@@ -141,7 +144,7 @@ const STRATEGY_DATA: Record<StrategySlug, StrategyData> = {
   },
   'oil-gas': {
     name: 'Oil & Gas Macro',
-    subtitle: 'Energy-sector specialist strategy for crude oil and natural gas',
+    subtitleKey: 'oil-gas_subtitle',
     abstract: [
       'The Oil & Gas Macro strategy is a specialist approach designed exclusively for energy markets: USOIL (WTI Crude), UKOIL (Brent Crude), and XNGUSD (Natural Gas). Energy markets behave differently from forex pairs -- they are driven by supply-demand fundamentals (inventory data, OPEC decisions, seasonal demand cycles), geopolitical risk events, and weather patterns. A pure technical approach misses these dominant drivers. This strategy integrates fundamental data cycles with technical confluence to time entries around high-impact events.',
       'The system maintains a rolling fundamental model that tracks EIA inventory data release cycles, OPEC meeting schedules, seasonal demand patterns (winter heating, summer driving), and geopolitical risk scoring for key producing regions. When the fundamental model identifies a directional bias (e.g., inventory drawdown plus seasonal demand increase), the technical engine activates to find optimal entry points using supply/demand zone analysis on H1-H4 timeframes. This dual approach captures moves driven by fundamental catalysts while maintaining disciplined technical entries and risk management.',
@@ -169,7 +172,7 @@ const STRATEGY_DATA: Record<StrategySlug, StrategyData> = {
   },
   'smc-swing': {
     name: 'SMC Swing',
-    subtitle: 'Multi-day Smart Money positioning on higher timeframes',
+    subtitleKey: 'smc-swing_subtitle',
     abstract: [
       'The SMC Swing strategy extends the Smart Money Concepts framework to higher timeframes, targeting multi-day moves that originate from weekly and daily institutional order flow. While the SMC Intraday strategy captures quick liquidity grabs on lower timeframes, SMC Swing operates in the H4 to D1 range, seeking positions that align with the broader institutional dealing range. The result is a lower-frequency, higher-conviction strategy with larger targets and proportionally wider stops.',
       'This strategy is designed for traders and institutional API clients that prioritize capital efficiency over trade frequency. By operating on higher timeframes, SMC Swing naturally filters out the noise and false signals that affect intraday approaches. The system identifies weekly premium and discount zones, maps daily order blocks and liquidity pools, and enters on H4 structural confirmations. Typical holding periods range from 8 to 48 hours, with the maximum capped at the system-wide 4-hour limit for risk management. Positions that require longer holds are structured as re-entries at the next valid setup rather than extended single holds.',
@@ -217,16 +220,17 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
+  const t = await getTranslations('platform_strategy_detail');
   if (!STRATEGY_SLUGS.includes(slug as StrategySlug)) {
-    return { title: 'Strategy Not Found | BabahAlgo' };
+    return { title: t('not_found_title') };
   }
   const strategy = STRATEGY_DATA[slug as StrategySlug];
   const description = strategy.abstract[0].slice(0, 160);
   return {
-    title: `${strategy.name} — Quantitative Strategy | BabahAlgo`,
+    title: `${strategy.name} ${t('metadata_title_suffix')}`,
     description,
     openGraph: {
-      title: `${strategy.name} — BabahAlgo`,
+      title: `${strategy.name} ${t('metadata_og_suffix')}`,
       description,
       type: 'article',
     },
@@ -244,6 +248,7 @@ export default async function StrategyDetailPage({
     notFound();
   }
 
+  const t = await getTranslations('platform_strategy_detail');
   const strategy = STRATEGY_DATA[slug as StrategySlug];
   const { prev, next } = getAdjacentStrategies(slug as StrategySlug);
 
@@ -265,7 +270,7 @@ export default async function StrategyDetailPage({
           href="/platform/strategies"
           className="inline-flex items-center gap-1.5 text-sm text-accent hover:text-accent/80 transition-colors mb-8"
         >
-          <ArrowLeft className="w-3.5 h-3.5" /> All strategies
+          <ArrowLeft className="w-3.5 h-3.5" /> {t('back_link')}
         </Link>
 
         {/* Header */}
@@ -273,13 +278,13 @@ export default async function StrategyDetailPage({
           {strategy.name}
         </h1>
         <p className="text-muted-foreground leading-relaxed mb-12 text-lg">
-          {strategy.subtitle}
+          {t(strategy.subtitleKey)}
         </p>
 
         {/* Abstract */}
         <section className="mb-16">
           <h2 className="font-display text-display-sm text-foreground mb-4">
-            Abstract
+            {t('section_abstract')}
           </h2>
           {strategy.abstract.map((paragraph, i) => (
             <p key={i} className="text-muted-foreground leading-relaxed mb-6">
@@ -291,7 +296,7 @@ export default async function StrategyDetailPage({
         {/* Mechanism */}
         <section className="mb-16">
           <h2 className="font-display text-display-sm text-foreground mb-4">
-            Mechanism
+            {t('section_mechanism')}
           </h2>
           <div className="space-y-4">
             {strategy.mechanism.map((step, i) => (
@@ -312,21 +317,20 @@ export default async function StrategyDetailPage({
         {/* Multi-timeframe confluence */}
         <section className="mb-16">
           <h2 className="font-display text-display-sm text-foreground mb-4">
-            Multi-timeframe confluence
+            {t('section_confluence')}
           </h2>
           <p className="text-muted-foreground leading-relaxed mb-6">
-            Every entry requires alignment across multiple timeframes. No single timeframe
-            can generate a trade independently.
+            {t('section_confluence_lead')}
           </p>
           <div className="border border-border rounded-lg bg-card overflow-hidden">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-border">
                   <th className="text-left text-sm font-semibold text-foreground px-6 py-3">
-                    Timeframe
+                    {t('table_timeframe')}
                   </th>
                   <th className="text-left text-sm font-semibold text-foreground px-6 py-3">
-                    Role
+                    {t('table_role')}
                   </th>
                 </tr>
               </thead>
@@ -349,14 +353,14 @@ export default async function StrategyDetailPage({
         {/* Risk profile */}
         <section className="mb-16">
           <h2 className="font-display text-display-sm text-foreground mb-4">
-            Risk profile
+            {t('section_risk_profile')}
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { label: 'Win Rate', value: strategy.riskProfile.winRate },
-              { label: 'Avg R:R', value: strategy.riskProfile.avgRR },
-              { label: 'Avg Hold', value: strategy.riskProfile.avgHold },
-              { label: 'Max Consec. Loss', value: strategy.riskProfile.maxConsecutiveLoss },
+              { label: t('metric_win_rate'), value: strategy.riskProfile.winRate },
+              { label: t('metric_avg_rr'), value: strategy.riskProfile.avgRR },
+              { label: t('metric_avg_hold'), value: strategy.riskProfile.avgHold },
+              { label: t('metric_max_consec_loss'), value: strategy.riskProfile.maxConsecutiveLoss },
             ].map((metric) => (
               <div key={metric.label} className="border border-border rounded-lg p-8 bg-card text-center">
                 <p className="font-mono text-xl text-accent mb-1">{metric.value}</p>

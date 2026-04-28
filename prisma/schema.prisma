@@ -25,8 +25,25 @@ model User {
   licenses           License[]
   subscriptions      Subscription[]
   sessions           Session[]
+  passwordResets     PasswordResetToken[]
   cryptoSubscription CryptoBotSubscription?
   kyc                UserKyc?
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  token     String    @unique // SHA-256 hash, NOT raw token
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  ipAddress String?
+  userAgent String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 enum Role {
@@ -347,16 +364,25 @@ model Testimonial {
 }
 
 model PageMeta {
-  id             String   @id @default(cuid())
-  path           String   @unique // e.g. "/", "/register", "/register/signal"
-  title          String
-  description    String?  @db.Text
-  ogTitle        String?
-  ogDescription  String?  @db.Text
-  ogImage        String?
-  structuredData Json?
-  updatedAt      DateTime @updatedAt
-  createdAt      DateTime @default(now())
+  id                String    @id @default(cuid())
+  path              String    @unique // e.g. "/", "/register", "/register/signal"
+  title             String
+  title_en          String?
+  description       String?   @db.Text
+  description_en    String?   @db.Text
+  ogTitle           String?
+  ogTitle_en        String?
+  ogDescription     String?   @db.Text
+  ogDescription_en  String?   @db.Text
+  ogImage           String?
+  structuredData    Json?
+  // Zero-touch i18n: timestamp when *_en was last synced. If updatedAt >
+  // en_synced_at, EN is stale and worker retranslates.
+  en_synced_at      DateTime?
+  updatedAt         DateTime  @updatedAt
+  createdAt         DateTime  @default(now())
+
+  @@index([en_synced_at])
 }
 
 model Inquiry {

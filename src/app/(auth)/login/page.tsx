@@ -197,7 +197,7 @@ export default function LoginPage() {
             </Button>
 
             <div className="flex items-center justify-between text-sm flex-wrap gap-2">
-              <a href="/contact" className="text-foreground/50 hover:text-amber-400 transition-colors">
+              <a href="/forgot-password" className="text-foreground/50 hover:text-amber-400 transition-colors">
                 {t('forgot_password')}
               </a>
               <a href="/contact" className="text-foreground/50 hover:text-amber-400 transition-colors">

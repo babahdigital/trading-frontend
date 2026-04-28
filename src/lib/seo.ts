@@ -36,22 +36,36 @@ export async function getPageMetadataWithStructuredData(
   fallback: { title: string; description: string },
   locale?: 'id' | 'en',
 ): Promise<PageMetaResult> {
-  // EN locale: bypass DB until PageMeta gains _en columns. Caller's fallback
-  // is the source of truth for English copy.
-  if (locale === 'en') {
-    return { metadata: fallback };
-  }
-
   try {
     const meta = await prisma.pageMeta.findUnique({ where: { path } });
     if (meta) {
+      const isEn = locale === 'en';
+      // Resolve EN columns when available; fall back to ID columns then
+      // caller fallback. Worker auto-translates blank EN columns next tick.
+      const title = (isEn && meta.title_en) ? meta.title_en : meta.title;
+      const description = (isEn && meta.description_en)
+        ? meta.description_en
+        : meta.description;
+      const ogTitle = (isEn && meta.ogTitle_en)
+        ? meta.ogTitle_en
+        : (meta.ogTitle || title);
+      const ogDescription = (isEn && meta.ogDescription_en)
+        ? meta.ogDescription_en
+        : (meta.ogDescription || description || undefined);
+
+      // EN locale + EN column missing → caller fallback wins (avoid serving
+      // ID copy on EN page). Worker will fill in next tick.
+      if (isEn && !meta.title_en && !meta.description_en) {
+        return { metadata: fallback };
+      }
+
       return {
         metadata: {
-          title: meta.title,
-          description: meta.description,
+          title,
+          description,
           openGraph: {
-            title: meta.ogTitle || meta.title,
-            description: meta.ogDescription || meta.description || undefined,
+            title: ogTitle,
+            description: ogDescription,
             images: meta.ogImage ? [meta.ogImage] : undefined,
           },
         },

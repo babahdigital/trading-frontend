@@ -256,27 +256,70 @@ async function syncArticle(): Promise<{ ok: number; failed: number }> {
   return { ok, failed };
 }
 
+async function syncPageMeta(): Promise<{ ok: number; failed: number }> {
+  const candidates = await prisma.pageMeta.findMany({
+    where: {
+      OR: [
+        { en_synced_at: null },
+        { en_synced_at: { lt: prisma.pageMeta.fields.updatedAt } },
+      ],
+    },
+    orderBy: { updatedAt: 'asc' },
+    take: BATCH_SIZE,
+  });
+
+  let ok = 0;
+  let failed = 0;
+  for (const m of candidates) {
+    try {
+      const [title_en, description_en, ogTitle_en, ogDescription_en] = await Promise.all([
+        translateText(m.title),
+        m.description ? translateText(m.description) : Promise.resolve<string | null>(null),
+        m.ogTitle ? translateText(m.ogTitle) : Promise.resolve<string | null>(null),
+        m.ogDescription ? translateText(m.ogDescription) : Promise.resolve<string | null>(null),
+      ]);
+      await prisma.pageMeta.update({
+        where: { id: m.id },
+        data: {
+          title_en,
+          description_en,
+          ogTitle_en,
+          ogDescription_en,
+          en_synced_at: new Date(),
+        },
+      });
+      ok++;
+    } catch (err) {
+      failed++;
+      log.error(`PageMeta ${m.id} (${m.path}) translate failed: ${String(err).slice(0, 200)}`);
+    }
+  }
+  return { ok, failed };
+}
+
 export async function runCmsI18nSync(): Promise<void> {
   if (!process.env.OPENROUTER_API_KEY) {
     return;
   }
 
   const start = Date.now();
-  const [faq, tier, section, article] = await Promise.all([
+  const [faq, tier, section, article, pageMeta] = await Promise.all([
     syncFaq().catch((err) => { log.error('FAQ sync error:', err); return { ok: 0, failed: 0 }; }),
     syncPricingTier().catch((err) => { log.error('PricingTier sync error:', err); return { ok: 0, failed: 0 }; }),
     syncLandingSection().catch((err) => { log.error('LandingSection sync error:', err); return { ok: 0, failed: 0 }; }),
     syncArticle().catch((err) => { log.error('Article sync error:', err); return { ok: 0, failed: 0 }; }),
+    syncPageMeta().catch((err) => { log.error('PageMeta sync error:', err); return { ok: 0, failed: 0 }; }),
   ]);
 
-  const total = faq.ok + tier.ok + section.ok + article.ok;
-  const totalFailed = faq.failed + tier.failed + section.failed + article.failed;
+  const total = faq.ok + tier.ok + section.ok + article.ok + pageMeta.ok;
+  const totalFailed = faq.failed + tier.failed + section.failed + article.failed + pageMeta.failed;
   const ms = Date.now() - start;
 
   // Stay quiet on idle ticks; only log when there's actual work or failures.
   if (total > 0 || totalFailed > 0) {
     log.info(
       `CMS i18n sync: faq=${faq.ok}/${faq.failed} pricing=${tier.ok}/${tier.failed} ` +
+      `pageMeta=${pageMeta.ok}/${pageMeta.failed} ` +
       `landing=${section.ok}/${section.failed} article=${article.ok}/${article.failed} ` +
       `total=${total} failed=${totalFailed} ms=${ms}`
     );

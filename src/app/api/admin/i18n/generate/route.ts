@@ -176,6 +176,44 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, title_en, excerpt_en });
     }
 
+    if (type === 'page-meta') {
+      const meta = await prisma.pageMeta.findUnique({ where: { id } });
+      if (!meta) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+
+      const [title_en, description_en, ogTitle_en, ogDescription_en] = await Promise.all([
+        translateText(meta.title),
+        meta.description ? translateText(meta.description) : Promise.resolve(null),
+        meta.ogTitle ? translateText(meta.ogTitle) : Promise.resolve(null),
+        meta.ogDescription ? translateText(meta.ogDescription) : Promise.resolve(null),
+      ]);
+
+      await prisma.pageMeta.update({
+        where: { id },
+        data: { title_en, description_en, ogTitle_en, ogDescription_en, en_synced_at: new Date() },
+      });
+
+      return NextResponse.json({ success: true, title_en, description_en });
+    }
+
+    if (type === 'all-page-meta') {
+      const metas = await prisma.pageMeta.findMany();
+      let translated = 0;
+      for (const meta of metas) {
+        const [title_en, description_en, ogTitle_en, ogDescription_en] = await Promise.all([
+          translateText(meta.title),
+          meta.description ? translateText(meta.description) : Promise.resolve(null),
+          meta.ogTitle ? translateText(meta.ogTitle) : Promise.resolve(null),
+          meta.ogDescription ? translateText(meta.ogDescription) : Promise.resolve(null),
+        ]);
+        await prisma.pageMeta.update({
+          where: { id: meta.id },
+          data: { title_en, description_en, ogTitle_en, ogDescription_en, en_synced_at: new Date() },
+        });
+        translated++;
+      }
+      return NextResponse.json({ success: true, translated });
+    }
+
     if (type === 'all-articles') {
       const articles = await prisma.article.findMany();
       let translated = 0;

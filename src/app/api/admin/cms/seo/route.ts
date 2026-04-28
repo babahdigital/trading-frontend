@@ -15,6 +15,12 @@ const pageMetaSchema = z.object({
   ogDescription: z.string().optional(),
   ogImage: z.string().optional(),
   structuredData: z.record(z.unknown()).optional(),
+  // Bilingual EN columns (optional — populated by AI auto-translate worker
+  // or admin manual edit via hybrid editor pattern)
+  title_en: z.string().nullable().optional(),
+  description_en: z.string().nullable().optional(),
+  ogTitle_en: z.string().nullable().optional(),
+  ogDescription_en: z.string().nullable().optional(),
 });
 
 export async function GET(request: NextRequest) {
@@ -52,7 +58,27 @@ export async function PUT(request: NextRequest) {
   const { id, ...data } = body;
   if (!id) return NextResponse.json({ error: 'id is required' }, { status: 400 });
 
-  const page = await prisma.pageMeta.update({ where: { id }, data });
+  // Detect ID source change → invalidate en_synced_at so worker retranslates
+  // next tick. Admin manual EN edit → set en_synced_at = now (worker respects).
+  const existing = await prisma.pageMeta.findUnique({ where: { id } });
+  let syncOverride: { en_synced_at?: Date | null } = {};
+  if (existing) {
+    const idChanged = ['title', 'description', 'ogTitle', 'ogDescription'].some((k) => {
+      const v = (data as Record<string, unknown>)[k];
+      return v !== undefined && v !== (existing as Record<string, unknown>)[k];
+    });
+    const enManuallyEdited = ['title_en', 'description_en', 'ogTitle_en', 'ogDescription_en'].some((k) => {
+      const v = (data as Record<string, unknown>)[k];
+      return v !== undefined && v !== (existing as Record<string, unknown>)[k];
+    });
+    if (idChanged && !enManuallyEdited) {
+      syncOverride = { en_synced_at: null };
+    } else if (enManuallyEdited) {
+      syncOverride = { en_synced_at: new Date() };
+    }
+  }
+
+  const page = await prisma.pageMeta.update({ where: { id }, data: { ...data, ...syncOverride } });
   if (data.path) revalidatePath(data.path);
   revalidatePath('/');
   return NextResponse.json(page);

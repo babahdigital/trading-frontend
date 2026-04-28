@@ -1360,6 +1360,15 @@
       "invalid_provider": "Penyedia pembayaran tidak valid. Gunakan \"midtrans\" atau \"xendit\".",
       "user_not_found": "Akun tidak ditemukan."
     },
+    "kill_switch": {
+      "KILL_SWITCH_NOT_ACTIVE": "Tidak ada kill-switch aktif",
+      "KILL_SWITCH_COOLING_OFF": "Cooling-off belum berakhir. Tersedia kembali pada {available_at}.",
+      "KILL_SWITCH_REQUIRES_ADMIN": "Kill-switch ini memerlukan persetujuan admin.",
+      "KILL_SWITCH_EQUITY_NOT_RECOVERED": "Ekuitas belum pulih. Saat ini {recovered_pct}% dari ambang {required_pct}%.",
+      "KILL_SWITCH_RATE_LIMITED": "Terlalu banyak percobaan acknowledge. Coba lagi dalam 1 jam.",
+      "ENGINE_UNKNOWN": "Engine tidak dikenali.",
+      "TIER_FORBIDDEN": "Engine ini tidak tersedia di paket Anda."
+    },
     "not_found": "Data tidak ditemukan.",
     "unknown": "Terjadi kesalahan yang tidak diketahui."
   },
@@ -2028,6 +2037,7 @@
       "tablist_aria": "Bagian akun",
       "tab_profile": "Profil",
       "tab_security": "Keamanan (2FA)",
+      "tab_trading": "Trading",
       "tab_notifications": "Notifikasi",
       "tab_billing": "Billing & Invoice"
     },
@@ -2084,6 +2094,37 @@
       "vol_50k_250k": "$50K - $250K",
       "vol_gt_250k": "> $250K",
       "submit_button": "Submit untuk Review"
+    },
+    "kill_switch": {
+      "banner_title": "Trading dihentikan otomatis",
+      "banner_body": "Sistem mendeteksi kondisi yang memicu kill-switch ({trigger_label}). Posisi terbuka tetap aktif, tapi entry baru dihentikan sampai Anda konfirmasi.",
+      "cta_acknowledge": "Konfirmasi & Lanjutkan",
+      "cta_contact_admin": "Hubungi Admin",
+      "countdown_label": "Tersedia dalam",
+      "policy_loss_streak": "Kehilangan beruntun",
+      "policy_equity_drawdown": "Drawdown ekuitas",
+      "policy_daily_loss": "Batas kerugian harian",
+      "policy_multi_trigger": "Multi-trigger",
+      "equity_input_label": "Equity sekarang (USD)",
+      "equity_input_placeholder": "10250.00"
+    },
+    "trading_toggle": {
+      "title": "Trading Aktif",
+      "subtitle": "Pause atau lanjutkan generation sinyal baru. EA tetap mengelola posisi yang sudah terbuka.",
+      "state_on": "Aktif — sistem mengeluarkan sinyal sesuai paket",
+      "state_off": "Dijeda — tidak ada sinyal baru",
+      "error_save": "Gagal menyimpan. Coba lagi."
+    },
+    "notif_prefs": {
+      "channels_title": "Kanal Notifikasi Kill-Switch",
+      "channels_subtitle": "Pilih cara kami menghubungi Anda saat trading dihentikan otomatis.",
+      "channel_email": "Email",
+      "channel_telegram": "Telegram",
+      "channel_whatsapp": "WhatsApp",
+      "whatsapp_gate_banner": "Pengiriman WhatsApp saat ini menggunakan gate platform-level. Opt-out per-tenant akan tersedia di rilis backend berikutnya.",
+      "min_one_channel": "Pilih minimal satu kanal.",
+      "save": "Simpan",
+      "saved": "Tersimpan"
     },
     "notifications": {
       "title": "Notifikasi",

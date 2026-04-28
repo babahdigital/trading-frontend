@@ -1360,6 +1360,15 @@
       "invalid_provider": "Invalid payment provider. Use \"midtrans\" or \"xendit\".",
       "user_not_found": "Account not found."
     },
+    "kill_switch": {
+      "KILL_SWITCH_NOT_ACTIVE": "No active kill-switch",
+      "KILL_SWITCH_COOLING_OFF": "Cooling-off period active until {available_at}.",
+      "KILL_SWITCH_REQUIRES_ADMIN": "This kill-switch requires admin override.",
+      "KILL_SWITCH_EQUITY_NOT_RECOVERED": "Equity has not recovered. Currently {recovered_pct}% of {required_pct}% threshold.",
+      "KILL_SWITCH_RATE_LIMITED": "Too many acknowledge attempts. Try again within 1 hour.",
+      "ENGINE_UNKNOWN": "Engine not recognized.",
+      "TIER_FORBIDDEN": "This engine is not available on your plan."
+    },
     "not_found": "Resource not found.",
     "unknown": "An unknown error occurred."
   },
@@ -2028,6 +2037,7 @@
       "tablist_aria": "Account sections",
       "tab_profile": "Profile",
       "tab_security": "Security (2FA)",
+      "tab_trading": "Trading",
       "tab_notifications": "Notifications",
       "tab_billing": "Billing & Invoices"
     },
@@ -2084,6 +2094,37 @@
       "vol_50k_250k": "$50K - $250K",
       "vol_gt_250k": "> $250K",
       "submit_button": "Submit for Review"
+    },
+    "kill_switch": {
+      "banner_title": "Trading halted automatically",
+      "banner_body": "System detected a kill-switch trigger ({trigger_label}). Open positions remain active, but new entries are paused until you acknowledge.",
+      "cta_acknowledge": "Acknowledge & Resume",
+      "cta_contact_admin": "Contact Admin",
+      "countdown_label": "Available in",
+      "policy_loss_streak": "Loss streak",
+      "policy_equity_drawdown": "Equity drawdown",
+      "policy_daily_loss": "Daily loss limit",
+      "policy_multi_trigger": "Multi-trigger",
+      "equity_input_label": "Current equity (USD)",
+      "equity_input_placeholder": "10250.00"
+    },
+    "trading_toggle": {
+      "title": "Trading Active",
+      "subtitle": "Pause or resume new signal generation. EA still manages already-open positions.",
+      "state_on": "Active — system generates signals per your plan",
+      "state_off": "Paused — no new signals",
+      "error_save": "Failed to save. Try again."
+    },
+    "notif_prefs": {
+      "channels_title": "Kill-Switch Notification Channels",
+      "channels_subtitle": "Choose how we reach you when trading is halted automatically.",
+      "channel_email": "Email",
+      "channel_telegram": "Telegram",
+      "channel_whatsapp": "WhatsApp",
+      "whatsapp_gate_banner": "WhatsApp delivery currently uses a platform-level gate. Per-tenant opt-out lands in the next backend release.",
+      "min_one_channel": "Select at least one channel.",
+      "save": "Save",
+      "saved": "Saved"
     },
     "notifications": {
       "title": "Notifications",

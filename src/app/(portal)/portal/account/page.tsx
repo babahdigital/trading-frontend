@@ -7,10 +7,12 @@ import { ProfileTab } from './tabs/profile';
 import { TwoFaTab } from './tabs/two-fa';
 import { NotificationsTab } from './tabs/notifications';
 import { BillingTab } from './tabs/billing';
+import { TradingTab } from './tabs/trading';
 
 const TABS = [
   { id: 'profile', labelKey: 'tab_profile' },
   { id: 'security', labelKey: 'tab_security' },
+  { id: 'trading', labelKey: 'tab_trading' },
   { id: 'notifications', labelKey: 'tab_notifications' },
   { id: 'billing', labelKey: 'tab_billing' },
 ] as const;
@@ -55,6 +57,7 @@ export default function AccountPage() {
       <section role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>
         {tab === 'profile' && <ProfileTab />}
         {tab === 'security' && <TwoFaTab />}
+        {tab === 'trading' && <TradingTab />}
         {tab === 'notifications' && <NotificationsTab />}
         {tab === 'billing' && <BillingTab />}
       </section>

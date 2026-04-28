@@ -4,8 +4,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
-import { AlertTriangle, Zap } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, ShieldCheck, Zap } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
 
 interface KillSwitchEvent {
@@ -27,6 +28,13 @@ export default function KillSwitchPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  // Forex kill-switch admin resolve (Sprint 11.4 P2).
+  const [resolveEventId, setResolveEventId] = useState('');
+  const [resolveReason, setResolveReason] = useState('');
+  const [resolveSubmitting, setResolveSubmitting] = useState(false);
+  const [resolveError, setResolveError] = useState('');
+  const [resolveSuccess, setResolveSuccess] = useState('');
 
   const fetchEvents = useCallback(async () => {
     setLoading(true);
@@ -83,6 +91,51 @@ export default function KillSwitchPage() {
     setConfirmStep(false);
   }
 
+  async function handleResolveForexEvent() {
+    setResolveError('');
+    setResolveSuccess('');
+    const trimmedId = resolveEventId.trim();
+    const trimmedReason = resolveReason.trim();
+    if (!trimmedId) {
+      setResolveError('Event ID is required.');
+      return;
+    }
+    if (!trimmedReason) {
+      setResolveError('Reason is required.');
+      return;
+    }
+    if (trimmedReason.length > 512) {
+      setResolveError('Reason must be at most 512 characters.');
+      return;
+    }
+    setResolveSubmitting(true);
+    try {
+      const res = await fetch(`/api/admin/kill-switch/${encodeURIComponent(trimmedId)}/resolve`, {
+        method: 'POST',
+        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: trimmedReason }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setResolveSuccess(`Resolved event ${trimmedId} (${data.action || 'kill_switch_resolve'}).`);
+        setResolveEventId('');
+        setResolveReason('');
+      } else {
+        if (res.status === 404 || data.code === 'NOT_FOUND') {
+          setResolveError('Event already resolved or not found.');
+        } else if (res.status === 422) {
+          setResolveError(data.error || 'Validation failed (reason required, ≤512 chars).');
+        } else {
+          setResolveError(data.error || data.code || `Failed (HTTP ${res.status}).`);
+        }
+      }
+    } catch (err) {
+      setResolveError(err instanceof Error ? err.message : 'Network error');
+    } finally {
+      setResolveSubmitting(false);
+    }
+  }
+
   return (
     <div>
       <div className="mb-8">
@@ -129,6 +182,78 @@ export default function KillSwitchPage() {
           )}
           {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
           {success && <p className="mt-2 text-sm text-green-400">{success}</p>}
+        </CardContent>
+      </Card>
+
+      {/* Forex kill-switch admin resolve — Sprint 11.4 P2 */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ShieldCheck className="h-5 w-5 text-emerald-400" />
+            Resolve Forex Kill-Switch Event
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Admin override for active kill-switch events on the forex backend.
+            Paste the <code className="text-xs">event_id</code> (UUIDv7) and a reason
+            (≤512 chars). The action is recorded in the audit notes.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <div>
+              <label htmlFor="ks-event-id" className="text-sm font-medium text-muted-foreground">
+                Event ID
+              </label>
+              <Input
+                id="ks-event-id"
+                value={resolveEventId}
+                onChange={(e) => {
+                  setResolveEventId(e.target.value);
+                  setResolveError('');
+                  setResolveSuccess('');
+                }}
+                placeholder="01975c3a-0f10-7e84-a5b1-..."
+                className="font-mono text-xs"
+              />
+            </div>
+            <div>
+              <label htmlFor="ks-reason" className="text-sm font-medium text-muted-foreground">
+                Reason ({resolveReason.length}/512)
+              </label>
+              <Textarea
+                id="ks-reason"
+                value={resolveReason}
+                onChange={(e) => {
+                  setResolveReason(e.target.value);
+                  setResolveError('');
+                  setResolveSuccess('');
+                }}
+                placeholder="manual review approved by compliance"
+                rows={3}
+                maxLength={512}
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={handleResolveForexEvent}
+                disabled={
+                  resolveSubmitting ||
+                  !resolveEventId.trim() ||
+                  !resolveReason.trim() ||
+                  resolveReason.length > 512
+                }
+              >
+                {resolveSubmitting ? 'Resolving...' : 'Resolve Event'}
+              </Button>
+              {resolveSuccess && (
+                <span className="text-sm text-emerald-400 flex items-center gap-1.5">
+                  <CheckCircle2 className="h-4 w-4" />
+                  {resolveSuccess}
+                </span>
+              )}
+            </div>
+            {resolveError && <p className="text-sm text-red-400">{resolveError}</p>}
+          </div>
         </CardContent>
       </Card>
 

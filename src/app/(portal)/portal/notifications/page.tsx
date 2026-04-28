@@ -8,6 +8,7 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { NotificationCard, type BackendNotification } from '@/components/notifications/notification-card';
+import { NotificationChannelPrefs } from '@/components/portal/notification-channel-prefs';
 import { cn } from '@/lib/utils';
 
 interface RecentResponse {
@@ -150,6 +151,8 @@ export default function NotificationsPage() {
           ))}
         </div>
       </div>
+
+      <NotificationChannelPrefs />
 
       {loading ? (
         <div className="space-y-3">

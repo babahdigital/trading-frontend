@@ -31,6 +31,7 @@ import { Button } from '@/components/ui/button';
 import { ResponsiveSidebar } from '@/components/layout/responsive-sidebar';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { AuthProvider, useAuth } from '@/lib/auth/auth-context';
+import { KillSwitchBanner } from '@/components/portal/kill-switch-banner';
 
 interface NavItem {
   href: string;
@@ -170,7 +171,10 @@ function PortalLayoutInner({ children }: { children: React.ReactNode }) {
       </ResponsiveSidebar>
 
       <main className="flex-1 overflow-auto">
-        <div className="p-4 sm:p-6 lg:p-8 max-w-[1400px] mx-auto">{children}</div>
+        <div className="p-4 sm:p-6 lg:p-8 max-w-[1400px] mx-auto">
+          <KillSwitchBanner />
+          {children}
+        </div>
       </main>
     </div>
   );

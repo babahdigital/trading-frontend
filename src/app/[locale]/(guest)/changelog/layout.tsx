@@ -6,7 +6,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   return getPageMetadata(
     '/changelog',
     {
-      title: isEn ? 'Changelog — BabahAlgo' : 'Changelog — BabahAlgo',
+      title: isEn ? 'Changelog — BabahAlgo' : 'Catatan Rilis — BabahAlgo',
       description: isEn
         ? 'BabahAlgo platform release notes and updates: new features, fixes, and enhancements.'
         : 'Catatan rilis dan pembaruan platform BabahAlgo: fitur baru, perbaikan, dan peningkatan.',

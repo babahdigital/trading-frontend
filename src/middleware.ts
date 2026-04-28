@@ -6,7 +6,7 @@ import { resolveCountryByIp } from '@/lib/geoip/fallback';
 
 const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 
-const publicPaths = ['/login', '/api/auth/login', '/api/auth/register', '/api/auth/refresh', '/api/health', '/api/public/', '/api/client/inquiries', '/api/chat', '/api/cron/', '/api/billing/webhook/', '/api/license/check', '/manifest.json'];
+const publicPaths = ['/login', '/forgot-password', '/reset-password', '/api/auth/login', '/api/auth/register', '/api/auth/refresh', '/api/auth/forgot-password', '/api/auth/reset-password', '/api/health', '/api/public/', '/api/client/inquiries', '/api/chat', '/api/cron/', '/api/billing/webhook/', '/api/license/check', '/manifest.json'];
 
 // In-memory rate limit store (per-process, resets on restart)
 const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
@@ -144,6 +144,8 @@ function isNonGuestPath(pathname: string): boolean {
     pathname.startsWith('/admin') ||
     pathname.startsWith('/portal') ||
     pathname.startsWith('/login') ||
+    pathname.startsWith('/forgot-password') ||
+    pathname.startsWith('/reset-password') ||
     pathname.startsWith('/api/') ||
     pathname.startsWith('/_next') ||
     pathname.startsWith('/favicon') ||
@@ -161,9 +163,9 @@ export async function middleware(request: NextRequest) {
   // These pages are locale-agnostic — they read locale from cookie/UI,
   // not URL. Without this redirect, /en/login 404s because no
   // [locale]/login route exists.
-  const localeStripMatch = pathname.match(/^\/(en|id)(\/(login|admin|portal)(\/.*)?$)/);
+  const localeStripMatch = pathname.match(/^\/(en|id)(\/(login|admin|portal|forgot-password|reset-password)(\/.*)?$)/);
   if (localeStripMatch) {
-    const stripped = localeStripMatch[2]; // /login or /admin/... or /portal/...
+    const stripped = localeStripMatch[2]; // /login, /admin/..., /portal/..., /forgot-password, /reset-password
     const url = request.nextUrl.clone();
     url.pathname = stripped;
     return NextResponse.redirect(url, 308);

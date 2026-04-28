@@ -7,20 +7,30 @@ import { localizeLandingSection, localizePricingTier, localizeFaq } from '@/lib/
 
 export const dynamic = 'force-dynamic';
 
-const FALLBACK = {
+const FALLBACK_ID = {
+  title: 'BabahAlgo — Otonomi Cerdas. Presisi Institusional.',
+  description: 'Platform Trading Kuantitatif Bertenaga AI dari BabahAlgo',
+};
+
+const FALLBACK_EN = {
   title: 'BabahAlgo — Autonomous Intelligence. Institutional Precision.',
   description: 'AI-Powered Quantitative Trading Platform by BabahAlgo',
 };
 
-export async function generateMetadata() {
-  const { metadata } = await getPageMetadataWithStructuredData('/', FALLBACK);
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const isEn = locale === 'en';
+  const fallback = isEn ? FALLBACK_EN : FALLBACK_ID;
+  const { metadata } = await getPageMetadataWithStructuredData('/', fallback, isEn ? 'en' : 'id');
   return metadata;
 }
 
 export default async function GuestLandingPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
+  const isEn = locale === 'en';
+  const fallback = isEn ? FALLBACK_EN : FALLBACK_ID;
   // Fetch CMS data + structured data
-  const { structuredData } = await getPageMetadataWithStructuredData('/', FALLBACK);
+  const { structuredData } = await getPageMetadataWithStructuredData('/', fallback, isEn ? 'en' : 'id');
 
   // Fetch all CMS data server-side
   let sections: Record<string, { title: string; subtitle: string | null; content: Record<string, unknown> }> = {};

@@ -4,8 +4,24 @@ import { Link } from '@/i18n/navigation';
 import { ArrowRight } from 'lucide-react';
 import { STRATEGY_ICONS } from '@/components/icons/strategy-icons';
 import { getTranslations } from 'next-intl/server';
+import { getPageMetadata } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const isEn = locale === 'en';
+  return getPageMetadata(
+    '/platform/strategies',
+    {
+      title: isEn ? 'Trading Strategies — BabahAlgo' : 'Strategi Trading — BabahAlgo',
+      description: isEn
+        ? 'BabahAlgo quantitative strategy library: Smart Money Concepts, Mean Reversion, Trend Following, and more.'
+        : 'Library strategi kuantitatif BabahAlgo: Smart Money Concepts, Mean Reversion, Trend Following, dan lainnya.',
+    },
+    locale === 'en' ? 'en' : 'id',
+  );
+}
 
 const STRATEGIES = [
   {

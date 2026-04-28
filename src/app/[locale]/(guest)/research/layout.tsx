@@ -7,10 +7,12 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   return getPageMetadata(
     '/research',
     {
-      title: 'Research & Insights — BabahAlgo Quantitative Analysis',
+      title: isEn
+        ? 'Research & Insights — BabahAlgo Quantitative Analysis'
+        : 'Riset & Wawasan — BabahAlgo Analisis Kuantitatif',
       description: isEn
-        ? 'Quantitative trading research: SMC order block analysis, Wyckoff phase detection, market regime studies, and institutional-grade pair briefs. Updated weekly.'
-        : 'Riset trading kuantitatif: SMC order block analysis, Wyckoff phase detection, market regime studies, dan pair brief institutional-grade. Update mingguan.',
+        ? 'Market research, backtest analysis, and quantitative insights from the BabahAlgo team.'
+        : 'Riset pasar, analisis backtest, dan wawasan kuantitatif dari tim BabahAlgo.',
     },
     locale === 'en' ? 'en' : 'id',
   );

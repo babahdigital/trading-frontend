@@ -3,8 +3,24 @@ import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { Link } from '@/i18n/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
+import { getPageMetadata } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const isEn = locale === 'en';
+  return getPageMetadata(
+    '/platform/execution',
+    {
+      title: isEn ? 'Execution — BabahAlgo' : 'Eksekusi — BabahAlgo',
+      description: isEn
+        ? 'BabahAlgo sub-millisecond execution pipeline: ZeroMQ to MT5, Binance websocket, low-latency infrastructure.'
+        : 'Pipeline eksekusi sub-millisecond BabahAlgo: ZeroMQ ke MT5, websocket Binance, infrastruktur low-latency.',
+    },
+    locale === 'en' ? 'en' : 'id',
+  );
+}
 
 export default async function ExecutionPage() {
   const t = await getTranslations('platform_execution');

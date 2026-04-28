@@ -3,8 +3,24 @@ import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { Link } from '@/i18n/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
+import { getPageMetadata } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const isEn = locale === 'en';
+  return getPageMetadata(
+    '/platform/risk-framework',
+    {
+      title: isEn ? 'Risk Framework — BabahAlgo' : 'Kerangka Risiko — BabahAlgo',
+      description: isEn
+        ? 'Kill-switch, position sizing, drawdown control, and BabahAlgo risk management framework.'
+        : 'Kill-switch, position sizing, drawdown control, dan kerangka manajemen risiko BabahAlgo.',
+    },
+    locale === 'en' ? 'en' : 'id',
+  );
+}
 
 const RISK_LAYERS = [
   { number: 1, nameKey: 'layer_1_name', subtitleKey: 'layer_1_subtitle', descKey: 'layer_1_desc' },

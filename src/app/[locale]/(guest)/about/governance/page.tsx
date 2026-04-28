@@ -2,8 +2,24 @@ import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
+import { getPageMetadata } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const isEn = locale === 'en';
+  return getPageMetadata(
+    '/about/governance',
+    {
+      title: isEn ? 'Governance — BabahAlgo' : 'Tata Kelola — BabahAlgo',
+      description: isEn
+        ? 'Governance structure, regulatory compliance, and risk management of BabahAlgo (CV Babah Digital).'
+        : 'Struktur tata kelola, kepatuhan regulasi, dan manajemen risiko BabahAlgo (CV Babah Digital).',
+    },
+    locale === 'en' ? 'en' : 'id',
+  );
+}
 
 const AUDIT_KEYS = ['audit_b1', 'audit_b2', 'audit_b3', 'audit_b4', 'audit_b5'] as const;
 const DATA_KEYS = ['data_b1', 'data_b2', 'data_b3', 'data_b4'] as const;

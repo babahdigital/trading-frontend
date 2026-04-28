@@ -7,8 +7,24 @@ import {
   Mail, MessageCircle, Send, Clock, MapPin,
   CalendarCheck, ShieldCheck, FileSignature, MessagesSquare,
 } from 'lucide-react';
+import { getPageMetadata } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const isEn = locale === 'en';
+  return getPageMetadata(
+    '/contact',
+    {
+      title: isEn ? 'Contact — BabahAlgo' : 'Kontak — BabahAlgo',
+      description: isEn
+        ? 'Contact the BabahAlgo team for commercial inquiries, technical support, or institutional collaboration.'
+        : 'Hubungi tim BabahAlgo untuk pertanyaan komersial, dukungan teknis, atau kolaborasi institusional.',
+    },
+    locale === 'en' ? 'en' : 'id',
+  );
+}
 
 const AGENDA_META = [
   { icon: CalendarCheck, titleKey: 'agenda1_title', descKey: 'agenda1_desc' },

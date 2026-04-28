@@ -4,8 +4,24 @@ import { ArchitectureDiagram } from '@/components/diagrams/architecture-diagram'
 import { Link } from '@/i18n/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
+import { getPageMetadata } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const isEn = locale === 'en';
+  return getPageMetadata(
+    '/platform/technology',
+    {
+      title: isEn ? 'Technology — BabahAlgo' : 'Teknologi — BabahAlgo',
+      description: isEn
+        ? 'BabahAlgo technology stack: Python FastAPI, Next.js, PostgreSQL, ZeroMQ, and modern quantitative trading infrastructure.'
+        : 'Stack teknologi BabahAlgo: Python FastAPI, Next.js, PostgreSQL, ZeroMQ, dan infrastruktur trading kuantitatif modern.',
+    },
+    locale === 'en' ? 'en' : 'id',
+  );
+}
 
 export default async function TechnologyPage() {
   const t = await getTranslations('platform_technology');

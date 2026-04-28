@@ -51,59 +51,13 @@ interface TierMeta {
   descKey: 'tier_basic_desc' | 'tier_pro_desc' | 'tier_hnwi_desc';
   ctaKey: 'tier_basic_cta' | 'tier_pro_cta' | 'tier_hnwi_cta';
   pfKey: 'tier_basic_pf' | 'tier_pro_pf' | 'tier_hnwi_pf';
-  features: readonly string[];
+  featuresKey: 'tier_basic_features' | 'tier_pro_features' | 'tier_hnwi_features';
 }
 
 const TIERS_META: TierMeta[] = [
-  {
-    id: 'basic',
-    name: 'Crypto Basic',
-    price: '$49',
-    descKey: 'tier_basic_desc',
-    ctaKey: 'tier_basic_cta',
-    pfKey: 'tier_basic_pf',
-    features: [
-      '3 pair otomatis (top-3 dynamic ranking)',
-      'Leverage maksimal 5x',
-      '3 posisi paralel',
-      'Strategi: scalping_momentum',
-      'Notifikasi Telegram + dashboard',
-      'Email support',
-    ],
-  },
-  {
-    id: 'pro',
-    name: 'Crypto Pro',
-    price: '$199',
-    popular: true,
-    descKey: 'tier_pro_desc',
-    ctaKey: 'tier_pro_cta',
-    pfKey: 'tier_pro_pf',
-    features: [
-      '8 pair otomatis (top-8 + 1 manual whitelist)',
-      'Leverage maksimal 10x',
-      '5 posisi paralel',
-      'Strategi: SMC, Wyckoff, Momentum, Mean Reversion',
-      'Live equity polling 5 detik',
-      'Telegram VIP + priority support',
-    ],
-  },
-  {
-    id: 'hnwi',
-    name: 'Crypto HNWI',
-    price: '$499',
-    descKey: 'tier_hnwi_desc',
-    ctaKey: 'tier_hnwi_cta',
-    pfKey: 'tier_hnwi_pf',
-    features: [
-      '12 pair + custom whitelist/blacklist',
-      'Leverage maksimal 15x',
-      '8 posisi paralel',
-      'Semua strategi + parameter tuning',
-      'Dedicated account manager',
-      'SLA 99.9% + monthly review call',
-    ],
-  },
+  { id: 'basic', name: 'Crypto Basic', price: '$49', descKey: 'tier_basic_desc', ctaKey: 'tier_basic_cta', pfKey: 'tier_basic_pf', featuresKey: 'tier_basic_features' },
+  { id: 'pro', name: 'Crypto Pro', price: '$199', popular: true, descKey: 'tier_pro_desc', ctaKey: 'tier_pro_cta', pfKey: 'tier_pro_pf', featuresKey: 'tier_pro_features' },
+  { id: 'hnwi', name: 'Crypto HNWI', price: '$499', descKey: 'tier_hnwi_desc', ctaKey: 'tier_hnwi_cta', pfKey: 'tier_hnwi_pf', featuresKey: 'tier_hnwi_features' },
 ];
 
 const STRATEGY_META = [
@@ -265,7 +219,7 @@ export default async function CryptoBotSolutionPage() {
                   </div>
                   <p className="text-xs text-amber-400 font-mono uppercase tracking-wider mb-6">{t(tier.pfKey)}</p>
                   <ul className="space-y-2.5 mb-8 flex-1">
-                    {tier.features.map((f) => (
+                    {(t.raw(tier.featuresKey) as string[]).map((f) => (
                       <li key={f} className="flex items-start gap-2 text-sm text-foreground/80 leading-relaxed">
                         <Check className="w-4 h-4 text-green-400 shrink-0 mt-0.5" />
                         <span>{f}</span>

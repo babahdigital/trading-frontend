@@ -39,32 +39,14 @@ interface PricingMeta {
   popular?: boolean;
   taglineKey: 'tier1_tagline' | 'tier2_tagline' | 'tier3_tagline';
   ctaKey: 'tier1_cta' | 'tier2_cta' | 'tier3_cta';
+  featuresKey: 'tier1_features' | 'tier2_features' | 'tier3_features';
   href: string;
-  features: readonly string[];
 }
 
 const PRICING_META: PricingMeta[] = [
-  { tier: 'TIER 1', name: 'Robot Meta · Swing', price: '$19', taglineKey: 'tier1_tagline', ctaKey: 'tier1_cta', href: '/register/signal?tier=swing', features: [
-    '3 pair major (EURUSD · GBPUSD · USDJPY)',
-    'Strategi swing only (durasi 4–24 jam)',
-    'Indikator dasar: SMC + Wyckoff',
-    'Notifikasi: Email + Dashboard',
-    'Auto-eksekusi di MT5 Anda',
-  ] },
-  { tier: 'TIER 2', name: 'Robot Meta · Scalping', price: '$79', popular: true, taglineKey: 'tier2_tagline', ctaKey: 'tier2_cta', href: '/register/signal?tier=scalping', features: [
-    '8 pair (Major · Cross · Gold · Silver)',
-    'Strategi swing + scalping',
-    'Indikator advanced: SMC + Wyckoff + AI Momentum',
-    'Notifikasi: WhatsApp + Telegram + Email',
-    'Mid-tier AI explainability per trade',
-  ] },
-  { tier: 'TIER 3', name: 'Robot Meta · All-In', price: '$299', taglineKey: 'tier3_tagline', ctaKey: 'tier3_cta', href: '/register/signal?tier=all', features: [
-    'Unlimited pair (Major · Cross · Metals · Index)',
-    'Semua 6 strategi paralel',
-    'Premium AI advisor + copy-trade dashboard',
-    'Notifikasi all channels + dedicated support 24/7',
-    'Custom backtest sweep + Payout API',
-  ] },
+  { tier: 'TIER 1', name: 'Robot Meta · Swing', price: '$19', taglineKey: 'tier1_tagline', ctaKey: 'tier1_cta', featuresKey: 'tier1_features', href: '/register/signal?tier=swing' },
+  { tier: 'TIER 2', name: 'Robot Meta · Scalping', price: '$79', popular: true, taglineKey: 'tier2_tagline', ctaKey: 'tier2_cta', featuresKey: 'tier2_features', href: '/register/signal?tier=scalping' },
+  { tier: 'TIER 3', name: 'Robot Meta · All-In', price: '$299', taglineKey: 'tier3_tagline', ctaKey: 'tier3_cta', featuresKey: 'tier3_features', href: '/register/signal?tier=all' },
 ];
 
 const STEP_META = [
@@ -139,13 +121,16 @@ export default function SignalPage() {
     { name: 'Robot Meta', url: '/solutions/signal' },
   ]);
   const faqJson = faqPageSchema(faq.map((f) => ({ question: f.q, answer: f.a })));
-  const tierProducts = PRICING_META.map((tier) => financialProductSchema({
-    name: `${tier.name} — ${tier.price}/mo`,
-    description: tier.features.join(' · '),
-    price: tier.price.replace(/[^0-9.]/g, ''),
-    currency: 'USD',
-    url: '/solutions/signal',
-  }));
+  const tierProducts = PRICING_META.map((tier) => {
+    const features = t.raw(tier.featuresKey) as string[];
+    return financialProductSchema({
+      name: `${tier.name} — ${tier.price}/mo`,
+      description: features.join(' · '),
+      price: tier.price.replace(/[^0-9.]/g, ''),
+      currency: 'USD',
+      url: '/solutions/signal',
+    });
+  });
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -217,7 +202,7 @@ export default function SignalPage() {
                     <span className="t-body-sm text-foreground/40">/mo</span>
                   </div>
                   <ul className="space-y-2.5 mb-6">
-                    {tier.features.map((f) => (
+                    {(t.raw(tier.featuresKey) as string[]).map((f) => (
                       <li key={f} className="flex items-start gap-2 t-body-sm text-foreground/85">
                         <Check className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
                         <span className="break-words">{f}</span>

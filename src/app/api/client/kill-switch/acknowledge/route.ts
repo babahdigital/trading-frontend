@@ -3,6 +3,7 @@ export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { proxyToMasterBackend } from '@/lib/proxy/vps-client';
+import { resolveIdempotencyKey } from '@/lib/api/idempotency';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('api/client/kill-switch/acknowledge');
@@ -45,10 +46,13 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // Forward client Idempotency-Key, generate one if absent (ADR-009).
+  const { key: idempotencyKey } = resolveIdempotencyKey(request.headers, 'ks-ack');
+
   try {
     const res = await proxyToMasterBackend('signals', '/api/forex/me/kill-switch/acknowledge', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey },
       body: JSON.stringify(body),
     });
 

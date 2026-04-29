@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/db/prisma';
 import { proxyToMasterBackend } from '@/lib/proxy/vps-client';
+import { resolveIdempotencyKey } from '@/lib/api/idempotency';
 import { toCapabilityTier } from '@/lib/capabilities/tier-mapping';
 import { createLogger } from '@/lib/logger';
 
@@ -173,11 +174,13 @@ export async function PUT(request: NextRequest) {
 
   const tier = toCapabilityTier(ctx.subscriptionTier, ctx.licenseType);
 
+  const { key: idempotencyKey } = resolveIdempotencyKey(request.headers, 'features');
+
   // Try master backend first — it owns the authoritative gate
   try {
     const res = await proxyToMasterBackend('signals', '/v1/tenant/me/features', {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey },
       body: JSON.stringify(body),
     });
     if (res.status === 403) {

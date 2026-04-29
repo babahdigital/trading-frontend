@@ -3,6 +3,7 @@ export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { proxyToMasterBackend } from '@/lib/proxy/vps-client';
+import { resolveIdempotencyKey } from '@/lib/api/idempotency';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('api/client/kill-switch/preferences');
@@ -68,10 +69,12 @@ export async function PATCH(request: NextRequest) {
     );
   }
 
+  const { key: idempotencyKey } = resolveIdempotencyKey(request.headers, 'ks-prefs');
+
   try {
     const res = await proxyToMasterBackend('signals', '/api/forex/me/kill-switch/preferences', {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey },
       body: JSON.stringify(body),
     });
     const payload = await res.json().catch(() => ({}));

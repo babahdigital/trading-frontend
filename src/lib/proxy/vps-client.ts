@@ -117,10 +117,14 @@ export async function proxyToMasterBackend(
   }
 
   const url = `${baseUrl}${path}`;
+  // Caller-supplied headers win over defaults — Accept-Timezone is
+  // overridable per-request when a tenant has chosen a non-Jakarta zone.
+  const callerHeaders = Object.fromEntries(new Headers((init.headers as HeadersInit) || {}).entries());
   return fetch(url, {
     ...init,
     headers: {
-      ...Object.fromEntries(new Headers(init.headers as HeadersInit || {}).entries()),
+      'Accept-Timezone': 'Asia/Jakarta',
+      ...callerHeaders,
       'X-API-Token': token,
       'User-Agent': 'vps2-commercial/1.0',
     },

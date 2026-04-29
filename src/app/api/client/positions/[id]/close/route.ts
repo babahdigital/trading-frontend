@@ -4,6 +4,7 @@ export const runtime = 'nodejs';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { proxyToVpsBackend } from '@/lib/proxy/vps-client';
+import { resolveIdempotencyKey } from '@/lib/api/idempotency';
 import { createLogger } from '@/lib/logger';
 import { z } from 'zod';
 
@@ -57,10 +58,15 @@ export async function POST(
     }
   }
 
+  // Position close is the most safety-critical idempotent op — double-click
+  // must NOT close the same position twice. Forward client key or generate
+  // one stable per request.
+  const { key: idempotencyKey } = resolveIdempotencyKey(request.headers, `pos-close-${id.slice(0, 12)}`);
+
   try {
     const res = await proxyToVpsBackend(vpsInstanceId, `/api/positions/${encodeURIComponent(id)}/close`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey },
       body: JSON.stringify({ reason: body.reason ?? 'user_manual_close' }),
     });
 

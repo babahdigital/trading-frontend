@@ -24,9 +24,11 @@ export async function GET(request: NextRequest) {
   try {
     const qs = new URLSearchParams({ limit: String(limit) });
     if (tenantId) qs.set('tenant_id', tenantId);
+    // Crypto backend mirrors the forex Signals API surface — `/v1/signals/latest`
+    // public endpoint with X-Api-Key + Scope.SIGNALS_READ.
     const res = await proxyToCryptoBackend({
       scope: 'signals',
-      path: `/api/signals/latest?${qs}`,
+      path: `/v1/signals/latest?${qs}`,
       forwardUserId: gate.userId,
     });
     if (!res.ok) {

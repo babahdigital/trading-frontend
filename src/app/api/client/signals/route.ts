@@ -28,24 +28,43 @@ export async function GET(request: NextRequest) {
   if (!gate.ok) return gate.response;
 
   // Forward query params (since_id, limit, min_confidence, pair)
-  const sinceId = request.nextUrl.searchParams.get('since_id') ?? '';
   const limit = Math.min(parseInt(request.nextUrl.searchParams.get('limit') || '50', 10), 200);
   const minConf = request.nextUrl.searchParams.get('min_confidence') ?? '';
   const pair = request.nextUrl.searchParams.get('pair') ?? '';
 
+  // Build query for backend's public Signals API microservice (`/v1/signals/latest`):
+  // accepts `symbol` (3-16) + `limit` (1-200, default 50). Confidence and `since_id`
+  // are not supported on /latest — apply locally after fetch.
   const qs = new URLSearchParams();
   qs.set('limit', String(limit));
-  if (sinceId) qs.set('since_id', sinceId);
-  if (minConf) qs.set('min_confidence', minConf);
-  if (pair) qs.set('pair', pair);
+  if (pair) qs.set('symbol', pair);
 
   // Try master backend first
   try {
-    const res = await proxyToMasterBackend('signals', `/api/signals/latest?${qs}`, { method: 'GET' });
+    const res = await proxyToMasterBackend('signals', `/v1/signals/latest?${qs}`, { method: 'GET' });
     if (res.ok) {
       const body = await res.json();
-      // Normalize: backend returns { signals: [...] } per docs
-      const items = Array.isArray(body.signals) ? body.signals : Array.isArray(body.items) ? body.items : [];
+      let items = Array.isArray(body.items)
+        ? body.items
+        : Array.isArray(body.signals)
+          ? body.signals
+          : Array.isArray(body)
+            ? body
+            : [];
+      if (minConf) {
+        const min = parseFloat(minConf);
+        if (!Number.isNaN(min)) {
+          items = items.filter((s: Record<string, unknown>) => {
+            const c =
+              typeof s.confluence_score === 'number'
+                ? s.confluence_score
+                : typeof s.confidence === 'number'
+                  ? s.confidence
+                  : 0;
+            return c >= min;
+          });
+        }
+      }
       return NextResponse.json({
         source: 'backend',
         items,

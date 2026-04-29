@@ -4,6 +4,11 @@
  * Supports scoped tokens (signals, trade_events, research, pamm, stats) with a
  * single admin-token fallback. Scope tokens are read from env vars at call
  * time so .env changes on the server do not require code changes.
+ *
+ * Signal endpoints target the public Signals API microservice (`/v1/signals/*`
+ * — X-Api-Key + Scope.SIGNALS_READ). Per backend `signals_api/routers/signals.py`
+ * canonical paths: `/v1/signals/latest`, `/v1/signals/history` (cursor),
+ * `/v1/signals/{uuid}`.
  */
 
 type Scope = 'signals' | 'trade_events' | 'research' | 'pamm' | 'stats' | 'admin';
@@ -80,19 +85,44 @@ export interface Vps1Signal {
   emitted_at: string;
 }
 
-export function getLatestSignals(params: {
+export async function getLatestSignals(params: {
   since_id?: bigint | number;
   limit?: number;
   min_confidence?: number;
   pair?: string;
-} = {}) {
+} = {}): Promise<Vps1Signal[]> {
+  // Backend `/v1/signals/latest` accepts: symbol (3-16 char), limit (1-200, default 50).
+  // No since_id / min_confidence on canonical path; we do a client-side filter
+  // post-fetch when caller supplies those (graceful fallback so existing callers
+  // do not break while we migrate to /v1/signals/history with cursor).
   const q = new URLSearchParams();
-  if (params.since_id !== undefined) q.set('since_id', String(params.since_id));
   if (params.limit !== undefined) q.set('limit', String(params.limit));
-  if (params.min_confidence !== undefined) q.set('min_confidence', String(params.min_confidence));
-  if (params.pair) q.set('pair', params.pair);
+  if (params.pair) q.set('symbol', params.pair);
   const qs = q.toString();
-  return request<Vps1Signal[]>('signals', `/api/signals/latest${qs ? `?${qs}` : ''}`);
+  const raw = await request<Vps1Signal[] | { items: Vps1Signal[]; count?: number; next_cursor?: string | null }>(
+    'signals',
+    `/v1/signals/latest${qs ? `?${qs}` : ''}`,
+  );
+  let items: Vps1Signal[] = Array.isArray(raw) ? raw : Array.isArray(raw.items) ? raw.items : [];
+
+  if (params.since_id !== undefined) {
+    const since = BigInt(params.since_id);
+    items = items.filter((s) => {
+      try {
+        return BigInt(s.id ?? 0) > since;
+      } catch {
+        return true;
+      }
+    });
+  }
+  if (params.min_confidence !== undefined) {
+    const min = params.min_confidence;
+    items = items.filter((s) => {
+      const c = typeof s.confidence === 'number' ? s.confidence : 0;
+      return c >= min;
+    });
+  }
+  return items;
 }
 
 // ─── Trade events domain ─────────────────────────────────────────────────────

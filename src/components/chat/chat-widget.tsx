@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback, useMemo, type FormEvent } from 'react';
 import { useChat, type UIMessage } from '@ai-sdk/react';
+import { DefaultChatTransport } from 'ai';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocale } from 'next-intl';
 import { MessageCircle, X, Send, Bot, User, AlertCircle, RotateCcw, ArrowDown } from 'lucide-react';
@@ -115,9 +116,14 @@ export function ChatWidget() {
     [copy.greeting],
   );
 
+  const transport = useMemo(
+    () => new DefaultChatTransport({ api: '/api/chat' }),
+    [],
+  );
+
   const { messages, sendMessage, status, error, setMessages } = useChat({
     messages: initialMessages,
-    transport: undefined,
+    transport,
   });
 
   const isLoading = status === 'streaming' || status === 'submitted';

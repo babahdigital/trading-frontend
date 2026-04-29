@@ -23,9 +23,9 @@ export async function GET(
   const { id } = await params;
   if (!id) return NextResponse.json({ error: 'Signal ID required' }, { status: 400 });
 
-  // Try master backend
+  // Try master backend (`/v1/signals/{uuid}` per backend signals_api router)
   try {
-    const res = await proxyToMasterBackend('signals', `/api/signals/${encodeURIComponent(id)}`, { method: 'GET' });
+    const res = await proxyToMasterBackend('signals', `/v1/signals/${encodeURIComponent(id)}`, { method: 'GET' });
     if (res.ok) {
       const body = await res.json();
       return NextResponse.json({ source: 'backend', signal: body.signal ?? body });

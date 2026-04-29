@@ -167,13 +167,14 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
       <EnterpriseNav />
 
       <main id="main-content">
-        {/* Hero */}
-        <section className="section-padding border-b border-border/60">
-          <div className="container-default px-4 sm:px-6 text-center">
+        {/* Hero — pricing uses page-stamp-grid (subtle dotted grid) for the
+            "matrix / spreadsheet" feel that fits a multi-tier comparison page */}
+        <section className="section-padding border-b border-border/60 page-stamp-grid">
+          <div className="container-default px-4 sm:px-6 text-center relative">
             <p className="t-eyebrow mb-4">{tp('hero_eyebrow')}</p>
             <h1 className="t-display-page mb-4">{t('title')}</h1>
-            <p className="t-lead text-foreground/60 max-w-xl sm:max-w-2xl mx-auto">{t('subtitle')}</p>
-            <p className="text-xs text-amber-300 font-mono uppercase tracking-wider mt-6">
+            <p className="t-lead text-muted-foreground max-w-xl sm:max-w-2xl mx-auto">{t('subtitle')}</p>
+            <p className="text-xs text-[hsl(var(--primary))] font-mono uppercase tracking-wider mt-6">
               {tp('hero_disclaimer')}
             </p>
           </div>

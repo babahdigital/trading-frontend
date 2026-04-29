@@ -7,8 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AuthLocaleSwitcher } from '@/components/ui/auth-locale-switcher';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
-import Image from 'next/image';
 import Link from 'next/link';
+import { BrandLogo } from '@/components/layout/brand-logo';
 
 function ResetPasswordInner() {
   const t = useTranslations('auth');
@@ -103,23 +103,10 @@ function ResetPasswordInner() {
         </div>
 
         <div className="w-full max-w-md mx-auto lg:mx-0">
-          {/* Logo */}
-          <Image
-            src="/logo/babahalgo-header-dark.png"
-            alt="BabahAlgo"
-            width={140}
-            height={28}
-            className="h-7 w-auto mb-12 hidden dark:block"
-            priority
-          />
-          <Image
-            src="/logo/babahalgo-header-light.png"
-            alt="BabahAlgo"
-            width={140}
-            height={28}
-            className="h-7 w-auto mb-12 dark:hidden"
-            priority
-          />
+          {/* Logo — preserved aspect ratio via BrandLogo */}
+          <div className="mb-12">
+            <BrandLogo height={28} priority />
+          </div>
 
           {success ? (
             <div>

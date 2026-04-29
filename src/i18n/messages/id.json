@@ -1426,7 +1426,7 @@
   "auth": {
     "welcome_back": "Selamat datang kembali.",
     "sign_in_subtitle": "Masuk untuk melanjutkan.",
-    "mode_admin": "Admin / PAMM",
+    "mode_admin": "Admin",
     "mode_license": "License Key",
     "email": "Email",
     "email_placeholder": "anda@perusahaan.com",

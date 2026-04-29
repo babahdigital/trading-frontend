@@ -40,14 +40,15 @@ export default async function ContactPage() {
     <div className="min-h-screen bg-background text-foreground">
       <EnterpriseNav />
       <main id="main-content">
-        {/* Hero — engaging eksklusif tone */}
-        <section className="section-padding border-b border-border/60">
+        {/* Hero — contact uses page-stamp-editorial (warm radial) so the page
+            feels welcoming/human after the data-heavy pricing/performance pages */}
+        <section className="section-padding border-b border-border/60 page-stamp-editorial">
           <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
             <h1 className="t-display-page mb-6">
               {t('hero_title_l1')}<br className="hidden sm:block" /> {t('hero_title_l2')}
             </h1>
-            <p className="t-lead text-foreground/65 max-w-2xl">
+            <p className="t-lead text-muted-foreground max-w-2xl">
               {t('hero_subtitle')}
             </p>
             <div className="mt-8 inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-mono uppercase tracking-wider bg-amber-500/10 border border-amber-500/30 text-amber-300">

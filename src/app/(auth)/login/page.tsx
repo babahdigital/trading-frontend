@@ -116,8 +116,9 @@ export default function LoginPage() {
             src="/logo/babahalgo-header-dark.png"
             alt="BabahAlgo"
             width={180}
-            height={36}
+            height={45}
             className="h-9 w-auto"
+            style={{ height: 'auto', maxHeight: 40 }}
             priority
           />
         </div>
@@ -169,17 +170,19 @@ export default function LoginPage() {
               <Image
                 src="/logo/babahalgo-header-dark.png"
                 alt="BabahAlgo"
-                width={150}
-                height={30}
+                width={140}
+                height={35}
                 className="h-7 w-auto hidden dark:block"
+                style={{ height: 'auto', maxHeight: 28 }}
                 priority
               />
               <Image
                 src="/logo/babahalgo-header-light.png"
                 alt="BabahAlgo"
-                width={150}
-                height={30}
+                width={140}
+                height={35}
                 className="h-7 w-auto dark:hidden"
+                style={{ height: 'auto', maxHeight: 28 }}
                 priority
               />
             </div>

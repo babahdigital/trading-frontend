@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
@@ -29,6 +28,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ResponsiveSidebar } from '@/components/layout/responsive-sidebar';
+import { BrandLogo } from '@/components/layout/brand-logo';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { AuthProvider, useAuth } from '@/lib/auth/auth-context';
 import { KillSwitchBanner } from '@/components/portal/kill-switch-banner';
@@ -106,22 +106,7 @@ function PortalLayoutInner({ children }: { children: React.ReactNode }) {
         {/* Brand header */}
         <div className="px-5 py-6 border-b border-white/10">
           <Link href="/portal" className="flex items-center gap-2">
-            <Image
-              src="/logo/babahalgo-header-dark.png"
-              alt={t('logo_alt')}
-              width={120}
-              height={24}
-              className="h-6 w-auto hidden dark:block"
-              priority
-            />
-            <Image
-              src="/logo/babahalgo-header-light.png"
-              alt={t('logo_alt')}
-              width={120}
-              height={24}
-              className="h-6 w-auto dark:hidden"
-              priority
-            />
+            <BrandLogo height={26} priority alt={t('logo_alt')} />
           </Link>
           <p className="text-[11px] text-muted-foreground mt-2 font-mono uppercase tracking-wider">{t('client_portal_label')}</p>
         </div>

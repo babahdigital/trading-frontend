@@ -1,7 +1,7 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { getTranslations } from 'next-intl/server';
 import { Compass, Home, ArrowRight } from 'lucide-react';
+import { BrandLogo } from '@/components/layout/brand-logo';
 
 export default async function LocaleNotFound() {
   const t = await getTranslations('not_found');
@@ -9,26 +9,11 @@ export default async function LocaleNotFound() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12 text-center bg-background">
       <Link href="/" aria-label={t('logo_alt')} className="mb-12 opacity-90 hover:opacity-100 transition-opacity">
-        <Image
-          src="/logo/babahalgo-header-dark.png"
-          alt="BabahAlgo"
-          width={160}
-          height={32}
-          className="h-8 w-auto hidden dark:block"
-          priority
-        />
-        <Image
-          src="/logo/babahalgo-header-light.png"
-          alt="BabahAlgo"
-          width={160}
-          height={32}
-          className="h-8 w-auto dark:hidden"
-          priority
-        />
+        <BrandLogo height={32} priority alt={t('logo_alt')} />
       </Link>
 
-      <div className="inline-flex h-20 w-20 items-center justify-center rounded-full bg-amber-500/10 border border-amber-500/30 mb-6">
-        <Compass className="h-9 w-9 text-amber-400" />
+      <div className="inline-flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 border border-primary/30 mb-6">
+        <Compass className="h-9 w-9 text-[hsl(var(--primary))]" />
       </div>
 
       <p className="text-7xl sm:text-8xl font-display font-bold text-foreground/20 leading-none mb-2">404</p>
@@ -46,7 +31,7 @@ export default async function LocaleNotFound() {
         </Link>
         <Link
           href="/contact"
-          className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-md border border-white/15 text-sm font-medium hover:bg-accent hover:border-amber-500/30 transition-colors"
+          className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-md border border-border text-sm font-medium hover:bg-muted hover:border-primary/30 transition-colors"
         >
           {t('cta_report')} <ArrowRight className="h-4 w-4" />
         </Link>

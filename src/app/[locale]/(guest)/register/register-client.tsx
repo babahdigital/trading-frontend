@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
-import { Check, ChevronRight, TrendingUp, Coins, Server, Bitcoin } from 'lucide-react';
+import { Check, ChevronRight, TrendingUp, Server, Bitcoin } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';
 import { cn } from '@/lib/utils';
@@ -23,9 +23,10 @@ const ICON_BY_SLUG: Record<string, typeof TrendingUp> = {
   signal: TrendingUp,
   'signal-basic': TrendingUp,
   'signal-vip': TrendingUp,
-  pamm: Coins,
-  'pamm-basic': Coins,
-  'pamm-pro': Coins,
+  // PAMM dihentikan 2026-04-26 — slug masih dipetakan sebagai fallback agar
+  // CMS tier lama tidak crash sebelum admin migrasi nama. Sekarang me-resolve
+  // ke ikon Server (sering disandingkan dengan VPS license).
+  pamm: Server,
   vps: Server,
   'vps-license': Server,
   crypto: Bitcoin,
@@ -58,16 +59,9 @@ export function RegisterClient({ packages }: { packages: PackageData[] }) {
       ],
       note: null, ctaLabel: t('select_package'), ctaLink: '/register/signal',
     },
-    {
-      slug: 'pamm', name: t('tier_pamm_name'), price: tFallback('pamm_price'), subtitle: t('tier_pamm_desc'),
-      features: [
-        tFallback('pamm_feature_1'),
-        tFallback('pamm_feature_2'),
-        tFallback('pamm_feature_3'),
-        tFallback('pamm_feature_4'),
-      ],
-      note: null, ctaLabel: t('select_package'), ctaLink: '/register/pamm',
-    },
+    // PAMM tier dihentikan 2026-04-26. Customer sekarang trade di akun broker
+    // sendiri (Robot Meta tier). Slot ini sengaja dihilangkan agar Crypto Bot
+    // dan VPS License lebih menonjol.
     {
       slug: 'vps', name: t('tier_vps_name'), price: tFallback('vps_price'), subtitle: t('tier_vps_desc'),
       features: [

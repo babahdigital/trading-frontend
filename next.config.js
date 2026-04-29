@@ -34,6 +34,13 @@ const nextConfig = {
       { source: '/id/admin/:path*', destination: '/admin/:path*', permanent: false },
       { source: '/en/portal/:path*', destination: '/portal/:path*', permanent: false },
       { source: '/id/portal/:path*', destination: '/portal/:path*', permanent: false },
+      // PAMM tier dihentikan 2026-04-26 — model zero-custody (customer pegang
+      // dana sendiri di akun broker / Binance). Permanent redirect untuk SEO
+      // — Google rewrites backlinks ke target baru.
+      { source: '/solutions/pamm', destination: '/solutions/signal', permanent: true },
+      { source: '/register/pamm', destination: '/register/signal', permanent: true },
+      { source: '/:locale(en|id)/solutions/pamm', destination: '/:locale/solutions/signal', permanent: true },
+      { source: '/:locale(en|id)/register/pamm', destination: '/:locale/register/signal', permanent: true },
     ];
   },
 };

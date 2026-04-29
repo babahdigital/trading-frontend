@@ -260,7 +260,8 @@ export function ChatWidget() {
             onClick={handleOpen}
             aria-label={copy.open_aria}
             className={cn(
-              'fixed z-[60] inline-flex items-center justify-center',
+              // z-[100]: harus di ATAS sticky nav (z-80) dan portal mobile menu (z-90)
+              'fixed z-[100] inline-flex items-center justify-center',
               'bottom-[max(env(safe-area-inset-bottom),1rem)] right-4 sm:bottom-6 sm:right-6',
               'h-14 w-14 rounded-full bg-primary text-primary-foreground',
               'shadow-lg shadow-amber-500/25',
@@ -297,8 +298,11 @@ export function ChatWidget() {
             aria-modal="true"
             aria-label={copy.title}
             className={cn(
-              'fixed z-[60] flex flex-col overflow-hidden border border-border bg-card shadow-2xl',
-              // Mobile: full-screen
+              // z-[100]: panel chat harus selalu di atas nav (z-80) dan
+              // portal mobile menu (z-90) — kalau lebih rendah, panel tampak
+              // ke-clip atau hilang di belakang nav
+              'fixed z-[100] flex flex-col overflow-hidden border border-border bg-card shadow-2xl',
+              // Mobile: full-screen + safe-area aware (notch / status bar)
               'inset-0 rounded-none',
               // Tablet+: floating panel
               'sm:inset-auto sm:bottom-6 sm:right-6 sm:left-auto sm:top-auto',
@@ -306,9 +310,13 @@ export function ChatWidget() {
               // Desktop: pin width slightly larger
               'lg:w-[440px]',
             )}
+            style={{
+              // iOS safe-area: jangan tertutup notch / status bar
+              paddingTop: 'env(safe-area-inset-top)',
+            }}
           >
-            {/* Header */}
-            <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-border bg-card/95 backdrop-blur shrink-0">
+            {/* Header — sticky di top dengan close button yang besar & kontras */}
+            <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-border bg-card shrink-0 relative z-10">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="relative w-10 h-10 rounded-full bg-primary/15 border border-primary/30 flex items-center justify-center shrink-0">
                   <Bot className="h-5 w-5 text-[hsl(var(--primary))]" strokeWidth={2.25} />
@@ -331,10 +339,19 @@ export function ChatWidget() {
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="inline-flex items-center justify-center h-9 w-9 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors active:scale-95"
+                className={cn(
+                  // Close button harus selalu kontras: di mobile fullscreen
+                  // sering miss-tap kalau cuma h-9. h-11 = 44px (Apple HIG)
+                  // dengan ring + bg-muted untuk kontras tinggi.
+                  'inline-flex items-center justify-center h-11 w-11 shrink-0',
+                  'rounded-full border border-border bg-muted/60',
+                  'text-foreground hover:bg-muted hover:border-foreground/40',
+                  'active:scale-95 transition-all',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                )}
                 aria-label={copy.close_aria}
               >
-                <X className="h-5 w-5" strokeWidth={2} />
+                <X className="h-5 w-5" strokeWidth={2.5} />
               </button>
             </div>
 

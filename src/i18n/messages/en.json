@@ -1426,7 +1426,7 @@
   "auth": {
     "welcome_back": "Welcome back.",
     "sign_in_subtitle": "Sign in to continue.",
-    "mode_admin": "Admin / PAMM",
+    "mode_admin": "Admin",
     "mode_license": "License Key",
     "email": "Email",
     "email_placeholder": "you@company.com",

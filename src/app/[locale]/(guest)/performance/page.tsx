@@ -92,8 +92,9 @@ export default function PerformancePage() {
     <div className="min-h-screen bg-background text-foreground">
       <EnterpriseNav />
       <main id="main-content">
-        {/* Hero — honest framing without fake authority */}
-        <section className="section-padding border-b border-border/60">
+        {/* Hero — performance uses page-stamp-rule (subtle accent gradient at
+            top) so the data section reads as the focal point, not the hero */}
+        <section className="section-padding border-b border-border/60 page-stamp-rule">
           <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
             <h1 className="t-display-page mb-6">
@@ -103,7 +104,7 @@ export default function PerformancePage() {
                 <>{t('hero_title_beta_l1')}<br className="hidden sm:block" /> {t('hero_title_beta_l2')}</>
               )}
             </h1>
-            <p className="t-lead text-foreground/65 max-w-2xl">
+            <p className="t-lead text-muted-foreground max-w-2xl">
               {hasLiveData ? t('hero_subtitle_live') : t('hero_subtitle_beta')}
             </p>
             <div className="mt-8 flex flex-wrap gap-3">

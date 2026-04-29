@@ -162,20 +162,25 @@ export function EnterpriseNav() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-full flex items-center justify-between gap-3">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 shrink-0" onClick={closeAll}>
+            {/* Logo PNG asal: 699x175 (~4:1). Pakai aspect ratio yang akurat
+                supaya tidak ketarik. height-only via Tailwind, width otomatis
+                dari intrinsic ratio. */}
             <Image
               src="/logo/babahalgo-header-dark.png"
               alt="BabahAlgo"
-              width={180}
-              height={36}
+              width={160}
+              height={40}
               className="h-9 w-auto hidden dark:block"
+              style={{ height: 'auto', maxHeight: 36 }}
               priority
             />
             <Image
               src="/logo/babahalgo-header-light.png"
               alt="BabahAlgo"
-              width={180}
-              height={36}
+              width={160}
+              height={40}
               className="h-9 w-auto dark:hidden"
+              style={{ height: 'auto', maxHeight: 36 }}
               priority
             />
           </Link>

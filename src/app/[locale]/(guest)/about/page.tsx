@@ -51,12 +51,13 @@ export default async function AboutPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(breadcrumb) }} />
       <EnterpriseNav />
       <main id="main-content">
-        {/* Hero */}
-        <section className="section-padding border-b border-border/60">
+        {/* Hero — about uses page-stamp-rule (subtle accent fade from top)
+            so the editorial prose below feels like a magazine feature */}
+        <section className="section-padding border-b border-border/60 page-stamp-rule">
           <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
             <h1 className="t-display-page mb-6">{t('hero_title')}</h1>
-            <p className="t-lead text-foreground/60 max-w-2xl">
+            <p className="t-lead text-muted-foreground max-w-2xl">
               {t('hero_subtitle')}
             </p>
           </div>

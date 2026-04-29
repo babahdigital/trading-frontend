@@ -1,7 +1,7 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { cookies, headers } from 'next/headers';
 import { Compass, Home, ArrowRight } from 'lucide-react';
+import { BrandLogo } from '@/components/layout/brand-logo';
 
 /**
  * Root 404 — fallback when no locale segment matched. Detects locale via
@@ -48,22 +48,7 @@ export default async function NotFound() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12 text-center bg-background">
       <Link href="/" aria-label={copy.logo_alt} className="mb-12 opacity-90 hover:opacity-100 transition-opacity">
-        <Image
-          src="/logo/babahalgo-header-dark.png"
-          alt="BabahAlgo"
-          width={160}
-          height={32}
-          className="h-8 w-auto hidden dark:block"
-          priority
-        />
-        <Image
-          src="/logo/babahalgo-header-light.png"
-          alt="BabahAlgo"
-          width={160}
-          height={32}
-          className="h-8 w-auto dark:hidden"
-          priority
-        />
+        <BrandLogo height={32} priority alt={copy.logo_alt} />
       </Link>
 
       <div className="inline-flex h-20 w-20 items-center justify-center rounded-full bg-amber-500/10 border border-amber-500/30 mb-6">

@@ -81,14 +81,14 @@ export default async function PlatformPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(breadcrumb) }} />
       <EnterpriseNav />
       <main id="main-content">
-        {/* Hero */}
-        <section className="section-padding border-b border-border/60">
-          <div className="container-default px-4 sm:px-6">
+        {/* Hero — platform uses page-stamp-grid (technical blueprint feel) */}
+        <section className="section-padding border-b border-border/60 page-stamp-grid">
+          <div className="container-default px-4 sm:px-6 relative">
             <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
             <h1 className="t-display-page mb-6">
               {t('hero_title_line1')}<br className="hidden sm:block" /> {t('hero_title_line2')}
             </h1>
-            <p className="t-lead text-foreground/60 max-w-3xl">
+            <p className="t-lead text-muted-foreground max-w-3xl">
               {t('hero_lead')}
             </p>
           </div>

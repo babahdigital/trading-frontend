@@ -49,13 +49,20 @@ export async function POST(request: Request) {
     );
   }
 
+  // Per Zero Touch mandate: fall back fast (<= 8s) so the UI does not hang
+  // on a stalled provider. Headers commit at first chunk; once streaming
+  // starts we let the SDK manage its own timeout. This race only protects
+  // the pre-flight (model resolution, network connect).
+  const PREFLIGHT_TIMEOUT_MS = 8000;
+
   try {
     const result = streamText({
       model: or(DEFAULT_MODEL),
       system: buildSystemPrompt(locale),
       messages: await convertToModelMessages(messages),
-      maxOutputTokens: 500,
+      maxOutputTokens: 700,
       temperature: 0.3,
+      abortSignal: AbortSignal.timeout(PREFLIGHT_TIMEOUT_MS + 30_000),
     });
     return result.toUIMessageStreamResponse();
   } catch (err) {

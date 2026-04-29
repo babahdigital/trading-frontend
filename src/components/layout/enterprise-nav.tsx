@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';
@@ -79,7 +80,13 @@ export function EnterpriseNav() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [scrolled, setScrolled] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const lockedScrollY = useRef(0);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
@@ -107,385 +114,427 @@ export function EnterpriseNav() {
     };
   }, []);
 
+  // iOS-safe body scroll lock — store position, fix body, restore on unlock.
+  // Avoids the bug where overflow:hidden mid-scroll causes fixed children to
+  // render at the wrong viewport coordinates.
   useEffect(() => {
-    // Class-based lock — survives sticky-nav re-layout on iOS Safari more
-    // reliably than `body.style.overflow = 'hidden'`. Pak Abdullah report:
-    // mobile menu fails to re-open after scrolling once it has been closed.
-    if (mobileOpen) {
-      document.body.classList.add('menu-open');
-    } else {
-      document.body.classList.remove('menu-open');
-    }
+    if (!mobileOpen) return;
+    lockedScrollY.current = window.scrollY;
+    const body = document.body;
+    body.style.position = 'fixed';
+    body.style.top = `-${lockedScrollY.current}px`;
+    body.style.left = '0';
+    body.style.right = '0';
+    body.style.width = '100%';
+    body.classList.add('menu-open');
     return () => {
-      document.body.classList.remove('menu-open');
+      body.style.position = '';
+      body.style.top = '';
+      body.style.left = '';
+      body.style.right = '';
+      body.style.width = '';
+      body.classList.remove('menu-open');
+      window.scrollTo(0, lockedScrollY.current);
     };
   }, [mobileOpen]);
 
-  const toggleMenu = (menu: string) => {
-    setActiveMenu(activeMenu === menu ? null : menu);
-  };
+  const toggleMenu = useCallback((menu: string) => {
+    setActiveMenu((prev) => (prev === menu ? null : menu));
+  }, []);
+
+  const closeAll = useCallback(() => {
+    setActiveMenu(null);
+    setMobileOpen(false);
+  }, []);
 
   return (
-    <nav
-      ref={menuRef}
-      role="navigation"
-      aria-label="Main navigation"
-      className={`sticky top-0 z-[60] h-16 transition-all duration-200 ${
-        scrolled
-          ? 'bg-background/95 backdrop-blur-xl border-b border-border'
-          : 'bg-background border-b border-transparent'
-      }`}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-full flex items-center justify-between">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 shrink-0" onClick={() => setActiveMenu(null)}>
-          <Image
-            src="/logo/babahalgo-header-dark.png"
-            alt="BabahAlgo"
-            width={180}
-            height={36}
-            className="h-9 w-auto hidden dark:block"
-            priority
-          />
-          <Image
-            src="/logo/babahalgo-header-light.png"
-            alt="BabahAlgo"
-            width={180}
-            height={36}
-            className="h-9 w-auto dark:hidden"
-            priority
-          />
-        </Link>
+    <>
+      <nav
+        ref={menuRef}
+        role="navigation"
+        aria-label="Main navigation"
+        className={`sticky top-0 inset-x-0 z-[80] h-16 transition-all duration-200 ${
+          scrolled
+            ? 'bg-background/95 backdrop-blur-xl border-b border-border'
+            : 'bg-background/80 backdrop-blur border-b border-transparent'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-full flex items-center justify-between gap-3">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2 shrink-0" onClick={closeAll}>
+            <Image
+              src="/logo/babahalgo-header-dark.png"
+              alt="BabahAlgo"
+              width={180}
+              height={36}
+              className="h-9 w-auto hidden dark:block"
+              priority
+            />
+            <Image
+              src="/logo/babahalgo-header-light.png"
+              alt="BabahAlgo"
+              width={180}
+              height={36}
+              className="h-9 w-auto dark:hidden"
+              priority
+            />
+          </Link>
 
-        {/* Desktop Navigation */}
-        <div className="hidden lg:flex items-center gap-0.5">
-          <NavDropdown label={t('platform')} id="platform" activeMenu={activeMenu} onToggle={toggleMenu} />
-          <NavDropdown label={t('solutions')} id="solutions" activeMenu={activeMenu} onToggle={toggleMenu} />
-          <NavDropdown label={t('company')} id="company" activeMenu={activeMenu} onToggle={toggleMenu} />
-          <Link
-            href="/performance"
-            className="nav-link"
-            onClick={() => setActiveMenu(null)}
+          {/* Desktop Navigation */}
+          <div className="hidden lg:flex items-center gap-0.5">
+            <NavDropdown label={t('platform')} id="platform" activeMenu={activeMenu} onToggle={toggleMenu} />
+            <NavDropdown label={t('solutions')} id="solutions" activeMenu={activeMenu} onToggle={toggleMenu} />
+            <NavDropdown label={t('company')} id="company" activeMenu={activeMenu} onToggle={toggleMenu} />
+            <Link
+              href="/performance"
+              className="nav-link"
+              onClick={closeAll}
+            >
+              {t('performance')}
+            </Link>
+            <Link
+              href="/research"
+              className="nav-link"
+              onClick={closeAll}
+            >
+              {t('research')}
+            </Link>
+          </div>
+
+          {/* Right side */}
+          <div className="hidden lg:flex items-center gap-2">
+            <ThemeToggle />
+            <LanguageSwitcher />
+            <Link href="/login" className="nav-link">
+              {t('login')}
+            </Link>
+            <Link
+              href="/contact"
+              className="btn-primary px-5 py-2.5 rounded-md text-sm font-medium"
+            >
+              {t('schedule_briefing')}
+            </Link>
+          </div>
+
+          {/* Mobile toggle (always reachable — nav is fixed) */}
+          <button
+            type="button"
+            className="lg:hidden inline-flex items-center justify-center p-2 -mr-2 rounded-md text-foreground hover:bg-muted/60 active:scale-95 transition-all"
+            onClick={() => setMobileOpen((v) => !v)}
+            aria-label={mobileOpen ? 'Tutup menu' : 'Buka menu'}
+            aria-expanded={mobileOpen}
+            aria-controls="mobile-nav-panel"
           >
-            {t('performance')}
-          </Link>
-          <Link
-            href="/research"
-            className="nav-link"
-            onClick={() => setActiveMenu(null)}
-          >
-            {t('research')}
-          </Link>
+            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
         </div>
 
-        {/* Right side */}
-        <div className="hidden lg:flex items-center gap-2">
+        {/* ─── Desktop Mega Menu: Platform ─── */}
+        {activeMenu === 'platform' && (
+          <div className="mega-menu hidden lg:block" role="menu">
+            <div className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-12 gap-8">
+              <div className="col-span-3">
+                <MegaMenuHeading>{tm('platform_heading')}</MegaMenuHeading>
+                <div className="space-y-0.5">
+                  {PLATFORM_MENU.platform.map((item) => (
+                    <MegaMenuLink key={item.href + item.labelKey} href={item.href} label={tm(item.labelKey)} desc={tm(item.descKey)} onClick={closeAll} />
+                  ))}
+                </div>
+              </div>
+              <div className="col-span-4">
+                <MegaMenuHeading>{tm('strategies_heading')}</MegaMenuHeading>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-0.5">
+                  {PLATFORM_MENU.strategies.map((item) => {
+                    const slug = item.href.split('/').pop() || '';
+                    const Icon = STRATEGY_ICONS[slug];
+                    return Icon ? (
+                      <MegaMenuIconLink key={item.href} href={item.href} label={tm(item.labelKey)} icon={Icon} onClick={closeAll} />
+                    ) : (
+                      <MegaMenuLink key={item.href} href={item.href} label={tm(item.labelKey)} desc={tm(item.descKey)} onClick={closeAll} />
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="col-span-5 pl-8 border-l border-border/60">
+                <MegaMenuHeading>{tm('featured_heading')}</MegaMenuHeading>
+                <Link
+                  href={PLATFORM_MENU.featured.href}
+                  className="block p-5 rounded-lg bg-muted/40 border border-border/60 hover:border-amber-500/30 hover:bg-muted/60 transition-all group"
+                  onClick={closeAll}
+                >
+                  <p className="text-sm font-medium text-foreground mb-1">{tm(PLATFORM_MENU.featured.labelKey)}</p>
+                  <p className="text-xs text-foreground/50 mb-4 leading-relaxed">{tm(PLATFORM_MENU.featured.descKey)}</p>
+                  <span className="inline-flex items-center gap-1.5 text-xs text-amber-500 dark:text-amber-400 font-medium group-hover:gap-2.5 transition-all">
+                    {tm(PLATFORM_MENU.featured.ctaKey)} <ArrowRight className="w-3 h-3" />
+                  </span>
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ─── Desktop Mega Menu: Solutions ─── */}
+        {activeMenu === 'solutions' && (
+          <div className="mega-menu hidden lg:block" role="menu">
+            <div className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-12 gap-8">
+              <div className="col-span-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="inline-flex h-7 w-7 rounded-md bg-amber-500/15 border border-amber-500/30 items-center justify-center">
+                    <TrendingUp className="h-3.5 w-3.5 text-amber-500 dark:text-amber-400" />
+                  </span>
+                  <MegaMenuHeading className="!mb-0">{tm('forex_heading')}</MegaMenuHeading>
+                </div>
+                <div className="space-y-0.5">
+                  {SOLUTIONS_MENU.forex.map((item) => (
+                    <MegaMenuIconLink key={item.href} href={item.href} label={tm(item.labelKey)} desc={tm(item.descKey)} icon={item.icon} onClick={closeAll} />
+                  ))}
+                </div>
+              </div>
+
+              <div className="col-span-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="inline-flex h-7 w-7 rounded-md bg-violet-500/15 border border-violet-500/30 items-center justify-center">
+                    <Bitcoin className="h-3.5 w-3.5 text-violet-500 dark:text-violet-300" />
+                  </span>
+                  <MegaMenuHeading className="!mb-0">{tm('crypto_heading')}</MegaMenuHeading>
+                </div>
+                <div className="space-y-0.5">
+                  {SOLUTIONS_MENU.crypto.map((item) => (
+                    <MegaMenuIconLink key={item.href} href={item.href} label={tm(item.labelKey)} desc={tm(item.descKey)} icon={item.icon} onClick={closeAll} />
+                  ))}
+                </div>
+                <Link
+                  href="/pricing"
+                  className="inline-flex items-center gap-1 mt-4 text-xs text-amber-500 dark:text-amber-400 hover:text-amber-600 dark:hover:text-amber-300 transition-colors"
+                  onClick={closeAll}
+                >
+                  {tm('compare_packages')} <ArrowRight className="w-3 h-3" />
+                </Link>
+              </div>
+
+              <div className="col-span-4 pl-8 border-l border-border/60">
+                <MegaMenuHeading>{tm('started_heading')}</MegaMenuHeading>
+                <div className="space-y-0.5">
+                  {SOLUTIONS_MENU.register.map((item) => (
+                    <MegaMenuLink key={item.href} href={item.href} label={tm(item.labelKey)} desc={tm(item.descKey)} onClick={closeAll} />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ─── Desktop Mega Menu: Company ─── */}
+        {activeMenu === 'company' && (
+          <div className="mega-menu hidden lg:block" role="menu">
+            <div className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-12 gap-8">
+              <div className="col-span-3">
+                <MegaMenuHeading>{tm('company_about_heading')}</MegaMenuHeading>
+                <div className="space-y-0.5">
+                  {COMPANY_MENU.about.map((item, i) => (
+                    <MegaMenuIconLink key={item.href + i} href={item.href} label={tm(item.labelKey)} icon={item.icon} onClick={closeAll} />
+                  ))}
+                </div>
+              </div>
+              <div className="col-span-3">
+                <MegaMenuHeading>{tm('company_governance_heading')}</MegaMenuHeading>
+                <div className="space-y-0.5">
+                  {COMPANY_MENU.governance.map((item) => (
+                    <MegaMenuIconLink key={item.href + item.labelKey} href={item.href} label={tm(item.labelKey)} icon={item.icon} onClick={closeAll} />
+                  ))}
+                </div>
+              </div>
+              <div className="col-span-3">
+                <MegaMenuHeading>{tm('company_resources_heading')}</MegaMenuHeading>
+                <div className="space-y-0.5">
+                  {COMPANY_MENU.resources.map((item) => (
+                    <MegaMenuIconLink key={item.href + item.labelKey} href={item.href} label={tm(item.labelKey)} icon={item.icon} onClick={closeAll} />
+                  ))}
+                </div>
+              </div>
+              <div className="col-span-3 pl-8 border-l border-border/60 flex flex-col justify-center">
+                <Link
+                  href="/contact"
+                  className="block p-5 rounded-lg bg-muted/40 border border-border/60 hover:border-amber-500/30 hover:bg-muted/60 transition-all group"
+                  onClick={closeAll}
+                >
+                  <p className="text-sm font-medium text-foreground mb-1">{tm('contact_label')}</p>
+                  <p className="text-xs text-foreground/50 mb-3">{tm('contact_desc')}</p>
+                  <span className="inline-flex items-center gap-1.5 text-xs text-amber-500 dark:text-amber-400 font-medium group-hover:gap-2.5 transition-all">
+                    {tm('contact_cta')} <ArrowRight className="w-3 h-3" />
+                  </span>
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+      </nav>
+
+      {/* ─── Mobile Menu — Portal so it escapes any sticky/transformed ancestor ─── */}
+      {mounted && mobileOpen
+        ? createPortal(
+            <MobileMenu
+              t={t}
+              tm={tm}
+              onClose={() => setMobileOpen(false)}
+            />,
+            document.body,
+          )
+        : null}
+    </>
+  );
+}
+
+// ─── Mobile Menu (rendered via portal) ───
+
+function MobileMenu({
+  t,
+  tm,
+  onClose,
+}: {
+  t: ReturnType<typeof useTranslations>;
+  tm: ReturnType<typeof useTranslations>;
+  onClose: () => void;
+}) {
+  return (
+    <div
+      id="mobile-nav-panel"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Menu"
+      className="lg:hidden fixed inset-0 z-[90] flex flex-col bg-background"
+    >
+      {/* Header bar */}
+      <div className="flex items-center justify-between px-4 sm:px-6 h-16 border-b border-border bg-background/95 backdrop-blur shrink-0">
+        <span className="text-base font-semibold text-foreground">Menu</span>
+        <button
+          type="button"
+          onClick={onClose}
+          className="inline-flex items-center justify-center p-2 -mr-2 rounded-md text-foreground hover:bg-muted/60 active:scale-95 transition-all"
+          aria-label="Tutup menu"
+        >
+          <X className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* Scrollable body */}
+      <div className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-6 py-6 space-y-7">
+        <div>
+          <MegaMenuHeading>{tm('platform_heading')}</MegaMenuHeading>
+          <div className="space-y-1 pl-1">
+            {PLATFORM_MENU.platform.map((item) => (
+              <Link key={item.href} href={item.href} className="block py-2 text-sm text-foreground/85 hover:text-amber-500 dark:hover:text-amber-400 transition-colors" onClick={onClose}>
+                {tm(item.labelKey)}
+              </Link>
+            ))}
+          </div>
+          <MegaMenuHeading className="mt-5">{tm('strategies_heading')}</MegaMenuHeading>
+          <div className="grid grid-cols-1 gap-1 pl-1">
+            {PLATFORM_MENU.strategies.map((item) => (
+              <Link key={item.href} href={item.href} className="block py-2 text-sm text-foreground/85 hover:text-amber-500 dark:hover:text-amber-400 transition-colors" onClick={onClose}>
+                {tm(item.labelKey)}
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        <div className="border-t border-border" />
+
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <TrendingUp className="h-4 w-4 text-amber-500 dark:text-amber-400" />
+            <MegaMenuHeading className="!mb-0">{tm('forex_heading')}</MegaMenuHeading>
+          </div>
+          <div className="space-y-1 pl-1">
+            {SOLUTIONS_MENU.forex.map((item) => (
+              <Link key={item.href} href={item.href} className="block py-2" onClick={onClose}>
+                <div className="text-sm text-foreground">{tm(item.labelKey)}</div>
+                <div className="text-xs text-muted-foreground mt-0.5">{tm(item.descKey)}</div>
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <Bitcoin className="h-4 w-4 text-violet-500 dark:text-violet-300" />
+            <MegaMenuHeading className="!mb-0">{tm('crypto_heading')}</MegaMenuHeading>
+          </div>
+          <div className="space-y-1 pl-1">
+            {SOLUTIONS_MENU.crypto.map((item) => (
+              <Link key={item.href} href={item.href} className="block py-2" onClick={onClose}>
+                <div className="text-sm text-foreground">{tm(item.labelKey)}</div>
+                <div className="text-xs text-muted-foreground mt-0.5">{tm(item.descKey)}</div>
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        <div className="border-t border-border" />
+
+        <div>
+          <MegaMenuHeading>{t('company')}</MegaMenuHeading>
+          <div className="space-y-1 pl-1">
+            {COMPANY_MENU.about.map((item, i) => (
+              <Link key={item.href + i} href={item.href} className="block py-2 text-sm text-foreground/85 hover:text-amber-500 dark:hover:text-amber-400 transition-colors" onClick={onClose}>
+                {tm(item.labelKey)}
+              </Link>
+            ))}
+            {COMPANY_MENU.governance.map((item) => (
+              <Link key={item.href + item.labelKey} href={item.href} className="block py-2 text-sm text-foreground/85 hover:text-amber-500 dark:hover:text-amber-400 transition-colors" onClick={onClose}>
+                {tm(item.labelKey)}
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        <div className="border-t border-border" />
+
+        <div className="space-y-1">
+          <Link href="/performance" className="block py-2.5 text-sm text-foreground/85 hover:text-amber-500 dark:hover:text-amber-400 transition-colors" onClick={onClose}>{t('performance')}</Link>
+          <Link href="/research" className="block py-2.5 text-sm text-foreground/85 hover:text-amber-500 dark:hover:text-amber-400 transition-colors" onClick={onClose}>{t('research')}</Link>
+          <Link href="/pricing" className="block py-2.5 text-sm text-foreground/85 hover:text-amber-500 dark:hover:text-amber-400 transition-colors" onClick={onClose}>{t('pricing')}</Link>
+        </div>
+
+        <div className="border-t border-border" />
+
+        <div>
+          <MegaMenuHeading>{tm('started_heading')}</MegaMenuHeading>
+          <div className="space-y-1 pl-1">
+            {SOLUTIONS_MENU.register.map((item) => (
+              <Link key={item.href} href={item.href} className="block py-2" onClick={onClose}>
+                <div className="text-sm text-foreground">{tm(item.labelKey)}</div>
+                <div className="text-xs text-muted-foreground mt-0.5">{tm(item.descKey)}</div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Sticky footer with CTAs */}
+      <div className="shrink-0 border-t border-border bg-background/95 backdrop-blur px-4 sm:px-6 py-4 space-y-3 pb-[max(env(safe-area-inset-bottom),1rem)]">
+        <div className="flex items-center gap-2">
           <ThemeToggle />
           <LanguageSwitcher />
+        </div>
+        <div className="grid grid-cols-2 gap-2">
           <Link
             href="/login"
-            className="nav-link"
+            className="inline-flex items-center justify-center py-3 text-sm font-medium border border-border rounded-md text-foreground hover:bg-muted/60 transition-colors"
+            onClick={onClose}
           >
             {t('login')}
           </Link>
           <Link
             href="/contact"
-            className="btn-primary px-5 py-2.5 rounded-md text-sm font-medium"
+            className="btn-primary justify-center py-3 text-sm font-medium rounded-md"
+            onClick={onClose}
           >
             {t('schedule_briefing')}
           </Link>
         </div>
-
-        {/* Mobile toggle */}
-        <button
-          className="lg:hidden p-2 text-muted-foreground"
-          onClick={() => setMobileOpen(!mobileOpen)}
-          aria-label="Toggle menu"
-          aria-expanded={mobileOpen}
-        >
-          {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </button>
       </div>
-
-      {/* ─── Mega Menu: Platform ─── */}
-      {activeMenu === 'platform' && (
-        <div className="mega-menu" role="menu">
-          <div className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-12 gap-8">
-            {/* Platform links */}
-            <div className="col-span-3">
-              <MegaMenuHeading>{tm('platform_heading')}</MegaMenuHeading>
-              <div className="space-y-0.5">
-                {PLATFORM_MENU.platform.map((item) => (
-                  <MegaMenuLink key={item.href + item.labelKey} href={item.href} label={tm(item.labelKey)} desc={tm(item.descKey)} onClick={() => setActiveMenu(null)} />
-                ))}
-              </div>
-            </div>
-            {/* Strategies */}
-            <div className="col-span-4">
-              <MegaMenuHeading>{tm('strategies_heading')}</MegaMenuHeading>
-              <div className="grid grid-cols-2 gap-x-6 gap-y-0.5">
-                {PLATFORM_MENU.strategies.map((item) => {
-                  const slug = item.href.split('/').pop() || '';
-                  const Icon = STRATEGY_ICONS[slug];
-                  return Icon ? (
-                    <MegaMenuIconLink key={item.href} href={item.href} label={tm(item.labelKey)} icon={Icon} onClick={() => setActiveMenu(null)} />
-                  ) : (
-                    <MegaMenuLink key={item.href} href={item.href} label={tm(item.labelKey)} desc={tm(item.descKey)} onClick={() => setActiveMenu(null)} />
-                  );
-                })}
-              </div>
-            </div>
-            {/* Featured card */}
-            <div className="col-span-5 pl-8 border-l border-border/60">
-              <MegaMenuHeading>{tm('featured_heading')}</MegaMenuHeading>
-              <Link
-                href={PLATFORM_MENU.featured.href}
-                className="block p-5 rounded-lg bg-muted/40 border border-border/60 hover:border-amber-500/30 hover:bg-muted/60 transition-all group"
-                onClick={() => setActiveMenu(null)}
-              >
-                <p className="text-sm font-medium text-foreground mb-1">{tm(PLATFORM_MENU.featured.labelKey)}</p>
-                <p className="text-xs text-foreground/50 mb-4 leading-relaxed">{tm(PLATFORM_MENU.featured.descKey)}</p>
-                <span className="inline-flex items-center gap-1.5 text-xs text-amber-400 font-medium group-hover:gap-2.5 transition-all">
-                  {tm(PLATFORM_MENU.featured.ctaKey)} <ArrowRight className="w-3 h-3" />
-                </span>
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ─── Mega Menu: Solutions ─── */}
-      {activeMenu === 'solutions' && (
-        <div className="mega-menu" role="menu">
-          <div className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-12 gap-8">
-            {/* Forex column */}
-            <div className="col-span-4">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="inline-flex h-7 w-7 rounded-md bg-amber-500/15 border border-amber-500/30 items-center justify-center">
-                  <TrendingUp className="h-3.5 w-3.5 text-amber-400" />
-                </span>
-                <MegaMenuHeading className="!mb-0">{tm('forex_heading')}</MegaMenuHeading>
-              </div>
-              <div className="space-y-0.5">
-                {SOLUTIONS_MENU.forex.map((item) => (
-                  <MegaMenuIconLink
-                    key={item.href}
-                    href={item.href}
-                    label={tm(item.labelKey)}
-                    desc={tm(item.descKey)}
-                    icon={item.icon}
-                    onClick={() => setActiveMenu(null)}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Crypto column */}
-            <div className="col-span-4">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="inline-flex h-7 w-7 rounded-md bg-violet-500/15 border border-violet-500/30 items-center justify-center">
-                  <Bitcoin className="h-3.5 w-3.5 text-violet-300" />
-                </span>
-                <MegaMenuHeading className="!mb-0">{tm('crypto_heading')}</MegaMenuHeading>
-              </div>
-              <div className="space-y-0.5">
-                {SOLUTIONS_MENU.crypto.map((item) => (
-                  <MegaMenuIconLink
-                    key={item.href}
-                    href={item.href}
-                    label={tm(item.labelKey)}
-                    desc={tm(item.descKey)}
-                    icon={item.icon}
-                    onClick={() => setActiveMenu(null)}
-                  />
-                ))}
-              </div>
-              <Link
-                href="/pricing"
-                className="inline-flex items-center gap-1 mt-4 text-xs text-amber-400 hover:text-amber-300 transition-colors"
-                onClick={() => setActiveMenu(null)}
-              >
-                {tm('compare_packages')} <ArrowRight className="w-3 h-3" />
-              </Link>
-            </div>
-
-            {/* Get Started column */}
-            <div className="col-span-4 pl-8 border-l border-border/60">
-              <MegaMenuHeading>{tm('started_heading')}</MegaMenuHeading>
-              <div className="space-y-0.5">
-                {SOLUTIONS_MENU.register.map((item) => (
-                  <MegaMenuLink key={item.href} href={item.href} label={tm(item.labelKey)} desc={tm(item.descKey)} onClick={() => setActiveMenu(null)} />
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ─── Mega Menu: Company ─── */}
-      {activeMenu === 'company' && (
-        <div className="mega-menu" role="menu">
-          <div className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-12 gap-8">
-            <div className="col-span-3">
-              <MegaMenuHeading>{tm('company_about_heading')}</MegaMenuHeading>
-              <div className="space-y-0.5">
-                {COMPANY_MENU.about.map((item, i) => (
-                  <MegaMenuIconLink key={item.href + i} href={item.href} label={tm(item.labelKey)} icon={item.icon} onClick={() => setActiveMenu(null)} />
-                ))}
-              </div>
-            </div>
-            <div className="col-span-3">
-              <MegaMenuHeading>{tm('company_governance_heading')}</MegaMenuHeading>
-              <div className="space-y-0.5">
-                {COMPANY_MENU.governance.map((item) => (
-                  <MegaMenuIconLink key={item.href + item.labelKey} href={item.href} label={tm(item.labelKey)} icon={item.icon} onClick={() => setActiveMenu(null)} />
-                ))}
-              </div>
-            </div>
-            <div className="col-span-3">
-              <MegaMenuHeading>{tm('company_resources_heading')}</MegaMenuHeading>
-              <div className="space-y-0.5">
-                {COMPANY_MENU.resources.map((item) => (
-                  <MegaMenuIconLink key={item.href + item.labelKey} href={item.href} label={tm(item.labelKey)} icon={item.icon} onClick={() => setActiveMenu(null)} />
-                ))}
-              </div>
-            </div>
-            <div className="col-span-3 pl-8 border-l border-border/60 flex flex-col justify-center">
-              <Link
-                href="/contact"
-                className="block p-5 rounded-lg bg-muted/40 border border-border/60 hover:border-amber-500/30 hover:bg-muted/60 transition-all group"
-                onClick={() => setActiveMenu(null)}
-              >
-                <p className="text-sm font-medium text-foreground mb-1">{tm('contact_label')}</p>
-                <p className="text-xs text-foreground/50 mb-3">{tm('contact_desc')}</p>
-                <span className="inline-flex items-center gap-1.5 text-xs text-amber-400 font-medium group-hover:gap-2.5 transition-all">
-                  {tm('contact_cta')} <ArrowRight className="w-3 h-3" />
-                </span>
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ─── Mobile Menu ─── */}
-      {mobileOpen && (
-        <div className="lg:hidden fixed inset-0 top-16 bg-background z-[55] overflow-y-auto overscroll-contain">
-          <div className="px-4 sm:px-6 py-6 space-y-6">
-            {/* Platform */}
-            <div>
-              <MegaMenuHeading>{tm('platform_heading')}</MegaMenuHeading>
-              <div className="space-y-2 pl-2">
-                {PLATFORM_MENU.platform.map((item) => (
-                  <Link key={item.href} href={item.href} className="block py-1.5 text-sm" onClick={() => setMobileOpen(false)}>{tm(item.labelKey)}</Link>
-                ))}
-              </div>
-              <MegaMenuHeading className="mt-4">{tm('strategies_heading')}</MegaMenuHeading>
-              <div className="space-y-2 pl-2">
-                {PLATFORM_MENU.strategies.map((item) => (
-                  <Link key={item.href} href={item.href} className="block py-1.5 text-sm" onClick={() => setMobileOpen(false)}>{tm(item.labelKey)}</Link>
-                ))}
-              </div>
-            </div>
-
-            <div className="border-t border-border" />
-
-            {/* Solutions — Forex */}
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <TrendingUp className="h-4 w-4 text-amber-400" />
-                <MegaMenuHeading className="!mb-0">{tm('forex_heading')}</MegaMenuHeading>
-              </div>
-              <div className="space-y-2 pl-2">
-                {SOLUTIONS_MENU.forex.map((item) => (
-                  <Link key={item.href} href={item.href} className="block py-1.5" onClick={() => setMobileOpen(false)}>
-                    <div className="text-sm">{tm(item.labelKey)}</div>
-                    <div className="text-xs text-muted-foreground">{tm(item.descKey)}</div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            {/* Solutions — Crypto */}
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <Bitcoin className="h-4 w-4 text-violet-300" />
-                <MegaMenuHeading className="!mb-0">{tm('crypto_heading')}</MegaMenuHeading>
-              </div>
-              <div className="space-y-2 pl-2">
-                {SOLUTIONS_MENU.crypto.map((item) => (
-                  <Link key={item.href} href={item.href} className="block py-1.5" onClick={() => setMobileOpen(false)}>
-                    <div className="text-sm">{tm(item.labelKey)}</div>
-                    <div className="text-xs text-muted-foreground">{tm(item.descKey)}</div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            <div className="border-t border-border" />
-
-            {/* Company */}
-            <div>
-              <MegaMenuHeading>{t('company')}</MegaMenuHeading>
-              <div className="space-y-2 pl-2">
-                {COMPANY_MENU.about.map((item, i) => (
-                  <Link key={item.href + i} href={item.href} className="block py-1.5 text-sm" onClick={() => setMobileOpen(false)}>{tm(item.labelKey)}</Link>
-                ))}
-                {COMPANY_MENU.governance.map((item) => (
-                  <Link key={item.href + item.labelKey} href={item.href} className="block py-1.5 text-sm" onClick={() => setMobileOpen(false)}>{tm(item.labelKey)}</Link>
-                ))}
-              </div>
-            </div>
-
-            <div className="border-t border-border" />
-
-            {/* Direct links */}
-            <div className="space-y-2">
-              <Link href="/performance" className="block py-2 text-sm" onClick={() => setMobileOpen(false)}>{t('performance')}</Link>
-              <Link href="/research" className="block py-2 text-sm" onClick={() => setMobileOpen(false)}>{t('research')}</Link>
-              <Link href="/pricing" className="block py-2 text-sm" onClick={() => setMobileOpen(false)}>{t('pricing')}</Link>
-            </div>
-
-            <div className="border-t border-border" />
-
-            {/* Get Started */}
-            <div>
-              <MegaMenuHeading>{tm('started_heading')}</MegaMenuHeading>
-              <div className="space-y-2 pl-2">
-                {SOLUTIONS_MENU.register.map((item) => (
-                  <Link key={item.href} href={item.href} className="block py-1.5" onClick={() => setMobileOpen(false)}>
-                    <div className="text-sm">{tm(item.labelKey)}</div>
-                    <div className="text-xs text-muted-foreground">{tm(item.descKey)}</div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            <div className="border-t border-border" />
-
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <ThemeToggle />
-                <LanguageSwitcher />
-              </div>
-              <Link
-                href="/login"
-                className="block text-center py-3 text-sm border border-border rounded-md"
-                onClick={() => setMobileOpen(false)}
-              >
-                {t('login')}
-              </Link>
-              <Link
-                href="/contact"
-                className="block text-center py-3 text-sm btn-primary rounded-md font-medium"
-                onClick={() => setMobileOpen(false)}
-              >
-                {t('schedule_briefing')}
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
-    </nav>
+    </div>
   );
 }
 
@@ -518,7 +567,7 @@ function MegaMenuLink({ href, label, desc, onClick }: { href: string; label: str
       className="block py-2 px-3 -mx-3 rounded-md hover:bg-muted/50 transition-colors group"
       onClick={onClick}
     >
-      <div className="text-sm text-foreground group-hover:text-amber-400 transition-colors">{label}</div>
+      <div className="text-sm text-foreground group-hover:text-amber-500 dark:group-hover:text-amber-400 transition-colors">{label}</div>
       {desc && <div className="text-xs text-foreground/40 mt-0.5">{desc}</div>}
     </Link>
   );
@@ -532,10 +581,10 @@ function MegaMenuIconLink({ href, label, desc, icon: Icon, onClick }: { href: st
       onClick={onClick}
     >
       <span className="inline-flex w-9 h-9 rounded-md bg-muted/50 border border-border/60 items-center justify-center shrink-0 group-hover:border-amber-500/30 group-hover:bg-amber-500/[0.08] transition-all">
-        <Icon className="w-4 h-4 text-foreground/60 group-hover:text-amber-400 transition-colors" />
+        <Icon className="w-4 h-4 text-foreground/60 group-hover:text-amber-500 dark:group-hover:text-amber-400 transition-colors" />
       </span>
       <span className="flex flex-col min-w-0 leading-tight">
-        <span className="text-sm font-medium text-foreground group-hover:text-amber-400 transition-colors">{label}</span>
+        <span className="text-sm font-medium text-foreground group-hover:text-amber-500 dark:group-hover:text-amber-400 transition-colors">{label}</span>
         {desc && <span className="text-xs text-foreground/50 mt-0.5 leading-snug">{desc}</span>}
       </span>
     </Link>

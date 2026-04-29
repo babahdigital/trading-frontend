@@ -222,12 +222,9 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
       {/* ═══════════════════════════════════════════
           SECTION 1 — HERO
           ═══════════════════════════════════════════ */}
-      <section className="relative min-h-screen flex items-center">
-        {/* Subtle grid background */}
-        <div className="absolute inset-0 opacity-[0.03]" style={{
-          backgroundImage: 'linear-gradient(rgba(245,245,247,1) 1px, transparent 1px), linear-gradient(90deg, rgba(245,245,247,1) 1px, transparent 1px)',
-          backgroundSize: '40px 40px',
-        }} />
+      <section className="relative min-h-[calc(100vh-4rem)] flex items-center overflow-hidden page-stamp-editorial">
+        {/* Subtle grid background — clipped by section overflow-hidden */}
+        <div className="absolute inset-0 page-stamp-grid opacity-[0.07] dark:opacity-[0.04] pointer-events-none" />
 
         <div className="container-default w-full px-4 sm:px-6 py-16 sm:py-20 lg:py-24 relative z-10">
           <div className="grid lg:grid-cols-12 gap-12 lg:gap-16 items-center">

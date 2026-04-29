@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -20,12 +21,21 @@ interface Profile {
 
 export function ProfileTab() {
   const { getAuthHeaders } = useAuth();
+  const router = useRouter();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [name, setName] = useState('');
   const [telegram, setTelegram] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
+
+  // Password change state
+  const [currentPw, setCurrentPw] = useState('');
+  const [newPw, setNewPw] = useState('');
+  const [confirmPw, setConfirmPw] = useState('');
+  const [pwSaving, setPwSaving] = useState(false);
+  const [pwMessage, setPwMessage] = useState('');
+  const [pwError, setPwError] = useState('');
 
   useEffect(() => {
     fetch('/api/client/profile', { headers: getAuthHeaders() })
@@ -56,6 +66,53 @@ export function ProfileTab() {
       setMessage(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function changePassword(e: React.FormEvent) {
+    e.preventDefault();
+    setPwMessage('');
+    setPwError('');
+
+    if (newPw.length < 8) {
+      setPwError('Password baru minimal 8 karakter.');
+      return;
+    }
+    if (newPw !== confirmPw) {
+      setPwError('Konfirmasi password tidak cocok.');
+      return;
+    }
+
+    setPwSaving(true);
+    try {
+      const res = await fetch('/api/client/password', {
+        method: 'POST',
+        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword: currentPw, newPassword: newPw }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        if (data.code === 'wrong_current_password') {
+          setPwError('Password saat ini salah.');
+        } else if (data.code === 'same_as_old') {
+          setPwError('Password baru harus berbeda dari password saat ini.');
+        } else if (data.code === 'validation_failed') {
+          setPwError('Password baru minimal 8 karakter.');
+        } else {
+          setPwError(data.error || 'Gagal mengubah password.');
+        }
+        return;
+      }
+      setPwMessage('Password berhasil diubah. Anda akan diarahkan ke halaman login...');
+      setCurrentPw('');
+      setNewPw('');
+      setConfirmPw('');
+      // Sessions invalidated on backend — redirect to login.
+      setTimeout(() => router.push('/login'), 2000);
+    } catch (err) {
+      setPwError(err instanceof Error ? err.message : 'Network error');
+    } finally {
+      setPwSaving(false);
     }
   }
 
@@ -96,6 +153,75 @@ export function ProfileTab() {
             <Button onClick={save} disabled={saving}>{saving ? 'Menyimpan…' : 'Simpan'}</Button>
             {message && <span className="text-sm text-muted-foreground">{message}</span>}
           </div>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-card border-border">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold">Ubah Password</CardTitle>
+          <p className="text-xs text-muted-foreground mt-1">
+            Setelah password diubah, semua sesi aktif akan keluar dan Anda harus login kembali.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={changePassword} className="space-y-4 max-w-md">
+            <div>
+              <label htmlFor="current-pw" className="text-xs text-muted-foreground mb-1 block">
+                Password saat ini
+              </label>
+              <Input
+                id="current-pw"
+                type="password"
+                value={currentPw}
+                onChange={(e) => setCurrentPw(e.target.value)}
+                autoComplete="current-password"
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="new-pw" className="text-xs text-muted-foreground mb-1 block">
+                Password baru (min 8 karakter)
+              </label>
+              <Input
+                id="new-pw"
+                type="password"
+                value={newPw}
+                onChange={(e) => setNewPw(e.target.value)}
+                autoComplete="new-password"
+                minLength={8}
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="confirm-pw" className="text-xs text-muted-foreground mb-1 block">
+                Konfirmasi password baru
+              </label>
+              <Input
+                id="confirm-pw"
+                type="password"
+                value={confirmPw}
+                onChange={(e) => setConfirmPw(e.target.value)}
+                autoComplete="new-password"
+                minLength={8}
+                required
+              />
+            </div>
+
+            {pwError && (
+              <div className="text-sm text-red-400 bg-red-400/10 p-3 rounded-md" role="alert">
+                {pwError}
+              </div>
+            )}
+            {pwMessage && (
+              <div className="text-sm text-emerald-400 bg-emerald-400/10 p-3 rounded-md" role="status">
+                {pwMessage}
+              </div>
+            )}
+
+            <Button type="submit" disabled={pwSaving || !currentPw || !newPw || !confirmPw}>
+              {pwSaving ? 'Menyimpan…' : 'Ubah Password'}
+            </Button>
+          </form>
         </CardContent>
       </Card>
     </div>

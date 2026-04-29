@@ -25,6 +25,7 @@ import {
   BookOpen,
   Layers,
   Sparkles,
+  User,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ResponsiveSidebar } from '@/components/layout/responsive-sidebar';
@@ -41,6 +42,7 @@ const navItems = [
   { href: '/admin/audit', label: 'Audit Log', icon: ScrollText },
   { href: '/admin/kill-switch', label: 'Kill Switch', icon: Zap },
   { href: '/admin/settings', label: 'Settings', icon: Settings },
+  { href: '/admin/profile', label: 'Akun Saya', icon: User },
 ];
 
 const cmsNavItems = [

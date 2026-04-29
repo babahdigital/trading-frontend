@@ -3,6 +3,7 @@ export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { proxyToMasterBackend } from '@/lib/proxy/vps-client';
+import { requireAdmin } from '@/lib/auth/require-admin';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('api/admin/audit/verify');
@@ -15,8 +16,8 @@ const log = createLogger('api/admin/audit/verify');
  * surface red banner alert when status !== 'healthy'.
  */
 export async function GET(request: NextRequest) {
-  const role = request.headers.get('x-user-role');
-  if (role !== 'ADMIN') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  const guard = requireAdmin(request);
+  if (guard) return guard;
 
   try {
     const res = await proxyToMasterBackend('admin', '/api/forex/admin/audit/verify', { method: 'GET' });

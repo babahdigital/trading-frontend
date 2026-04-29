@@ -4,6 +4,7 @@ export const runtime = 'nodejs';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/db/prisma';
+import { requireAdmin } from '@/lib/auth/require-admin';
 
 const ReviewBody = z.object({
   decision: z.enum(['APPROVED', 'REJECTED', 'ADDITIONAL_INFO_REQUIRED']),
@@ -15,9 +16,8 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  if (request.headers.get('x-user-role') !== 'ADMIN') {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-  }
+  const guard = requireAdmin(request);
+  if (guard) return guard;
   const { id } = await params;
   const kyc = await prisma.userKyc.findUnique({
     where: { id },
@@ -31,8 +31,10 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const guard = requireAdmin(request);
+  if (guard) return guard;
   const reviewerId = request.headers.get('x-user-id');
-  if (request.headers.get('x-user-role') !== 'ADMIN' || !reviewerId) {
+  if (!reviewerId) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 

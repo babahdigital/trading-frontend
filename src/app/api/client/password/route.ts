@@ -1,27 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
-import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/db/prisma';
+import { getUserIdFromRequest } from '@/lib/auth/session';
 import { createLogger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 const log = createLogger('api/client/password');
-const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-
-async function getUserId(req: NextRequest): Promise<string | null> {
-  const auth = req.headers.get('authorization');
-  const token = auth?.replace(/^Bearer\s+/i, '') || req.cookies.get('auth-token')?.value;
-  if (!token) return null;
-  try {
-    const { payload } = await jwtVerify(token, secret);
-    return (payload.userId as string) || (payload.sub as string) || null;
-  } catch {
-    return null;
-  }
-}
 
 const schema = z.object({
   currentPassword: z.string().min(1),
@@ -29,7 +16,7 @@ const schema = z.object({
 });
 
 export async function POST(req: NextRequest) {
-  const userId = await getUserId(req);
+  const userId = await getUserIdFromRequest(req);
   if (!userId) {
     return NextResponse.json({ code: 'unauthorized', error: 'Unauthorized' }, { status: 401 });
   }

@@ -1,23 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
-import { jwtVerify } from 'jose';
+import { getUserIdFromRequest } from '@/lib/auth/session';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
-
-const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-
-async function getUserId(req: NextRequest): Promise<string | null> {
-  const auth = req.headers.get('authorization');
-  const token = auth?.replace(/^Bearer\s+/i, '') || req.cookies.get('auth-token')?.value;
-  if (!token) return null;
-  try {
-    const { payload } = await jwtVerify(token, secret);
-    return (payload.userId as string) || (payload.sub as string) || null;
-  } catch {
-    return null;
-  }
-}
 
 const DEFAULT_PREF = {
   channels: ['INAPP'] as string[],
@@ -29,7 +15,7 @@ const DEFAULT_PREF = {
 };
 
 export async function GET(req: NextRequest) {
-  const userId = await getUserId(req);
+  const userId = await getUserIdFromRequest(req);
   if (!userId) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
 
   const [pref, logs] = await Promise.all([
@@ -49,7 +35,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
-  const userId = await getUserId(req);
+  const userId = await getUserIdFromRequest(req);
   if (!userId) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
 
   const body = await req.json();

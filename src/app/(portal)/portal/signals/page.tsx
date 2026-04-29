@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useTranslations, useLocale } from 'next-intl';
 import { TrendingUp, TrendingDown, AlertCircle, RefreshCw, Lock } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
+import { useBabahalgoWS } from '@/lib/api/use-websocket';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -43,11 +44,15 @@ function formatConfidence(value: unknown): string {
   return `${(n * 100).toFixed(0)}%`;
 }
 
+// Polling cadence: backstop for WS gaps. Slowed when WS connected.
+const POLL_FAST_MS = 30_000;
+const POLL_SLOW_MS = 90_000;
+
 export default function MySignalsPage() {
   const t = useTranslations('portal.signals');
   const tShared = useTranslations('portal.shared');
   const locale = useLocale();
-  const { getAuthHeaders } = useAuth();
+  const { getAuthHeaders, getAccessToken } = useAuth();
   const [signals, setSignals] = useState<Signal[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -55,6 +60,13 @@ export default function MySignalsPage() {
   const [needSubscription, setNeedSubscription] = useState(false);
   const [source, setSource] = useState<string>('');
   const [tier, setTier] = useState<string>('');
+  const [token, setToken] = useState('');
+
+  useEffect(() => {
+    setToken(getAccessToken());
+  }, [getAccessToken]);
+
+  const { connected: wsConnected, subscribe, on } = useBabahalgoWS({ token });
 
   const dateLocale = locale === 'id' ? 'id-ID' : 'en-US';
 
@@ -97,10 +109,20 @@ export default function MySignalsPage() {
 
   useEffect(() => {
     load();
-    // Auto-refresh every 30s
-    const interval = setInterval(load, 30_000);
+    const cadence = wsConnected ? POLL_SLOW_MS : POLL_FAST_MS;
+    const interval = setInterval(load, cadence);
     return () => clearInterval(interval);
-  }, [load]);
+  }, [load, wsConnected]);
+
+  // Live signal: WS event triggers immediate refetch (server is canonical).
+  useEffect(() => {
+    const offSignal = on('signal', () => { void load(); });
+    const unsubSignal = subscribe({ type: 'signal' });
+    return () => {
+      offSignal();
+      unsubSignal();
+    };
+  }, [on, subscribe, load]);
 
   if (needSubscription) {
     return (

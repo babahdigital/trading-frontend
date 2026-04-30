@@ -1,7 +1,9 @@
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { Link } from '@/i18n/navigation';
-import { ArrowLeft } from 'lucide-react';
+import {
+  ArrowLeft, Activity, Layers, Zap, ShieldCheck, ChevronRight,
+} from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 import { getPageMetadata } from '@/lib/seo';
 
@@ -15,27 +17,92 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     {
       title: isEn ? 'Risk Framework — BabahAlgo' : 'Kerangka Risiko — BabahAlgo',
       description: isEn
-        ? 'Kill-switch, position sizing, drawdown control, and BabahAlgo risk management framework.'
-        : 'Kill-switch, position sizing, drawdown control, dan kerangka manajemen risiko BabahAlgo.',
+        ? 'Institutional risk framework: vol-targeted sizing (RiskMetrics + AQR + fractional Kelly), 6-layer exit decision engine, multi-stage kill-switch with AI postmortem, and immutable hash-chained audit trail.'
+        : 'Kerangka risiko institusional: vol-targeted sizing (RiskMetrics + AQR + fractional Kelly), exit decision engine 6 layer, multi-stage kill-switch dengan AI postmortem, plus audit trail SHA-256 hash chain.',
     },
     locale === 'en' ? 'en' : 'id',
   );
 }
 
-const RISK_LAYERS = [
-  { number: 1, nameKey: 'layer_1_name', subtitleKey: 'layer_1_subtitle', descKey: 'layer_1_desc' },
-  { number: 2, nameKey: 'layer_2_name', subtitleKey: 'layer_2_subtitle', descKey: 'layer_2_desc' },
-  { number: 3, nameKey: 'layer_3_name', subtitleKey: 'layer_3_subtitle', descKey: 'layer_3_desc' },
-  { number: 4, nameKey: 'layer_4_name', subtitleKey: 'layer_4_subtitle', descKey: 'layer_4_desc' },
-  { number: 5, nameKey: 'layer_5_name', subtitleKey: 'layer_5_subtitle', descKey: 'layer_5_desc' },
-  { number: 6, nameKey: 'layer_6_name', subtitleKey: 'layer_6_subtitle', descKey: 'layer_6_desc' },
-  { number: 7, nameKey: 'layer_7_name', subtitleKey: 'layer_7_subtitle', descKey: 'layer_7_desc' },
-  { number: 8, nameKey: 'layer_8_name', subtitleKey: 'layer_8_subtitle', descKey: 'layer_8_desc' },
-  { number: 9, nameKey: 'layer_9_name', subtitleKey: 'layer_9_subtitle', descKey: 'layer_9_desc' },
-  { number: 10, nameKey: 'layer_10_name', subtitleKey: 'layer_10_subtitle', descKey: 'layer_10_desc' },
-  { number: 11, nameKey: 'layer_11_name', subtitleKey: 'layer_11_subtitle', descKey: 'layer_11_desc' },
-  { number: 12, nameKey: 'layer_12_name', subtitleKey: 'layer_12_subtitle', descKey: 'layer_12_desc' },
-] as const;
+interface RuleEntry {
+  nameKey: string;
+  descKey: string;
+}
+
+interface SectionDef {
+  number: '01' | '02' | '03' | '04';
+  icon: typeof Activity;
+  eyebrowKey: string;
+  titleKey: string;
+  leadKey: string;
+  rules: RuleEntry[];
+  citationKey?: string;
+}
+
+const SECTIONS: SectionDef[] = [
+  {
+    number: '01',
+    icon: Activity,
+    eyebrowKey: 'sec1_eyebrow',
+    titleKey: 'sec1_title',
+    leadKey: 'sec1_lead',
+    citationKey: 'sec1_citation',
+    rules: [
+      { nameKey: 'sec1_rule1_name', descKey: 'sec1_rule1_desc' },
+      { nameKey: 'sec1_rule2_name', descKey: 'sec1_rule2_desc' },
+      { nameKey: 'sec1_rule3_name', descKey: 'sec1_rule3_desc' },
+      { nameKey: 'sec1_rule4_name', descKey: 'sec1_rule4_desc' },
+      { nameKey: 'sec1_rule5_name', descKey: 'sec1_rule5_desc' },
+      { nameKey: 'sec1_rule6_name', descKey: 'sec1_rule6_desc' },
+    ],
+  },
+  {
+    number: '02',
+    icon: Layers,
+    eyebrowKey: 'sec2_eyebrow',
+    titleKey: 'sec2_title',
+    leadKey: 'sec2_lead',
+    citationKey: 'sec2_citation',
+    rules: [
+      { nameKey: 'sec2_layer1_name', descKey: 'sec2_layer1_desc' },
+      { nameKey: 'sec2_layer2_name', descKey: 'sec2_layer2_desc' },
+      { nameKey: 'sec2_layer3_name', descKey: 'sec2_layer3_desc' },
+      { nameKey: 'sec2_layer4_name', descKey: 'sec2_layer4_desc' },
+      { nameKey: 'sec2_layer5_name', descKey: 'sec2_layer5_desc' },
+      { nameKey: 'sec2_layer6_name', descKey: 'sec2_layer6_desc' },
+    ],
+  },
+  {
+    number: '03',
+    icon: Zap,
+    eyebrowKey: 'sec3_eyebrow',
+    titleKey: 'sec3_title',
+    leadKey: 'sec3_lead',
+    citationKey: 'sec3_citation',
+    rules: [
+      { nameKey: 'sec3_trigger1_name', descKey: 'sec3_trigger1_desc' },
+      { nameKey: 'sec3_trigger2_name', descKey: 'sec3_trigger2_desc' },
+      { nameKey: 'sec3_trigger3_name', descKey: 'sec3_trigger3_desc' },
+      { nameKey: 'sec3_state1_name', descKey: 'sec3_state1_desc' },
+      { nameKey: 'sec3_state2_name', descKey: 'sec3_state2_desc' },
+      { nameKey: 'sec3_state3_name', descKey: 'sec3_state3_desc' },
+    ],
+  },
+  {
+    number: '04',
+    icon: ShieldCheck,
+    eyebrowKey: 'sec4_eyebrow',
+    titleKey: 'sec4_title',
+    leadKey: 'sec4_lead',
+    citationKey: 'sec4_citation',
+    rules: [
+      { nameKey: 'sec4_item1_name', descKey: 'sec4_item1_desc' },
+      { nameKey: 'sec4_item2_name', descKey: 'sec4_item2_desc' },
+      { nameKey: 'sec4_item3_name', descKey: 'sec4_item3_desc' },
+      { nameKey: 'sec4_item4_name', descKey: 'sec4_item4_desc' },
+    ],
+  },
+];
 
 export default async function RiskFrameworkPage() {
   const t = await getTranslations('platform_risk');
@@ -43,83 +110,99 @@ export default async function RiskFrameworkPage() {
     <div className="min-h-screen bg-background text-foreground">
       <EnterpriseNav />
       <main id="main-content">
-
-        {/* Hero */}
-        <section className="section-padding border-b border-white/8">
-          <div className="container-default px-4 sm:px-6">
+        {/* Hero — page-stamp-rule for institutional editorial feel */}
+        <section className="section-padding border-b border-border page-stamp-rule">
+          <div className="container-default px-4 sm:px-6 relative">
             <Link
               href="/platform"
-              className="inline-flex items-center gap-1.5 text-sm text-amber-400 hover:text-amber-400/80 transition-colors mb-8"
+              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors mb-8"
             >
-              <ArrowLeft className="w-3.5 h-3.5" /> {t('back_link')}
+              <ArrowLeft className="w-3.5 h-3.5" strokeWidth={2.25} /> {t('back_link')}
             </Link>
-            <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
-            <h1 className="t-display-page mb-6">
-              {t('hero_title')}
-            </h1>
-            <p className="text-foreground/60 leading-relaxed mb-8 max-w-2xl">
-              {t('hero_lead')}
-            </p>
-          </div>
-        </section>
+            <p className="t-eyebrow mb-4 text-[hsl(var(--primary))]">{t('hero_eyebrow')}</p>
+            <h1 className="t-display-page mb-6 max-w-3xl">{t('hero_title')}</h1>
+            <p className="t-lead text-muted-foreground max-w-3xl">{t('hero_lead')}</p>
 
-        {/* Layers — alternating left-right with connecting line */}
-        <section className="section-padding">
-          <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-4">{t('layers_eyebrow')}</p>
-            <h2 className="t-display-sub mb-14">{t('layers_title')}</h2>
-
-            <div className="relative">
-              {/* Vertical connecting line */}
-              <div className="absolute left-1/2 top-0 bottom-0 w-px bg-white/8 hidden md:block" />
-
-              <div className="space-y-0">
-                {RISK_LAYERS.map((layer) => {
-                  const isEven = layer.number % 2 === 0;
-                  const paddedNum = String(layer.number).padStart(2, '0');
-
-                  return (
-                    <div key={layer.number} className="relative md:grid md:grid-cols-2 md:gap-16 py-10 first:pt-0 last:pb-0">
-                      {/* Center dot on the line */}
-                      <div className="absolute left-1/2 top-10 first:top-0 -translate-x-1/2 w-3 h-3 rounded-full border-2 border-amber-500/40 bg-background z-10 hidden md:block" />
-
-                      {/* Odd: number+title left, description right */}
-                      {/* Even: description left, number+title right */}
-                      {!isEven ? (
-                        <>
-                          {/* Left — title block */}
-                          <div className="md:text-right md:pr-12">
-                            <span className="font-display text-6xl text-amber-500/10 leading-none block mb-2">{paddedNum}</span>
-                            <h3 className="font-display text-lg text-foreground mb-1">{t(layer.nameKey)}</h3>
-                            <p className="t-body-sm text-amber-400">{t(layer.subtitleKey)}</p>
-                          </div>
-                          {/* Right — description */}
-                          <div className="md:pl-12 mt-4 md:mt-0">
-                            <p className="text-foreground/60 leading-relaxed text-sm">{t(layer.descKey)}</p>
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          {/* Left — description */}
-                          <div className="md:text-right md:pr-12 order-2 md:order-1 mt-4 md:mt-0">
-                            <p className="text-foreground/60 leading-relaxed text-sm">{t(layer.descKey)}</p>
-                          </div>
-                          {/* Right — title block */}
-                          <div className="md:pl-12 order-1 md:order-2">
-                            <span className="font-display text-6xl text-amber-500/10 leading-none block mb-2">{paddedNum}</span>
-                            <h3 className="font-display text-lg text-foreground mb-1">{t(layer.nameKey)}</h3>
-                            <p className="t-body-sm text-amber-400">{t(layer.subtitleKey)}</p>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+            {/* Quick anchor strip */}
+            <div className="mt-10 flex flex-wrap gap-2">
+              {SECTIONS.map((s) => (
+                <a
+                  key={s.number}
+                  href={`#sec-${s.number}`}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-muted/40 text-xs font-medium text-foreground/85 hover:border-primary/40 hover:bg-primary/[0.08] hover:text-foreground transition-colors"
+                >
+                  <span className="font-mono text-[hsl(var(--primary))]">{s.number}</span>
+                  {t(s.titleKey)}
+                </a>
+              ))}
             </div>
           </div>
         </section>
 
+        {/* Sections */}
+        {SECTIONS.map((section, idx) => (
+          <section
+            key={section.number}
+            id={`sec-${section.number}`}
+            className={`section-padding ${idx < SECTIONS.length - 1 ? 'border-b border-border/60' : ''} scroll-mt-24`}
+          >
+            <div className="container-default px-4 sm:px-6">
+              {/* Section header */}
+              <div className="mb-12 max-w-3xl">
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-primary/30 bg-primary/[0.08] text-[hsl(var(--primary))]">
+                    <section.icon className="h-5 w-5" strokeWidth={2.25} />
+                  </span>
+                  <span className="font-mono text-sm uppercase tracking-wider text-muted-foreground">
+                    {section.number} · {t(section.eyebrowKey)}
+                  </span>
+                </div>
+                <h2 className="t-display-section mb-4">{t(section.titleKey)}</h2>
+                <p className="t-body text-muted-foreground leading-relaxed">{t(section.leadKey)}</p>
+                {section.citationKey ? (
+                  <p className="mt-4 text-xs text-muted-foreground/70 font-mono uppercase tracking-wider">
+                    {t(section.citationKey)}
+                  </p>
+                ) : null}
+              </div>
+
+              {/* Rules grid */}
+              <div className="grid md:grid-cols-2 gap-x-10 gap-y-8 lg:gap-y-10 max-w-5xl">
+                {section.rules.map((rule, i) => (
+                  <div key={rule.nameKey} className="relative pl-8">
+                    <span className="absolute left-0 top-0.5 inline-flex h-6 w-6 items-center justify-center rounded-md border border-border bg-card text-[10px] font-mono text-muted-foreground">
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <h3 className="font-display text-lg text-foreground mb-2 leading-snug">
+                      {t(rule.nameKey)}
+                    </h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {t(rule.descKey)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        ))}
+
+        {/* CTA */}
+        <section className="section-padding border-t border-border">
+          <div className="container-default px-4 sm:px-6 text-center max-w-2xl mx-auto">
+            <p className="t-eyebrow mb-3">{t('cta_eyebrow')}</p>
+            <h2 className="t-display-sub mb-6">{t('cta_title')}</h2>
+            <p className="t-body text-muted-foreground mb-8">{t('cta_body')}</p>
+            <div className="flex flex-wrap justify-center gap-3">
+              <Link href="/contact" className="btn-primary">
+                {t('cta_primary')}
+                <ChevronRight className="w-4 h-4" strokeWidth={2.25} />
+              </Link>
+              <Link href="/platform/execution" className="btn-secondary">
+                {t('cta_secondary')}
+              </Link>
+            </div>
+          </div>
+        </section>
       </main>
       <EnterpriseFooter />
     </div>

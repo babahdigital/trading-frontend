@@ -13,8 +13,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     {
       title: 'Platform Overview — Quantitative Trading Infrastructure | BabahAlgo',
       description: isEn
-        ? 'Three BabahAlgo pillars: AI Confluence Engine, Sub-2ms ZeroMQ Bridge, 12-Layer Risk Framework. Multi-strategy (SMC, Wyckoff, Momentum) across Forex + Crypto.'
-        : 'Tiga pilar BabahAlgo: AI Confluence Engine, Sub-2ms ZeroMQ Bridge, 12-Layer Risk Framework. Multi-strategi (SMC, Wyckoff, Momentum) untuk Forex + Crypto.',
+        ? 'Three BabahAlgo pillars: AI Confluence Engine, Sub-2ms ZeroMQ Bridge, Institutional Risk Framework (vol-target + 6-layer exit + multi-stage kill-switch). Multi-strategy (SMC, Wyckoff, Momentum) across Forex + Crypto.'
+        : 'Tiga pilar BabahAlgo: AI Confluence Engine, Sub-2ms ZeroMQ Bridge, Kerangka Risiko Institusional (vol-target + 6-layer exit + multi-stage kill-switch). Multi-strategi (SMC, Wyckoff, Momentum) untuk Forex + Crypto.',
     },
     locale === 'en' ? 'en' : 'id',
   );

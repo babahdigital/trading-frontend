@@ -22,26 +22,28 @@ interface LandingClientProps {
 }
 
 // ─── Risk Framework Layers ───
-// Layer descriptions kept English (institutional / technical terms). Names stay
-// English across both locales — they refer to specific guard implementations.
+// Risk framework — institutional 4-pillar architecture (Wave-29T+U).
+// Names + descriptions kept English (technical / institutional terminology).
+// Citation lineage: RiskMetrics 1996 · AQR · Bridgewater · Jane Street ·
+// Renaissance · Cornix · Lopez de Prado · FTMO/MyForexFunds.
 const RISK_LAYERS = {
   preTrade: [
-    { num: 1, name: 'Spread guard', desc: 'Rejects entry when spread exceeds threshold' },
-    { num: 2, name: 'Dynamic lot sizing', desc: 'Position size scaled to account equity and risk' },
-    { num: 3, name: 'News blackout', desc: 'No entries during high-impact economic events' },
-    { num: 4, name: 'Max open positions', desc: 'Hard cap on simultaneous trades' },
-    { num: 5, name: 'Tier total cap', desc: 'Aggregate exposure limit across all strategies' },
+    { num: 1, name: 'EWMA volatility', desc: 'RiskMetrics 1996 λ=0.94 daily decay — surfaces regime shifts faster than SMA' },
+    { num: 2, name: 'Vol-target scalar', desc: 'AQR scalar = target_vol / realized_vol, clamped [0.25× – 2.00×]' },
+    { num: 3, name: 'Fractional Kelly', desc: 'Thorp f* capped 0.05 with sample-trust ramp (53→100 trades)' },
+    { num: 4, name: 'Correlation guard', desc: 'Pearson timestamp-merge ala Jane Street — reject >0.7 stacked exposure' },
+    { num: 5, name: 'Spread + news blackout', desc: 'Reject entries on wide spread or 15min around high-impact events' },
   ],
   inTrade: [
-    { num: 6, name: 'Protective stop-loss', desc: 'Every position has a hard stop' },
-    { num: 7, name: 'Max hold time (4h)', desc: 'Auto-close after maximum holding period' },
-    { num: 8, name: 'Trail to breakeven', desc: 'Move stop to entry after target reached' },
-    { num: 9, name: 'Session DD guard', desc: 'Pause trading if session drawdown exceeds limit' },
+    { num: 6, name: 'Static SL + Cornix TP ladder', desc: '40/35/25 split at 1R/2R/3R, JSONB-persistent state' },
+    { num: 7, name: 'Trailing stop (vol-regime)', desc: 'Monotonic tighter-only, ATR multiplier scaled to volatility regime' },
+    { num: 8, name: 'Structural invalidation', desc: 'Force-close on BoS flip or Wyckoff TR re-entry — thesis broken' },
+    { num: 9, name: 'AI advisor (Layer 6)', desc: 'Claude Opus rule-backed with 4 explicit veto rules — never overrides SL' },
   ],
   postSystem: [
-    { num: 10, name: 'Cooldown period', desc: 'Enforced pause after consecutive losses' },
-    { num: 11, name: 'Catastrophic breaker', desc: 'Full shutdown at critical drawdown level' },
-    { num: 12, name: 'Kill-switch', desc: 'Admin remote shutdown via dashboard' },
+    { num: 10, name: 'Multi-stage kill-switch', desc: 'NORMAL → fast 1h cooling → PROBATION 4h (risk halved) → NORMAL' },
+    { num: 11, name: 'Probation validator', desc: '3 winners → graduated, any loss → escalated to LOSS_STREAK 12h hard' },
+    { num: 12, name: 'SHA-256 audit chain', desc: 'Append-only PostgreSQL hash chain with verify_chain() < 5ms tamper detection' },
   ],
 };
 

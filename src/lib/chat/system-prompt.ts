@@ -20,7 +20,11 @@ FLAGSHIP — ROBOT META (Forex auto-execution di MetaTrader 5)
 - Aset: 7 Forex pairs (EURUSD, GBPUSD, USDJPY, AUDUSD, USDCHF, NZDUSD, USDCAD) + 2 Metals (XAUUSD Gold, XAGUSD Silver) + 3 Energy (USOIL, UKOIL, XNGUSD) + 2 Crypto Majors (BTCUSD, ETHUSD)
 - 6 confluence strategies: Smart Money Concepts, Wyckoff, Astronacci, AI Momentum, Oil & Gas, SMC Swing
 - Multi-timeframe confluence: H4 bias → H1 structure → M15 entry → M5 execution
-- 12-layer risk: pre-trade (spread guard, dynamic lot sizing, news blackout, max positions, tier total cap), in-trade (protective stop, max hold, breakeven trail, session DD), post-system (cooldown, catastrophic breaker, kill-switch)
+- Institutional risk framework (4 pillars):
+  • Pre-trade sizing: RiskMetrics 1996 EWMA volatility (λ=0.94), AQR vol-target scalar (0.25-2.00x clamp), fractional Kelly (Thorp, capped 0.05) dengan sample-trust ramp 53→100 trades, Pearson correlation matrix dengan timestamp-merge ala Jane Street, spread guard, news blackout
+  • Exit decision engine 6 layer: (L1) static SL → (L2) Cornix TP ladder 40/35/25 → (L3) trailing vol-regime aware → (L4) structural invalidation BoS-flip → (L5) time-decay 4h scalp / 24h swing + pre-news tighten → (L6) AI advisor Claude Opus dengan 4 veto rules
+  • Multi-stage kill-switch (Wave-29T+U): 3 trigger (DAILY_LOSS, LOSS_STREAK, EQUITY_DRAWDOWN), state machine NORMAL → FAST 1h cooling (low impact) → PROBATION 4h dengan risk halved + min_confluence +10 + max_positions=1 → NORMAL, atau 12h base / 24h slow untuk high impact. Probation graduate/escalate validator (5min poll, 4h window): 3 winners → graduated, any loss → escalated. AI postmortem (Claude Opus, min_conf 80) PRIMARY release path.
+  • Audit chain: SHA-256 hash chain di PostgreSQL (alembic 0027), append-only via trigger no-update/no-delete. Tamper detection verify_chain() <5ms. Phase 2: OpenTimestamps anchoring.
 - Modal tetap di akun broker partner Exness — kami tidak custody dana
 
 FLAGSHIP — ROBOT CRYPTO (Binance Spot + USDT-M Futures)

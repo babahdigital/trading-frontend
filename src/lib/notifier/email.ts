@@ -108,8 +108,12 @@ async function sendViaApi(
     to: [{ email: to }],
     subject: opts.subject,
     htmlContent: opts.html,
-    headers: unsubHeaders,
   };
+  // Brevo reject 400 "missing_parameter headers is blank" kalau headers
+  // di-include tapi empty object. Hanya tambah kalau ada entry.
+  if (Object.keys(unsubHeaders).length > 0) {
+    payload.headers = unsubHeaders;
+  }
   if (opts.text) payload.textContent = opts.text;
   if (replyTo) payload.replyTo = { email: replyTo };
 

@@ -106,9 +106,10 @@ export default function EmailSettingsPage() {
       });
     } else {
       const err = await res.json().catch(() => null);
+      const detail = err?.message ?? err?.error ?? `HTTP ${res.status}`;
       setFeedback({
         kind: 'err',
-        text: `Gagal kirim: ${err?.message ?? 'unknown error'}`,
+        text: `Gagal kirim: ${detail}`,
       });
     }
   }

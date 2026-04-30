@@ -449,7 +449,9 @@ model ChatLead {
   id               String         @id @default(cuid())
   name             String
   email            String
-  phone            String
+  /// Phone optional — chat lead funnel cukup nama+email per Pak Abdullah
+  /// 2026-04-30. Phone tetap dikumpulkan via Inquiry / register flow.
+  phone            String?
   locale           String         @default("id")
   /// Path halaman saat chat dibuka (landing, /pricing, /platform/forex, dll.)
   referrerPath     String?

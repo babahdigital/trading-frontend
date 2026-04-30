@@ -12,6 +12,7 @@ import {
   LayoutDashboard, KeyRound, Server, ServerCog, Users, UserCheck, ScrollText,
   Zap, Settings, LogOut, FileText, DollarSign, HelpCircle, Image as ImageIcon,
   MessageSquare, Mail, Star, Globe, Inbox, BookOpen, Layers, Sparkles, User, Crown,
+  Building2,
   ChevronDown, Menu, X, Cog, MonitorSmartphone, Activity,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -66,6 +67,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: '/admin/cms/pages', label: 'Page Content', icon: Layers },
       { href: '/admin/cms/articles', label: 'Articles', icon: BookOpen },
       { href: '/admin/cms/blog-topics', label: 'Blog Topics (AI)', icon: Sparkles },
+      { href: '/admin/cms/company-settings', label: 'Company', icon: Building2 },
       { href: '/admin/cms/site-settings', label: 'Site Settings', icon: Cog },
       { href: '/admin/cms/email-settings', label: 'Email (Brevo)', icon: Mail },
       { href: '/admin/cms/changelog', label: 'Changelog', icon: ScrollText },

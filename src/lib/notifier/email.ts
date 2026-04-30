@@ -1,19 +1,15 @@
 /**
- * Email sender via Brevo Transactional API.
+ * Email sender — dual transport (SMTP via nodemailer ATAU REST API).
  *
- * Config sumber: SiteSetting (DB, encrypted) override env. Admin bisa edit
- * via /admin/cms/email-settings tanpa redeploy. Fallback ke env vars
- * (BREVO_API_KEY, SMTP_FROM) untuk bootstrap.
+ * Auto-detect: kalau SMTP credentials (smtpUser + smtpPassword) komplet,
+ * pakai SMTP relay (smtp-relay.brevo.com:587). Kalau cuma API key, pakai
+ * Brevo Transactional REST API. Kalau dua-duanya ada, prefer SMTP karena
+ * lebih reliable + support large attachments.
  *
- * Brevo API: https://api.brevo.com/v3/smtp/email
- *   POST { sender, to, subject, htmlContent, headers, replyTo? }
- *   200 → { messageId }
- *   4xx → { code, message }
- *
- * RFC 8058: Sertakan List-Unsubscribe header agar Gmail/Outlook show
- * "Unsubscribe" link di UI native. Pakai Subscriber.unsubToken kalau
- * tersedia (preferred — secure, no email leak), email fallback otherwise.
+ * Config sumber: SiteSetting (DB, encrypted) → env fallback. Admin edit
+ * lewat /admin/cms/email-settings tanpa redeploy.
  */
+import nodemailer, { type Transporter } from 'nodemailer';
 import { createLogger } from '@/lib/logger';
 import { getEmailConfig } from '@/lib/email/config';
 import { prisma } from '@/lib/db/prisma';
@@ -21,46 +17,135 @@ import { prisma } from '@/lib/db/prisma';
 const log = createLogger('email');
 
 const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email';
+const SMTP_HOST = process.env.SMTP_HOST || 'smtp-relay.brevo.com';
+const SMTP_PORT = Number(process.env.SMTP_PORT || 587);
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://babahalgo.com';
 
-interface BrevoResponse {
+interface BrevoApiResponse {
   messageId?: string;
   code?: string;
   message?: string;
 }
 
 interface SendOptions {
-  /** Subject line */
   subject: string;
-  /** HTML body */
   html: string;
-  /** Optional plain-text fallback (recommended untuk SPF/DKIM scoring) */
   text?: string;
-  /** Optional override sender email (rare — biasanya pakai config) */
   fromAddress?: string;
-  /** Optional override sender name */
   fromName?: string;
-  /** Skip List-Unsubscribe header (e.g. transactional non-marketing) */
   skipUnsubHeader?: boolean;
 }
 
+let cachedTransporter: Transporter | null = null;
+let cachedTransporterKey = '';
+
+function getSmtpTransporter(user: string, pass: string): Transporter {
+  // Cache transporter per credential pair — bikin transport baru per send
+  // bikin connection setup overhead unnecessary.
+  const key = `${user}::${pass.slice(-12)}`;
+  if (cachedTransporter && cachedTransporterKey === key) return cachedTransporter;
+
+  const t = nodemailer.createTransport({
+    host: SMTP_HOST,
+    port: SMTP_PORT,
+    secure: false, // STARTTLS — Brevo port 587
+    auth: { user, pass },
+    // Connection pool: reuse satu koneksi untuk multiple sends.
+    pool: true,
+    maxConnections: 3,
+    maxMessages: 100,
+  });
+  cachedTransporter = t;
+  cachedTransporterKey = key;
+  return t;
+}
+
 async function buildUnsubLink(toEmail: string): Promise<string> {
-  // Cari Subscriber by email — kalau ada, pakai unsubToken (preferred)
   const sub = await prisma.subscriber
     .findUnique({ where: { email: toEmail.toLowerCase() }, select: { unsubToken: true } })
     .catch(() => null);
   if (sub?.unsubToken) {
     return `${SITE_URL}/api/public/unsubscribe?token=${sub.unsubToken}`;
   }
-  // Fallback email-based
   return `${SITE_URL}/api/public/unsubscribe?email=${encodeURIComponent(toEmail)}`;
 }
 
+async function sendViaSmtp(
+  user: string,
+  pass: string,
+  to: string,
+  opts: SendOptions,
+  senderEmail: string,
+  senderName: string,
+  replyTo: string,
+  unsubHeaders: Record<string, string>,
+): Promise<{ messageId: string }> {
+  const transporter = getSmtpTransporter(user, pass);
+  const info = await transporter.sendMail({
+    from: { name: senderName, address: senderEmail },
+    to,
+    replyTo: replyTo || undefined,
+    subject: opts.subject,
+    html: opts.html,
+    text: opts.text,
+    headers: unsubHeaders,
+  });
+  log.info(`SMTP sent to ${to}: messageId=${info.messageId}`);
+  return { messageId: info.messageId ?? '' };
+}
+
+async function sendViaApi(
+  apiKey: string,
+  to: string,
+  opts: SendOptions,
+  senderEmail: string,
+  senderName: string,
+  replyTo: string,
+  unsubHeaders: Record<string, string>,
+): Promise<{ messageId: string }> {
+  const payload: Record<string, unknown> = {
+    sender: { name: senderName, email: senderEmail },
+    to: [{ email: to }],
+    subject: opts.subject,
+    htmlContent: opts.html,
+    headers: unsubHeaders,
+  };
+  if (opts.text) payload.textContent = opts.text;
+  if (replyTo) payload.replyTo = { email: replyTo };
+
+  const res = await fetch(BREVO_API_URL, {
+    method: 'POST',
+    headers: {
+      accept: 'application/json',
+      'api-key': apiKey,
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  let data: BrevoApiResponse = {};
+  try {
+    data = await res.json();
+  } catch {
+    /* body kosong */
+  }
+  if (!res.ok) {
+    log.error(`Brevo API ${res.status} for ${to}: ${data.code ?? '?'} ${data.message ?? ''}`);
+    throw new Error(`Brevo API ${res.status}: ${data.message || data.code || 'unknown'}`);
+  }
+  log.info(`API sent to ${to}: messageId=${data.messageId}`);
+  return { messageId: data.messageId ?? '' };
+}
+
 /**
- * Send single email via Brevo. Throws on misconfiguration atau API error.
+ * Send email. Throws kalau email_disabled, email_unconfigured, atau
+ * provider error.
  */
-export async function sendEmail(to: string, subjectOrOpts: string | SendOptions, htmlBody?: string): Promise<{ messageId: string }> {
-  // Backward-compat: legacy signature sendEmail(to, subject, html)
+export async function sendEmail(
+  to: string,
+  subjectOrOpts: string | SendOptions,
+  htmlBody?: string,
+): Promise<{ messageId: string }> {
   const opts: SendOptions =
     typeof subjectOrOpts === 'string' ? { subject: subjectOrOpts, html: htmlBody ?? '' } : subjectOrOpts;
 
@@ -68,52 +153,47 @@ export async function sendEmail(to: string, subjectOrOpts: string | SendOptions,
   if (!cfg.enabled) {
     throw new Error('email_disabled');
   }
-  if (!cfg.apiKey) {
-    throw new Error('email_unconfigured: Brevo API key missing (set in /admin/cms/email-settings or BREVO_API_KEY env)');
-  }
 
   const senderEmail = opts.fromAddress || cfg.fromAddress;
   const senderName = opts.fromName || cfg.fromName;
 
-  const headers: Record<string, string> = {};
+  const unsubHeaders: Record<string, string> = {};
   if (!opts.skipUnsubHeader) {
     const unsubUrl = await buildUnsubLink(to);
-    headers['List-Unsubscribe'] = `<mailto:unsubscribe@babahalgo.com>, <${unsubUrl}>`;
-    headers['List-Unsubscribe-Post'] = 'List-Unsubscribe=One-Click';
+    unsubHeaders['List-Unsubscribe'] = `<mailto:unsubscribe@babahalgo.com>, <${unsubUrl}>`;
+    unsubHeaders['List-Unsubscribe-Post'] = 'List-Unsubscribe=One-Click';
   }
 
-  const payload: Record<string, unknown> = {
-    sender: { name: senderName, email: senderEmail },
-    to: [{ email: to }],
-    subject: opts.subject,
-    htmlContent: opts.html,
-    headers,
-  };
-  if (opts.text) payload.textContent = opts.text;
-  if (cfg.replyTo) payload.replyTo = { email: cfg.replyTo };
+  // Prefer SMTP kalau credentials komplet (user + password)
+  const hasSmtp = Boolean(cfg.smtpUser && cfg.smtpPassword);
+  const hasApi = Boolean(cfg.apiKey);
 
-  const res = await fetch(BREVO_API_URL, {
-    method: 'POST',
-    headers: {
-      accept: 'application/json',
-      'api-key': cfg.apiKey,
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(payload),
-  });
-
-  let data: BrevoResponse = {};
-  try {
-    data = await res.json();
-  } catch {
-    // Body kosong / non-JSON
+  if (!hasSmtp && !hasApi) {
+    throw new Error(
+      'email_unconfigured: tidak ada Brevo credentials. Set SMTP user+password ATAU API key di /admin/cms/email-settings',
+    );
   }
 
-  if (!res.ok) {
-    log.error(`Brevo ${res.status} for ${to}: ${data.code ?? '?'} ${data.message ?? '(no message)'}`);
-    throw new Error(`Brevo API error ${res.status}: ${data.message || data.code || 'unknown'}`);
+  if (hasSmtp) {
+    return sendViaSmtp(
+      cfg.smtpUser,
+      cfg.smtpPassword,
+      to,
+      opts,
+      senderEmail,
+      senderName,
+      cfg.replyTo,
+      unsubHeaders,
+    );
   }
 
-  log.info(`Email sent to ${to}: messageId=${data.messageId}`);
-  return { messageId: data.messageId ?? '' };
+  return sendViaApi(
+    cfg.apiKey,
+    to,
+    opts,
+    senderEmail,
+    senderName,
+    cfg.replyTo,
+    unsubHeaders,
+  );
 }

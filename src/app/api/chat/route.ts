@@ -2,6 +2,7 @@ import { streamText, convertToModelMessages } from 'ai';
 import { buildSystemPrompt, type ChatLocale } from '@/lib/chat/system-prompt';
 import { getOpenRouter, DEFAULT_MODEL } from '@/lib/ai/openrouter';
 import { createLogger } from '@/lib/logger';
+import { resolveAuthenticatedContext } from '@/lib/chat/auth-context';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -35,6 +36,22 @@ export async function POST(request: Request) {
 
   const locale = resolveLocale(request, body.locale);
 
+  // Extract last 3 user messages text for skill detection (forex vs crypto vs both).
+  // Lazy-loading skill memodul menghemat token budget signifikan saat pertanyaan
+  // sempit ke salah satu domain.
+  const recentUserText = (Array.isArray(messages) ? messages : [])
+    .slice(-3)
+    .filter((m: unknown) => (m as { role?: string }).role === 'user')
+    .map((m: unknown) => {
+      const parts = (m as { parts?: Array<{ type?: string; text?: string }> }).parts;
+      if (!Array.isArray(parts)) return '';
+      return parts.filter((p) => p.type === 'text').map((p) => p.text || '').join(' ');
+    })
+    .join(' ');
+
+  // Authenticated context — kalau session valid, AI bisa kenali user + state.
+  const authenticated = await resolveAuthenticatedContext(request).catch(() => undefined);
+
   const or = getOpenRouter();
   if (!or) {
     log.warn('OPENROUTER_API_KEY missing — chat disabled');
@@ -63,9 +80,11 @@ export async function POST(request: Request) {
       // or.chat(...) pakai Chat Completions API yang kompatibel dengan
       // OpenRouter (dan semua model yang di-proxy via OpenRouter).
       model: or.chat(DEFAULT_MODEL),
-      system: buildSystemPrompt(locale),
+      system: buildSystemPrompt({ locale, recentUserText, authenticated }),
       messages: await convertToModelMessages(messages),
-      maxOutputTokens: 700,
+      // 400 token = ~1-3 paragraf singkat. Force brevity per FORMAT_RULES
+      // di skill identity. Naikkan kalau user spesifik minta detail panjang.
+      maxOutputTokens: 400,
       temperature: 0.3,
       abortSignal: AbortSignal.timeout(PREFLIGHT_TIMEOUT_MS + 30_000),
     });

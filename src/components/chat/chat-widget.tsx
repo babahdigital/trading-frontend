@@ -179,26 +179,43 @@ export function ChatWidget() {
   }, []);
 
   const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
-    messagesEndRef.current?.scrollIntoView({ behavior });
+    messagesEndRef.current?.scrollIntoView({ behavior, block: 'end' });
     setShowJumpButton(false);
   }, []);
 
+  // Track total characters of last assistant message — fires effect on every
+  // streaming chunk, not just when message array length changes. Tanpa ini
+  // scroll cuma fire saat pesan baru ditambahkan, bukan saat token mengalir.
+  const streamingFingerprint = useMemo(() => {
+    if (messages.length === 0) return '';
+    const last = messages[messages.length - 1];
+    return `${messages.length}:${last.id}:${getTextContent(last).length}`;
+  }, [messages]);
+
+  // Auto-scroll: force scroll on EVERY new message + every streaming chunk.
+  // Per user spec: zero-touch UX, jangan biarkan user kebingungan ke mana
+  // jawaban AI muncul. Smooth scroll saat baru, instant saat streaming
+  // supaya tidak laggy di chunk per chunk.
   useEffect(() => {
     if (!isOpen) return;
-    if (isNearBottom()) {
-      scrollToBottom();
-    } else if (messages.length > 1) {
-      setShowJumpButton(true);
-    }
-  }, [messages, isOpen, isNearBottom, scrollToBottom]);
+    if (!streamingFingerprint) return;
+    const behavior: ScrollBehavior = isLoading ? 'auto' : 'smooth';
+    scrollToBottom(behavior);
+  }, [streamingFingerprint, isOpen, isLoading, scrollToBottom]);
 
   useEffect(() => {
     const c = messagesContainerRef.current;
     if (!c || !isOpen) return;
-    const onScroll = () => setShowJumpButton(!isNearBottom() && messages.length > 1);
+    // Jump button hanya muncul kalau user manual scroll up DAN AI sedang
+    // tidak streaming (kalau streaming, kita force scroll terus jadi user
+    // tidak akan jauh dari bottom).
+    const onScroll = () => {
+      if (isLoading) return;
+      setShowJumpButton(!isNearBottom() && messages.length > 1);
+    };
     c.addEventListener('scroll', onScroll, { passive: true });
     return () => c.removeEventListener('scroll', onScroll);
-  }, [isOpen, isNearBottom, messages.length]);
+  }, [isOpen, isNearBottom, messages.length, isLoading]);
 
   useEffect(() => {
     if (!isOpen && messages.length > 1 && messages[messages.length - 1].role === 'assistant') {

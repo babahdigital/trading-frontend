@@ -6,7 +6,11 @@ import { resolveCountryByIp } from '@/lib/geoip/fallback';
 
 const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 
-const publicPaths = ['/login', '/forgot-password', '/reset-password', '/api/auth/login', '/api/auth/register', '/api/auth/refresh', '/api/auth/forgot-password', '/api/auth/reset-password', '/api/health', '/api/public/', '/api/client/inquiries', '/api/chat', '/api/cron/', '/api/billing/webhook/', '/api/license/check', '/manifest.json'];
+// Login pages (customer + admin) tetap public — kalau pakai pattern
+// `/admin` di isNonGuestPath nanti ke-catch di token-required block dan
+// di-redirect ke /login. Kita whitelist `/admin/login` eksplisit di sini
+// supaya operator bisa akses operator console login tanpa session.
+const publicPaths = ['/login', '/admin/login', '/forgot-password', '/reset-password', '/api/auth/login', '/api/auth/register', '/api/auth/refresh', '/api/auth/forgot-password', '/api/auth/reset-password', '/api/auth/ws-token', '/api/health', '/api/public/', '/api/client/inquiries', '/api/chat', '/api/cron/', '/api/billing/webhook/', '/api/license/check', '/manifest.json'];
 
 // In-memory rate limit store (per-process, resets on restart)
 const rateLimitStore = new Map<string, { count: number; resetAt: number }>();

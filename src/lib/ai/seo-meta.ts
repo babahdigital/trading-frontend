@@ -70,7 +70,7 @@ export async function generateSeoMeta(input: GenerateSeoMetaInput): Promise<SeoM
 
   try {
     const { text } = await generateText({
-      model: or(DEFAULT_MODEL),
+      model: or.chat(DEFAULT_MODEL),
       prompt,
       temperature: 0.3,
       maxOutputTokens: 300,

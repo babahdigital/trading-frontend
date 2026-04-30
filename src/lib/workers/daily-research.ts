@@ -235,7 +235,7 @@ export async function runDailyResearch(): Promise<DailyResearchResult> {
     const built = await config.buildPrompt(data);
 
     const { text: rawBody } = await generateText({
-      model: or(DEFAULT_MODEL),
+      model: or.chat(DEFAULT_MODEL),
       prompt: built.prompt,
       temperature: 0.45,
       maxOutputTokens: 4500,

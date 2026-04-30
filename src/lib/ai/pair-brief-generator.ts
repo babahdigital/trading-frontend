@@ -335,7 +335,7 @@ export async function generatePairBriefNarrative(
     return { narrative: factualTemplate, narrative_en: null, aiModel: 'template-only', aiTokensUsed: 0 };
   }
 
-  const model = or(DEFAULT_MODEL);
+  const model = or.chat(DEFAULT_MODEL);
   const modelName = MODEL_NAME;
   const fullPrompt = `${NARRATIVE_PROMPT}\n${factualTemplate}`;
 

@@ -218,7 +218,7 @@ async function generateOneTopic(topic: BlogTopic): Promise<{ articleId: string }
 
   const aiStart = Date.now();
   const { text: markdown, usage } = await generateText({
-    model: or(DEFAULT_MODEL),
+    model: or.chat(DEFAULT_MODEL),
     prompt,
     temperature: 0.4,
     maxOutputTokens: Math.ceil(topic.targetLengthWords * 3),

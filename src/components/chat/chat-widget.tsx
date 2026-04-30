@@ -33,6 +33,8 @@ interface CopyBundle {
   error_generic: string;
   unavailable_title: string;
   unavailable_desc: string;
+  rate_limit_title: string;
+  rate_limit_desc: string;
   contact_link: string;
   quick_replies: QuickReply[];
 }
@@ -56,6 +58,8 @@ const COPY: Record<'id' | 'en', CopyBundle> = {
     unavailable_title: 'Asisten Sedang Tidak Tersedia',
     unavailable_desc:
       'Asisten AI sementara tidak bisa diakses. Tim kami siap membantu Anda secara langsung.',
+    rate_limit_title: 'Terlalu banyak pesan',
+    rate_limit_desc: 'Tunggu sebentar lalu kirim pesan lagi (maksimal 20 pesan per menit).',
     contact_link: 'Hubungi tim kami →',
     quick_replies: [
       { label: 'Harga Paket', message: 'Berapa harga paket Robot Meta dan Robot Crypto?' },
@@ -82,6 +86,8 @@ const COPY: Record<'id' | 'en', CopyBundle> = {
     error_generic: 'Sorry, something went wrong. Please try again.',
     unavailable_title: 'Assistant Unavailable',
     unavailable_desc: 'The AI assistant is temporarily unreachable. Our team is ready to help you directly.',
+    rate_limit_title: 'Too many messages',
+    rate_limit_desc: 'Please wait a moment before sending another message (max 20 messages per minute).',
     contact_link: 'Contact our team →',
     quick_replies: [
       { label: 'Pricing', message: 'What are the prices for Robot Meta and Robot Crypto?' },
@@ -129,13 +135,32 @@ export function ChatWidget() {
   );
 
   const transport = useMemo(
-    () => new DefaultChatTransport({ api: '/api/chat' }),
+    () => new DefaultChatTransport({
+      api: '/api/chat',
+      // Auto-attach AbortSignal supaya request hang lebih dari 45s otomatis
+      // di-abort — mencegah UI stuck di "loading" tanpa feedback.
+      fetch: (input, init) => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(new Error('chat_timeout')), 45_000);
+        return fetch(input, {
+          ...init,
+          signal: init?.signal ?? controller.signal,
+        }).finally(() => clearTimeout(timeoutId));
+      },
+    }),
     [],
   );
 
   const { messages, sendMessage, status, error, setMessages } = useChat({
     messages: initialMessages,
     transport,
+    onError: (err) => {
+      // Surface actual error context ke browser console untuk debugging real
+      // user issue. Pesan generic di UI tetap, tapi developer/operator yang
+      // dipanggil customer bisa tanya "buka DevTools, kirim screenshot
+      // console" — dan dapat root cause langsung.
+      console.error('[chat] error:', err);
+    },
   });
 
   const isLoading = status === 'streaming' || status === 'submitted';
@@ -244,7 +269,8 @@ export function ChatWidget() {
   };
 
   const errorText = error?.message ?? '';
-  const isServiceDown = /503|unavailable|unreachable|tidak tersedia|tidak bisa diakses|ai_unconfigured/i.test(errorText);
+  const isServiceDown = /503|unavailable|unreachable|tidak tersedia|tidak bisa diakses|ai_unconfigured|chat_timeout/i.test(errorText);
+  const isRateLimited = /429|rate.?limit|too many/i.test(errorText);
 
   return (
     <>
@@ -452,9 +478,26 @@ export function ChatWidget() {
                           {copy.contact_link}
                         </a>
                       </>
+                    ) : isRateLimited ? (
+                      <>
+                        <p className="font-semibold">{copy.rate_limit_title}</p>
+                        <p className="text-foreground/75 text-xs leading-relaxed">{copy.rate_limit_desc}</p>
+                        <button
+                          type="button"
+                          onClick={handleRetry}
+                          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[hsl(var(--primary))] hover:underline"
+                        >
+                          <RotateCcw className="h-3 w-3" strokeWidth={2.25} /> {copy.retry}
+                        </button>
+                      </>
                     ) : (
                       <>
                         <p>{copy.error_generic}</p>
+                        {errorText ? (
+                          <p className="text-foreground/55 text-[11px] leading-relaxed font-mono break-words">
+                            {errorText.length > 160 ? errorText.slice(0, 160) + '…' : errorText}
+                          </p>
+                        ) : null}
                         <button
                           type="button"
                           onClick={handleRetry}

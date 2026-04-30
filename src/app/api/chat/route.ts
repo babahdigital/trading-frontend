@@ -57,7 +57,12 @@ export async function POST(request: Request) {
 
   try {
     const result = streamText({
-      model: or(DEFAULT_MODEL),
+      // PENTING: pakai or.chat(...) bukan or(...). Default shortcut or(...)
+      // akan resolve ke Responses API yang TIDAK didukung OpenRouter — error
+      // "Invalid Responses API request" muncul saat ada history > 1 message.
+      // or.chat(...) pakai Chat Completions API yang kompatibel dengan
+      // OpenRouter (dan semua model yang di-proxy via OpenRouter).
+      model: or.chat(DEFAULT_MODEL),
       system: buildSystemPrompt(locale),
       messages: await convertToModelMessages(messages),
       maxOutputTokens: 700,

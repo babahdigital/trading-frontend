@@ -32,7 +32,7 @@ export async function translateText(text: string): Promise<string> {
     return '';
   }
   const { text: result } = await generateText({
-    model: or(DEFAULT_MODEL),
+    model: or.chat(DEFAULT_MODEL),
     prompt: `${TRANSLATE_PROMPT}\n\n${text}`,
     temperature: 0.2,
   });
@@ -56,7 +56,7 @@ export async function enhanceResearchBody(data: {
     return '';
   }
   const { text: result } = await generateText({
-    model: or(DEFAULT_MODEL),
+    model: or.chat(DEFAULT_MODEL),
     prompt: `${ENHANCE_BODY_PROMPT}\n\nData:\n${JSON.stringify(data, null, 2)}`,
     temperature: 0.3,
   });

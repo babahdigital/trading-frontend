@@ -19,7 +19,7 @@ async function translateText(text: string): Promise<string> {
   const or = getOpenRouter();
   if (!or) throw new Error('OPENROUTER_API_KEY not configured');
   const { text: result } = await generateText({
-    model: or(DEFAULT_MODEL),
+    model: or.chat(DEFAULT_MODEL),
     prompt: `${TRANSLATE_PROMPT}\n\n${text}`,
     temperature: 0.2,
   });
@@ -30,7 +30,7 @@ async function translateJson(json: unknown): Promise<unknown> {
   const or = getOpenRouter();
   if (!or) throw new Error('OPENROUTER_API_KEY not configured');
   const { text: result } = await generateText({
-    model: or(DEFAULT_MODEL),
+    model: or.chat(DEFAULT_MODEL),
     prompt: `${TRANSLATE_JSON_PROMPT}\n\n${JSON.stringify(json, null, 2)}`,
     temperature: 0.2,
   });

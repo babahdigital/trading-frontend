@@ -140,10 +140,28 @@ export async function proxyToMasterBackend(
   // Caller-supplied headers win over defaults — Accept-Timezone is
   // overridable per-request when a tenant has chosen a non-Jakarta zone.
   const callerHeaders = Object.fromEntries(new Headers((init.headers as HeadersInit) || {}).entries());
+  // Wave-30 region prefs: auto-pick Accept-Timezone dari NEXT_TZ cookie
+  // (di-set oleh <RegionPreferences> dialog di footer). Default Asia/Jakarta
+  // tetap kalau cookie tidak ada.
+  let userTz = 'Asia/Jakarta';
+  try {
+    // Hanya available di Edge / RSC context — di Node.js runtime dengan
+    // header forwarded, baca dari `Accept-Timezone` di callerHeaders dulu.
+    if (typeof globalThis !== 'undefined') {
+      const dynHeaders = await import('next/headers').catch(() => null);
+      if (dynHeaders?.cookies) {
+        const cookieStore = await dynHeaders.cookies();
+        const tz = cookieStore.get('NEXT_TZ')?.value;
+        if (tz && tz.length < 64) userTz = tz;
+      }
+    }
+  } catch {
+    // next/headers tidak tersedia di edge / build time — pakai default
+  }
   return fetch(url, {
     ...init,
     headers: {
-      'Accept-Timezone': 'Asia/Jakarta',
+      'Accept-Timezone': userTz,
       ...callerHeaders,
       'X-API-Token': token,
       'User-Agent': 'vps2-commercial/1.0',

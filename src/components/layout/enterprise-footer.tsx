@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useLocale } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import Image from 'next/image';
+import { RegionPreferences } from '@/components/layout/region-preferences';
 
 type LocaleStr = { id: string; en: string };
 
@@ -179,8 +180,8 @@ export function EnterpriseFooter() {
               )}
             </div>
           </div>
-          <div className="flex items-center gap-4 text-xs text-muted-foreground">
-            <span className="uppercase tracking-wider font-mono">EN / ID</span>
+          <div className="flex items-center gap-3">
+            <RegionPreferences variant="full" />
           </div>
         </div>
 

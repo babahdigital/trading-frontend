@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { CmsPageHeader } from '@/components/cms/page-header';
 import { useAuth } from '@/lib/auth/auth-context';
 import { Search, Mail, Phone, MapPin, Megaphone } from 'lucide-react';
+import { buildWhatsAppLink, tryNormalizePhone } from '@/lib/phone';
 
 interface ChatLead {
   id: string;
@@ -142,14 +143,25 @@ export default function CmsChatLeadsPage() {
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="h-3.5 w-3.5 text-muted-foreground" />
-                <a
-                  href={`https://wa.me/${selected.phone.replace(/^\+|^0/, '62')}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:underline text-[hsl(var(--profit))]"
-                >
-                  {selected.phone}
-                </a>
+                {(() => {
+                  const norm = tryNormalizePhone(selected.phone);
+                  const waLink = buildWhatsAppLink(selected.phone, `Halo ${selected.name}, terima kasih sudah menghubungi BabahAlgo.`);
+                  return waLink ? (
+                    <a
+                      href={waLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:underline text-[hsl(var(--profit))]"
+                      title={`Click to chat via WhatsApp · ${norm?.country ?? '?'}`}
+                    >
+                      {norm?.international ?? selected.phone}
+                    </a>
+                  ) : (
+                    <span className="text-muted-foreground" title="Phone format invalid">
+                      {selected.phone}
+                    </span>
+                  );
+                })()}
               </div>
               <div>
                 <span className="text-muted-foreground">Locale:</span> {selected.locale.toUpperCase()}

@@ -12,6 +12,7 @@
 import { useState, type FormEvent } from 'react';
 import { Bot, ShieldCheck, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { isValidPhone } from '@/lib/phone';
 
 interface LeadCopy {
   intro_title: string;
@@ -49,7 +50,7 @@ const COPY: Record<'id' | 'en', LeadCopy> = {
     privacy: 'Dengan melanjutkan Anda menyetujui Kebijakan Privasi kami.',
     error_required: 'Mohon lengkapi nama, email, dan nomor WhatsApp.',
     error_email: 'Format email belum valid.',
-    error_phone: 'Format nomor WhatsApp belum valid (min. 8 digit).',
+    error_phone: 'Format nomor WhatsApp tidak valid. Contoh: 081234567890 atau +628123456789.',
     error_submit: 'Gagal menyimpan. Silakan coba lagi.',
   },
   en: {
@@ -68,12 +69,11 @@ const COPY: Record<'id' | 'en', LeadCopy> = {
     privacy: 'By continuing you agree to our Privacy Policy.',
     error_required: 'Please provide your name, email, and WhatsApp number.',
     error_email: 'That email format looks off.',
-    error_phone: 'WhatsApp number is invalid (min. 8 digits).',
+    error_phone: 'Invalid WhatsApp number. Examples: 0812..., +6281..., +1..., +44...',
     error_submit: 'Failed to save. Please try again.',
   },
 };
 
-const PHONE_RE = /^(\+?[0-9]{8,15})$/;
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
 interface ChatLeadFormProps {
@@ -95,7 +95,7 @@ export function ChatLeadForm({ locale, referrerPath, onSubmitted }: ChatLeadForm
     e.preventDefault();
     setError(null);
 
-    const cleanPhone = phone.replace(/[\s\-()]/g, '');
+    const cleanPhone = phone.trim();
     if (!name.trim() || !email.trim() || !cleanPhone) {
       setError(copy.error_required);
       return;
@@ -104,7 +104,10 @@ export function ChatLeadForm({ locale, referrerPath, onSubmitted }: ChatLeadForm
       setError(copy.error_email);
       return;
     }
-    if (!PHONE_RE.test(cleanPhone)) {
+    // Pakai libphonenumber-js — terima 0812.., +62812.., +1.., dll.
+    // Default country='ID' supaya 0812... dianggap +62. International
+    // (+1, +44, dll) auto-detect dari prefix.
+    if (!isValidPhone(cleanPhone, 'ID')) {
       setError(copy.error_phone);
       return;
     }

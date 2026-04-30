@@ -4,12 +4,14 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 
 interface ResponsiveSidebarProps {
   children: React.ReactNode;
 }
 
 export function ResponsiveSidebar({ children }: ResponsiveSidebarProps) {
+  const t = useTranslations('nav');
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
@@ -76,7 +78,7 @@ export function ResponsiveSidebar({ children }: ResponsiveSidebarProps) {
                 onClick={() => setOpen(false)}
                 className="absolute top-4 right-4 p-1.5 rounded-lg
                            hover:bg-accent transition-colors"
-                aria-label="Tutup menu"
+                aria-label={t('close_menu')}
               >
                 <X className="h-4 w-4" />
               </button>

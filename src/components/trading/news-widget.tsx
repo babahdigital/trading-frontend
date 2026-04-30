@@ -3,8 +3,24 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Newspaper, TrendingDown, TrendingUp, Minus, AlertTriangle, ExternalLink } from 'lucide-react';
+import { useLocale } from 'next-intl';
 import { cn } from '@/lib/utils';
 import { formatInTimezone } from '@/lib/timezone/util';
+
+const NEWS_COPY = {
+  id: {
+    loading: 'Memuat feed berita…',
+    error_prefix: 'Gagal memuat berita',
+    empty_pipeline: 'Belum ada berita dari backend news pipeline. Worker news_ingest_loop perlu diaktifkan.',
+    empty_filter: 'Tidak ada berita relevan saat ini.',
+  },
+  en: {
+    loading: 'Loading news feed…',
+    error_prefix: 'Failed to load news',
+    empty_pipeline: 'No news yet from the backend pipeline. The news_ingest_loop worker needs to be enabled.',
+    empty_filter: 'No relevant news at the moment.',
+  },
+} as const;
 
 export interface NewsItem {
   id: string;
@@ -67,6 +83,10 @@ export function NewsWidget({
   compact = false,
   className,
 }: NewsWidgetProps) {
+  const localeRaw = useLocale();
+  const locale: 'id' | 'en' = localeRaw === 'en' ? 'en' : 'id';
+  const t = NEWS_COPY[locale];
+
   const [items, setItems] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [source, setSource] = useState<'backend' | 'empty'>('empty');
@@ -112,7 +132,7 @@ export function NewsWidget({
     return (
       <div className={cn('flex items-center justify-center p-6 text-sm text-muted-foreground', className)}>
         <Newspaper className="h-4 w-4 mr-2 animate-pulse" />
-        Memuat feed berita...
+        {t.loading}
       </div>
     );
   }
@@ -121,7 +141,7 @@ export function NewsWidget({
     return (
       <div className={cn('flex items-center gap-2 p-3 text-sm text-red-400 bg-red-500/5 rounded-md border border-red-500/20', className)}>
         <AlertTriangle className="h-4 w-4" />
-        <span>Gagal memuat berita: {error}</span>
+        <span>{t.error_prefix}: {error}</span>
       </div>
     );
   }
@@ -130,9 +150,7 @@ export function NewsWidget({
     return (
       <div className={cn('text-center p-6 text-sm text-muted-foreground border border-dashed border-border rounded-md', className)}>
         <Newspaper className="h-6 w-6 mx-auto mb-2 opacity-50" />
-        {source === 'empty'
-          ? 'Belum ada berita dari backend news pipeline. Worker news_ingest_loop perlu diaktifkan.'
-          : 'Tidak ada berita relevan saat ini.'}
+        {source === 'empty' ? t.empty_pipeline : t.empty_filter}
       </div>
     );
   }

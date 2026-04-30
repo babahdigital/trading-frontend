@@ -16,6 +16,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { z } from 'zod';
 import { createLogger } from '@/lib/logger';
+import { tryNormalizePhone } from '@/lib/phone';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -25,11 +26,13 @@ const log = createLogger('api/chat/lead');
 const leadSchema = z.object({
   name: z.string().trim().min(2, 'name_too_short').max(80, 'name_too_long'),
   email: z.string().trim().toLowerCase().email('email_invalid'),
-  // Phone bisa lokal Indonesia (0812..) atau E.164 (+62812..). Min 8 digit.
+  // Phone format apapun — normalisasi ke E.164 di handler. Schema cuma jaga
+  // panjang (min 6 digit setelah strip non-digit).
   phone: z
     .string()
     .trim()
-    .regex(/^(\+?[0-9]{8,15})$/, 'phone_invalid'),
+    .min(6, 'phone_too_short')
+    .max(32, 'phone_too_long'),
   locale: z.enum(['id', 'en']).optional().default('id'),
   referrerPath: z.string().max(255).optional(),
   consentMarketing: z.boolean().optional().default(false),
@@ -60,6 +63,18 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // Normalisasi phone ke E.164 — apapun input (0812.., +62812.., +1...)
+  // disimpan canonical "+62812345678" supaya admin click wa.me langsung
+  // jalan + dedup phone-by-phone presisi.
+  const phoneNorm = tryNormalizePhone(parsed.data.phone);
+  if (!phoneNorm) {
+    return NextResponse.json(
+      { error: 'validation_failed', details: { phone: ['phone_invalid'] } },
+      { status: 400 },
+    );
+  }
+  const phoneE164 = phoneNorm.e164;
+
   const ipAddress = getClientIp(request);
   const userAgent = request.headers.get('user-agent')?.slice(0, 500) ?? null;
 
@@ -79,7 +94,7 @@ export async function POST(request: NextRequest) {
         where: { id: existing.id },
         data: {
           name: parsed.data.name,
-          phone: parsed.data.phone,
+          phone: phoneE164,
           locale: parsed.data.locale,
           referrerPath: parsed.data.referrerPath ?? existing.referrerPath,
           consentMarketing: parsed.data.consentMarketing || existing.consentMarketing,
@@ -93,7 +108,7 @@ export async function POST(request: NextRequest) {
         data: {
           name: parsed.data.name,
           email: parsed.data.email,
-          phone: parsed.data.phone,
+          phone: phoneE164,
           locale: parsed.data.locale,
           referrerPath: parsed.data.referrerPath,
           consentMarketing: parsed.data.consentMarketing,
@@ -112,14 +127,14 @@ export async function POST(request: NextRequest) {
           where: { email: parsed.data.email },
           update: {
             name: parsed.data.name,
-            phone: parsed.data.phone,
+            phone: phoneE164,
             locale: parsed.data.locale,
             status: 'ACTIVE',
           },
           create: {
             email: parsed.data.email,
             name: parsed.data.name,
-            phone: parsed.data.phone,
+            phone: phoneE164,
             locale: parsed.data.locale,
             source: 'CHAT_LEAD',
             ipAddress,
@@ -136,7 +151,7 @@ export async function POST(request: NextRequest) {
     const telegramBotToken = process.env.TELEGRAM_BOT_TOKEN;
     const telegramChatId = process.env.TELEGRAM_CHAT_ID;
     if (telegramBotToken && telegramChatId && !existing) {
-      const text = `Chat Lead baru\n\nNama: ${parsed.data.name}\nEmail: ${parsed.data.email}\nTelpon: ${parsed.data.phone}\nFrom: ${parsed.data.referrerPath ?? '(unknown)'}\nNewsletter: ${parsed.data.consentMarketing ? 'YES' : 'no'}`;
+      const text = `Chat Lead baru\n\nNama: ${parsed.data.name}\nEmail: ${parsed.data.email}\nTelpon: ${phoneE164} (${phoneNorm.country ?? '?'})\nFrom: ${parsed.data.referrerPath ?? '(unknown)'}\nNewsletter: ${parsed.data.consentMarketing ? 'YES' : 'no'}\nWA: https://wa.me/${phoneNorm.whatsappDigits}`;
       fetch(`https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

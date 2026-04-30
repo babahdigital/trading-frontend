@@ -2,8 +2,34 @@
 
 import { useEffect, useState } from 'react';
 import { Check, Lock, Loader2, BarChart3, Target, Brain } from 'lucide-react';
+import { useLocale } from 'next-intl';
 import { type CapabilityTier, tierLabel, tierIncludes, CAPABILITY_TIER_ORDER } from '@/lib/capabilities/tier-mapping';
 import { cn } from '@/lib/utils';
+
+const COPY = {
+  id: {
+    eyebrow: 'Capability Matrix',
+    heading: 'Apa yang Anda dapat di setiap tier',
+    description: 'Daftar fitur live dari backend trading kami. Tier rendah dapat semua fitur tier yang lebih rendah otomatis — kumulatif.',
+    loading: 'Memuat catalog…',
+    empty: 'Catalog sedang tidak tersedia. Hubungi kami via /contact untuk daftar lengkap.',
+    feature: 'Feature',
+    sec_indicators_desc: 'Technical indicator yang tersedia di setiap tier — SMC, Wyckoff, dan Astronacci adalah keunggulan kami.',
+    sec_strategies_desc: 'Strategi trading otomatis yang berjalan di backend — semakin tinggi tier, semakin banyak strategi paralel.',
+    sec_ai_desc: 'Layer AI eksplikabilitas + entry advisor + retrospective. Aktif sejak Pro, lengkap di VIP.',
+  },
+  en: {
+    eyebrow: 'Capability Matrix',
+    heading: 'What you get at every tier',
+    description: 'Live feature list from our trading backend. Lower tiers automatically inherit all features of cheaper tiers — fully cumulative.',
+    loading: 'Loading catalog…',
+    empty: 'Catalog is temporarily unavailable. Reach out via /contact for the full list.',
+    feature: 'Feature',
+    sec_indicators_desc: 'Technical indicators available per tier — SMC, Wyckoff, and Astronacci are our differentiators.',
+    sec_strategies_desc: 'Automated trading strategies running in the backend — higher tier = more parallel strategies.',
+    sec_ai_desc: 'AI explainability + entry advisor + retrospective. Active from Pro, complete on VIP.',
+  },
+} as const;
 
 interface CapabilityItem {
   name: string;
@@ -22,28 +48,26 @@ interface CapabilitiesResponse {
 
 type Bucket = 'indicators' | 'strategies' | 'ai_subsystems';
 
-const SECTION_META: Record<Bucket, { label: string; icon: typeof BarChart3; description: string }> = {
-  indicators: {
-    label: 'Indicators',
-    icon: BarChart3,
-    description: 'Technical indicator yang tersedia di setiap tier — SMC, Wyckoff, dan Astronacci adalah keunggulan kami.',
-  },
-  strategies: {
-    label: 'Strategies',
-    icon: Target,
-    description: 'Strategi trading otomatis yang berjalan di backend — semakin tinggi tier, semakin banyak strategi paralel.',
-  },
-  ai_subsystems: {
-    label: 'AI Subsystems',
-    icon: Brain,
-    description: 'Layer AI eksplikabilitas + entry advisor + retrospective. Aktif sejak Pro, lengkap di VIP.',
-  },
+const SECTION_META: Record<Bucket, { label: string; icon: typeof BarChart3 }> = {
+  indicators: { label: 'Indicators', icon: BarChart3 },
+  strategies: { label: 'Strategies', icon: Target },
+  ai_subsystems: { label: 'AI Subsystems', icon: Brain },
 };
 
 export function CapabilityLadder() {
+  const localeRaw = useLocale();
+  const locale: 'id' | 'en' = localeRaw === 'en' ? 'en' : 'id';
+  const t = COPY[locale];
+
   const [data, setData] = useState<CapabilitiesResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeBucket, setActiveBucket] = useState<Bucket>('indicators');
+
+  const sectionDesc: Record<Bucket, string> = {
+    indicators: t.sec_indicators_desc,
+    strategies: t.sec_strategies_desc,
+    ai_subsystems: t.sec_ai_desc,
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -63,16 +87,13 @@ export function CapabilityLadder() {
 
   const tiers: CapabilityTier[] = data?.tiers ?? CAPABILITY_TIER_ORDER.slice();
   const items = data?.[activeBucket] ?? [];
-  const meta = SECTION_META[activeBucket];
 
   return (
     <section className="section-padding border-b border-border/60">
       <div className="container-default px-4 sm:px-6">
-        <p className="t-eyebrow mb-3">Capability Matrix</p>
-        <h2 className="t-display-section mb-3 max-w-2xl">Apa yang Anda dapat di setiap tier</h2>
-        <p className="t-body text-foreground/60 max-w-2xl mb-8">
-          Daftar fitur live dari backend trading kami. Tier rendah dapat semua fitur tier yang lebih rendah otomatis — kumulatif.
-        </p>
+        <p className="t-eyebrow mb-3">{t.eyebrow}</p>
+        <h2 className="t-display-section mb-3 max-w-2xl">{t.heading}</h2>
+        <p className="t-body text-foreground/60 max-w-2xl mb-8">{t.description}</p>
 
         {/* Tab switcher */}
         <div className="inline-flex rounded-md border border-border bg-card p-0.5 text-xs mb-6 flex-wrap">
@@ -98,16 +119,16 @@ export function CapabilityLadder() {
           })}
         </div>
 
-        <p className="text-xs text-muted-foreground/80 mb-6 max-w-2xl">{meta.description}</p>
+        <p className="text-xs text-muted-foreground/80 mb-6 max-w-2xl">{sectionDesc[activeBucket]}</p>
 
         {loading ? (
           <div className="flex items-center justify-center py-12 text-muted-foreground">
             <Loader2 className="h-5 w-5 animate-spin mr-2" />
-            <span className="text-sm font-mono">Memuat catalog…</span>
+            <span className="text-sm font-mono">{t.loading}</span>
           </div>
         ) : items.length === 0 ? (
           <div className="rounded-lg border border-border bg-card p-8 text-center text-muted-foreground text-sm">
-            Catalog sedang tidak tersedia. Hubungi kami via /contact untuk daftar lengkap.
+            {t.empty}
           </div>
         ) : (
           <>
@@ -117,7 +138,7 @@ export function CapabilityLadder() {
                 <thead>
                   <tr className="border-b border-border bg-white/[0.02]">
                     <th className="text-left px-4 py-3 font-mono uppercase tracking-wider text-[10px] text-muted-foreground">
-                      Feature
+                      {t.feature}
                     </th>
                     {tiers.map((t) => (
                       <th

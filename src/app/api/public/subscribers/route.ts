@@ -15,6 +15,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { z } from 'zod';
 import { createLogger } from '@/lib/logger';
+import { tryNormalizePhone } from '@/lib/phone';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -24,11 +25,8 @@ const log = createLogger('api/public/subscribers');
 const subscribeSchema = z.object({
   email: z.string().trim().toLowerCase().email('email_invalid'),
   name: z.string().trim().max(80).optional(),
-  phone: z
-    .string()
-    .trim()
-    .regex(/^(\+?[0-9]{8,15})$/, 'phone_invalid')
-    .optional(),
+  // Phone optional. Format apapun — normalize di handler ke E.164.
+  phone: z.string().trim().min(6).max(32).optional(),
   locale: z.enum(['id', 'en']).optional().default('id'),
   source: z.enum(['FOOTER', 'CONTACT_FORM', 'RESEARCH_INLINE', 'EXIT_INTENT']).optional().default('FOOTER'),
 });
@@ -58,12 +56,25 @@ export async function POST(request: NextRequest) {
   const ipAddress = getClientIp(request);
   const userAgent = request.headers.get('user-agent')?.slice(0, 500) ?? null;
 
+  // Normalisasi phone (kalau ada) ke E.164. Kalau invalid, tolak.
+  let phoneE164: string | null = null;
+  if (parsed.data.phone) {
+    const norm = tryNormalizePhone(parsed.data.phone);
+    if (!norm) {
+      return NextResponse.json(
+        { error: 'validation_failed', details: { phone: ['phone_invalid'] } },
+        { status: 400 },
+      );
+    }
+    phoneE164 = norm.e164;
+  }
+
   try {
     const subscriber = await prisma.subscriber.upsert({
       where: { email: parsed.data.email },
       update: {
         name: parsed.data.name,
-        phone: parsed.data.phone,
+        phone: phoneE164 ?? undefined,
         locale: parsed.data.locale,
         // Kalau sebelumnya UNSUBSCRIBED, re-aktifkan; BOUNCED tetap BOUNCED
         // sampai admin manual cleanup (tidak otomatis untuk hindari spam loop)
@@ -72,7 +83,7 @@ export async function POST(request: NextRequest) {
       create: {
         email: parsed.data.email,
         name: parsed.data.name,
-        phone: parsed.data.phone,
+        phone: phoneE164 ?? undefined,
         locale: parsed.data.locale,
         source: parsed.data.source,
         ipAddress,

@@ -364,6 +364,10 @@
     "contact": "Contact",
     "company": "Company",
     "schedule_briefing": "Schedule Briefing",
+    "open_menu": "Open menu",
+    "close_menu": "Close menu",
+    "close_banner": "Close banner",
+    "close_popup": "Close popup",
     "mega": {
       "platform_heading": "Platform",
       "strategies_heading": "Strategies",

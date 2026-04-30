@@ -2,7 +2,25 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Coins, Search, X } from 'lucide-react';
+import { useLocale } from 'next-intl';
 import { cn } from '@/lib/utils';
+
+const SYMBOL_COPY = {
+  id: {
+    placeholder: 'Pilih simbol trading…',
+    loading: 'Memuat simbol…',
+    search: 'Cari simbol atau deskripsi…',
+    no_match: 'Tidak ada simbol yang cocok.',
+    clear: 'Hapus pilihan',
+  },
+  en: {
+    placeholder: 'Select trading symbol…',
+    loading: 'Loading symbols…',
+    search: 'Search symbol or description…',
+    no_match: 'No matching symbol.',
+    clear: 'Clear selection',
+  },
+} as const;
 import {
   STATIC_SYMBOL_CATALOG,
   fetchSymbols,
@@ -48,9 +66,14 @@ export function SymbolSelector({
   assetClass,
   forceStatic,
   disabled,
-  placeholder = 'Pilih simbol trading...',
+  placeholder,
   className,
 }: SymbolSelectorProps) {
+  const localeRaw = useLocale();
+  const locale: 'id' | 'en' = localeRaw === 'en' ? 'en' : 'id';
+  const t = SYMBOL_COPY[locale];
+  const effectivePlaceholder = placeholder ?? t.placeholder;
+
   const [symbols, setSymbols] = useState<TradingSymbol[]>(() => [...STATIC_SYMBOL_CATALOG]);
   const [loading, setLoading] = useState(false);
   const [source, setSource] = useState<'backend' | 'static'>('static');
@@ -135,7 +158,7 @@ export function SymbolSelector({
             )}
           </>
         ) : (
-          <span className="text-muted-foreground">{loading ? 'Memuat simbol...' : placeholder}</span>
+          <span className="text-muted-foreground">{loading ? t.loading : effectivePlaceholder}</span>
         )}
       </button>
 
@@ -148,11 +171,11 @@ export function SymbolSelector({
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Cari simbol atau deskripsi..."
+              placeholder={t.search}
               className="flex-1 bg-transparent text-sm outline-none"
             />
             {query && (
-              <button type="button" onClick={() => setQuery('')} aria-label="Hapus pencarian">
+              <button type="button" onClick={() => setQuery('')} aria-label={t.clear}>
                 <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
               </button>
             )}
@@ -163,7 +186,7 @@ export function SymbolSelector({
 
           <div className="overflow-y-auto flex-1">
             {grouped.length === 0 ? (
-              <div className="p-4 text-center text-sm text-muted-foreground">Tidak ada simbol cocok.</div>
+              <div className="p-4 text-center text-sm text-muted-foreground">{t.no_match}</div>
             ) : (
               grouped.map(([cls, list]) => (
                 <div key={cls}>

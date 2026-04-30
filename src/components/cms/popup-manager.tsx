@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslations } from 'next-intl';
 
 interface PopupData {
   id: string;
@@ -17,6 +18,7 @@ interface PopupData {
 }
 
 export function PopupManager() {
+  const t = useTranslations('nav');
   const [popups, setPopups] = useState<PopupData[]>([]);
   const [activePopup, setActivePopup] = useState<PopupData | null>(null);
   const [shown, setShown] = useState<Set<string>>(new Set());
@@ -95,7 +97,7 @@ export function PopupManager() {
             className="relative bg-card border rounded-xl max-w-md w-full mx-4 p-6 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <button type="button" onClick={() => setActivePopup(null)} className="absolute top-4 right-4 text-muted-foreground hover:text-foreground text-lg" aria-label="Tutup popup">&#10005;</button>
+            <button type="button" onClick={() => setActivePopup(null)} className="absolute top-4 right-4 text-muted-foreground hover:text-foreground text-lg" aria-label={t('close_popup')}>&#10005;</button>
             {activePopup.imageUrl && (
               <Image
                 src={activePopup.imageUrl}

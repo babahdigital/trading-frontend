@@ -364,6 +364,10 @@
     "contact": "Kontak",
     "company": "Perusahaan",
     "schedule_briefing": "Jadwalkan Briefing",
+    "open_menu": "Buka menu",
+    "close_menu": "Tutup menu",
+    "close_banner": "Tutup banner",
+    "close_popup": "Tutup popup",
     "mega": {
       "platform_heading": "Platform",
       "strategies_heading": "Strategi",

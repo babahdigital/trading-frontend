@@ -226,7 +226,7 @@ export function EnterpriseNav() {
             type="button"
             className="lg:hidden inline-flex items-center justify-center p-2 -mr-2 rounded-md text-foreground hover:bg-muted/60 active:scale-95 transition-all"
             onClick={() => setMobileOpen((v) => !v)}
-            aria-label={mobileOpen ? 'Tutup menu' : 'Buka menu'}
+            aria-label={mobileOpen ? t('close_menu') : t('open_menu')}
             aria-expanded={mobileOpen}
             aria-controls="mobile-nav-panel"
           >
@@ -416,7 +416,7 @@ function MobileMenu({
           type="button"
           onClick={onClose}
           className="inline-flex items-center justify-center p-2 -mr-2 rounded-md text-foreground hover:bg-muted/60 active:scale-95 transition-all"
-          aria-label="Tutup menu"
+          aria-label={t('close_menu')}
         >
           <X className="w-5 h-5" />
         </button>

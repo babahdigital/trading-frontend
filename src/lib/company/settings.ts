@@ -45,6 +45,8 @@ export interface CompanySettings {
   instagramUrl: string;
   /** Affiliate broker (Exness, dll) */
   exnessAffiliateUrl: string;
+  /** Refund window untuk first-time subscriber (hari) — 0 = no refund */
+  refundPolicyDays: number;
 }
 
 export const COMPANY_DEFAULTS: CompanySettings = {
@@ -67,6 +69,7 @@ export const COMPANY_DEFAULTS: CompanySettings = {
   telegramUrl: 'https://t.me/babahalgo',
   instagramUrl: '',
   exnessAffiliateUrl: '',
+  refundPolicyDays: 7,
 };
 
 const SETTING_KEYS = [
@@ -89,6 +92,7 @@ const SETTING_KEYS = [
   'company.telegram_url',
   'company.instagram_url',
   'company.exness_affiliate_url',
+  'company.refund_policy_days',
 ] as const;
 
 type SettingKey = (typeof SETTING_KEYS)[number];
@@ -113,6 +117,7 @@ const KEY_TO_FIELD: Record<SettingKey, keyof CompanySettings> = {
   'company.telegram_url': 'telegramUrl',
   'company.instagram_url': 'instagramUrl',
   'company.exness_affiliate_url': 'exnessAffiliateUrl',
+  'company.refund_policy_days': 'refundPolicyDays',
 };
 
 const FIELD_TO_KEY: Record<keyof CompanySettings, SettingKey> = Object.fromEntries(
@@ -132,7 +137,15 @@ export async function getCompanySettings(opts: { skipCache?: boolean } = {}): Pr
   const settings: CompanySettings = { ...COMPANY_DEFAULTS };
   for (const r of rows) {
     const field = KEY_TO_FIELD[r.key as SettingKey];
-    if (field && r.value) (settings as unknown as Record<string, string>)[field] = r.value;
+    if (field && r.value) {
+      // refundPolicyDays parse number — sisanya string
+      if (field === 'refundPolicyDays') {
+        const n = parseInt(r.value, 10);
+        if (Number.isFinite(n) && n >= 0) settings.refundPolicyDays = n;
+      } else {
+        (settings as unknown as Record<string, string>)[field] = r.value;
+      }
+    }
   }
 
   cache = { value: settings, expiry: Date.now() + CACHE_TTL_MS };

@@ -32,11 +32,19 @@ const SOLUTION_KEYS = [
 export default async function SolutionsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'solutions_page' });
+  const tNav = await getTranslations({ locale, namespace: 'nav' });
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       <EnterpriseNav />
       <main id="main-content">
+
+        {/* Tech provider disclaimer banner */}
+        <div className="bg-amber-500/10 border-b border-amber-500/20 py-2.5">
+          <p className="container-default px-4 sm:px-6 text-center text-xs sm:text-sm font-medium text-amber-200">
+            {tNav('no_pamm_banner')}
+          </p>
+        </div>
 
         {/* Hero */}
         <section className="section-padding border-b border-white/8">

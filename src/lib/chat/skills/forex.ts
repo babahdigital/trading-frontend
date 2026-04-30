@@ -26,16 +26,17 @@ TIER + HARGA (bulanan, tanpa lock-in)
 - Tier 2 Scalping $79/bulan (POPULAR) — 8 pair (Major + Cross + Gold + Silver), swing + scalping, notif WhatsApp + Telegram + Email.
 - Tier 3 All-In $299/bulan — unlimited pair, semua 6 strategi paralel, premium AI advisor, dedicated support 24/7, custom backtest sweep + Payout API.
 
-KILL-SWITCH (untuk customer eksisting yang tanya soal aktivasi)
-- 3 trigger: DAILY_LOSS (rugi harian melewati ambang), LOSS_STREAK (5 loss berturut), EQUITY_DRAWDOWN (drawdown intraday >6% dari Start-of-Day).
-- State machine: NORMAL → fast 1h cooling (low impact) → PROBATION 4h dengan risk dipotong setengah → NORMAL. Atau 12h hard untuk high impact.
-- Self-acknowledge tier retail (Free/Starter/Pro): bisa clear sendiri setelah cooling window.
-- VIP/Dedicated: admin-only review (institutional ops on-call).
-- AI postmortem (Claude Opus) auto-evaluasi tiap 5 menit selama probation.
+CIRCUIT BREAKER / RISK PROTECTION (Anda set thresholds, sistem enforce)
+- Anda configure 3 threshold di /portal/kill-switch: DAILY_LOSS (max rugi harian dalam %), LOSS_STREAK (jumlah loss berturut), EQUITY_DRAWDOWN (drawdown intraday %).
+- Saat threshold Anda hit, sistem otomatis pause + cooling period (tanpa intervensi human dari kami).
+- Cooling state machine: NORMAL → fast 1h cooling (low impact) → PROBATION 4h dengan risk dipotong setengah → NORMAL. Atau 12h hard untuk high impact.
+- Self-acknowledge tier retail (Starter/Pro): Anda clear sendiri setelah cooling window.
+- VIP/Dedicated: ada review process tambahan untuk customer yang request institutional ops oversight.
+- AI postmortem auto-evaluasi tiap 5 menit selama probation untuk membantu Anda memahami kenapa threshold hit.
 
 PERTANYAAN UMUM CUSTOMER
 - "Saya bisa pakai broker lain selain Exness?" → Tier 3 All-In + VPS License support multi-broker. Tier 1-2 fokus Exness karena affiliate partnership.
-- "Modal minimum?" → Tier 1 efektif mulai $500. Tier 2 $2,000. Tier 3 $5,000+ (untuk leverage 6+ pair simultan).
+- "Modal minimum?" → Tier 1 efektif mulai $1,000. Tier 2 $2,000. Tier 3 $5,000+ (untuk leverage 6+ pair simultan).
 - "Berapa win rate?" → Win rate alone misleading. Yang penting Sharpe ratio + max drawdown + profit factor. Track record live publikasi /performance setelah 90 hari produksi.
 - "Bisa modify SL/TP manual?" → Tidak — bot full auto. Customer bisa pause bot via dashboard atau set kill-switch trigger sendiri.
 - "Kalau bot rugi, bisa refund?" → Subscription fee non-refundable (tech provider service). Profit/loss trading di akun broker customer — kami tidak custody.
@@ -43,7 +44,14 @@ PERTANYAAN UMUM CUSTOMER
 ONBOARDING
 - Demo 7 hari gratis (akun MT5 demo customer): /demo?product=robot-meta
 - Live tier (KYC required): /register/signal?tier=swing|scalping|all
-- VPS License (consultative): /register/vps`;
+- BabahAlgo Software License + Setup Service (consultative): /register/vps
+
+SOFTWARE LICENSE + SETUP SERVICE (formerly VPS License)
+- BabahAlgo Software License grants Subscriber license untuk install + operate algorithm di VPS infrastructure milik Subscriber sendiri.
+- Yang BabahAlgo provide: (a) software license (algorithm + execution engine), (b) optional setup service (one-time consultation + installation di VPS Subscriber), (c) optional ongoing technical support.
+- Yang Subscriber miliki + control: VPS hardware/cloud instance (account Subscriber di VPS provider), MT5 platform installation, broker account credentials, semua trading decisions + outcomes.
+- CV Babah Digital TIDAK host software, TIDAK akses MT5 credentials Subscriber, TIDAK execute trades atas nama Subscriber, TIDAK akses dana Subscriber kapan pun.
+- Pricing: Software License starts $3,000 (license + setup). VPS hardware/cloud cost separate (Subscriber bayar langsung ke provider VPS).`;
 
 const FOREX_KEYWORDS = [
   'forex', 'mt5', 'metatrader', 'meta trader',

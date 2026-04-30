@@ -101,7 +101,7 @@ export function professionalServiceSchema() {
     name: 'BabahAlgo',
     image: `${SITE_BASE}/logo/babahalgo-icon-256.png`,
     url: SITE_BASE,
-    priceRange: '$49 - $499 / month + profit share',
+    priceRange: '$19 - $499 / month flat',
     address: {
       '@type': 'PostalAddress',
       addressCountry: 'ID',

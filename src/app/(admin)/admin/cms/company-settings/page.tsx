@@ -28,13 +28,14 @@ interface CompanySettings {
   telegramUrl: string;
   instagramUrl: string;
   exnessAffiliateUrl: string;
+  refundPolicyDays: number;
 }
 
 const EMPTY: CompanySettings = {
   name: '', legalEntity: '', tagline: '', taglineEn: '', logoUrl: '', logoDarkUrl: '',
   address: '', phone: '', whatsappDigits: '', emailGeneral: '', emailCompliance: '',
   emailSupport: '', country: '', foundedYear: '', twitterUrl: '', linkedinUrl: '',
-  telegramUrl: '', instagramUrl: '', exnessAffiliateUrl: '',
+  telegramUrl: '', instagramUrl: '', exnessAffiliateUrl: '', refundPolicyDays: 7,
 };
 
 export default function CompanySettingsPage() {
@@ -175,6 +176,28 @@ export default function CompanySettingsPage() {
           <Field label="Telegram URL" value={data.telegramUrl} onChange={(v) => set('telegramUrl', v)} placeholder="https://t.me/babahalgo" />
           <Field label="Instagram URL" value={data.instagramUrl} onChange={(v) => set('instagramUrl', v)} placeholder="https://instagram.com/..." />
           <Field label="Exness Affiliate URL" value={data.exnessAffiliateUrl} onChange={(v) => set('exnessAffiliateUrl', v)} placeholder="https://one.exnesstrack.org/..." full />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Refund Policy</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <label className="text-sm font-medium block mb-1">Refund window untuk first-time subscriber (hari)</label>
+            <Input
+              type="number"
+              min={0}
+              max={90}
+              value={String(data.refundPolicyDays)}
+              onChange={(e) => set('refundPolicyDays', parseInt(e.target.value, 10) || 0)}
+              placeholder="7"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              0 = no refund. Default 7 hari (saran konsultan v3). Display di /pricing + dipakai sebagai validation cutoff di refund flow.
+            </p>
+          </div>
         </CardContent>
       </Card>
 

@@ -193,6 +193,11 @@ export function EnterpriseFooter() {
             <p className="t-eyebrow text-muted-foreground mb-3">
               {locale === 'id' ? 'PERNYATAAN RISIKO' : 'RISK DISCLOSURE'}
             </p>
+            <p className="text-xs text-amber-200/80 font-semibold mb-3">
+              {locale === 'id'
+                ? 'Tech provider · Zero-custody · No PAMM · No managed account'
+                : 'Tech provider · Zero-custody · No PAMM · No managed account'}
+            </p>
             <p className="text-xs text-muted-foreground leading-relaxed italic">
               {RISK_COPY[locale]}
             </p>

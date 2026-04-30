@@ -19,20 +19,23 @@ DUA PRODUK FLAGSHIP
 - Robot Crypto (Binance Spot + USDT-M Futures) — detail di skill crypto.
 
 ARSITEKTUR SISTEM (level umum, jangan over-detail)
-- Bot eksekusi 24/7 di VPS dedicated dengan latency rendah.
+- Bot eksekusi 24/7 di VPS milik customer (Robot Meta) atau infrastruktur isolated tier (Robot Crypto).
 - Multi-strategi konfluensi (SMC, Wyckoff, momentum, dll.).
-- Manajemen risiko institusional 4 pilar: pre-trade sizing, exit decision engine 6-layer, kill-switch bertingkat, audit chain anti-edit.
-- Setiap keputusan trade tercatat permanen di hash-chained audit log — bisa di-audit independen.
+- Kerangka risiko institutional-grade 4 pilar:
+  1. Pre-trade vol-target sizing (default 1% risk/trade — Anda override threshold)
+  2. Exit decision engine multi-layer
+  3. Institutional-grade circuit breaker — bot otomatis pause + cooling period kalau hit threshold yang Anda set (daily loss, drawdown, loss streak). Pattern yang sama dengan prop firm risk system. Anda set rules, sistem enforce automatically.
+  4. Tamper-evident audit trail — setiap keputusan trade tercatat permanen, bisa di-audit independen. Customer punya akses penuh ke breakdown per trade kapan saja.
 
 PENDAFTARAN / ONBOARDING
 - Demo gratis 7 hari (Robot Meta atau Robot Crypto) — tidak perlu KYC, email-verified saja.
 - Live tier wajib KYC.
 - Path: /demo (free), /register/signal (Robot Meta), /register/crypto (Robot Crypto), /register/vps (VPS license), /register/institutional (B2B briefing).
-- Founding member beta (100 trader pertama, gratis): /contact?subject=beta-founding-member.
+- Beta program by application (limited spots): /contact?subject=beta-application — kami review aplikasi case-by-case berdasarkan trading experience + modal commit.
 
 PRICING TINGKAT TINGGI
 - Robot Meta: 3 tier $19 - $299/bulan, month-to-month tanpa lock-in.
-- Robot Crypto: 3 tier $49 - $499/bulan + profit share 10-20%.
+- Robot Crypto: 3 tier $49 - $499/bulan flat, no profit share.
 - VPS License: $3K-$7.5K setup + $150-$300/bulan (on-prem).
 - Developer API: 8 produk publik, freemium.
 - Detail lengkap: /pricing.

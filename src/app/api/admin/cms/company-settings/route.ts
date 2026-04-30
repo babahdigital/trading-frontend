@@ -50,6 +50,7 @@ const putSchema = z.object({
   telegramUrl: z.string().url().or(z.literal('')).optional(),
   instagramUrl: z.string().url().or(z.literal('')).optional(),
   exnessAffiliateUrl: z.string().url().or(z.literal('')).optional(),
+  refundPolicyDays: z.number().int().min(0).max(90).optional(),
 });
 
 export async function PUT(request: NextRequest) {
@@ -66,9 +67,9 @@ export async function PUT(request: NextRequest) {
   }
 
   const updates: { key: string; value: string }[] = [];
-  for (const [field, value] of Object.entries(parsed.data) as [keyof CompanySettings, string | undefined][]) {
+  for (const [field, value] of Object.entries(parsed.data) as [keyof CompanySettings, string | number | undefined][]) {
     if (value === undefined) continue;
-    updates.push({ key: fieldToSettingKey(field), value });
+    updates.push({ key: fieldToSettingKey(field), value: String(value) });
   }
 
   for (const u of updates) {

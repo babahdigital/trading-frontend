@@ -87,17 +87,37 @@ export async function proxyToVpsBackend(
   return response;
 }
 
-// Scoped token mapping — least-privilege access to VPS 1 commercial endpoints
-type MasterScope = 'signals' | 'trade_events' | 'research' | 'pamm' | 'stats' | 'scanner' | 'admin';
+// Scoped token mapping — least-privilege access to VPS1 commercial endpoints.
+//
+// Notes pasca Wave-29S-D (2026-04-30):
+// - `pamm` scope DEPRECATED — PAMM tier dihentikan, endpoint /api/pamm/* tidak
+//   ada lagi di backend. Scope masih dipertahankan untuk back-compat call
+//   site (resolve fallback ke admin token) sampai semua FE proxy sudah
+//   migrate ke `tenant` scope dan path /api/forex/positions/*.
+// - `tenant` scope BARU — untuk endpoint tenant-scoped /api/forex/me/* dan
+//   /api/forex/positions/*. Idealnya pakai per-user X-API-Token (P0-3 audit),
+//   tapi karena infra token issuance per-user belum ada, fallback ke
+//   VPS1_ADMIN_TOKEN. Backend `/api/forex/admin/*` endpoint dapat dipakai
+//   admin-as-tenant pattern dengan header X-Tenant-Override.
+type MasterScope =
+  | 'signals'
+  | 'trade_events'
+  | 'research'
+  | 'pamm' // deprecated — fallback ke admin token untuk backward compat
+  | 'stats'
+  | 'scanner'
+  | 'admin'
+  | 'tenant'; // tenant-scoped endpoints (positions, kill-switch, me/*)
 
 const SCOPE_TOKEN_MAP: Record<MasterScope, string> = {
   signals: 'VPS1_TOKEN_SIGNALS',
   trade_events: 'VPS1_TOKEN_TRADE_EVENTS',
   research: 'VPS1_TOKEN_RESEARCH',
-  pamm: 'VPS1_TOKEN_PAMM',
+  pamm: 'VPS1_ADMIN_TOKEN', // deprecated — PAMM scope retired
   stats: 'VPS1_TOKEN_STATS',
   scanner: 'VPS1_TOKEN_SCANNER',
   admin: 'VPS1_ADMIN_TOKEN',
+  tenant: 'VPS1_ADMIN_TOKEN', // TODO P0-3: migrate ke per-user tenant token
 };
 
 export async function proxyToMasterBackend(

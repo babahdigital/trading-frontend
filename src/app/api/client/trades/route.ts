@@ -44,11 +44,27 @@ export async function GET(request: NextRequest) {
         : { ...data, trades: (data.trades || []).map(filterTradeHistory) };
       return NextResponse.json(filtered);
     } else if (subscriptionId) {
-      // Model B — PAMM/SIGNAL: commercial endpoint (pre-filtered at source)
-      const limit = searchParams.get('limit') || '100';
-      const response = await proxyToMasterBackend('pamm', `/api/pamm/trade-history?limit=${limit}&reliable_only=true`, { method: 'GET' });
+      // Wave-29S-D: trade history sekarang via canonical
+      // /api/forex/positions?status=closed (cursor-paginated). Backend
+      // PositionView mencakup gross_pnl + net_pnl_quote untuk closed trades.
+      const limit = Math.min(parseInt(searchParams.get('limit') || '100', 10), 200);
+      const cursor = searchParams.get('cursor') ?? '';
+      const qs = new URLSearchParams({ status: 'closed', limit: String(limit) });
+      if (cursor) qs.set('cursor', cursor);
+      const response = await proxyToMasterBackend('tenant', `/api/forex/positions?${qs}`, {
+        method: 'GET',
+      });
+      if (!response.ok) {
+        log.warn(`Trades backend HTTP ${response.status}`);
+        return NextResponse.json({ source: 'unavailable', trades: [], pagination: null });
+      }
       const data = await response.json();
-      return NextResponse.json(data);
+      const trades = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
+      return NextResponse.json({
+        source: 'backend',
+        trades,
+        pagination: data.pagination ?? null,
+      });
     } else {
       return NextResponse.json(
         { error: 'No VPS instance or subscription found' },

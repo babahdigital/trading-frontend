@@ -15,6 +15,8 @@ interface RawPosition {
   side?: string;
   pnl_usd?: number | string;
   profit_usd?: number | string;
+  unrealized_pnl_quote?: number | string;
+  net_pnl_quote?: number | string;
   status?: string;
 }
 
@@ -48,7 +50,9 @@ function aggregate(rows: RawPosition[]): PositionStats {
 
   for (const p of rows) {
     const pair = (p.symbol ?? p.pair ?? 'UNKNOWN').toUpperCase();
-    const pnl = num(p.pnl_usd ?? p.profit_usd);
+    // Wave-29S-D: prefer unrealized_pnl_quote (live float) for open trades,
+    // net_pnl_quote untuk closed. Fallback ke legacy pnl_usd / profit_usd.
+    const pnl = num(p.unrealized_pnl_quote ?? p.net_pnl_quote ?? p.pnl_usd ?? p.profit_usd);
     const dir = String(p.direction ?? p.side ?? '').toLowerCase();
 
     if (dir === 'buy' || dir === 'long') long_count++;
@@ -102,9 +106,22 @@ export async function GET(request: NextRequest) {
       const data = await res.json();
       positions = Array.isArray(data) ? data : Array.isArray(data?.positions) ? data.positions : [];
     } else if (subscriptionId) {
-      const res = await proxyToMasterBackend('pamm', '/api/pamm/master-status', { method: 'GET' });
-      const data = await res.json();
-      positions = Array.isArray(data?.open_positions) ? data.open_positions : [];
+      // Wave-29S-D: switched from legacy /api/pamm/master-status to canonical
+      // /api/forex/positions?status=open. The new endpoint hydrates
+      // unrealized_pnl_quote per-position from latest tick.
+      const res = await proxyToMasterBackend('tenant', '/api/forex/positions?status=open&limit=200', {
+        method: 'GET',
+      });
+      if (res.ok) {
+        const data = await res.json();
+        positions = Array.isArray(data?.data)
+          ? data.data
+          : Array.isArray(data)
+            ? data
+            : [];
+      } else {
+        log.warn(`Positions stats backend HTTP ${res.status}`);
+      }
     }
 
     const stats = aggregate(positions);

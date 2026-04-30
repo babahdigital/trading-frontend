@@ -40,9 +40,17 @@ export async function GET(request: NextRequest) {
       // Model A — VPS_INSTALLATION: legacy endpoint
       response = await proxyToVpsBackend(vpsInstanceId, path, { method: 'GET' });
     } else if (subscriptionId) {
-      // Model B — PAMM/SIGNAL: commercial endpoint
-      const periodDays = searchParams.get('period_days') || '30';
-      response = await proxyToMasterBackend('stats', `/api/stats/performance?period_days=${periodDays}`, { method: 'GET' });
+      // Wave-29S-D: migrate dari /api/stats/performance (legacy aggregate)
+      // ke canonical /api/forex/positions/stats?period=... yang sekarang
+      // include net_pnl_quote real-time + max_drawdown_quote.
+      const periodMap: Record<string, string> = {
+        '1': '1d', '7': '7d', '30': '30d', '90': '90d',
+      };
+      const rawDays = searchParams.get('period_days') || '30';
+      const period = periodMap[rawDays] || '30d';
+      response = await proxyToMasterBackend('tenant', `/api/forex/positions/stats?period=${period}`, {
+        method: 'GET',
+      });
     } else {
       return NextResponse.json(
         { error: 'No VPS instance or subscription found' },

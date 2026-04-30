@@ -11,15 +11,19 @@
  * `/v1/signals/{uuid}`.
  */
 
-type Scope = 'signals' | 'trade_events' | 'research' | 'pamm' | 'stats' | 'admin';
+type Scope = 'signals' | 'trade_events' | 'research' | 'pamm' | 'stats' | 'admin' | 'tenant';
 
 const SCOPE_ENV: Record<Scope, string> = {
   signals: 'VPS1_TOKEN_SIGNALS',
   trade_events: 'VPS1_TOKEN_TRADE_EVENTS',
   research: 'VPS1_TOKEN_RESEARCH',
-  pamm: 'VPS1_TOKEN_PAMM',
+  // pamm scope deprecated 2026-04-26 — fallback ke admin token untuk back-compat
+  pamm: 'VPS1_ADMIN_TOKEN',
   stats: 'VPS1_TOKEN_STATS',
   admin: 'VPS1_ADMIN_TOKEN',
+  // tenant scope (Wave-29S-D): /api/forex/positions* + /api/forex/me/* — pakai
+  // admin token sampai per-user tenant token issuance siap (P0-3 audit)
+  tenant: 'VPS1_ADMIN_TOKEN',
 };
 
 function tokenFor(scope: Scope): string | undefined {
@@ -194,18 +198,48 @@ export function getWeeklyRecap() {
   return request<Vps1WeeklyRecap>('research', `/api/research/weekly-recap`);
 }
 
-// ─── PAMM domain ─────────────────────────────────────────────────────────────
+// ─── Tenant positions domain (Wave-29S-D) ───────────────────────────────────
+// Migrasi dari legacy /api/pamm/* (deprecated 2026-04-26) ke canonical
+// /api/forex/positions* yang menghidrasi unrealized_pnl_quote real-time.
 
-export function getPammStatus() {
-  return request<Record<string, unknown>>('pamm', `/api/pamm/master-status`);
+export interface CanonicalPositionView {
+  id: string;
+  engine_id?: string;
+  strategy_id?: string;
+  symbol: string;
+  side: 'buy' | 'sell';
+  volume_initial?: number | string;
+  volume_remaining?: number | string;
+  entry_price?: number | string;
+  sl_price?: number | string | null;
+  tp_ladder?: Array<{ level?: number | string; ratio?: number | string }>;
+  status: 'open' | 'partial' | 'closed';
+  opened_at?: string;
+  closed_at?: string | null;
+  close_reason?: string | null;
+  unrealized_pnl_quote?: number | string;
+  gross_pnl?: number | string;
+  net_pnl_quote?: number | string;
 }
 
-export function getPammEquityCurve(days = 30) {
-  return request<Array<{ date: string; equity: number }>>('pamm', `/api/pamm/master-equity-curve?days=${days}`);
+export function getOpenPositions(limit = 200) {
+  return request<{ data: CanonicalPositionView[]; pagination?: unknown }>(
+    'tenant',
+    `/api/forex/positions?status=open&limit=${limit}`,
+  );
 }
 
-export function getPammTradeHistory(reliable_only = true, limit = 100) {
-  return request<Array<Record<string, unknown>>>('pamm', `/api/pamm/trade-history?reliable_only=${reliable_only}&limit=${limit}`);
+export function getClosedTrades(limit = 100, cursor?: string) {
+  const qs = new URLSearchParams({ status: 'closed', limit: String(limit) });
+  if (cursor) qs.set('cursor', cursor);
+  return request<{ data: CanonicalPositionView[]; pagination?: { next_cursor: string | null } }>(
+    'tenant',
+    `/api/forex/positions?${qs}`,
+  );
+}
+
+export function getPositionStats(period: '1d' | '7d' | '30d' | '90d' | 'all' = '30d') {
+  return request<Record<string, unknown>>('tenant', `/api/forex/positions/stats?period=${period}`);
 }
 
 // ─── Stats domain ────────────────────────────────────────────────────────────

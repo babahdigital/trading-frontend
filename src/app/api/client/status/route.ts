@@ -39,12 +39,28 @@ export async function GET(request: NextRequest) {
       const data = await response.json();
       return NextResponse.json(filterScalpingStatus(data));
     } else if (subscriptionId) {
-      // Model B — PAMM/SIGNAL: commercial endpoint (pre-filtered at source)
-      const response = await proxyToMasterBackend('pamm', '/api/pamm/master-status', {
-        method: 'GET',
+      // Wave-29S-D: migrate dari /api/pamm/master-status (deprecated) ke
+      // canonical /api/forex/positions + /api/forex/positions/stats. Compose
+      // dashboard-friendly snapshot dari kedua endpoint.
+      const [posRes, statsRes] = await Promise.all([
+        proxyToMasterBackend('tenant', '/api/forex/positions?status=open&limit=200', { method: 'GET' }),
+        proxyToMasterBackend('tenant', '/api/forex/positions/stats?period=1d', { method: 'GET' }),
+      ]);
+
+      const positionsBody = posRes.ok ? await posRes.json() : { data: [] };
+      const statsBody = statsRes.ok ? await statsRes.json() : null;
+      const openPositions = Array.isArray(positionsBody.data)
+        ? positionsBody.data
+        : Array.isArray(positionsBody)
+          ? positionsBody
+          : [];
+
+      return NextResponse.json({
+        source: 'backend',
+        open_positions: openPositions,
+        stats_today: statsBody,
+        ai_state_by_pair: {}, // TODO Wave-30: backend belum expose ai-state per-pair untuk tenant
       });
-      const data = await response.json();
-      return NextResponse.json(data);
     } else {
       return NextResponse.json(
         { error: 'No VPS instance or subscription found' },

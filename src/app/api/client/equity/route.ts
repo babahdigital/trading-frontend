@@ -39,19 +39,27 @@ export async function GET(request: NextRequest) {
     if (vpsInstanceId) {
       // Model A — VPS_INSTALLATION: legacy endpoint
       response = await proxyToVpsBackend(vpsInstanceId, path, { method: 'GET' });
-    } else if (subscriptionId) {
-      // Model B — PAMM/SIGNAL: commercial endpoint
-      const days = searchParams.get('days') || '30';
-      response = await proxyToMasterBackend('pamm', `/api/pamm/master-equity-curve?days=${days}`, { method: 'GET' });
-    } else {
-      return NextResponse.json(
-        { error: 'No VPS instance or subscription found' },
-        { status: 400 }
-      );
+      const data = await response.json();
+      return NextResponse.json(data);
     }
 
-    const data = await response.json();
-    return NextResponse.json(data);
+    if (subscriptionId) {
+      // Wave-29S-D / Wave-30 — backend trading-forex tidak punya endpoint
+      // master-equity-curve canonical lagi. Sementara return graceful empty
+      // sampai backend expose /api/forex/me/equity atau equivalent. FE
+      // EquityCurve sudah handle empty state ("No equity data — connect VPS").
+      log.info('equity endpoint: backend canonical not yet shipped, returning empty');
+      return NextResponse.json({
+        source: 'pending-backend',
+        snapshots: [],
+        note: 'Equity curve endpoint pending Wave-30 backend feature.',
+      });
+    }
+
+    return NextResponse.json(
+      { error: 'No VPS instance or subscription found' },
+      { status: 400 }
+    );
   } catch (error) {
     log.error('Client equity error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

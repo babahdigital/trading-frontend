@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
         method: 'GET',
       });
     } else if (subscriptionId) {
-      // Model B — PAMM/SIGNAL: commercial endpoint
+      // Model B — Subscription: research feed (10 latest tenant-aware items)
       response = await proxyToMasterBackend('research', '/api/research/latest?limit=10', {
         method: 'GET',
       });

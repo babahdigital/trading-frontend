@@ -35,10 +35,10 @@ const RISK_LAYERS = {
     { num: 5, name: 'Spread + news blackout', desc: 'Reject entries on wide spread or 15min around high-impact events' },
   ],
   inTrade: [
-    { num: 6, name: 'Static SL + Cornix TP ladder', desc: '40/35/25 split at 1R/2R/3R, JSONB-persistent state' },
-    { num: 7, name: 'Trailing stop (vol-regime)', desc: 'Monotonic tighter-only, ATR multiplier scaled to volatility regime' },
-    { num: 8, name: 'Structural invalidation', desc: 'Force-close on BoS flip or Wyckoff TR re-entry — thesis broken' },
-    { num: 9, name: 'AI advisor (Layer 6)', desc: 'Claude Opus rule-backed with 4 explicit veto rules — never overrides SL' },
+    { num: 6, name: 'Static SL + Cornix TP ladder', desc: '40/35/25 split at 1R/2R/3R, JSONB-persistent state with transactional ladder mutation (Wave-29X fix)' },
+    { num: 7, name: 'Profit Lock (Wave-29X)', desc: '1×ATR or 0.3R-floor trigger after 30min stagnation, vol-regime close ratio 20/30/45% — closes give-back dead-zone before TP1' },
+    { num: 8, name: 'Trailing stop (vol-regime)', desc: 'Monotonic tighter-only, activates from TP1 hit (Wave-29X-C). ATR multiplier scaled to volatility regime' },
+    { num: 9, name: 'Structural invalidation + AI advisor', desc: 'BoS-flip / Wyckoff TR re-entry force close. Layer 6 Claude Opus advisor with 4 veto rules — never overrides SL' },
   ],
   postSystem: [
     { num: 10, name: 'Multi-stage kill-switch', desc: 'NORMAL → fast 1h cooling → PROBATION 4h (risk halved) → NORMAL' },

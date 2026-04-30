@@ -255,18 +255,13 @@ export default function LoginPage() {
               </div>
             </form>
 
-            <div className="mt-10 pt-6 border-t border-border text-[11px] text-muted-foreground/80 leading-relaxed flex items-center gap-3">
-              <span className="inline-flex items-center gap-1.5">
-                <Lock className="h-3 w-3" strokeWidth={2.25} />
-                {t('security_note_short')}
-              </span>
-              <span aria-hidden className="h-3 w-px bg-border" />
-              <Link
-                href="/admin/login"
-                className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {t('admin_login_link')}
-              </Link>
+            <div className="mt-10 pt-6 border-t border-border text-[11px] text-muted-foreground/80 leading-relaxed">
+              {/* Operator console (/admin/login) sengaja TIDAK di-link dari sini.
+                  Reasoning: customer login adalah surface publik dan operator URL
+                  tidak perlu di-discover lewat halaman customer. Operator yang sah
+                  punya bookmark internal atau dapat URL via onboarding tim. */}
+              <Lock className="inline h-3 w-3 mr-1 -mt-0.5" strokeWidth={2.25} />
+              {t('security_note')}
             </div>
           </div>
         </div>

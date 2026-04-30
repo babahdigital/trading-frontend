@@ -200,6 +200,14 @@ async function main() {
     for (const t of toTranslate) {
       console.log(`  ${t.key}  ←  "${t.id.slice(0, 80)}"`);
     }
+    // CI gating: jika --dry dipakai sebagai parity check, exit 1 supaya
+    // pipeline gagal kalau ada keys missing. Ini yang bikin "i18n parity"
+    // jadi enforced di CI tanpa bikin file validator terpisah.
+    if (toTranslate.length > 0) {
+      console.error(`\n✗ ${toTranslate.length} keys missing translations. Run "npm run i18n:sync" untuk fix.`);
+      process.exit(1);
+    }
+    console.log('\n✓ All keys translated. id.json + en.json sinkron.');
     return;
   }
 

@@ -252,6 +252,32 @@ model SiteSetting {
   updatedAt DateTime @updatedAt
 }
 
+/// Email template editable via admin. Slug-based lookup (welcome_user,
+/// password_reset, lead_confirmation, dst). Bilingual via *_id / *_en
+/// pasangan. Variable interpolation pakai {{name}} placeholder syntax.
+///
+/// Example variables: {{user_name}}, {{user_email}}, {{site_url}},
+/// {{company_name}}, {{unsub_url}}, {{verification_url}}.
+model EmailTemplate {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String?
+  /// JSON array of variable names yang valid untuk template ini, e.g.
+  /// ["user_name", "site_url"]. Untuk dokumentasi admin, optional.
+  variables   Json     @default("[]")
+  subject_id  String
+  subject_en  String
+  body_id     String   @db.Text
+  body_en     String   @db.Text
+  /// Plain-text fallback untuk SPF/DKIM scoring + accessibility
+  text_id     String?  @db.Text
+  text_en     String?  @db.Text
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
 model LandingSection {
   id           String    @id @default(cuid())
   slug         String    @unique // hero, performance, features, strategies, pricing, pairs, risk, how-it-works, testimonials, faq, cta, footer

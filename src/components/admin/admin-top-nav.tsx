@@ -70,6 +70,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: '/admin/cms/company-settings', label: 'Company', icon: Building2 },
       { href: '/admin/cms/site-settings', label: 'Site Settings', icon: Cog },
       { href: '/admin/cms/email-settings', label: 'Email (Brevo)', icon: Mail },
+      { href: '/admin/cms/email-templates', label: 'Email Templates', icon: FileText },
       { href: '/admin/cms/changelog', label: 'Changelog', icon: ScrollText },
       { href: '/admin/cms/inquiries', label: 'Inquiries', icon: Inbox },
       { href: '/admin/cms/chat-leads', label: 'Chat Leads', icon: MessageSquare },

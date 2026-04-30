@@ -29,18 +29,15 @@ const POLL_SLOW_MS = 15000;
 export default function PositionsPage() {
   const t = useTranslations('portal.positions');
   const tShared = useTranslations('portal.shared');
-  const { getAuthHeaders, getAccessToken } = useAuth();
+  const { getAuthHeaders } = useAuth();
   const [positions, setPositions] = useState<Position[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const [token, setToken] = useState('');
 
-  useEffect(() => {
-    setToken(getAccessToken());
-  }, [getAccessToken]);
-
-  const { connected: wsConnected, subscribe, on } = useBabahalgoWS({ token });
+  // Wave-29T: WS hook fetches its own tenant API token via /api/auth/ws-token
+  // (session-authed bridge). JWT session cookie tidak valid untuk WS endpoint.
+  const { connected: wsConnected, subscribe, on } = useBabahalgoWS({ autoFetchToken: true });
 
   const fetchPositions = useCallback(async (): Promise<void> => {
     try {

@@ -52,7 +52,7 @@ export default function MySignalsPage() {
   const t = useTranslations('portal.signals');
   const tShared = useTranslations('portal.shared');
   const locale = useLocale();
-  const { getAuthHeaders, getAccessToken } = useAuth();
+  const { getAuthHeaders } = useAuth();
   const [signals, setSignals] = useState<Signal[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -60,13 +60,9 @@ export default function MySignalsPage() {
   const [needSubscription, setNeedSubscription] = useState(false);
   const [source, setSource] = useState<string>('');
   const [tier, setTier] = useState<string>('');
-  const [token, setToken] = useState('');
 
-  useEffect(() => {
-    setToken(getAccessToken());
-  }, [getAccessToken]);
-
-  const { connected: wsConnected, subscribe, on } = useBabahalgoWS({ token });
+  // Wave-29T: WS hook fetches its own tenant API token via /api/auth/ws-token
+  const { connected: wsConnected, subscribe, on } = useBabahalgoWS({ autoFetchToken: true });
 
   const dateLocale = locale === 'id' ? 'id-ID' : 'en-US';
 

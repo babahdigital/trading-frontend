@@ -30,9 +30,13 @@ export type WSMessage =
   | { type: 'error'; code: string; message: string };
 
 export interface BabahalgoWSOptions {
-  /** Full wss:// URL. Defaults to NEXT_PUBLIC_WS_URL + /ws/forex/stream */
+  /** Full wss:// URL. Defaults to NEXT_PUBLIC_WS_URL + /api/forex/ws */
   url?: string;
-  /** Token for first-message auth handshake (do NOT pass via query param) */
+  /**
+   * TENANT API TOKEN (X-API-Token plaintext) for first-message auth handshake.
+   * NOT a JWT session cookie — backend rejects JWT on WS endpoint with
+   * close code 1008. Fetch from /api/auth/ws-token before connecting.
+   */
   token: string;
   /** Backoff ceiling in ms (default 16000) */
   maxBackoffMs?: number;
@@ -42,11 +46,19 @@ export interface BabahalgoWSOptions {
 
 type Listener<T extends WSMessage = WSMessage> = (msg: T) => void;
 
-const DEFAULT_URL = (process.env.NEXT_PUBLIC_WS_URL ?? 'wss://api-v2.babahalgo.com') + '/ws/forex/stream';
+// Per backend `dev/jawaban-bf.md` Wave-29T closure, the canonical path is
+// `/api/forex/ws` (dual-mode auth: query param `?token=` legacy + first-message
+// handshake `{"type":"auth","token":"..."}` preferred — we use handshake B).
+//
+// `NEXT_PUBLIC_WS_URL` should be set to e.g. `wss://api.babahalgo.com` (without
+// trailing path); the path is appended here so the env var reflects the host
+// only. Legacy fallback `/ws/forex/stream` removed.
+const DEFAULT_URL = (process.env.NEXT_PUBLIC_WS_URL ?? 'wss://api.babahalgo.com') + '/api/forex/ws';
 
 export class BabahalgoWS {
   private ws: WebSocket | null = null;
   private reconnectAttempts = 0;
+  private authFailures = 0;
   private closedByUser = false;
   private subscriptions = new Set<string>(); // serialized topic strings for replay on reconnect
   private listeners = new Map<string, Set<Listener>>();
@@ -105,6 +117,19 @@ export class BabahalgoWS {
 
     this.ws.onclose = (event) => {
       this.log('info', `WebSocket close code=${event.code} wasClean=${event.wasClean}`);
+      // Backend uses close code 1008 untuk auth failure (token expired/rotated/
+      // mismatch). Setelah 3 percobaan auth-fail beruntun, stop loop reconnect
+      // dan biarkan caller refetch token via /api/auth/ws-token.
+      if (event.code === 1008) {
+        this.authFailures += 1;
+        if (this.authFailures >= 3) {
+          this.log('error', 'WebSocket auth failed 3x — stopping reconnect, token refetch needed');
+          this.closedByUser = true;
+          return;
+        }
+      } else {
+        this.authFailures = 0;
+      }
       if (!this.closedByUser) this.scheduleReconnect();
     };
 

@@ -4,11 +4,24 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { BabahalgoWS, type WSMessage, type WSTopic } from './websocket';
 
 interface UseBabahalgoWSInput {
-  /** JWT for first-message handshake. Empty string disables connect. */
-  token: string;
+  /**
+   * Tenant API token for first-message handshake. Empty string disables
+   * connect. If `autoFetchToken: true`, this is ignored and the hook
+   * fetches its own token from /api/auth/ws-token (using the session
+   * cookie). Prefer auto-fetch in portal pages.
+   */
+  token?: string;
+  /**
+   * When true, hook calls GET /api/auth/ws-token on mount to obtain the
+   * tenant API token (server-side bridge, session-authed). Refetches every
+   * `tokenRefreshMs` (default 30 min) to handle admin token rotation.
+   */
+  autoFetchToken?: boolean;
+  /** Token refresh interval when autoFetchToken=true. Default 30 min. */
+  tokenRefreshMs?: number;
   /** Toggle without unmount (e.g. tab hidden). Default true. */
   enabled?: boolean;
-  /** Override URL. Defaults to NEXT_PUBLIC_WS_URL + /ws/forex/stream. */
+  /** Override URL. Defaults to NEXT_PUBLIC_WS_URL + /api/forex/ws. */
   url?: string;
 }
 
@@ -41,10 +54,41 @@ interface UseBabahalgoWSReturn {
  * render without forcing memoization upstream.
  */
 export function useBabahalgoWS(input: UseBabahalgoWSInput): UseBabahalgoWSReturn {
-  const { token, enabled = true, url } = input;
+  const { token: explicitToken, autoFetchToken = false, tokenRefreshMs = 30 * 60_000, enabled = true, url } = input;
   const wsRef = useRef<BabahalgoWS | null>(null);
   const [connected, setConnected] = useState(false);
   const [lastMessageAt, setLastMessageAt] = useState<number | null>(null);
+  const [fetchedToken, setFetchedToken] = useState<string>('');
+
+  // Auto-fetch tenant API token from server bridge when enabled. Refresh
+  // periodically — backend tenant token can be rotated by admin.
+  useEffect(() => {
+    if (!autoFetchToken || !enabled) return;
+    let cancelled = false;
+    const fetchToken = async () => {
+      try {
+        const res = await fetch('/api/auth/ws-token', { credentials: 'same-origin', cache: 'no-store' });
+        if (!res.ok) {
+          if (!cancelled) setFetchedToken('');
+          return;
+        }
+        const body = await res.json();
+        if (!cancelled && typeof body.token === 'string') {
+          setFetchedToken(body.token);
+        }
+      } catch {
+        if (!cancelled) setFetchedToken('');
+      }
+    };
+    void fetchToken();
+    const id = setInterval(fetchToken, tokenRefreshMs);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, [autoFetchToken, enabled, tokenRefreshMs]);
+
+  const token = autoFetchToken ? fetchedToken : (explicitToken ?? '');
 
   useEffect(() => {
     if (!enabled || !token) {

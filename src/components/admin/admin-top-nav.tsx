@@ -11,7 +11,7 @@ import { useAuth } from '@/lib/auth/auth-context';
 import {
   LayoutDashboard, KeyRound, Server, ServerCog, Users, UserCheck, ScrollText,
   Zap, Settings, LogOut, FileText, DollarSign, HelpCircle, Image as ImageIcon,
-  MessageSquare, Star, Globe, Inbox, BookOpen, Layers, Sparkles, User,
+  MessageSquare, Star, Globe, Inbox, BookOpen, Layers, Sparkles, User, Crown,
   ChevronDown, Menu, X, Cog, MonitorSmartphone, Activity,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -46,7 +46,8 @@ const NAV_GROUPS: NavGroup[] = [
     key: 'people',
     icon: Users,
     items: [
-      { href: '/admin/users', label: 'Users', icon: Users, desc: 'Internal user accounts' },
+      { href: '/admin/team', label: 'Tim & RBAC', icon: Crown, desc: 'Super admin, admin, operator dengan permissions scoped' },
+      { href: '/admin/users', label: 'Customer Users', icon: Users, desc: 'Daftar customer / portal user (CLIENT role)' },
       { href: '/admin/profile', label: 'Akun Saya', icon: User, desc: 'Edit profile & sign-in' },
     ],
   },

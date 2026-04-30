@@ -13,6 +13,20 @@ model User {
   email              String                 @unique
   passwordHash       String
   role               Role                   @default(CLIENT)
+  /// RBAC permissions array (e.g. ["customers.view", "kill_switch.resolve"]).
+  /// Empty array + role=ADMIN = legacy full-access admin (back-compat).
+  /// Populated array + role=OPERATOR = scoped operator with explicit grants.
+  /// Ignored entirely when role=SUPER_ADMIN (bypass all checks).
+  permissions        Json                   @default("[]")
+  /// User who created this account. Null for the bootstrap super-admin and
+  /// for self-registered customers. Used for audit trail when super-admin
+  /// or admin creates a new operator.
+  createdById        String?
+  createdBy          User?                  @relation("UserCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  createdUsers       User[]                 @relation("UserCreator")
+  /// Soft-disable flag for revoking operator/admin without deletion. Customer
+  /// suspension uses subscription/license status, not this field.
+  isActive           Boolean                @default(true)
   name               String?
   mt5Account         String?                @unique
   twoFaSecret        String?
@@ -47,7 +61,18 @@ model PasswordResetToken {
 }
 
 enum Role {
+  /// Super admin — bypasses all permission checks. Hanya 1-2 akun dengan role
+  /// ini (founder + co-founder). Bisa create akun ADMIN dan OPERATOR.
+  SUPER_ADMIN
+  /// Admin — full access ke admin console kecuali user-management features
+  /// yang dikunci ke SUPER_ADMIN. Untuk back-compat dengan akun admin lama,
+  /// ADMIN dengan permissions=[] diperlakukan sebagai full-access.
   ADMIN
+  /// Operator — scoped access. Permissions array MUST be populated; tanpa
+  /// permission entry yang match, akses ditolak. Cocok untuk support agent,
+  /// marketing manager, content editor.
+  OPERATOR
+  /// Customer / portal user. Tidak punya akses ke admin console.
   CLIENT
 }
 

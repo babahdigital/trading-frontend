@@ -223,6 +223,20 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // Rate limit lead capture: 6 leads/minute/IP. ChatLead + Subscriber +
+  // public Inquiry + public Subscribers — semua publik, perlu dilindungi
+  // dari spam. Ambang 6/min cukup longgar untuk satu user real, tapi
+  // cukup ketat untuk hentikan bot.
+  const LEAD_PATHS = ['/api/chat/lead', '/api/public/subscribers', '/api/public/inquiries'];
+  if (LEAD_PATHS.includes(pathname) && request.method === 'POST') {
+    if (isRateLimited(`lead:${clientIp}`, 6, 60_000)) {
+      return NextResponse.json(
+        { code: 'rate_limit_lead', error: 'Terlalu banyak permintaan. Silakan tunggu sebentar.' },
+        { status: 429 }
+      );
+    }
+  }
+
   // Global rate limit: 100 requests per minute per IP
   if (pathname.startsWith('/api/')) {
     if (isRateLimited(`global:${clientIp}`, 100, 60_000)) {

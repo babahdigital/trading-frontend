@@ -559,6 +559,15 @@
     "institutional_title": "Institusional",
     "institutional_desc": "Mandat khusus untuk family office dan fund."
   },
+  "unsubscribe_page": {
+    "meta_title": "Berhenti berlangganan — BabahAlgo",
+    "meta_description": "Anda telah berhenti berlangganan dari newsletter BabahAlgo.",
+    "title": "Anda telah berhenti berlangganan",
+    "body": "Permintaan Anda telah kami terima. Anda tidak akan menerima newsletter atau update produk lagi dari BabahAlgo.",
+    "feedback": "Jika berubah pikiran, Anda bisa berlangganan kembali kapan saja melalui form di footer halaman utama.",
+    "back_home": "Kembali ke beranda",
+    "contact_link": "Hubungi kami"
+  },
   "solutions_page": {
     "meta_title": "Solutions — Robot Meta · Robot Crypto · VPS License · Developer APIs | BabahAlgo",
     "meta_description": "Pilihan engagement model: Robot Meta (Forex MT5) mulai $19/bulan, Robot Crypto (Binance) mulai $49/bulan, VPS License $3K+ setup, atau akses Developer APIs. Zero-custody — modal tetap di akun Anda.",

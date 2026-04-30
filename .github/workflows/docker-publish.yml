@@ -299,6 +299,40 @@ jobs:
           echo "== /pricing =="
           curl -fsS https://babahalgo.com/pricing -o /dev/null -w "HTTP %{http_code}\n"
 
+      # Hygiene: setiap deploy bikin image lama jadi <none> tagged → numpuk cepat.
+      # `docker image prune -af` hapus semua image yang tidak referenced container
+      # running. Aman karena healthcheck di atas sudah pass = container baru
+      # active. Builder + container prune sebagai safety net. Non-fatal supaya
+      # network glitch tidak break deploy.
+      - name: Cleanup VPS3 Docker hygiene (post-deploy prune)
+        if: success()
+        continue-on-error: true
+        env:
+          SSH_HOST: ${{ secrets.VPS3_SSH_HOST }}
+          SSH_PORT: ${{ secrets.VPS3_SSH_PORT }}
+          SSH_USER: ${{ secrets.VPS3_SSH_USER }}
+        run: |
+          ssh -i ~/.ssh/deploy_key -p "$SSH_PORT" -o BatchMode=yes \
+            "$SSH_USER@$SSH_HOST" 'bash -s' <<'REMOTE'
+          set -euo pipefail
+          echo "== disk + docker BEFORE prune =="
+          df -h / | head -2
+          docker system df
+
+          echo "== docker image prune -af (hapus image tidak terpakai) =="
+          docker image prune -af 2>&1 | tail -5
+
+          echo "== docker container prune -f (hapus container exited) =="
+          docker container prune -f 2>&1 | tail -3
+
+          echo "== docker builder prune -af (hapus build cache) =="
+          docker builder prune -af 2>&1 | tail -3
+
+          echo "== disk + docker AFTER prune =="
+          df -h / | head -2
+          docker system df
+          REMOTE
+
       - name: Deploy summary
         if: success()
         run: |

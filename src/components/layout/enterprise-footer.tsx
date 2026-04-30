@@ -5,6 +5,7 @@ import { useLocale } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import Image from 'next/image';
 import { RegionPreferences } from '@/components/layout/region-preferences';
+import { NewsletterForm } from '@/components/layout/newsletter-form';
 
 type LocaleStr = { id: string; en: string };
 
@@ -125,13 +126,14 @@ export function EnterpriseFooter() {
                 <>Autonomous Intelligence.<br />Institutional Precision.</>
               )}
             </p>
-            <p className="t-body-sm text-muted-foreground">
+            <p className="t-body-sm text-muted-foreground mb-6">
               {locale === 'id' ? (
                 <>Infrastruktur trading kuantitatif.<br />Dioperasikan oleh CV Babah Digital.</>
               ) : (
                 <>Quantitative trading infrastructure.<br />Operated by CV Babah Digital.</>
               )}
             </p>
+            <NewsletterForm locale={locale} />
           </div>
 
           {/* Links — locale-aware */}

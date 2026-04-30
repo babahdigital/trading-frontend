@@ -348,19 +348,19 @@ enum PopupTrigger {
 }
 
 model Faq {
-  id            String      @id @default(cuid())
-  question      String
-  question_en   String?
-  answer        String      @db.Text
-  answer_en     String?     @db.Text
-  category      FaqCategory @default(GENERAL)
-  sortOrder     Int         @default(0)
-  isVisible     Boolean     @default(true)
+  id           String      @id @default(cuid())
+  question     String
+  question_en  String?
+  answer       String      @db.Text
+  answer_en    String?     @db.Text
+  category     FaqCategory @default(GENERAL)
+  sortOrder    Int         @default(0)
+  isVisible    Boolean     @default(true)
   // Zero-touch i18n: timestamp when *_en was last synced from source. If
   // updatedAt > en_synced_at, EN translation is stale and worker retranslates.
-  en_synced_at  DateTime?
-  updatedAt     DateTime    @updatedAt
-  createdAt     DateTime    @default(now())
+  en_synced_at DateTime?
+  updatedAt    DateTime    @updatedAt
+  createdAt    DateTime    @default(now())
 
   @@index([category, sortOrder])
   @@index([en_synced_at])
@@ -389,23 +389,23 @@ model Testimonial {
 }
 
 model PageMeta {
-  id                String    @id @default(cuid())
-  path              String    @unique // e.g. "/", "/register", "/register/signal"
-  title             String
-  title_en          String?
-  description       String?   @db.Text
-  description_en    String?   @db.Text
-  ogTitle           String?
-  ogTitle_en        String?
-  ogDescription     String?   @db.Text
-  ogDescription_en  String?   @db.Text
-  ogImage           String?
-  structuredData    Json?
+  id               String    @id @default(cuid())
+  path             String    @unique // e.g. "/", "/register", "/register/signal"
+  title            String
+  title_en         String?
+  description      String?   @db.Text
+  description_en   String?   @db.Text
+  ogTitle          String?
+  ogTitle_en       String?
+  ogDescription    String?   @db.Text
+  ogDescription_en String?   @db.Text
+  ogImage          String?
+  structuredData   Json?
   // Zero-touch i18n: timestamp when *_en was last synced. If updatedAt >
   // en_synced_at, EN is stale and worker retranslates.
-  en_synced_at      DateTime?
-  updatedAt         DateTime  @updatedAt
-  createdAt         DateTime  @default(now())
+  en_synced_at     DateTime?
+  updatedAt        DateTime  @updatedAt
+  createdAt        DateTime  @default(now())
 
   @@index([en_synced_at])
 }
@@ -439,6 +439,80 @@ enum InquiryStatus {
   IN_PROGRESS
   CLOSED
   REJECTED
+}
+
+/// Lead captured by chat-widget pre-flight gate. Calon customer wajib
+/// isi nama/email/telpon sebelum bisa chat dengan AI assistant — supaya
+/// CRM follow-up bisa lewat email/WhatsApp meskipun user belum register.
+/// Email + ipAddress di-index untuk dedup quick lookup.
+model ChatLead {
+  id               String         @id @default(cuid())
+  name             String
+  email            String
+  phone            String
+  locale           String         @default("id")
+  /// Path halaman saat chat dibuka (landing, /pricing, /platform/forex, dll.)
+  referrerPath     String?
+  ipAddress        String?
+  userAgent        String?        @db.Text
+  /// User ID kalau lead sudah login saat chat (jarang — biasanya prospect anonymous)
+  userId           String?
+  /// Opt-in untuk newsletter / riset harian
+  consentMarketing Boolean        @default(false)
+  status           ChatLeadStatus @default(NEW)
+  notes            String?        @db.Text
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@index([email])
+  @@index([phone])
+  @@index([status, createdAt])
+}
+
+enum ChatLeadStatus {
+  NEW
+  CONVERTED
+  CONTACTED
+  ARCHIVED
+}
+
+/// Newsletter subscriber — calon customer yang opt-in dapat riset harian
+/// dan update produk. Dipakai sebagai distribution list saat /admin
+/// publish artikel research baru. Source membantu attribution (footer,
+/// inline-blog, exit-intent, chat-lead opt-in).
+model Subscriber {
+  id         String           @id @default(cuid())
+  email      String           @unique
+  name       String?
+  phone      String?
+  locale     String           @default("id")
+  source     SubscriberSource @default(FOOTER)
+  status     SubscriberStatus @default(ACTIVE)
+  /// Token untuk unsubscribe link — random 32 char
+  unsubToken String           @unique @default(cuid())
+  ipAddress  String?
+  userAgent  String?          @db.Text
+  /// Last research broadcast email yang berhasil di-send
+  lastSentAt DateTime?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  @@index([status, createdAt])
+}
+
+enum SubscriberSource {
+  FOOTER
+  CHAT_LEAD
+  CONTACT_FORM
+  RESEARCH_INLINE
+  EXIT_INTENT
+  IMPORT
+}
+
+enum SubscriberStatus {
+  ACTIVE
+  UNSUBSCRIBED
+  BOUNCED
 }
 
 model PageContent {

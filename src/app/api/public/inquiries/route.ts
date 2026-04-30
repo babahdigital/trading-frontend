@@ -17,6 +17,12 @@ const TOPIC_TO_PACKAGE: Record<string, InquiryPackage> = {
 const inquirySchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Invalid email address'),
+  phone: z
+    .string()
+    .trim()
+    .regex(/^(\+?[0-9]{8,15})$/, 'Invalid phone number')
+    .optional()
+    .or(z.literal('')),
   topic: z.string().min(1, 'Topic is required'),
   message: z.string().min(10, 'Message must be at least 10 characters'),
 });
@@ -29,10 +35,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
     }
 
+    const phone = parsed.data.phone && parsed.data.phone.length > 0 ? parsed.data.phone : null;
+
     const inquiry = await prisma.inquiry.create({
       data: {
         name: parsed.data.name,
         email: parsed.data.email,
+        phone,
         message: `[${parsed.data.topic}] ${parsed.data.message}`,
         package: TOPIC_TO_PACKAGE[parsed.data.topic] || 'OTHER',
       },
@@ -42,7 +51,7 @@ export async function POST(request: NextRequest) {
     const telegramBotToken = process.env.TELEGRAM_BOT_TOKEN;
     const telegramChatId = process.env.TELEGRAM_CHAT_ID;
     if (telegramBotToken && telegramChatId) {
-      const text = `New Contact Inquiry\n\nName: ${parsed.data.name}\nEmail: ${parsed.data.email}\nTopic: ${parsed.data.topic}\nMessage: ${parsed.data.message}`;
+      const text = `New Contact Inquiry\n\nName: ${parsed.data.name}\nEmail: ${parsed.data.email}${phone ? `\nWhatsApp: ${phone}` : ''}\nTopic: ${parsed.data.topic}\nMessage: ${parsed.data.message}`;
       fetch(`https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

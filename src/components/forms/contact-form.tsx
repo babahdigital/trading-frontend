@@ -19,6 +19,7 @@ export default function ContactForm() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    phone: '',
     topic: '',
     message: '',
   });
@@ -49,7 +50,7 @@ export default function ContactForm() {
       }
 
       setStatus('success');
-      setFormData({ name: '', email: '', topic: '', message: '' });
+      setFormData({ name: '', email: '', phone: '', topic: '', message: '' });
     } catch (err) {
       setStatus('error');
       setErrorMessage(err instanceof Error ? err.message : t('form_error_unexpected'));
@@ -104,6 +105,23 @@ export default function ContactForm() {
           required
           className="w-full border border-border rounded-md px-4 py-3 bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-accent"
           placeholder={t('form_email_placeholder')}
+        />
+      </div>
+
+      <div>
+        <label htmlFor="phone" className="block text-sm font-medium mb-2">
+          {t('phone_optional')}
+        </label>
+        <input
+          type="tel"
+          id="phone"
+          name="phone"
+          value={formData.phone}
+          onChange={handleChange}
+          inputMode="tel"
+          autoComplete="tel"
+          className="w-full border border-border rounded-md px-4 py-3 bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-accent"
+          placeholder={t('form_phone_placeholder')}
         />
       </div>
 

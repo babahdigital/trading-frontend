@@ -11,6 +11,9 @@ import {
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { ChatLeadForm } from './chat-lead-form';
+
+const LEAD_STORAGE_KEY = 'babah.chat.lead';
 
 interface QuickReply {
   label: string;
@@ -117,6 +120,10 @@ export function ChatWidget() {
   const [hasNewMessage, setHasNewMessage] = useState(false);
   const [input, setInput] = useState('');
   const [showJumpButton, setShowJumpButton] = useState(false);
+  // Lead gate: true = sudah submit nama/email/telpon (atau logged-in).
+  // Initial null = belum hydrate dari localStorage; render skeleton supaya
+  // tidak flash form ke user yang sudah pernah submit.
+  const [leadCleared, setLeadCleared] = useState<boolean | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -249,9 +256,50 @@ export function ChatWidget() {
   // Auto-focus input on open (after animation lands)
   useEffect(() => {
     if (!isOpen) return;
+    if (leadCleared !== true) return;
     const t = setTimeout(() => inputRef.current?.focus(), 220);
     return () => clearTimeout(t);
-  }, [isOpen]);
+  }, [isOpen, leadCleared]);
+
+  // Hydrate lead-cleared status. Logged-in user (cookie session) di-bypass:
+  // /api/chat/lead/status return { authenticated: true } → skip gate.
+  // Otherwise: cek localStorage, kalau ada record < 30 hari, anggap cleared.
+  useEffect(() => {
+    if (!isOpen) return;
+    if (leadCleared !== null) return;
+    let cancelled = false;
+    (async () => {
+      // Fast path — localStorage record (anonymous lead di mesin yang sama)
+      try {
+        const raw = localStorage.getItem(LEAD_STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw) as { id?: string; email?: string; createdAt?: number };
+          const age = Date.now() - (parsed.createdAt ?? 0);
+          if (parsed.email && age < 30 * 24 * 60 * 60 * 1000) {
+            if (!cancelled) setLeadCleared(true);
+            return;
+          }
+        }
+      } catch {
+        // localStorage may be disabled — fall through to auth probe
+      }
+      // Auth probe: kalau session valid, skip gate
+      try {
+        const res = await fetch('/api/chat/lead/status', { credentials: 'include' });
+        if (res.ok) {
+          const data = (await res.json().catch(() => null)) as { authenticated?: boolean } | null;
+          if (!cancelled) setLeadCleared(Boolean(data?.authenticated));
+          return;
+        }
+      } catch {
+        // network error — render gate
+      }
+      if (!cancelled) setLeadCleared(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, leadCleared]);
 
   // Hide on admin paths
   if (pathname.startsWith('/admin')) return null;
@@ -398,7 +446,28 @@ export function ChatWidget() {
               </button>
             </div>
 
-            {/* Messages */}
+            {/* Lead capture gate — block chat sampai user submit nama/email/telpon.
+                Logged-in user di-bypass via /api/chat/lead/status probe. */}
+            {leadCleared === false && (
+              <ChatLeadForm
+                locale={locale === 'id' ? 'id' : 'en'}
+                referrerPath={pathname}
+                onSubmitted={() => setLeadCleared(true)}
+              />
+            )}
+
+            {leadCleared === null && (
+              <div className="flex-1 flex items-center justify-center px-4 py-8">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-bounce" />
+                  <span className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-bounce [animation-delay:0.12s]" />
+                  <span className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-bounce [animation-delay:0.24s]" />
+                </div>
+              </div>
+            )}
+
+            {/* Messages — hanya render setelah gate cleared */}
+            {leadCleared === true && <>
             <div
               ref={messagesContainerRef}
               role="log"
@@ -599,6 +668,7 @@ export function ChatWidget() {
                 <Send className="h-4 w-4" strokeWidth={2.25} />
               </button>
             </form>
+            </>}
 
             {/* Footer */}
             <div className="px-4 py-2 text-center border-t border-border bg-muted/20 shrink-0 pb-[max(env(safe-area-inset-bottom),0.5rem)]">

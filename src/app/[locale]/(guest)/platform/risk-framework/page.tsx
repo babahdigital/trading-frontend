@@ -62,11 +62,12 @@ const SECTIONS: SectionDef[] = [
     eyebrowKey: 'sec2_eyebrow',
     titleKey: 'sec2_title',
     leadKey: 'sec2_lead',
-    citationKey: 'sec2_citation',
+    citationKey: 'sec2_citation_v2',
     rules: [
       { nameKey: 'sec2_layer1_name', descKey: 'sec2_layer1_desc' },
       { nameKey: 'sec2_layer2_name', descKey: 'sec2_layer2_desc' },
       { nameKey: 'sec2_layer25_name', descKey: 'sec2_layer25_desc' },
+      { nameKey: 'sec2_layer26_name', descKey: 'sec2_layer26_desc' },
       { nameKey: 'sec2_layer3_name', descKey: 'sec2_layer3_desc' },
       { nameKey: 'sec2_layer4_name', descKey: 'sec2_layer4_desc' },
       { nameKey: 'sec2_layer5_name', descKey: 'sec2_layer5_desc' },

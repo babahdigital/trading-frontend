@@ -22,28 +22,28 @@ interface LandingClientProps {
 }
 
 // ─── Risk Framework Layers ───
-// Risk framework — institutional 4-pillar architecture (Wave-29T+U).
-// Names + descriptions kept English (technical / institutional terminology).
-// Citation lineage: RiskMetrics 1996 · AQR · Bridgewater · Jane Street ·
-// Renaissance · Cornix · Lopez de Prado · FTMO/MyForexFunds.
+// Risk framework — outcome-oriented, retail-friendly copy.
+// Citations sengaja minimal di sini (institutional names ada di
+// /platform/risk-framework page); landing fokus ke "apa hasilnya untuk
+// customer" sambil tetap institutional grade.
 const RISK_LAYERS = {
   preTrade: [
-    { num: 1, name: 'EWMA volatility', desc: 'RiskMetrics 1996 λ=0.94 daily decay — surfaces regime shifts faster than SMA' },
-    { num: 2, name: 'Vol-target scalar', desc: 'AQR scalar = target_vol / realized_vol, clamped [0.25× – 2.00×]' },
-    { num: 3, name: 'Fractional Kelly', desc: 'Thorp f* capped 0.05 with sample-trust ramp (53→100 trades)' },
-    { num: 4, name: 'Correlation guard', desc: 'Pearson timestamp-merge ala Jane Street — reject >0.7 stacked exposure' },
-    { num: 5, name: 'Spread + news blackout', desc: 'Reject entries on wide spread or 15min around high-impact events' },
+    { num: 1, name: 'Ukuran posisi adaptif', desc: 'Lot besar saat pasar tenang, mengecil otomatis saat bergejolak' },
+    { num: 2, name: 'Skala dinamis terkontrol', desc: 'Tiap order di-rescale dalam batas wajar yang tidak pernah kelewat besar' },
+    { num: 3, name: 'Kepercayaan bertahap', desc: 'Posisi dipercayakan lebih besar setelah strategi terbukti via sampel cukup' },
+    { num: 4, name: 'Hindari taruhan tumpuk', desc: 'Tolak entry yang menambah eksposur korelasi tinggi pada satu faktor' },
+    { num: 5, name: 'Spread + news blackout', desc: 'Stop entry saat spread lebar atau menjelang rilis berita penting' },
   ],
   inTrade: [
-    { num: 6, name: 'Static SL + Cornix TP ladder', desc: '40/35/25 split at 1R/2R/3R, JSONB-persistent with transactional ladder mutation (Wave-29X fix)' },
-    { num: 7, name: 'Profit Lock + Adaptive SL Widen', desc: 'Wave-29X: lock micro-profit 1×ATR / 0.3R after 30min. Wave-29Y: widen SL to 2×ATR when vol spike ≥1.5× post-entry — fixes premature SL hit' },
-    { num: 8, name: 'Trailing stop (vol-regime)', desc: 'Monotonic tighter-only, activates from TP1 hit (Wave-29X-C). ATR multiplier scaled to volatility regime' },
-    { num: 9, name: 'Structural invalidation + AI advisor', desc: 'BoS-flip / Wyckoff TR re-entry force close. Layer 6 Claude Opus advisor with 4 veto rules — never overrides SL' },
+    { num: 6, name: 'Stop-loss yang tidak mundur + TP bertahap', desc: 'Modal terlindungi dari entry; close 40/35/25% di tiga target untuk konsistensi' },
+    { num: 7, name: 'Kunci profit kecil + SL adaptif', desc: 'Amankan keuntungan sebelum hilang. SL melebar saat news spike, dengan batas wajar — tidak pernah diam-diam menggandakan risiko' },
+    { num: 8, name: 'Trailing stop ikut tren', desc: 'Setelah target pertama, stop bergerak hanya ke arah profit — tidak pernah mundur' },
+    { num: 9, name: 'Exit cepat + AI overseer', desc: 'Close saat asumsi struktur pecah. AI advisor sebagai second-opinion dengan veto rules — bukan pengambil keputusan tunggal' },
   ],
   postSystem: [
-    { num: 10, name: 'Multi-stage kill-switch', desc: 'NORMAL → fast 1h cooling → PROBATION 4h (risk halved) → NORMAL' },
-    { num: 11, name: 'Probation validator', desc: '3 winners → graduated, any loss → escalated to LOSS_STREAK 12h hard' },
-    { num: 12, name: 'SHA-256 audit chain', desc: 'Append-only PostgreSQL hash chain with verify_chain() < 5ms tamper detection' },
+    { num: 10, name: 'Rem otomatis bertingkat', desc: 'Pendinginan singkat → masa percobaan → kembali normal — bukan stop kasar 12 jam' },
+    { num: 11, name: 'Evaluasi otomatis tiap 5 menit', desc: '3 menang berturut → kembali normal. 1 loss saat probation → kuncian penuh.' },
+    { num: 12, name: 'Audit anti-edit', desc: 'Setiap perintah trade tercatat permanen — bahkan operator tidak bisa hapus' },
   ],
 };
 

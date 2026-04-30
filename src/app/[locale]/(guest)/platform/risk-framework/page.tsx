@@ -27,6 +27,10 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 interface RuleEntry {
   nameKey: string;
   descKey: string;
+  /** Optional technical sub-line key (italic small) untuk preserve real
+   *  backend mechanism + institutional citations (Wilder/AQR/Tharp/etc.)
+   *  tanpa membombardir customer di body utama. */
+  techKey?: string;
 }
 
 interface SectionDef {
@@ -48,12 +52,12 @@ const SECTIONS: SectionDef[] = [
     leadKey: 'sec1_lead',
     citationKey: 'sec1_citation',
     rules: [
-      { nameKey: 'sec1_rule1_name', descKey: 'sec1_rule1_desc' },
-      { nameKey: 'sec1_rule2_name', descKey: 'sec1_rule2_desc' },
-      { nameKey: 'sec1_rule3_name', descKey: 'sec1_rule3_desc' },
-      { nameKey: 'sec1_rule4_name', descKey: 'sec1_rule4_desc' },
-      { nameKey: 'sec1_rule5_name', descKey: 'sec1_rule5_desc' },
-      { nameKey: 'sec1_rule6_name', descKey: 'sec1_rule6_desc' },
+      { nameKey: 'sec1_rule1_name', descKey: 'sec1_rule1_desc', techKey: 'sec1_rule1_tech' },
+      { nameKey: 'sec1_rule2_name', descKey: 'sec1_rule2_desc', techKey: 'sec1_rule2_tech' },
+      { nameKey: 'sec1_rule3_name', descKey: 'sec1_rule3_desc', techKey: 'sec1_rule3_tech' },
+      { nameKey: 'sec1_rule4_name', descKey: 'sec1_rule4_desc', techKey: 'sec1_rule4_tech' },
+      { nameKey: 'sec1_rule5_name', descKey: 'sec1_rule5_desc', techKey: 'sec1_rule5_tech' },
+      { nameKey: 'sec1_rule6_name', descKey: 'sec1_rule6_desc', techKey: 'sec1_rule6_tech' },
     ],
   },
   {
@@ -64,14 +68,14 @@ const SECTIONS: SectionDef[] = [
     leadKey: 'sec2_lead',
     citationKey: 'sec2_citation_v2',
     rules: [
-      { nameKey: 'sec2_layer1_name', descKey: 'sec2_layer1_desc' },
-      { nameKey: 'sec2_layer2_name', descKey: 'sec2_layer2_desc' },
-      { nameKey: 'sec2_layer25_name', descKey: 'sec2_layer25_desc' },
-      { nameKey: 'sec2_layer26_name', descKey: 'sec2_layer26_desc' },
-      { nameKey: 'sec2_layer3_name', descKey: 'sec2_layer3_desc' },
-      { nameKey: 'sec2_layer4_name', descKey: 'sec2_layer4_desc' },
-      { nameKey: 'sec2_layer5_name', descKey: 'sec2_layer5_desc' },
-      { nameKey: 'sec2_layer6_name', descKey: 'sec2_layer6_desc' },
+      { nameKey: 'sec2_layer1_name', descKey: 'sec2_layer1_desc', techKey: 'sec2_layer1_tech' },
+      { nameKey: 'sec2_layer2_name', descKey: 'sec2_layer2_desc', techKey: 'sec2_layer2_tech' },
+      { nameKey: 'sec2_layer25_name', descKey: 'sec2_layer25_desc', techKey: 'sec2_layer25_tech' },
+      { nameKey: 'sec2_layer26_name', descKey: 'sec2_layer26_desc', techKey: 'sec2_layer26_tech' },
+      { nameKey: 'sec2_layer3_name', descKey: 'sec2_layer3_desc', techKey: 'sec2_layer3_tech' },
+      { nameKey: 'sec2_layer4_name', descKey: 'sec2_layer4_desc', techKey: 'sec2_layer4_tech' },
+      { nameKey: 'sec2_layer5_name', descKey: 'sec2_layer5_desc', techKey: 'sec2_layer5_tech' },
+      { nameKey: 'sec2_layer6_name', descKey: 'sec2_layer6_desc', techKey: 'sec2_layer6_tech' },
     ],
   },
   {
@@ -82,12 +86,12 @@ const SECTIONS: SectionDef[] = [
     leadKey: 'sec3_lead',
     citationKey: 'sec3_citation',
     rules: [
-      { nameKey: 'sec3_trigger1_name', descKey: 'sec3_trigger1_desc' },
-      { nameKey: 'sec3_trigger2_name', descKey: 'sec3_trigger2_desc' },
-      { nameKey: 'sec3_trigger3_name', descKey: 'sec3_trigger3_desc' },
-      { nameKey: 'sec3_state1_name', descKey: 'sec3_state1_desc' },
-      { nameKey: 'sec3_state2_name', descKey: 'sec3_state2_desc' },
-      { nameKey: 'sec3_state3_name', descKey: 'sec3_state3_desc' },
+      { nameKey: 'sec3_trigger1_name', descKey: 'sec3_trigger1_desc', techKey: 'sec3_trigger1_tech' },
+      { nameKey: 'sec3_trigger2_name', descKey: 'sec3_trigger2_desc', techKey: 'sec3_trigger2_tech' },
+      { nameKey: 'sec3_trigger3_name', descKey: 'sec3_trigger3_desc', techKey: 'sec3_trigger3_tech' },
+      { nameKey: 'sec3_state1_name', descKey: 'sec3_state1_desc', techKey: 'sec3_state1_tech' },
+      { nameKey: 'sec3_state2_name', descKey: 'sec3_state2_desc', techKey: 'sec3_state2_tech' },
+      { nameKey: 'sec3_state3_name', descKey: 'sec3_state3_desc', techKey: 'sec3_state3_tech' },
     ],
   },
   {
@@ -98,10 +102,10 @@ const SECTIONS: SectionDef[] = [
     leadKey: 'sec4_lead',
     citationKey: 'sec4_citation',
     rules: [
-      { nameKey: 'sec4_item1_name', descKey: 'sec4_item1_desc' },
-      { nameKey: 'sec4_item2_name', descKey: 'sec4_item2_desc' },
-      { nameKey: 'sec4_item3_name', descKey: 'sec4_item3_desc' },
-      { nameKey: 'sec4_item4_name', descKey: 'sec4_item4_desc' },
+      { nameKey: 'sec4_item1_name', descKey: 'sec4_item1_desc', techKey: 'sec4_item1_tech' },
+      { nameKey: 'sec4_item2_name', descKey: 'sec4_item2_desc', techKey: 'sec4_item2_tech' },
+      { nameKey: 'sec4_item3_name', descKey: 'sec4_item3_desc', techKey: 'sec4_item3_tech' },
+      { nameKey: 'sec4_item4_name', descKey: 'sec4_item4_desc', techKey: 'sec4_item4_tech' },
     ],
   },
 ];
@@ -181,6 +185,11 @@ export default async function RiskFrameworkPage() {
                     <p className="text-sm text-muted-foreground leading-relaxed">
                       {t(rule.descKey)}
                     </p>
+                    {rule.techKey ? (
+                      <p className="mt-2 text-[11px] text-muted-foreground/70 italic leading-relaxed border-l-2 border-primary/30 pl-2.5">
+                        {t(rule.techKey)}
+                      </p>
+                    ) : null}
                   </div>
                 ))}
               </div>

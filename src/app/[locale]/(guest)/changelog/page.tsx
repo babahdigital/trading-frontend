@@ -1,9 +1,29 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useLocale } from 'next-intl';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { cn } from '@/lib/utils';
+
+const COPY = {
+  id: {
+    eyebrow: "What's new",
+    page_title: 'Changelog',
+    intro: 'Rilis, perbaikan, dan pembaruan platform. Kami mencatat setiap perubahan agar Anda tahu persis apa yang terjadi di belakang layar.',
+    loading: 'Memuat…',
+    empty_title: 'Belum ada entri changelog yang dipublikasikan.',
+    empty_subtitle: 'Tim kami akan mempublikasikan rilisan mendatang di sini.',
+  },
+  en: {
+    eyebrow: "What's new",
+    page_title: 'Changelog',
+    intro: 'Releases, fixes, and platform updates. We log every change so you know exactly what happens behind the scenes.',
+    loading: 'Loading…',
+    empty_title: 'No changelog entries published yet.',
+    empty_subtitle: 'Our team will publish upcoming releases here.',
+  },
+} as const;
 
 interface ChangelogEntry {
   id: string;
@@ -25,6 +45,10 @@ const CATEGORY_STYLES: Record<ChangelogEntry['category'], string> = {
 };
 
 export default function ChangelogPage() {
+  const localeRaw = useLocale();
+  const locale: 'id' | 'en' = localeRaw === 'en' ? 'en' : 'id';
+  const t = COPY[locale];
+
   const [entries, setEntries] = useState<ChangelogEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -42,24 +66,21 @@ export default function ChangelogPage() {
       <main id="main-content">
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-4">What&apos;s new</p>
-            <h1 className="t-display-page mb-6">Changelog</h1>
-            <p className="t-lead text-foreground/60 max-w-2xl">
-              Rilis, perbaikan, dan pembaruan platform. Kami mencatat setiap perubahan agar Anda
-              tahu persis apa yang terjadi di belakang layar.
-            </p>
+            <p className="t-eyebrow mb-4">{t.eyebrow}</p>
+            <h1 className="t-display-page mb-6">{t.page_title}</h1>
+            <p className="t-lead text-foreground/60 max-w-2xl">{t.intro}</p>
           </div>
         </section>
 
         <section className="section-padding">
           <div className="container-default px-4 sm:px-6">
             {loading && (
-              <p className="text-foreground/50">Loading…</p>
+              <p className="text-foreground/50">{t.loading}</p>
             )}
             {!loading && entries.length === 0 && (
               <div className="card-enterprise p-8 text-center">
-                <p className="text-foreground/70">Belum ada entri changelog yang dipublikasikan.</p>
-                <p className="text-foreground/50 text-sm mt-2">Tim kami akan mempublikasikan rilisan mendatang di sini.</p>
+                <p className="text-foreground/70">{t.empty_title}</p>
+                <p className="text-foreground/50 text-sm mt-2">{t.empty_subtitle}</p>
               </div>
             )}
             <div className="space-y-8">

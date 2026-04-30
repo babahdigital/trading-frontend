@@ -20,14 +20,14 @@ const FOOTER_LINKS: Record<string, Array<{ href: string; label: LocaleStr }>> = 
   solutions: [
     { href: '/solutions/signal', label: { id: 'Robot Forex', en: 'Forex Robot' } },
     { href: '/solutions/crypto', label: { id: 'Robot Crypto', en: 'Crypto Robot' } },
-    { href: '/solutions/license', label: { id: 'VPS License', en: 'VPS License' } },
+    { href: '/solutions/license', label: { id: 'Software License', en: 'Software License' } },
     { href: '/pricing#apis', label: { id: 'Public API', en: 'Public API' } },
     { href: '/demo', label: { id: 'Coba Demo (Gratis)', en: 'Try Demo (Free)' } },
   ],
   getStarted: [
     { href: '/register/signal', label: { id: 'Daftar Forex', en: 'Sign up for Forex' } },
     { href: '/register/crypto', label: { id: 'Daftar Crypto', en: 'Sign up for Crypto' } },
-    { href: '/register/vps', label: { id: 'Daftar VPS License', en: 'Sign up for VPS License' } },
+    { href: '/register/vps', label: { id: 'Daftar Software License', en: 'Sign up for Software License' } },
     { href: '/register/institutional', label: { id: 'Permintaan Institusional', en: 'Institutional Inquiry' } },
     { href: '/contact', label: { id: 'Jadwalkan Briefing', en: 'Schedule Briefing' } },
   ],

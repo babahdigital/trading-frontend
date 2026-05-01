@@ -58,8 +58,8 @@ const COLUMN_TITLES: Record<string, LocaleStr> = {
 };
 
 const RISK_COPY: LocaleStr = {
-  id: 'Trading instrumen finansial mengandung risiko substansial dan dapat mengakibatkan kerugian sebagian atau seluruh modal. Kinerja masa lalu tidak menjamin hasil di masa depan. BabahAlgo bukan financial advisor. Konsultasikan dengan penasihat keuangan berlisensi sebelum mengambil keputusan investasi. Layanan yang disediakan bersifat teknologi perdagangan otomatis, bukan rekomendasi investasi.',
-  en: 'Trading financial instruments involves substantial risk and may result in partial or total loss of capital. Past performance does not guarantee future results. BabahAlgo is not a financial advisor. Consult a licensed financial advisor before making investment decisions. Our services are automated trading technology, not investment recommendations.',
+  id: 'BabahAlgo adalah software algorithmic trading yang dilisensikan oleh CV Babah Digital. Kami bukan Penasihat Berjangka, bukan Pialang Berjangka, dan tidak terdaftar sebagai Penasihat Investasi di OJK. Kami tidak custody dana, tidak manage trading atas nama klien, dan tidak memberi rekomendasi investasi spesifik. Trading instrumen finansial mengandung risiko substansial dan dapat mengakibatkan kerugian sebagian atau seluruh modal. Kinerja masa lalu tidak menjamin hasil di masa depan. Subscriber bertanggung jawab penuh atas risiko trading dan kepatuhan regulator di yurisdiksi masing-masing.',
+  en: 'BabahAlgo is algorithmic trading software licensed by CV Babah Digital. We are not a registered Investment Advisor, Futures Adviser, or Futures Broker in Indonesia (or in any other jurisdiction unless explicitly stated). We do not custody funds, do not manage trading on the client\'s behalf, and do not provide specific investment recommendations. Trading financial instruments involves substantial risk and may result in partial or total loss of capital. Past performance does not guarantee future results. Subscribers are fully responsible for their own trading risk and regulatory compliance in their respective jurisdictions.',
 };
 
 interface ContactInfo {

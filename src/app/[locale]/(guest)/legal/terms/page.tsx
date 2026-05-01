@@ -131,20 +131,28 @@ export default function TermsPage() {
                 <p className="mt-3">{tb('s9_p2')}</p>
               </section>
 
-              {/* 10. Contact */}
+              {/* 10. Legal Status & Nature of Services */}
               <section>
                 <h2 className="t-display-sub mb-6 text-foreground">{tb('s10_h')}</h2>
                 <p>{tb('s10_p1')}</p>
+                <p className="mt-3">{tb('s10_p2')}</p>
+                <p className="mt-3">{tb('s10_p3')}</p>
+              </section>
+
+              {/* 11. Contact */}
+              <section>
+                <h2 className="t-display-sub mb-6 text-foreground">{tb('s11_h')}</h2>
+                <p>{tb('s11_p1')}</p>
                 <div className="mt-4 card-enterprise text-sm">
-                  <p className="font-semibold text-foreground">{tb('s10_card_org')}</p>
+                  <p className="font-semibold text-foreground">{tb('s11_card_org')}</p>
                   <p className="mt-2">
-                    {tb('s10_card_email_label')}{' '}
+                    {tb('s11_card_email_label')}{' '}
                     <a href="mailto:legal@babahalgo.com" className="text-foreground underline underline-offset-4">
                       legal@babahalgo.com
                     </a>
                   </p>
                   <p>
-                    {tb('s10_card_compliance_label')}{' '}
+                    {tb('s11_card_compliance_label')}{' '}
                     <a href="mailto:compliance@babahalgo.com" className="text-foreground underline underline-offset-4">
                       compliance@babahalgo.com
                     </a>

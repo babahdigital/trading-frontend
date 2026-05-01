@@ -360,34 +360,38 @@ TARGET AUDIENCE: Trader Muslim Indonesia yang serius ingin practice halal tapi m
     autoPublish: true,
   },
   {
-    slug: 'roi-calculator-signal-copy-dedicated',
-    titleId: 'ROI Calculator: Signal Service vs Copy Trade vs Dedicated VPS',
-    titleEn: 'ROI Calculator: Signal Service vs Copy Trade vs Dedicated VPS',
-    excerptId: 'Tier pricing $49 vs $149 vs $3000+ — mana ROI terbaik per profil modal? Breakdown math: break-even, scenarios $10K/$50K/$100K, sensitivitas win rate.',
-    excerptEn: 'Tier pricing $49 vs $149 vs $3000+ — which ROI is best per capital profile? Math breakdown: break-even, scenarios for $10K/$50K/$100K, win-rate sensitivity.',
-    promptTemplate: `Kamu adalah product strategist BabahAlgo. Tulis artikel decision framework "ROI Calculator: Signal Service vs Copy Trade vs Dedicated VPS".
+    slug: 'roi-calculator-signal-crypto-license',
+    titleId: 'ROI Calculator: Signal Service vs Crypto Bot vs Software License',
+    titleEn: 'ROI Calculator: Signal Service vs Crypto Bot vs Software License',
+    excerptId: 'Tier pricing $19 vs $49 vs $3000+ — mana ROI terbaik per profil modal? Breakdown math: break-even, scenarios $10K/$50K/$100K, sensitivitas win rate.',
+    excerptEn: 'Tier pricing $19 vs $49 vs $3000+ — which ROI is best per capital profile? Math breakdown: break-even, scenarios for $10K/$50K/$100K, win-rate sensitivity.',
+    promptTemplate: `Kamu adalah product strategist BabahAlgo (positioning: software vendor zero-custody, BUKAN asset manager). Tulis artikel decision framework "ROI Calculator: Signal Service vs Crypto Bot vs Software License".
 
-ANGLE UTAMA: Pilihan tier bukan soal "yang termurah" atau "yang termahal" — tergantung profile modal + aktivitas + target return. Artikel ini provide decision framework + math konkret.
+ANGLE UTAMA: Pilihan tier bukan soal "yang termurah" atau "yang termahal" — tergantung profile modal + aktivitas + target return. Artikel ini provide decision framework + math konkret. Semua tier flat monthly subscription — TIDAK ada profit share, TIDAK ada performance fee, TIDAK ada PAMM/managed account.
 
 HARUS COVER:
-- 3 tier overview:
-  1. Signal Service: $49/bulan (Basic) atau $149/bulan (VIP). User eksekusi manual. Cocok untuk: modal $3K-20K, active trader
-  2. Copy Trade / PAMM: profit share 20-30%. User pasif, broker-level copy. Cocok untuk: modal $10K-100K, non-expert
-  3. Dedicated VPS License: $3,000-7,500 one-time + optional maintenance. Private infrastructure, full isolation. Cocok untuk: modal $100K+, HNWI, prop firms
+- 3 product line overview (semua flat monthly, zero-custody — customer kontrol penuh akun broker/exchange):
+  1. Signal Service (Forex MT5): $19/bulan (Tier 1 Swing) atau $79/bulan (Tier 2 Scalping) atau $299/bulan (Tier 3 All-in). Software bridge ke akun MT5 milik customer. Customer set risk parameter sendiri.
+  2. Crypto Bot (Binance API): $49/bulan (Basic), $199/bulan (Pro), $499/bulan (HNWI) — semua FLAT. Customer pegang Binance API key (Read+Trade only, Withdraw disabled). Modal tetap di akun Binance customer.
+  3. Software License (deployment on-prem di VPS milik customer): $3,000-7,500 one-time setup + maintenance. Software install di VPS customer, customer sediakan VPS + broker credentials. BabahAlgo provide license + setup consulting saja.
 - Decision matrix (table): capital, time commitment, risk tolerance, technical skill → recommended tier
 - Break-even analysis per scenario (gunakan data {{DATA_JSON}} untuk tier pricing aktual):
-  - $10K account, active trader, 10% monthly target → Signal Basic ($49) break-even dalam 0.5% monthly edge
-  - $50K account, passive, 8% monthly target → PAMM Basic (20% share) break-even negatif karena share 20% dari profit (framework decision)
-  - $100K account, institutional — Dedicated VPS ROI = $7500 / (100K × 1% monthly) = 7.5 months payback
-- Sensitivitas win rate: untuk Signal, edge minimum harus > (fee / capital / 12) per bulan; untuk PAMM, edge setelah share harus > opportunity cost
-- Framework question: "Berapa jam/bulan Anda available untuk trade manual?" → active (< 5jam) = PAMM; active (> 20 jam) = Signal; always-on = Dedicated
-- Decision tree final: capital → tier → expected break-even timeline
+  - $10K account, active forex trader → Signal Tier 1 ($19/bulan) break-even di ~0.2% monthly edge
+  - $50K account, crypto preference → Crypto Pro ($199/bulan) break-even di ~0.4% monthly edge — flat fee, semua hasil profit milik customer
+  - $100K+ account, prop firm / HNWI — Software License ($7,500 setup + $300/bulan) ROI = setup amortize across 24 months + flat maintenance
+- Sensitivitas win rate: untuk semua tier, edge minimum harus > (fee / capital / 12) per bulan. Karena flat fee (bukan PS), customer tidak kena charge ekstra saat profit besar — incentive aligned.
+- Framework question: "Forex atau crypto?" + "Active manual trading atau full automation?" + "Modal sendiri kelola atau VPS sendiri?"
+- Decision tree final: asset class → automation level → capital tier → expected break-even
+
+PENTING (compliance copy guard):
+- JANGAN sebut "PAMM", "managed account", "profit share", "performance fee", "high-water mark", "kami trade untuk Anda".
+- ALWAYS frame: "software vendor", "Anda execute", "customer kontrol penuh", "zero-custody".
 
 TARGET AUDIENCE: Prospect calon customer yang mau decide tier mana.` + COMMON_TAIL,
     dataSources: [
       { type: 'db_query', model: 'pricingTier' },
     ],
-    keywords: ['roi', 'signal service', 'copy trade', 'pamm', 'dedicated vps', 'pricing analysis'],
+    keywords: ['roi', 'signal service', 'crypto bot', 'software license', 'pricing analysis', 'flat subscription'],
     category: 'EDUCATION',
     assetClass: 'FOREX',
     targetLengthWords: 1600,

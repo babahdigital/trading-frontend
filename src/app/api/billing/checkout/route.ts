@@ -23,13 +23,13 @@ const TIER_PRICES: Record<string, { amountIdr: number; description: string }> = 
   SIGNAL_PRO: { amountIdr: 1_300_000, description: 'Signal Pro — 1 Bulan' },
   SIGNAL_VIP: { amountIdr: 4_950_000, description: 'Signal VIP — 1 Bulan' },
   // Crypto Bot
-  CRYPTO_BASIC: { amountIdr: 815_000, description: 'Crypto Basic — 1 Bulan + 20% profit share' },
-  CRYPTO_PRO: { amountIdr: 3_300_000, description: 'Crypto Pro — 1 Bulan + 15% profit share' },
-  CRYPTO_HNWI: { amountIdr: 8_250_000, description: 'Crypto HNWI — 1 Bulan + 10% profit share' },
-  // VPS License
-  VPS_STANDARD: { amountIdr: 49_500_000, description: 'VPS License — Setup' },
-  VPS_PREMIUM: { amountIdr: 124_000_000, description: 'VPS Premium — Setup' },
-  VPS_DEDICATED: { amountIdr: 24_750_000, description: 'VPS Dedicated — 1 Bulan' },
+  CRYPTO_BASIC: { amountIdr: 815_000, description: 'Crypto Basic — 1 Bulan flat' },
+  CRYPTO_PRO: { amountIdr: 3_300_000, description: 'Crypto Pro — 1 Bulan flat' },
+  CRYPTO_HNWI: { amountIdr: 8_250_000, description: 'Crypto HNWI — 1 Bulan flat' },
+  // Software License
+  VPS_STANDARD: { amountIdr: 49_500_000, description: 'Software License — Setup' },
+  VPS_PREMIUM: { amountIdr: 124_000_000, description: 'Software License Pro — Setup' },
+  VPS_DEDICATED: { amountIdr: 24_750_000, description: 'Software License Dedicated — 1 Bulan' },
   // Demo (gratis — tidak boleh masuk checkout, return 400)
   DEMO: { amountIdr: 0, description: 'Demo (gratis) — checkout tidak diperlukan' },
 };
@@ -37,6 +37,7 @@ const TIER_PRICES: Record<string, { amountIdr: number; description: string }> = 
 function localizeDescription(text: string, locale: AppLocale): string {
   if (locale !== 'en') return text;
   return text
+    .replace(/\b1 Bulan flat\b/g, '1 Month flat')
     .replace(/\b1 Bulan\b/g, '1 Month')
     .replace(/\bSetup\b/g, 'Setup')
     .replace(/\(gratis\)/g, '(free)')

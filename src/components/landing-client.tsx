@@ -78,9 +78,9 @@ const PRICING_TIERS: Record<string, TierMeta[]> = {
     { id: 'forex_allin', tier: 'TIER 3', price: '$299', periodKey: 'period_monthly', featureCount: 5, href: '/register/signal?tier=all' },
   ],
   crypto: [
-    { id: 'crypto_basic', tier: 'CRYPTO', price: '$49', periodKey: 'period_monthly_perf_20', featureCount: 5, href: '/register/crypto?tier=basic' },
-    { id: 'crypto_pro', tier: 'CRYPTO PRO', price: '$199', periodKey: 'period_monthly_perf_15', featureCount: 5, href: '/register/crypto?tier=pro', popular: true },
-    { id: 'crypto_hnwi', tier: 'CRYPTO HNWI', price: '$499', periodKey: 'period_monthly_perf_10', featureCount: 5, href: '/contact?subject=crypto-hnwi' },
+    { id: 'crypto_basic', tier: 'CRYPTO', price: '$49', periodKey: 'period_monthly_flat', featureCount: 5, href: '/register/crypto?tier=basic' },
+    { id: 'crypto_pro', tier: 'CRYPTO PRO', price: '$199', periodKey: 'period_monthly_flat', featureCount: 5, href: '/register/crypto?tier=pro', popular: true },
+    { id: 'crypto_hnwi', tier: 'CRYPTO HNWI', price: '$499', periodKey: 'period_monthly_flat', featureCount: 5, href: '/contact?subject=crypto-hnwi' },
   ],
   vps: [
     { id: 'vps_license', tier: 'VPS', price: '$3,000', periodKey: 'period_one_time_setup', featureCount: 5, href: '/register/vps' },

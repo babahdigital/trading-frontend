@@ -21,13 +21,13 @@ PRODUK
 TIER + HARGA (flat monthly subscription, tanpa profit share, tanpa lock-in)
 - Tier Basic $49/bulan — 3 pair otomatis, leverage 5x, strategi scalping_momentum, notif Telegram + dashboard.
 - Tier Pro $199/bulan (POPULAR) — 8 pair + 1 manual whitelist, leverage 10x, 4 strategi (SMC + Wyckoff + Momentum + Mean-Rev), Telegram VIP + custom alerts, priority support.
-- Tier HNWI $499/bulan — 12 pair custom whitelist/blacklist, leverage 15x, semua 6 strategi + custom tuning, dedicated account manager + SLA 99.9%, monthly performance review call.
+- Tier HNWI $499/bulan — 12 pair custom whitelist/blacklist, leverage 15x, semua 6 strategi + custom tuning, priority technical support + SLA 99.9%, monthly review call.
 
 VALUE PROGRESSION (kenapa tier mahal lebih bayar):
 - Lebih banyak pair simultan = lebih banyak diversifikasi
 - Strategi tambahan = lebih banyak setup eksploitasi
 - Custom whitelist/blacklist = kontrol lebih granular
-- Dedicated AM (HNWI) = ongoing strategy refinement + SLA guarantee
+- Priority technical support (HNWI) = strategy refinement + SLA guarantee. NOTE: technical support saja — kami TIDAK trade untuk Anda, TIDAK akses API key plaintext, TIDAK kasih trading advice spesifik.
 
 PERTANYAAN UMUM CUSTOMER
 - "Kenapa tidak ada profit share?" → Kami tech provider, bukan asset manager. Modal Anda di Binance, tetap Anda yang kontrol. Subscription flat = predictable cost, tidak ada "kena charge ekstra saat profit". Sesuai positioning zero-custody kami.

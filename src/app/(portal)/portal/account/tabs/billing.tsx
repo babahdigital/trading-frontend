@@ -105,7 +105,7 @@ export function BillingTab() {
               <div>
                 <p className="font-medium text-sm">{s.tier}</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {s.monthlyFeeUsd ? `$${s.monthlyFeeUsd}/bulan` : s.profitSharePct ? `Profit share ${s.profitSharePct}%` : '—'}
+                  {s.monthlyFeeUsd ? `$${s.monthlyFeeUsd}/bulan flat` : s.profitSharePct ? `Legacy ${s.profitSharePct}% (deprecated — contact support untuk migrate ke flat)` : '—'}
                 </p>
               </div>
               <div className="text-right">

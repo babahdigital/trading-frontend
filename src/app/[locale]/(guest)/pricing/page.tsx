@@ -440,8 +440,8 @@ function ProductSection({
                 </span>
               )}
               <h3 className="text-xl font-semibold mb-1">{tier.name}</h3>
-              <div className="flex items-baseline gap-1 mb-1">
-                <span className="text-4xl font-bold">{tier.price}</span>
+              <div className="flex items-baseline flex-wrap gap-x-1.5 gap-y-0.5 mb-1 min-w-0">
+                <span className="text-2xl sm:text-3xl lg:text-4xl font-bold break-words">{tier.price}</span>
                 <span className="text-sm text-foreground/50">{tier.period}</span>
               </div>
               <div className="h-px bg-border/40 my-5" />

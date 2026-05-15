@@ -1,0 +1,150 @@
+name: Lighthouse + A11y (post-deploy)
+
+# Post-deploy quality audit: Lighthouse performance/SEO/PWA + axe-core A11y.
+# Trigger: workflow_run after "Docker Publish + Deploy" success, manual dispatch.
+#
+# Budget (warning kalau gagal — non-blocking deploy):
+#   - Performance ≥ 70
+#   - Accessibility ≥ 90
+#   - Best Practices ≥ 85
+#   - SEO ≥ 90
+#
+# Audited URLs (production):
+#   /                       — Landing (heaviest, dominates first paint metric)
+#   /pricing                — Tier comparison matrix
+#   /platform/strategies    — Strategy gallery
+#   /login                  — Auth flow entry
+#   /register               — Conversion funnel hub
+
+on:
+  workflow_run:
+    workflows: ["Docker Publish + Deploy"]
+    types: [completed]
+    branches: ["main"]
+  workflow_dispatch:
+
+# Lighthouse butuh production URL up — pastikan deploy success dulu.
+jobs:
+  lighthouse:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install lighthouse-ci + axe-core
+        run: |
+          npm install -g @lhci/cli@0.13.x
+          npm install -g @axe-core/cli@4.10.x pa11y@8.x || true
+
+      - name: Wait for production to be ready
+        run: |
+          set -e
+          for i in $(seq 1 12); do
+            CODE=$(curl -sS -o /dev/null -m 8 -w "%{http_code}" https://babahalgo.com/ || echo "ERR")
+            if [ "$CODE" = "200" ]; then
+              echo "Production responding 200"
+              exit 0
+            fi
+            echo "attempt $i: $CODE — retry in 10s"
+            sleep 10
+          done
+          echo "::error::Production not ready after 120s"
+          exit 1
+
+      - name: Run Lighthouse CI
+        id: lhci
+        continue-on-error: true
+        run: |
+          mkdir -p .lighthouseci
+          cat > lighthouserc.json <<'EOF'
+          {
+            "ci": {
+              "collect": {
+                "url": [
+                  "https://babahalgo.com/",
+                  "https://babahalgo.com/pricing",
+                  "https://babahalgo.com/platform/strategies",
+                  "https://babahalgo.com/login",
+                  "https://babahalgo.com/register"
+                ],
+                "numberOfRuns": 1,
+                "settings": {
+                  "preset": "desktop",
+                  "throttlingMethod": "simulate",
+                  "skipAudits": ["uses-http2"]
+                }
+              },
+              "assert": {
+                "assertions": {
+                  "categories:performance": ["warn", { "minScore": 0.70 }],
+                  "categories:accessibility": ["warn", { "minScore": 0.90 }],
+                  "categories:best-practices": ["warn", { "minScore": 0.85 }],
+                  "categories:seo": ["warn", { "minScore": 0.90 }]
+                }
+              },
+              "upload": {
+                "target": "temporary-public-storage"
+              }
+            }
+          }
+          EOF
+          lhci autorun --config=lighthouserc.json || true
+
+      - name: A11y audit (axe-core)
+        id: axe
+        continue-on-error: true
+        run: |
+          URLS=(
+            "https://babahalgo.com/"
+            "https://babahalgo.com/pricing"
+            "https://babahalgo.com/login"
+            "https://babahalgo.com/register"
+            "https://babahalgo.com/platform/strategies"
+          )
+          mkdir -p axe-reports
+          FAIL=0
+          for url in "${URLS[@]}"; do
+            slug=$(echo "$url" | sed 's|https://||; s|/|_|g')
+            echo "== axe: $url =="
+            if axe "$url" --exit --tags wcag2a,wcag2aa --save "axe-reports/${slug}.json" 2>&1 | tee "axe-reports/${slug}.log"; then
+              echo "  → OK"
+            else
+              FAIL=$((FAIL + 1))
+              echo "::warning::A11y issues at $url"
+            fi
+          done
+          echo "axe_failures=$FAIL" >> "$GITHUB_OUTPUT"
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-axe-reports
+          path: |
+            .lighthouseci
+            axe-reports
+          retention-days: 14
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "### Quality Audit Report"
+            echo ""
+            echo "**Lighthouse (Performance/A11y/Best-Practices/SEO)** — audited:"
+            echo "- /"
+            echo "- /pricing"
+            echo "- /platform/strategies"
+            echo "- /login"
+            echo "- /register"
+            echo ""
+            echo "**Axe A11y** (WCAG 2 AA):"
+            echo "- Failures: ${{ steps.axe.outputs.axe_failures || 'n/a' }}"
+            echo ""
+            echo "Detail di artifact \`lighthouse-axe-reports\`."
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -7,20 +7,21 @@ import { requireAdmin } from '@/lib/auth/require-admin';
 import { resolveIdempotencyKey } from '@/lib/api/idempotency';
 import { createLogger } from '@/lib/logger';
 
-const log = createLogger('api/admin/tenants/change-tier');
+const log = createLogger('api/admin/tenants/engines');
 
 /**
- * Admin override: change a tenant's tier.
- * Backend: POST /api/forex/admin/tenants/{tenant_id}/tier
- * (Phase 14V Wave 2 — `/tier` action verb, not `/change-tier`)
+ * Admin override: granular set tenant trading engines.
+ * Backend: PATCH /api/forex/admin/tenants/{tenant_id}/engines
+ * (Phase 14V Wave 2.5 TASK 94 — shipped 2026-05-15)
  *
- * Body: { tier: 'free'|'micro'|'starter'|'pro'|'vip'|'dedicated', reason: string }
+ * Body: { engines: string[], reason: string }
+ *   engines ∈ subset dari `['scalper', 'swing']`
  *
- * Use case: operator demote/promote tenant berdasarkan KYC review,
- * payment status, atau request customer. Post-payment webhook (Midtrans/Xendit)
- * juga panggil endpoint ini server-side dengan admin token.
+ * Use case: customer minta scalper-only sementara karena risk reset,
+ * atau operator emergency disable engine tanpa change-tier penuh
+ * (suspend = drop all, change-tier = restart tier policy, engines = surgical).
  */
-export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const guard = requireAdmin(request);
   if (guard) return guard;
 
@@ -36,14 +37,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     return NextResponse.json({ code: 'INVALID_JSON', error: 'Invalid JSON' }, { status: 400 });
   }
 
-  const { key: idempotencyKey } = resolveIdempotencyKey(request.headers, `change-tier:${id}`);
+  const { key: idempotencyKey } = resolveIdempotencyKey(request.headers, `engines:${id}`);
 
   try {
     const res = await proxyToMasterBackend(
       'admin',
-      `/api/forex/admin/tenants/${encodeURIComponent(id)}/tier`,
+      `/api/forex/admin/tenants/${encodeURIComponent(id)}/engines`,
       {
-        method: 'POST',
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey },
         body: JSON.stringify(body),
       },
@@ -51,7 +52,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     const payload = await res.json().catch(() => ({}));
     if (!res.ok) {
-      log.warn(`change-tier backend HTTP ${res.status} tenant=${id}`);
+      log.warn(`engines backend HTTP ${res.status} tenant=${id}`);
       return NextResponse.json(
         {
           code: (payload as { code?: string }).code || 'BACKEND_FAILED',
@@ -62,7 +63,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
     return NextResponse.json({ source: 'backend', ...payload });
   } catch (err) {
-    log.warn(`change-tier error: ${err instanceof Error ? err.message : 'unknown'}`);
+    log.warn(`engines error: ${err instanceof Error ? err.message : 'unknown'}`);
     return NextResponse.json(
       { code: 'BACKEND_UNREACHABLE', error: 'backend_unreachable' },
       { status: 503 },

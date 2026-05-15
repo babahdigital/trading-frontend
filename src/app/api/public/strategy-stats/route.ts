@@ -2,86 +2,128 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 import { NextResponse } from 'next/server';
-import { proxyToMasterBackend } from '@/lib/proxy/vps-client';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('api/public/strategy-stats');
 
 /**
- * Public strategy stats — aggregate WR/RR/avgHold per public strategy slug.
+ * Public strategy stats — aggregate WR/RR/avgHold per umbrella.
  *
- * Konsumen utama: `/platform/strategies` + `/platform/strategies/[slug]` —
- * supaya angka WR/RR ditampilkan dari backtest journal real (bukan hardcode).
+ * Backend: signals-api port 8211 (separate ASGI service di trading-forex
+ * container). Live per Phase 14V Wave 2.5 TASK 94 (2026-05-15).
  *
- * Sumber data backend: `GET /v1/strategy-stats` (port 8211 signals-api,
- * Phase 14V follow-up). Saat backend belum ship endpoint, return `null`
- * stat — frontend render placeholder `—` + label "publikasi Q3 2026".
+ * Auth: X-Api-Key (server-only, scope SIGNALS_READ) — JANGAN expose ke browser.
  *
- * Schema response:
+ * Backend response shape:
  *   {
- *     source: 'backend' | 'pending',
- *     stats: {
- *       [slug]: {
- *         winRate: number;        // 0..1
- *         avgRR: number;          // e.g. 1.8
- *         avgHoldMinutes: number; // e.g. 105
- *         maxConsecutiveLoss: number;
- *         sampleSize: number;     // trade count
- *         lastUpdated: string;    // ISO8601
- *       } | null
- *     }
+ *     umbrellas: [
+ *       { umbrella: 'smc', trades, wins, win_rate, net_pnl_usd, avg_rr,
+ *         avg_hold_minutes, window_days },
+ *       { umbrella: 'smc-swing', ... },
+ *       { umbrella: 'pivot-mean-reversion', ... }
+ *     ],
+ *     window_days: 30,
+ *     computed_at: ISO8601
  *   }
  *
- * Slug mapping (FE umbrella → backend strategy_id):
- *   smc                  → scalper.qm_perfect_pure / _ao / _adx / _full / _adx_h4
- *   smc-swing            → swing.qm_perfect_*
- *   pivot-mean-reversion → scalper.pivot_mean_reversion
+ * FE consumer di `/platform/strategies` membaca via `lib/trading/strategy-stats.ts`.
  *
- * Backend yang aggregate per-umbrella belum live. Sampai itu ship, endpoint
- * return source='pending' + semua slug null supaya UI tahu data belum tersedia.
+ * Env required:
+ *   SIGNALS_API_URL    — base URL signals-api (default: http://localhost:8211)
+ *   SIGNALS_API_KEY    — X-Api-Key dengan scope SIGNALS_READ (admin-provisioned)
  */
 
-export type StrategyStat = {
+interface BackendUmbrella {
+  umbrella: 'smc' | 'smc-swing' | 'pivot-mean-reversion';
+  trades: number;
+  wins: number;
+  win_rate: number; // 0..1
+  net_pnl_usd: number;
+  avg_rr: number | null;
+  avg_hold_minutes: number | null;
+  window_days: number;
+}
+
+interface BackendResponse {
+  umbrellas: BackendUmbrella[];
+  window_days: number;
+  computed_at: string;
+}
+
+export interface StrategyStat {
   winRate: number | null;
   avgRR: number | null;
   avgHoldMinutes: number | null;
   maxConsecutiveLoss: number | null;
   sampleSize: number | null;
   lastUpdated: string | null;
-};
-
-const SLUGS = ['smc', 'smc-swing', 'pivot-mean-reversion'] as const;
-
-function emptyStats(): Record<string, StrategyStat | null> {
-  const out: Record<string, StrategyStat | null> = {};
-  for (const s of SLUGS) out[s] = null;
-  return out;
 }
 
 const CACHE_TTL_MS = 5 * 60 * 1000;
 let cache: { ts: number; payload: unknown } | null = null;
 
-export async function GET() {
+function emptyStats(): Record<string, StrategyStat | null> {
+  return {
+    smc: null,
+    'smc-swing': null,
+    'pivot-mean-reversion': null,
+  };
+}
+
+export async function GET(request: Request) {
   if (cache && Date.now() - cache.ts < CACHE_TTL_MS) {
     return NextResponse.json(cache.payload, {
       headers: { 'Cache-Control': 'public, max-age=300' },
     });
   }
 
+  const url = new URL(request.url);
+  const windowDays = url.searchParams.get('window_days') || '30';
+
+  const baseUrl = process.env.SIGNALS_API_URL || 'http://localhost:8211';
+  const apiKey = process.env.SIGNALS_API_KEY;
+
+  if (!apiKey) {
+    // No key configured — return empty placeholder (FE pakai sebagai gating UI)
+    const payload = { source: 'pending' as const, stats: emptyStats() };
+    cache = { ts: Date.now(), payload };
+    return NextResponse.json(payload, {
+      headers: { 'Cache-Control': 'public, max-age=60' },
+    });
+  }
+
   try {
-    const res = await proxyToMasterBackend('signals', '/v1/strategy-stats', { method: 'GET' });
+    const res = await fetch(`${baseUrl}/v1/strategy-stats?window_days=${windowDays}`, {
+      method: 'GET',
+      headers: {
+        'X-Api-Key': apiKey,
+        'User-Agent': 'vps3-commercial/1.0',
+      },
+      signal: AbortSignal.timeout(10_000),
+    });
+
     if (res.ok) {
-      const body = await res.json();
-      if (body && typeof body === 'object' && body.stats) {
-        const payload = { source: 'backend' as const, stats: body.stats };
+      const body = (await res.json()) as BackendResponse;
+      if (body && Array.isArray(body.umbrellas)) {
+        const stats: Record<string, StrategyStat | null> = emptyStats();
+        for (const row of body.umbrellas) {
+          stats[row.umbrella] = {
+            winRate: row.trades > 0 ? row.win_rate : null,
+            avgRR: row.avg_rr,
+            avgHoldMinutes: row.avg_hold_minutes,
+            maxConsecutiveLoss: null, // backend belum expose, akan ship Phase 14W
+            sampleSize: row.trades,
+            lastUpdated: body.computed_at,
+          };
+        }
+        const payload = { source: 'backend' as const, stats, window_days: body.window_days };
         cache = { ts: Date.now(), payload };
         return NextResponse.json(payload, {
           headers: { 'Cache-Control': 'public, max-age=300' },
         });
       }
     }
-    // Backend belum ship endpoint — degrade gracefully (404/501)
-    if (res.status !== 404 && res.status !== 501) {
+    if (res.status !== 404 && res.status !== 503) {
       log.warn(`strategy-stats backend HTTP ${res.status}`);
     }
   } catch (err) {

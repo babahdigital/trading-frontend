@@ -27,7 +27,7 @@ export function organizationSchema() {
     legalName: 'CV Babah Digital',
     url: SITE_BASE,
     logo: `${SITE_BASE}/logo/babahalgo-icon-256.png`,
-    description: 'Quantitative trading infrastructure: Forex SMC/Wyckoff signals + Binance Futures crypto bot, institutional-grade.',
+    description: 'Quantitative trading infrastructure: Forex MT5 algorithmic execution (3 core strategies — SMC Scalper, SMC Swing, Pivot Mean Reversion — orchestrated by AI Brain) + Binance Spot/Futures crypto bot, institutional-grade with zero-custody positioning.',
     address: {
       '@type': 'PostalAddress',
       addressCountry: 'ID',

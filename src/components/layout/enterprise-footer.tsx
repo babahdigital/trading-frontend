@@ -98,9 +98,31 @@ export function EnterpriseFooter() {
 
   return (
     <footer className="border-t border-border/60 bg-card/40">
-      <div className="container-default px-4 sm:px-6 pt-20 pb-8">
-        {/* Top section — Link columns */}
-        <div className="grid grid-cols-2 md:grid-cols-7 gap-8 mb-16">
+      <div className="container-default px-4 sm:px-6 pt-12 sm:pt-16 pb-8">
+        {/* Subscribe band — prominent full-width banner di atas link columns.
+            Sebelumnya newsletter tersembunyi di brand column kecil; sekarang
+            jadi CTA jelas dengan headline + form berdampingan di desktop. */}
+        <div className="mb-12 sm:mb-14 rounded-2xl border border-border/70 bg-gradient-to-br from-amber-500/[0.04] via-card/40 to-card/40 dark:from-amber-500/[0.06] dark:via-[var(--brand-midnight-2)] dark:to-[var(--brand-midnight-2)] px-5 py-6 sm:px-8 sm:py-8 lg:px-12 lg:py-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-center">
+            <div className="lg:col-span-5">
+              <p className="t-eyebrow mb-3">{locale === 'id' ? 'Riset Mingguan' : 'Weekly Research'}</p>
+              <h3 className="font-display text-2xl sm:text-3xl text-foreground leading-tight mb-2">
+                {locale === 'id' ? 'Insight pasar institusional, langsung ke inbox.' : 'Institutional market insight, straight to your inbox.'}
+              </h3>
+              <p className="t-body-sm text-muted-foreground max-w-md">
+                {locale === 'id'
+                  ? 'Brief mingguan tentang strategi, risiko, dan eksekusi. Tanpa marketing, tanpa spam — berhenti kapan saja.'
+                  : 'Weekly briefings on strategy, risk, and execution. No marketing, no spam — unsubscribe anytime.'}
+              </p>
+            </div>
+            <div className="lg:col-span-7">
+              <NewsletterForm locale={locale} />
+            </div>
+          </div>
+        </div>
+
+        {/* Top section — Brand + Link columns */}
+        <div className="grid grid-cols-2 md:grid-cols-7 gap-8 mb-12 sm:mb-16">
           {/* Brand column */}
           <div className="col-span-2">
             <Image
@@ -124,14 +146,13 @@ export function EnterpriseFooter() {
                 <>Autonomous Intelligence.<br />Institutional Precision.</>
               )}
             </p>
-            <p className="t-body-sm text-muted-foreground mb-6">
+            <p className="t-body-sm text-muted-foreground">
               {locale === 'id' ? (
                 <>Infrastruktur trading kuantitatif.<br />Dioperasikan oleh CV Babah Digital.</>
               ) : (
                 <>Quantitative trading infrastructure.<br />Operated by CV Babah Digital.</>
               )}
             </p>
-            <NewsletterForm locale={locale} />
           </div>
 
           {/* Links — locale-aware */}

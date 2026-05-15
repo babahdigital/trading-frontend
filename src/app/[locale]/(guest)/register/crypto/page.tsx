@@ -1,17 +1,18 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect, useMemo, Suspense } from 'react';
+import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { formatPrice, type Locale, type PriceKey } from '@/lib/pricing-format';
 
 interface Tier {
   value: 'CRYPTO_BASIC' | 'CRYPTO_PRO' | 'CRYPTO_HNWI';
   labelKey: 'tier_basic_label' | 'tier_pro_label' | 'tier_hnwi_label';
-  price: string;
+  priceKey: PriceKey;
   profitKey: 'tier_basic_profit' | 'tier_pro_profit' | 'tier_hnwi_profit';
   descKey: 'tier_basic_desc' | 'tier_pro_desc' | 'tier_hnwi_desc';
   highlight?: boolean;
@@ -21,14 +22,14 @@ const TIERS: Tier[] = [
   {
     value: 'CRYPTO_BASIC',
     labelKey: 'tier_basic_label',
-    price: '$49/mo',
+    priceKey: 'crypto_basic',
     profitKey: 'tier_basic_profit',
     descKey: 'tier_basic_desc',
   },
   {
     value: 'CRYPTO_PRO',
     labelKey: 'tier_pro_label',
-    price: '$199/mo',
+    priceKey: 'crypto_pro',
     profitKey: 'tier_pro_profit',
     descKey: 'tier_pro_desc',
     highlight: true,
@@ -36,7 +37,7 @@ const TIERS: Tier[] = [
   {
     value: 'CRYPTO_HNWI',
     labelKey: 'tier_hnwi_label',
-    price: '$499/mo',
+    priceKey: 'crypto_hnwi',
     profitKey: 'tier_hnwi_profit',
     descKey: 'tier_hnwi_desc',
   },
@@ -47,7 +48,18 @@ function CryptoRegisterInner() {
   const tCrypto = useTranslations('register.crypto');
   const router = useRouter();
   const searchParams = useSearchParams();
+  const routeParams = useParams<{ locale?: string }>();
+  const locale: Locale = routeParams?.locale === 'en' ? 'en' : 'id';
   const tierFromUrl = searchParams.get('tier');
+
+  const tierPrices = useMemo(
+    () =>
+      TIERS.reduce<Record<string, string>>((acc, tier) => {
+        acc[tier.value] = formatPrice(tier.priceKey, locale, { period: 'mo', compact: false });
+        return acc;
+      }, {}),
+    [locale],
+  );
 
   const initialTier: Tier['value'] =
     tierFromUrl === 'pro' ? 'CRYPTO_PRO' :
@@ -208,7 +220,7 @@ function CryptoRegisterInner() {
                             )}
                             <div className="flex justify-between items-baseline gap-2 flex-wrap">
                               <span className="font-semibold">{tCrypto(tier.labelKey)}</span>
-                              <span className="text-amber-400 font-mono font-bold text-sm">{tier.price}</span>
+                              <span className="text-amber-400 font-mono font-bold text-sm">{tierPrices[tier.value]}</span>
                             </div>
                             <p className="text-[11px] text-amber-400/80 font-mono uppercase tracking-wider mt-1">
                               {tCrypto(tier.profitKey)}
@@ -254,7 +266,7 @@ function CryptoRegisterInner() {
                         </div>
                         <div className="flex justify-between">
                           <span className="text-foreground/60">{t('field_fee')}</span>
-                          <span className="font-mono">{selectedTier.price}</span>
+                          <span className="font-mono">{tierPrices[selectedTier.value]}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-foreground/60">{t('field_profit_share')}</span>

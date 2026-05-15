@@ -1,26 +1,27 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useMemo, useState } from 'react';
+import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AlertTriangle } from 'lucide-react';
+import { formatPrice, type Locale, type PriceKey } from '@/lib/pricing-format';
 
 interface SignalTier {
   value: 'SIGNAL_STARTER' | 'SIGNAL_PRO' | 'SIGNAL_VIP';
   labelKey: 'tier1_label' | 'tier2_label' | 'tier3_label';
-  price: string;
+  priceKey: PriceKey;
   descKey: 'tier1_desc' | 'tier2_desc' | 'tier3_desc';
   popular?: boolean;
 }
 
 const SIGNAL_TIERS: SignalTier[] = [
-  { value: 'SIGNAL_STARTER', labelKey: 'tier1_label', price: '$19/mo', descKey: 'tier1_desc' },
-  { value: 'SIGNAL_PRO', labelKey: 'tier2_label', price: '$79/mo', descKey: 'tier2_desc', popular: true },
-  { value: 'SIGNAL_VIP', labelKey: 'tier3_label', price: '$299/mo', descKey: 'tier3_desc' },
+  { value: 'SIGNAL_STARTER', labelKey: 'tier1_label', priceKey: 'signal_starter', descKey: 'tier1_desc' },
+  { value: 'SIGNAL_PRO', labelKey: 'tier2_label', priceKey: 'signal_pro', descKey: 'tier2_desc', popular: true },
+  { value: 'SIGNAL_VIP', labelKey: 'tier3_label', priceKey: 'signal_vip', descKey: 'tier3_desc' },
 ];
 
 function RegisterSignalInner() {
@@ -29,7 +30,19 @@ function RegisterSignalInner() {
   const tDemo = useTranslations('demo');
   const router = useRouter();
   const searchParams = useSearchParams();
+  const routeParams = useParams<{ locale?: string }>();
+  const locale: Locale = routeParams?.locale === 'en' ? 'en' : 'id';
   const isDemoMode = searchParams.get('mode') === 'demo';
+
+  // Pre-format tier prices once per render — locale-aware lookup table.
+  const tierPrices = useMemo(
+    () =>
+      SIGNAL_TIERS.reduce<Record<string, string>>((acc, tier) => {
+        acc[tier.value] = formatPrice(tier.priceKey, locale, { period: 'mo', compact: false });
+        return acc;
+      }, {}),
+    [locale],
+  );
 
   const STEPS = [t('step_account_info'), t('step_select_tier'), t('step_confirmation')];
 
@@ -205,7 +218,7 @@ function RegisterSignalInner() {
                             )}
                             <div className="flex justify-between items-baseline gap-2 flex-wrap">
                               <span className="font-semibold">{tSignal(tier.labelKey)}</span>
-                              <span className="text-amber-400 font-mono font-bold text-sm">{tier.price}</span>
+                              <span className="text-amber-400 font-mono font-bold text-sm">{tierPrices[tier.value]}</span>
                             </div>
                             <p className="t-body-sm text-foreground/60 mt-1">{tSignal(tier.descKey)}</p>
                           </div>

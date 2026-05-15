@@ -2,8 +2,9 @@ import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, FileCheck, Wrench, LifeBuoy, ShieldCheck } from 'lucide-react';
 import { breadcrumbSchema, ldJson, organizationSchema, professionalServiceSchema } from '@/lib/seo-jsonld';
+import { formatPriceRange, formatPrice, type Locale } from '@/lib/pricing-format';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,13 +35,52 @@ const FAQ_META = [
 
 const ELIG_KEYS = ['elig_b1', 'elig_b2', 'elig_b3'] as const;
 
-export default async function InstitutionalPage() {
+export default async function InstitutionalPage({ params }: { params: { locale: string } }) {
   const t = await getTranslations('solutions_institutional');
+  const locale: Locale = params.locale === 'en' ? 'en' : 'id';
   const breadcrumb = breadcrumbSchema([
     { name: 'Home', url: '/' },
     { name: 'Solutions', url: '/solutions' },
     { name: 'Institutional', url: '/solutions/institutional' },
   ]);
+
+  // Pricing components — 3 line items + min AUM eligibility callout.
+  // Locale-aware via lib/pricing-format.ts (single source of truth).
+  const licenseRange = formatPriceRange('institutional_license_low', 'institutional_license_high', locale, {
+    period: 'yr',
+    compact: true,
+  });
+  const setupRange = formatPriceRange('institutional_setup_low', 'institutional_setup_high', locale, {
+    period: 'setup',
+    compact: true,
+  });
+  const supportMonthly = formatPrice('institutional_support_monthly', locale, {
+    period: 'mo',
+    compact: true,
+  });
+  const aumMin = formatPrice('institutional_aum_min', locale, { compact: true });
+
+  const pricingComponents = [
+    {
+      icon: FileCheck,
+      titleKey: 'cost_license_title',
+      value: licenseRange,
+      descKey: 'cost_license_desc',
+    },
+    {
+      icon: Wrench,
+      titleKey: 'cost_setup_title',
+      value: setupRange,
+      descKey: 'cost_setup_desc',
+    },
+    {
+      icon: LifeBuoy,
+      titleKey: 'cost_support_title',
+      value: t('cost_support_value_prefix', { defaultValue: 'Mulai' }) + ' ' + supportMonthly,
+      descKey: 'cost_support_desc',
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(organizationSchema()) }} />
@@ -52,10 +92,10 @@ export default async function InstitutionalPage() {
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
-            <h1 className="t-display-page mb-6">
+            <h1 className="t-display-page mb-6 max-w-4xl">
               {t('hero_title')}
             </h1>
-            <p className="t-lead text-foreground/60 max-w-xl sm:max-w-2xl">
+            <p className="t-lead text-foreground/60 max-w-3xl">
               {t('hero_subtitle')}
             </p>
           </div>
@@ -64,16 +104,20 @@ export default async function InstitutionalPage() {
         {/* Who it's for */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-4">{t('elig_eyebrow')}</p>
-            <h2 className="t-display-sub mb-8">{t('elig_title')}</h2>
-            <ul className="space-y-4 text-foreground/60 max-w-2xl">
-              {ELIG_KEYS.map((k) => (
-                <li key={k} className="flex items-start gap-3">
-                  <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-                  <span>{t(k)}</span>
-                </li>
-              ))}
-            </ul>
+            <div className="grid lg:grid-cols-5 gap-y-8 lg:gap-x-12">
+              <div className="lg:col-span-2">
+                <p className="t-eyebrow mb-4">{t('elig_eyebrow')}</p>
+                <h2 className="t-display-sub">{t('elig_title')}</h2>
+              </div>
+              <ul className="lg:col-span-3 space-y-4 text-foreground/70">
+                {ELIG_KEYS.map((k) => (
+                  <li key={k} className="flex items-start gap-3">
+                    <span className="mt-2 w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                    <span>{t(k)}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </section>
 
@@ -81,8 +125,8 @@ export default async function InstitutionalPage() {
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">{t('cap_eyebrow')}</p>
-            <h2 className="t-display-sub mb-8 sm:mb-12">{t('cap_title')}</h2>
-            <div className="grid md:grid-cols-2 gap-5 sm:gap-6 md:gap-8">
+            <h2 className="t-display-sub mb-8 sm:mb-12 max-w-3xl">{t('cap_title')}</h2>
+            <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6">
               {FEATURE_META.map((feature) => (
                 <div key={feature.titleKey} className="card-enterprise">
                   <h3 className="font-semibold mb-3">{t(feature.titleKey)}</h3>
@@ -93,21 +137,51 @@ export default async function InstitutionalPage() {
           </div>
         </section>
 
-        {/* Pricing */}
+        {/* Pricing — 3 cost component cards + eligibility callout */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-4">{t('pricing_eyebrow')}</p>
-            <h2 className="t-display-sub mb-8 sm:mb-12">{t('pricing_title')}</h2>
-            <div className="card-enterprise max-w-xl">
-              <p className="t-eyebrow mb-4">{t('pricing_label')}</p>
-              <p className="font-display text-4xl font-medium mb-2">{t('pricing_value')}</p>
-              <p className="text-foreground/60 leading-relaxed mb-6">
-                {t('pricing_subtitle')}
-              </p>
-              <p className="t-body-sm text-foreground/60">
-                {t('pricing_note')}
-              </p>
+            <div className="grid lg:grid-cols-5 gap-y-8 lg:gap-x-12 mb-10">
+              <div className="lg:col-span-2">
+                <p className="t-eyebrow mb-4">{t('pricing_eyebrow')}</p>
+                <h2 className="t-display-sub mb-4">{t('pricing_title')}</h2>
+                <p className="text-foreground/60 leading-relaxed">{t('pricing_subtitle')}</p>
+              </div>
+              <div className="lg:col-span-3">
+                <div className="grid sm:grid-cols-3 gap-4">
+                  {pricingComponents.map((comp) => {
+                    const Icon = comp.icon;
+                    return (
+                      <div key={comp.titleKey} className="card-enterprise">
+                        <Icon className="w-5 h-5 text-amber-500 mb-3" />
+                        <p className="t-eyebrow text-foreground/60 mb-2">{t(comp.titleKey)}</p>
+                        <p className="font-display text-xl font-medium mb-2">{comp.value}</p>
+                        <p className="text-xs text-foreground/60 leading-relaxed">{t(comp.descKey)}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
+
+            {/* Eligibility callout — minimum AUM (zero-custody) */}
+            <div className="card-enterprise max-w-3xl border-amber-500/30 bg-amber-500/5">
+              <div className="flex items-start gap-4">
+                <ShieldCheck className="w-6 h-6 text-amber-500 shrink-0 mt-0.5" />
+                <div>
+                  <p className="t-eyebrow text-amber-500 mb-2">{t('aum_eyebrow')}</p>
+                  <p className="font-display text-2xl font-medium mb-2">
+                    {t('aum_label_prefix')} {aumMin}
+                  </p>
+                  <p className="text-sm text-foreground/70 leading-relaxed">
+                    {t('aum_disclaimer')}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <p className="t-body-sm text-foreground/50 mt-6 max-w-3xl">
+              {t('pricing_note')}
+            </p>
           </div>
         </section>
 

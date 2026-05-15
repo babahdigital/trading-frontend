@@ -1,5 +1,23 @@
 {
   "landing": {
+    "ai_brain": {
+      "eyebrow": "AI Brain",
+      "title": "Enam modul pembelajaran adaptif yang berjalan di belakang strategi inti",
+      "lead": "Strategi inti (SMC + Pivot Mean Reversion) di-orkestrasikan oleh layer AI Brain yang otomatis pilih konfluensi terbaik, ukur risiko per trade, dan belajar dari setiap outcome. Tidak ada setup manual — sistem yang adaptif sejak hari pertama.",
+      "disclaimer": "Komponen di bawah adalah bagian dari engine eksekusi internal — tidak dipublikasikan sebagai API publik. Disclosure lebih detail tersedia di /platform/risk-framework.",
+      "mod_bandit_title": "Bandit Routing — Pilih konfluensi terbaik",
+      "mod_bandit_desc": "Sistem mirip A/B testing yang otomatis pilih varian konfluensi (Pure / + AO / + ADX / Full) yang paling cocok dengan kondisi market saat ini. Pakai Thompson Sampling — varian yang sering menang dapat lebih banyak alokasi sinyal.",
+      "mod_kelly_title": "Kelly Sizing — Porsi modal optimal",
+      "mod_kelly_desc": "Formula matematis John Kelly yang hitung porsi modal optimal per trade berdasarkan win rate + edge historis. BabahAlgo pakai fractional Kelly (0.25-0.5 dari full Kelly) supaya tidak overbet di volatility spike.",
+      "mod_markov_title": "Markov TP — Exit timing probabilistic",
+      "mod_markov_desc": "Take-profit geser otomatis berdasarkan probabilistic state transition: posisi di state momentum kuat → TP digeser jauh, di state reversal → TP ditekan dekat. Lebih akurat dari fixed-RR setting.",
+      "mod_winprob_title": "Winprob Filter — Skor sinyal sebelum eksekusi",
+      "mod_winprob_desc": "Model machine learning yang skor probabilitas profit per sinyal sebelum di-eksekusi. Sinyal di bawah threshold confidence akan di-block — mencegah trade marginal di kondisi yang kurang ideal.",
+      "mod_adaptive_title": "Adaptive Exit — Belajar dari equity curve",
+      "mod_adaptive_desc": "AI postmortem otomatis evaluasi tiap 5 menit selama probation/cooling. Kalau lessons journal nemu pola \"loss saat news high-impact\" misalnya, sistem otomatis widen SL sementara — supaya tidak repeat mistake.",
+      "mod_isotonic_title": "Isotonic Calibration — Confidence yang jujur",
+      "mod_isotonic_desc": "Confidence score AI di-kalibrasi supaya match realitas historis. Kalau AI bilang 70% confidence, win rate aktual harus ~70% (bukan overconfident). Penting untuk trader yang pakai confidence sebagai sizing input."
+    },
     "hero_eyebrow": "CV BABAH DIGITAL · INFRASTRUKTUR KUANTITATIF",
     "hero_title_fallback_l1": "AI-Powered",
     "hero_title_fallback_l2": "Quantitative Trading",
@@ -599,8 +617,8 @@
     "subtitle": "Teknologi trading terdepan yang dirancang untuk presisi maksimal"
   },
   "strategies": {
-    "title": "6 Strategi AI",
-    "subtitle": "Distribusi strategi dan win rate masing-masing",
+    "title": "3 Strategi Inti + AI Brain",
+    "subtitle": "SMC Scalper + SMC Swing + Pivot Mean Reversion — dengan layer AI Bandit routing, Kelly sizing, dan adaptive exit",
     "distribution": "Distribusi Strategi",
     "win_rates": "Win Rate per Strategi"
   },
@@ -1817,7 +1835,7 @@
     "pillars_title": "Tiga pilar",
     "pillars_lead": "Platform disusun berdasarkan tiga disiplin fundamental. Setiap pilar bekerja independen namun saling memperkuat.",
     "pillar_strategy_title": "Strategy Framework",
-    "pillar_strategy_desc": "Enam strategi tervalidasi independen yang mencakup Smart Money Concepts, akumulasi-distribusi Wyckoff, geometri harmonik Astronacci, momentum berbasis AI, makro sektor energi, dan SMC swing positioning multi-hari. Setiap strategi beroperasi pada model multi-timeframe confluence yang ketat.",
+    "pillar_strategy_desc": "Tiga strategi umbrella yang live di backend produksi: SMC Scalper (Quasimodo family — Pure, AO, ADX, Full Confluence di M5-H1), SMC Swing (varian Quasimodo H1-H4 untuk swing trader), dan Pivot Mean Reversion (fade balik ke daily pivot saat overextended). Diorkestrasikan oleh AI Brain — bandit routing pilih konfluensi terbaik per regime, Kelly sizing tune position size, adaptive exit refine TP/SL dari equity curve.",
     "pillar_technology_title": "Technology Stack",
     "pillar_technology_desc": "Pipeline eksekusi yang dirancang khusus dengan Gemini 2.5 Flash sebagai mesin analisis dan confidence scoring real-time, ZeroMQ bridge untuk order routing sub-2ms, dan MetaTrader 5 sebagai broker connectivity layer. Seluruh stack berjalan pada infrastruktur VPS terisolasi di balik Cloudflare Tunnel.",
     "pillar_risk_title": "Risk Discipline",

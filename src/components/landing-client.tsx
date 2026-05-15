@@ -8,6 +8,7 @@ import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { EquityCurve } from '@/components/charts/equity-curve';
 import { AnimatedSection } from '@/components/ui/animated-section';
 import { EditorialShowcase, type ShowcaseSlide } from '@/components/landing/editorial-showcase';
+import { AiBrainSection } from '@/components/landing/ai-brain-section';
 import {
   ArrowRight, ArrowUpRight, Shield, Zap, Brain, ChevronDown, Check,
   TrendingUp, Bitcoin, Sparkles,
@@ -334,9 +335,12 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
                         {t('founding_card_body')}
                       </p>
 
-                      {/* Inline mini stats — tight, institutional */}
+                      {/* Inline mini stats — tight, institutional. Angka match
+                          dengan reality backend: 3 strategi umbrella (SMC scalper,
+                          SMC swing, Pivot Mean Reversion), 12 layer risiko, 14+
+                          instrumen, 0 custody dana. */}
                       <div className="grid grid-cols-2 gap-x-6 gap-y-3 mb-6 pb-6 border-b border-border/50">
-                        <CapabilityInline value="6" label={t('capability_strategy')} />
+                        <CapabilityInline value="3" label={t('capability_strategy')} />
                         <CapabilityInline value="12" label={t('capability_risk')} />
                         <CapabilityInline value="14+" label={t('capability_assets')} />
                         <CapabilityInline value="0" label={t('capability_custody')} valueClass="text-emerald-400" />
@@ -452,6 +456,13 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
         </div>
       </section>
       )}
+
+      {/* ═══════════════════════════════════════════
+          SECTION 1.5 — AI BRAIN
+          6 modul adaptive learning yang berjalan di belakang strategi inti.
+          Bahasa user-friendly + SEO-optimized.
+          ═══════════════════════════════════════════ */}
+      <AiBrainSection />
 
       {/* ═══════════════════════════════════════════
           SECTION 1.6 — EDITORIAL SHOWCASE (CMS-managed via slug=editorial-showcase)

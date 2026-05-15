@@ -1,5 +1,23 @@
 {
   "landing": {
+    "ai_brain": {
+      "eyebrow": "AI Brain",
+      "title": "Six adaptive learning modules running behind the core strategies",
+      "lead": "Core strategies (SMC + Pivot Mean Reversion) are orchestrated by an AI Brain layer that auto-routes to the best confluence, sizes risk per trade, and learns from every outcome. No manual tuning — the system is adaptive from day one.",
+      "disclaimer": "The components below are part of the internal execution engine — they are not exposed as a public API. Deeper disclosure lives at /platform/risk-framework.",
+      "mod_bandit_title": "Bandit Routing — Pick the best confluence",
+      "mod_bandit_desc": "An A/B-testing-style system that automatically selects the confluence variant (Pure / + AO / + ADX / Full) best suited to the current market regime. Uses Thompson Sampling — the variant winning more often gets more signal allocation.",
+      "mod_kelly_title": "Kelly Sizing — Optimal stake fraction",
+      "mod_kelly_desc": "John Kelly's mathematical formula computes the optimal capital stake per trade from historical win rate + edge. BabahAlgo uses fractional Kelly (0.25-0.5 of full Kelly) so volatility spikes don't trigger overbetting.",
+      "mod_markov_title": "Markov TP — Probabilistic exit timing",
+      "mod_markov_desc": "Take-profit slides automatically based on probabilistic state transitions: in a strong-momentum state TP gets pushed further out, in a reversal state TP gets pulled in. More accurate than a fixed R:R setting.",
+      "mod_winprob_title": "Winprob Filter — Pre-execution signal scoring",
+      "mod_winprob_desc": "A machine-learning model scores the probability of profit per signal before execution. Signals below the confidence threshold are blocked — preventing marginal trades in less-than-ideal conditions.",
+      "mod_adaptive_title": "Adaptive Exit — Learn from the equity curve",
+      "mod_adaptive_desc": "An AI postmortem evaluates every 5 minutes during probation/cooling. If the lessons journal finds a pattern like \"losses during high-impact news,\" the system temporarily widens the SL — so the same mistake isn't repeated.",
+      "mod_isotonic_title": "Isotonic Calibration — Honest confidence scores",
+      "mod_isotonic_desc": "AI confidence scores are calibrated against historical reality. When the AI says 70% confidence, the actual win rate should be ~70% (not overconfident). Important for traders who feed confidence into their sizing inputs."
+    },
     "hero_eyebrow": "CV BABAH DIGITAL · QUANTITATIVE INFRASTRUCTURE",
     "hero_title_fallback_l1": "AI-Powered",
     "hero_title_fallback_l2": "Quantitative Trading",
@@ -599,8 +617,8 @@
     "subtitle": "Cutting-edge trading technology designed for maximum precision"
   },
   "strategies": {
-    "title": "6 AI Strategies",
-    "subtitle": "Strategy distribution and individual win rates",
+    "title": "3 Core Strategies + AI Brain",
+    "subtitle": "SMC Scalper + SMC Swing + Pivot Mean Reversion — with AI Bandit routing, Kelly sizing, and adaptive exit layers",
     "distribution": "Strategy Distribution",
     "win_rates": "Win Rate per Strategy"
   },
@@ -1817,7 +1835,7 @@
     "pillars_title": "Three pillars",
     "pillars_lead": "The platform is organized around three foundational disciplines. Each operates independently but reinforces the others.",
     "pillar_strategy_title": "Strategy Framework",
-    "pillar_strategy_desc": "Six independently validated strategies spanning Smart Money Concepts, Wyckoff accumulation-distribution, Astronacci harmonic geometry, AI-driven momentum, energy-sector macro plays, and multi-day SMC swing positioning. Each strategy operates on a strict multi-timeframe confluence model.",
+    "pillar_strategy_desc": "Three umbrella strategies live in production backend: SMC Scalper (Quasimodo family — Pure, AO, ADX, Full Confluence on M5-H1), SMC Swing (Quasimodo variants on H1-H4 for swing traders), and Pivot Mean Reversion (fade back to the daily pivot when overextended). Orchestrated by an AI Brain — bandit routing picks the best confluence per regime, Kelly sizing tunes position size, adaptive exit refines TP/SL from the equity curve.",
     "pillar_technology_title": "Technology Stack",
     "pillar_technology_desc": "A purpose-built execution pipeline anchored by Gemini 2.5 Flash for real-time analysis and confidence scoring, a ZeroMQ bridge delivering sub-2ms order routing, and MetaTrader 5 for broker connectivity. The entire stack runs on isolated VPS infrastructure behind Cloudflare Tunnel.",
     "pillar_risk_title": "Risk Discipline",

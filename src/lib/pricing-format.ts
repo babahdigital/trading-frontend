@@ -32,13 +32,26 @@ export const PRICE_TABLE = {
   vps_premium_monthly: { usd: 300, idr: 4_950_000 },
   vps_dedicated_monthly: { usd: 1_499, idr: 24_700_000 },
 
-  // Institutional
-  institutional_aum_min: { usd: 250_000, idr: 4_125_000_000 },
-  institutional_license_low: { usd: 75_000, idr: 1_200_000_000 },
-  institutional_license_high: { usd: 110_000, idr: 1_800_000_000 },
-  institutional_setup_low: { usd: 12_000, idr: 200_000_000 },
-  institutional_setup_high: { usd: 25_000, idr: 400_000_000 },
-  institutional_support_monthly: { usd: 1_500, idr: 25_000_000 },
+  // Institutional — calibrated 2026-05-15 berdasarkan market research:
+  // - QuantConnect institutional: $20-150K/year
+  // - TradeStation API: $5-25K/year
+  // - MetaQuotes MT5 server: $5-100K/year
+  // - Indonesian B2B SaaS finance enterprise: Rp 100-500 juta/tahun
+  //
+  // Sweet spot rasional license/AUM ratio: 5-12% (B2B SaaS finance standard).
+  // AUM minimum $200K = Rp 3,2 miliar — entry point realistic untuk klien
+  // family office / hedge fund kecil / prop firm yang serius berinvestasi
+  // di infrastruktur trading dedicated. Di bawah ini, klien dilayani oleh
+  // produk reguler (Robot Meta Tier 3 All-In Rp 4,9jt/bulan).
+  //
+  // Versi sebelumnya ($250K AUM + $75-110K license = 30-44% ratio) tidak
+  // masuk akal — klien tidak akan beli software senilai 1/3 modalnya.
+  institutional_aum_min: { usd: 200_000, idr: 3_200_000_000 },
+  institutional_license_low: { usd: 15_000, idr: 250_000_000 },
+  institutional_license_high: { usd: 25_000, idr: 400_000_000 },
+  institutional_setup_low: { usd: 5_000, idr: 75_000_000 },
+  institutional_setup_high: { usd: 10_000, idr: 150_000_000 },
+  institutional_support_monthly: { usd: 750, idr: 12_000_000 },
 } as const satisfies Record<string, PriceEntry>;
 
 export type PriceKey = keyof typeof PRICE_TABLE;

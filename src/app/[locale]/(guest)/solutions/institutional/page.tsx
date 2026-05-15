@@ -2,7 +2,7 @@ import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
-import { ArrowRight, FileCheck, Wrench, LifeBuoy, ShieldCheck } from 'lucide-react';
+import { ArrowRight, FileCheck, Wrench, LifeBuoy, Wallet, AlertCircle } from 'lucide-react';
 import { breadcrumbSchema, ldJson, organizationSchema, professionalServiceSchema } from '@/lib/seo-jsonld';
 import { formatPriceRange, formatPrice, type Locale } from '@/lib/pricing-format';
 
@@ -137,49 +137,99 @@ export default async function InstitutionalPage({ params }: { params: { locale: 
           </div>
         </section>
 
-        {/* Pricing — 3 cost component cards + eligibility callout */}
+        {/* Pricing section — 2 visual zones yang JELAS terpisah supaya user
+            tidak salah baca AUM minimum sebagai "biaya tambahan".
+
+            Zone 1 (atas, default card style): "BIAYA YANG ANDA BAYAR KE KAMI"
+              → 3 cost components: License + Setup + Support
+            Zone 2 (bawah, biru accent + label EXPLICIT): "MODAL TRADING ANDA"
+              → AUM minimum yang stays in client's own broker account.
+
+            Visual differentiation: amber border untuk biaya, blue accent
+            untuk modal klien — supaya secara visual obvious 2 hal berbeda. */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <div className="grid lg:grid-cols-5 gap-y-8 lg:gap-x-12 mb-10">
-              <div className="lg:col-span-2">
-                <p className="t-eyebrow mb-4">{t('pricing_eyebrow')}</p>
-                <h2 className="t-display-sub mb-4">{t('pricing_title')}</h2>
-                <p className="text-foreground/60 leading-relaxed">{t('pricing_subtitle')}</p>
+            {/* Header section — context untuk seluruh pricing zone */}
+            <div className="mb-10 sm:mb-12 max-w-3xl">
+              <p className="t-eyebrow mb-4">{t('pricing_eyebrow')}</p>
+              <h2 className="t-display-sub mb-4">{t('pricing_title')}</h2>
+              <p className="text-foreground/60 leading-relaxed">{t('pricing_subtitle')}</p>
+            </div>
+
+            {/* ─── ZONE 1: BIAYA YANG ANDA BAYAR ─── */}
+            <div className="mb-12 sm:mb-16">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="h-px flex-1 bg-amber-500/20" />
+                <span className="text-xs font-mono uppercase tracking-wider text-amber-500/80 px-3">
+                  {t('cost_section_label')}
+                </span>
+                <div className="h-px flex-1 bg-amber-500/20" />
               </div>
-              <div className="lg:col-span-3">
-                <div className="grid sm:grid-cols-3 gap-4">
-                  {pricingComponents.map((comp) => {
-                    const Icon = comp.icon;
-                    return (
-                      <div key={comp.titleKey} className="card-enterprise">
-                        <Icon className="w-5 h-5 text-amber-500 mb-3" />
-                        <p className="t-eyebrow text-foreground/60 mb-2">{t(comp.titleKey)}</p>
-                        <p className="font-display text-xl font-medium mb-2">{comp.value}</p>
-                        <p className="text-xs text-foreground/60 leading-relaxed">{t(comp.descKey)}</p>
-                      </div>
-                    );
-                  })}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+                {pricingComponents.map((comp) => {
+                  const Icon = comp.icon;
+                  return (
+                    <div key={comp.titleKey} className="card-enterprise flex flex-col h-full border-amber-500/20">
+                      <Icon className="w-6 h-6 text-amber-500 mb-4" />
+                      <p className="t-eyebrow text-foreground/60 mb-3">{t(comp.titleKey)}</p>
+                      <p className="font-display text-xl sm:text-2xl font-medium mb-3 break-words">{comp.value}</p>
+                      <p className="text-sm text-foreground/60 leading-relaxed mt-auto">{t(comp.descKey)}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* ─── ZONE 2: MODAL TRADING KLIEN (BUKAN BIAYA) ─── */}
+            <div className="mb-8">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="h-px flex-1 bg-sky-500/20" />
+                <span className="text-xs font-mono uppercase tracking-wider text-sky-500/80 px-3">
+                  {t('aum_section_label')}
+                </span>
+                <div className="h-px flex-1 bg-sky-500/20" />
+              </div>
+
+              {/* Modal trading card — biru accent supaya visual JELAS berbeda
+                  dari cost components di atas (amber). User immediately tau
+                  ini bukan "biaya tambahan". */}
+              <div className="rounded-xl border-2 border-sky-500/40 bg-sky-500/[0.04] p-5 sm:p-7">
+                <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-5">
+                  <Wallet className="w-7 h-7 text-sky-400 shrink-0 mt-1" />
+                  <div className="flex-1 min-w-0">
+                    {/* Big alert badge — "BUKAN BIAYA" yang langsung kelihatan */}
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/15 border border-sky-500/40 mb-4">
+                      <AlertCircle className="w-3.5 h-3.5 text-sky-400" />
+                      <span className="text-xs font-semibold uppercase tracking-wider text-sky-300">
+                        {t('aum_eyebrow')}
+                      </span>
+                    </div>
+                    <p className="font-display text-2xl sm:text-3xl lg:text-4xl font-medium mb-4 break-words">
+                      {t('aum_label_prefix')} {aumMin}
+                    </p>
+                    <div className="space-y-2 mb-4">
+                      <p className="text-sm text-sky-200/90 flex items-start gap-2">
+                        <span className="text-sky-400 mt-0.5">✓</span>
+                        <span>{t('aum_badge_not_fee')}</span>
+                      </p>
+                      <p className="text-sm text-sky-200/90 flex items-start gap-2">
+                        <span className="text-sky-400 mt-0.5">✓</span>
+                        <span>{t('aum_badge_zero_custody')}</span>
+                      </p>
+                    </div>
+                    <p className="text-sm text-foreground/70 leading-relaxed mb-3">
+                      {t('aum_disclaimer')}
+                    </p>
+                    <p className="text-xs text-foreground/50 italic">
+                      {t('aum_badge_rec_under')}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Eligibility callout — minimum AUM (zero-custody) */}
-            <div className="card-enterprise max-w-3xl border-amber-500/30 bg-amber-500/5">
-              <div className="flex items-start gap-4">
-                <ShieldCheck className="w-6 h-6 text-amber-500 shrink-0 mt-0.5" />
-                <div>
-                  <p className="t-eyebrow text-amber-500 mb-2">{t('aum_eyebrow')}</p>
-                  <p className="font-display text-2xl font-medium mb-2">
-                    {t('aum_label_prefix')} {aumMin}
-                  </p>
-                  <p className="text-sm text-foreground/70 leading-relaxed">
-                    {t('aum_disclaimer')}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <p className="t-body-sm text-foreground/50 mt-6 max-w-3xl">
+            <p className="t-body-sm text-foreground/50 max-w-3xl">
               {t('pricing_note')}
             </p>
           </div>

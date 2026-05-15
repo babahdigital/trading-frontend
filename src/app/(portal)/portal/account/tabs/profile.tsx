@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth/auth-context';
+import { CloseAccountSection } from '@/components/portal/close-account-section';
 
 interface Profile {
   id: string;
@@ -224,6 +225,9 @@ export function ProfileTab() {
           </form>
         </CardContent>
       </Card>
+
+      {/* Danger zone — account closure (Phase 14V soft delete) */}
+      <CloseAccountSection locale="id" />
     </div>
   );
 }

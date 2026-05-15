@@ -29,21 +29,31 @@ const POLLINATIONS_BASE = 'https://image.pollinations.ai/prompt';
 const DEFAULT_MODEL = 'flux'; // Pollinations model name
 
 /**
- * Brand style suffix. Pitched as a professional Bloomberg / Reuters
- * terminal aesthetic — the image should look like an institutional
- * trading desk hero photograph, not a generic AI render.
+ * Brand style suffix — institutional editorial illustration style.
+ *
+ * Sebelumnya prompt minta "Bloomberg trading terminal photography" yang
+ * sering bikin Flux halu (chart fake yang terlihat aneh / angka ngaco).
+ * Pak Abdullah feedback "gambar betul betul jelek, halu — pakai standar
+ * institusional jangan halu".
+ *
+ * Sekarang revamp: minta editorial illustration ala Financial Times /
+ * Harvard Business Review — geometri abstract, line work, minimal palette,
+ * NO fake chart data. Lebih aman dari halusinasi karena tidak meminta
+ * text/angka spesifik yang Flux sering generate jelek.
  */
 const BRAND_PROMPT_SUFFIX =
-  'Style: ultra-detailed professional financial trading terminal photography, '
-  + 'institutional Wall Street aesthetic, Bloomberg-grade visual quality, '
-  + 'dark navy (#0B1220) background with subtle blue gradient depth, '
-  + 'amber (#F5B547) accent highlights on key data points, '
-  + 'green and red candlesticks with crisp wicks and clean bodies, '
-  + 'subtle horizontal gridlines, depth-of-field focus, cinematic lighting, '
-  + '8k resolution, editorial-quality composition, high contrast, sharp details, '
-  + 'volumetric atmosphere, premium quant-finance magazine cover aesthetic, '
-  + 'no logos, no watermarks, photorealistic rendering. '
-  + 'Format: 16:9 cinematic landscape composition.';
+  'Style: minimalist editorial illustration in the style of Financial Times '
+  + 'and Harvard Business Review covers, abstract geometric composition, '
+  + 'institutional editorial design, NOT a photograph and NOT a literal trading screen. '
+  + 'Color palette: deep navy (#0B1220) primary, warm amber (#F5B547) accent, '
+  + 'soft warm paper (#F2F1EA) highlight tones, restrained 3-color palette only. '
+  + 'Visual language: clean vector-like line art, balanced negative space, '
+  + 'subtle geometric forms (circles, rectangles, parallels) suggesting structure '
+  + 'and discipline, NO chart-like content, NO numbers, NO text, NO logos, '
+  + 'NO candlestick imagery, NO trading screen UI. '
+  + 'Lighting: flat editorial design with subtle gradient depth, '
+  + 'magazine cover quality, museum-grade restraint, premium quant-finance journal aesthetic. '
+  + 'Format: 16:9 horizontal landscape composition, magazine cover proportions.';
 
 export interface ImageGenerationOptions {
   /** Pollinations model: 'flux' (default, best quality) | 'turbo' (faster, lower quality) */
@@ -96,16 +106,19 @@ const SLUG_SUBJECTS: Record<string, string> = {
     'comparison dashboard: three columns showing ROI projection curves over 12 months for Signal Service, Copy Trade, and Dedicated VPS, with break-even markers and capital bracket annotations',
 };
 
+// Category hints — pakai abstract editorial visual cues, BUKAN chart literal
+// supaya Flux tidak halusinasi data fake. Mirror Harvard Business Review +
+// Financial Times cover art style.
 const CATEGORY_HINTS: Record<string, string> = {
-  STRATEGY: 'annotated candlestick pattern chart with structural markings, entries, and target zones',
-  RISK: 'risk-return scatter plot or drawdown curve chart with safety threshold lines',
-  EDUCATION: 'step-by-step annotated diagram with numbered labels showing concept flow',
-  CASE_STUDY: 'real event candlestick chart with pre-event, event, post-event markers',
-  COMPLIANCE: 'regulatory framework flowchart with checkmark and cross iconography',
-  OPERATIONS: 'system architecture diagram with nodes and data flow connections',
-  RESEARCH: 'multi-panel data visualization with charts, histograms, and metrics',
-  EXECUTION: 'latency timeline chart or order flow visualization',
-  MARKET_ANALYSIS: 'multi-timeframe candlestick chart with support/resistance levels',
+  STRATEGY: 'abstract geometric composition suggesting pattern recognition: overlapping rectangles forming a coherent structure',
+  RISK: 'concentric circles or balanced scales motif suggesting controlled boundaries and equilibrium',
+  EDUCATION: 'minimalist diagram of three to five connected nodes, like a thought-map without text',
+  CASE_STUDY: 'two-tone before-after split composition with subtle directional arrows',
+  COMPLIANCE: 'restrained checkmark and balanced framework illustration with geometric structure',
+  OPERATIONS: 'abstract network of interconnected dots forming a hexagonal cluster, like infrastructure schema',
+  RESEARCH: 'overlapping translucent geometric panels suggesting layered analysis',
+  EXECUTION: 'horizontal flowing lines converging to a precise focal point, suggesting fast precision',
+  MARKET_ANALYSIS: 'wave-like horizontal forms suggesting market dynamics without literal chart data',
 };
 
 export function buildImagePrompt(

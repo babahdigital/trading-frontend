@@ -403,11 +403,16 @@ body.menu-open {
     overflow: hidden;
   }
 
-  /* ─── Container widths — full bleed on mobile, capped on desktop ─── */
+  /* ─── Container widths — full bleed on mobile, capped on desktop ───
+     Pak Abdullah feedback 2026-05-15: "konten halaman terlalu ketat tidak
+     melebar". Default container-default naik 1200→1280 supaya content
+     breathe lebih di laptop 1440 / 1920. Section-padding pakai clamp inline
+     padding yang sama. Reading-focused page (legal, prose) tetap 720
+     (container-prose) untuk readability. */
   .container-prose { max-width: 720px; margin-inline: auto; width: 100%; }
-  .container-default { max-width: 1200px; margin-inline: auto; width: 100%; }
-  .container-wide { max-width: 1360px; margin-inline: auto; width: 100%; }
-  .container-full { max-width: 1600px; margin-inline: auto; width: 100%; }
+  .container-default { max-width: 1280px; margin-inline: auto; width: 100%; }
+  .container-wide { max-width: 1440px; margin-inline: auto; width: 100%; }
+  .container-full { max-width: 1680px; margin-inline: auto; width: 100%; }
 
   /* ─── Card enterprise — mobile-first padding ───
      On portrait phones the card fills the viewport with tighter inner

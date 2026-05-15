@@ -9,6 +9,7 @@ import { PnlBarChart } from '@/components/charts/pnl-bar-chart';
 import { SkeletonCard, SkeletonChart, SkeletonTable } from '@/components/ui/skeleton';
 import { useAuth } from '@/lib/auth/auth-context';
 import { DiscoveryBanner } from '@/components/portal/discovery-banner';
+import { OnboardingChecklist } from '@/components/portal/onboarding-checklist';
 
 interface StatusData {
   bot_status?: string;
@@ -195,6 +196,9 @@ export default function PortalDashboard() {
       {error && (
         <div className="rounded-md bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-400">{error}</div>
       )}
+
+      {/* Onboarding 4-step checklist — auto-hide saat completed_at != null */}
+      <OnboardingChecklist locale="id" />
 
       {/* Discovery banner — surfaces compelling locked feature for upgrade */}
       <DiscoveryBanner />

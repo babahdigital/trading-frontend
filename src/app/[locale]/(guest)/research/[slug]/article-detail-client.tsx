@@ -362,13 +362,15 @@ export function ArticleDetailClient({ article }: ArticleDetailClientProps) {
                 masih aneh dan acak", cukup ditampilkan di list /research saja.
                 Detail page focus ke reading experience tanpa visual noise. */}
 
-            {/* Body — institutional research prose. Container naik dari
-                max-w-3xl (768px) → max-w-4xl (896px) supaya breathing room
-                lebih lebar di laptop. Mobile tetap full-bleed via padding. */}
+            {/* Body — institutional research prose. Container max-w-5xl (1024px)
+                supaya table + code fence + multi-column comparison punya ruang
+                napas tanpa overflow horizontal di laptop. Article text-prose
+                tetap optimal line-length via prose-research max-width internal.
+                Mobile tetap full-bleed via padding 4. */}
             <section className="py-10 lg:py-14">
-              <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
                 <article
-                  className="prose-research"
+                  className="prose-research mx-auto"
                   dangerouslySetInnerHTML={{ __html: renderMarkdown(body) }}
                 />
               </div>
@@ -376,7 +378,7 @@ export function ArticleDetailClient({ article }: ArticleDetailClientProps) {
 
             {/* Footer back link */}
             <section className="pb-16 border-t border-border">
-              <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+              <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
                 <Link
                   href={`/${locale}/research`}
                   className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"

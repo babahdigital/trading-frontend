@@ -797,10 +797,12 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
                         ? 'border-amber-500 ring-1 ring-amber-500'
                         : 'border-border/60 hover:border-amber-500/30'
                     }`}>
-                      {/* Card header — horizontal layout */}
-                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-1">
+                      {/* Card header — horizontal layout. min-w-0 + flex-wrap
+                          mencegah harga IDR yang panjang (Rp 1.290.000/bulan)
+                          overflow ke kanan layar di mobile. */}
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4 mb-6 min-w-0">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center flex-wrap gap-2 sm:gap-3 mb-1">
                             <h3 className="text-lg font-medium text-foreground">{t(`tier_${plan.id}_name`)}</h3>
                             {plan.popular && (
                               <span className="px-2.5 py-0.5 rounded-full bg-amber-500 text-black text-[11px] font-medium tracking-wider uppercase">
@@ -810,8 +812,8 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
                           </div>
                           <p className="t-body-sm text-muted-foreground">{t(`tier_${plan.id}_tagline`)}</p>
                         </div>
-                        <div className="flex items-baseline gap-1 sm:text-right shrink-0">
-                          <span className="font-mono text-3xl font-semibold text-foreground">{resolvePrice(plan.price)}</span>
+                        <div className="flex items-baseline flex-wrap gap-x-1.5 gap-y-0.5 sm:text-right shrink-0 min-w-0 max-w-full">
+                          <span className="font-mono text-2xl sm:text-3xl font-semibold text-foreground break-words">{resolvePrice(plan.price)}</span>
                           <span className="t-body-sm text-muted-foreground">{t(plan.periodKey)}</span>
                         </div>
                       </div>

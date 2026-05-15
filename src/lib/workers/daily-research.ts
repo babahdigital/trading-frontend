@@ -43,20 +43,72 @@ interface DayConfig {
   fetchData: () => Promise<Record<string, unknown> | null>;
 }
 
+// Editorial guardrails — disuntik ke setiap research prompt supaya AI generated
+// content presisi, evidence-based, dan SEO-aware. Strategi:
+//   1. Anti-hallucination clamp — wajib cite source dari DATA_JSON (no padding).
+//   2. Markdown rich rendering — formula `$...$`, table, highlight `==...==`,
+//      code fence — semua sudah disupport oleh renderMarkdown di FE.
+//   3. Internal link awareness — link ke halaman platform terkait untuk topical
+//      authority SEO (boost time-on-site + crawl depth).
+//   4. Backend data substrate aware — AI tahu market-substrate-api ada di
+//      VPS1:8220 (SMC zones, key levels, sessions, news) supaya bisa rujuk
+//      data primitives saat narate.
 const COMMON_TAIL = `
 
-REQUIREMENT OUTPUT:
-- Tulis dalam Bahasa Indonesia profesional, institutional tone.
-- Markdown: heading ## (min 3), bullet points, tabel kalau perbandingan.
-- Struktur WAJIB: 1 paragraf hook → 3-5 ## section → 1 list "Key Takeaway" → 1 baris disclaimer.
-- Panjang: 800-1500 kata.
-- JANGAN fabrikasi data — hanya gunakan DATA_JSON. Kalau data sparse, artikel pendek lebih baik daripada padding.
-- Akhiri dengan: "Konten edukasi — bukan saran investasi. Trading forex melibatkan risiko kehilangan modal."
+═══ EDITORIAL GUARDRAILS — WAJIB DIPATUHI ═══
 
-DATA INJECTED:
+ANTI-HALUSINASI (paling kritis):
+- HANYA narasikan fakta dari DATA_JSON. Jangan invent angka, pair, atau event yang tidak ada di data.
+- Jika DATA_JSON kosong / sparse, lebih baik artikel pendek (500 kata) yang akurat daripada padding ngawur.
+- Setiap angka spesifik (win rate, R:R, lot size, level harga) HARUS direference balik ke field di DATA_JSON.
+- Tidak boleh klaim "win rate 75%" atau "+5% return bulan ini" tanpa source data eksplisit.
+- Forward-looking statements WAJIB dalam bahasa hipotetis: "potensi", "skenario", "indikasi" — bukan prediksi.
+
+MARKDOWN RICH FORMATTING (renderer support penuh):
+- Headings: ## (h2 mandatory min 3), ### (h3 untuk sub-sections)
+- Lists: - bullet, 1. ordered
+- Tabel WAJIB kalau ada perbandingan numerik:
+  | Pair | Win Rate | R:R | Notes |
+  | --- | --- | --- | --- |
+  | EURUSD | 62% | 1.8 | ... |
+- Formula inline: \`$E = R \\cdot p - (1-p)$\` (Kelly criterion expectancy)
+- Formula block: \`$$\\sigma_t = \\sqrt{\\frac{1}{N}\\sum(r_i - \\bar{r})^2}$$\` (volatility std-dev)
+- Highlight insight kritis: ==text== untuk callout
+- Code fence \`\`\`python untuk pseudo-code algorithm
+
+INTERNAL LINKING (topical authority + UX):
+Sebar 2-4 link internal ke halaman BabahAlgo relevan, misal:
+- [SMC Scalper strategy](/platform/strategies/smc) — saat bahas SMC/Quasimodo
+- [SMC Swing](/platform/strategies/smc-swing) — saat bahas H1-H4 setup
+- [Pivot Mean Reversion](/platform/strategies/pivot-mean-reversion) — saat bahas fade-to-pivot
+- [Risk Framework](/platform/risk-framework) — saat bahas position sizing / drawdown
+- [Performance Track Record](/performance) — saat bahas hasil aktual
+- [Execution Architecture](/platform/execution) — saat bahas ZeroMQ/MT5 bridge
+- [Tradeable Instruments](/platform/instruments) — saat bahas pair coverage
+Jangan over-link (max 5 per artikel) dan harus contextual — bukan footer link dump.
+
+DATA SUBSTRATE AWARENESS (backend yang power BabahAlgo):
+BabahAlgo punya market-substrate-api (VPS1:8220) yang expose data primitives:
+- SMC zones (order block, FVG, breaker block) dari /v1/substrate
+- Key levels (daily/weekly pivot, S/R) dari /v1/key-levels
+- Trading sessions (Asia/London/NY) dari /v1/sessions
+- Upcoming news (high-impact events) dari /v1/upcoming-news
+Sebut data substrate ini saat relevan supaya pembaca paham riset bukan opini — tapi grounded di telemetri sistem.
+
+SEO + TYPOGRAPHY:
+- Hook 1 paragraf (50-80 kata) — bukan basa-basi, langsung value proposition.
+- 3-5 H2 sections, masing-masing 150-300 kata.
+- Tabel atau list di setiap section yang membandingkan/membedakan.
+- Penutup: list "Key Takeaway" (3-5 bullet, masing-masing <20 kata).
+- 1 baris disclaimer di akhir (mandatory): "Konten edukasi — bukan saran investasi. Trading forex melibatkan risiko kehilangan modal."
+
+PANJANG: 800-1500 kata (artikel pendek 500 kata OK kalau data sparse).
+BAHASA: Bahasa Indonesia profesional, institutional tone. Avoid clickbait / hype words.
+
+DATA INJECTED (gunakan ini sebagai satu-satunya sumber kebenaran):
 {{DATA_JSON}}
 
-Return ONLY markdown body, tanpa preamble, tanpa code fence.`;
+Return ONLY markdown body, tanpa preamble, tanpa code fence wrapper.`;
 
 const dayConfigs: Record<number, DayConfig> = {
   1: {
@@ -71,10 +123,16 @@ const dayConfigs: Record<number, DayConfig> = {
       } catch { return null; }
     },
     buildPrompt: async (data) => ({
-      titleId: `Rangkuman Pasar Mingguan — ${formatDateId(new Date())}`,
-      titleEn: `Weekly Market Recap — ${formatDateEn(new Date())}`,
-      keywords: ['weekly recap', 'forex market', 'top signals', 'win rate', 'institutional analysis'],
-      prompt: `Kamu adalah quant analyst BabahAlgo. Tulis "Weekly Market Recap" untuk minggu ini, ringkas top signals, market overview, key observations, risk notes — dari data weekly-recap berikut.${COMMON_TAIL}`.replace('{{DATA_JSON}}', JSON.stringify(data, null, 2)),
+      titleId: `Rangkuman Pasar Mingguan ${formatDateId(new Date())}: Sinyal Forex & Win Rate Institusional`,
+      titleEn: `Weekly Forex Market Recap ${formatDateEn(new Date())}: Top Signals & Win Rate Analysis`,
+      keywords: ['weekly forex recap', 'top trading signals', 'win rate analysis', 'SMC institutional', 'pair performance'],
+      prompt: `Kamu adalah quant analyst BabahAlgo. Tulis "Weekly Market Recap" yang grounded di data:
+- Ringkas top signals dari DATA_JSON (sebut pair spesifik + win rate dari data, jangan generalisasi).
+- Market overview: identifikasi 2-3 pair best performer + 1-2 worst performer dari data, narasikan kenapa (ngacu structure events / news jika ada).
+- Key observations: 3 pattern actionable dari data (correlation cluster, session bias, atau confluence pattern).
+- Risk notes: highlight pair dengan drawdown atau slippage signifikan.
+- Sebut data substrate (SMC zones, key levels) sebagai source primitives kalau relevan.
+- Internal link ke /platform/strategies/smc atau /performance jika narasi menyentuh strategi/track record.${COMMON_TAIL}`.replace('{{DATA_JSON}}', JSON.stringify(data, null, 2)),
     }),
   },
   2: {
@@ -89,10 +147,16 @@ const dayConfigs: Record<number, DayConfig> = {
       } catch { return null; }
     },
     buildPrompt: async (data) => ({
-      titleId: `AI Lesson of the Day — ${formatDateId(new Date())}`,
-      titleEn: `AI Lesson of the Day — ${formatDateEn(new Date())}`,
-      keywords: ['ai trading', 'algorithm lesson', 'trading insight', 'institutional ai'],
-      prompt: `Kamu adalah AI trading educator. Pilih SATU pola atau insight dari data top-signals berikut, dan jelaskan ke trader retail dengan analogi yang mudah dipahami. Format: hook → konsep utama → contoh dari data → cara apply → takeaway.${COMMON_TAIL}`.replace('{{DATA_JSON}}', JSON.stringify(data, null, 2)),
+      titleId: `Pelajaran AI Trading: Cara Membaca Konfluensi SMC ${formatDateId(new Date())}`,
+      titleEn: `AI Trading Lesson: How to Read SMC Confluence ${formatDateEn(new Date())}`,
+      keywords: ['ai trading lesson', 'smc confluence', 'algorithmic trading insight', 'institutional pattern', 'retail to pro'],
+      prompt: `Kamu adalah AI trading educator BabahAlgo. Pilih SATU pola atau insight kongkret dari DATA_JSON top-signals, jelaskan ke trader retail:
+- Hook: kenapa pola ini matter (1 paragraf, evidence-driven dari data).
+- Konsep utama: definisi visual + statistical edge (sertakan formula expectancy $E = p \\cdot R - (1-p)$ atau Kelly fraction kalau pas).
+- Contoh konkret dari DATA_JSON (sebut pair spesifik + timestamp).
+- Cara apply di MT5: entry trigger, SL placement, TP staging (TP1/TP2/TP3 ratio).
+- Common pitfall retail trader saat trade pattern ini.
+- Internal link ke /platform/strategies/smc atau /platform/strategies/smc-swing.${COMMON_TAIL}`.replace('{{DATA_JSON}}', JSON.stringify(data, null, 2)),
     }),
   },
   3: {
@@ -107,10 +171,25 @@ const dayConfigs: Record<number, DayConfig> = {
       } catch { return null; }
     },
     buildPrompt: async (data) => ({
-      titleId: `Studi Kasus Trade — ${formatDateId(new Date())}`,
-      titleEn: `Trade Case Study — ${formatDateEn(new Date())}`,
-      keywords: ['trade case study', 'high confidence signal', 'forex analysis', 'institutional execution'],
-      prompt: `Kamu adalah trader analyst BabahAlgo. Pilih satu trade dari data top-signals, narasikan dari sudut pandang bot: market context → entry rationale → execution → outcome → lesson. Sertakan tabel singkat metrics (entry, SL, TP, confidence, outcome).${COMMON_TAIL}`.replace('{{DATA_JSON}}', JSON.stringify(data, null, 2)),
+      titleId: `Studi Kasus Trade ${formatDateId(new Date())}: Anatomi Entry High-Confidence SMC`,
+      titleEn: `Trade Case Study ${formatDateEn(new Date())}: Anatomy of a High-Confidence SMC Entry`,
+      keywords: ['forex trade case study', 'smc entry', 'high confidence signal', 'institutional execution', 'rr ratio'],
+      prompt: `Kamu adalah trader analyst BabahAlgo. Pilih satu trade dari DATA_JSON top-signals (yang paling representatif), narasikan dari sudut pandang bot:
+- Market context (1 paragraf): session, news landscape, broader trend dari data substrate.
+- Entry rationale: confluence apa saja yang trigger (SMC zone hit, structure shift, key level retest — semua dari data).
+- Execution: entry price, lot size (vol-target), SL placement (anchored to structure), TP staging.
+- Outcome: realized R, time-in-trade, exit reason.
+- Lesson: 1-2 takeaway untuk retail trader.
+WAJIB tabel metrics di tengah artikel:
+| Metric | Value |
+| --- | --- |
+| Entry | (dari data) |
+| SL | (dari data) |
+| TP1/TP2/TP3 | (dari data) |
+| R:R Target | (dari data) |
+| AI Confidence | (dari data) |
+| Outcome | (dari data) |
+Internal link ke /platform/strategies/smc atau /platform/execution untuk technical detail.${COMMON_TAIL}`.replace('{{DATA_JSON}}', JSON.stringify(data, null, 2)),
     }),
   },
   4: {
@@ -129,10 +208,19 @@ const dayConfigs: Record<number, DayConfig> = {
       } catch { return null; }
     },
     buildPrompt: async (data) => ({
-      titleId: `Analisis Korelasi & Sesi — ${formatDateId(new Date())}`,
-      titleEn: `Correlation & Session Analysis — ${formatDateEn(new Date())}`,
-      keywords: ['correlation analysis', 'forex session', 'pair correlation', 'institutional risk'],
-      prompt: `Kamu adalah portfolio risk analyst. Berdasarkan recent pair briefs di DATA_JSON, identifikasi cluster korelasi pair, sesi trading dominan, dan implikasi risk management untuk trader retail. Sertakan tabel pair-bias dan rekomendasi position sizing.${COMMON_TAIL}`.replace('{{DATA_JSON}}', JSON.stringify(data, null, 2)),
+      titleId: `Analisis Korelasi Pair & Bias Sesi ${formatDateId(new Date())}: Diversifikasi Risk untuk Trader Forex`,
+      titleEn: `Pair Correlation & Session Bias ${formatDateEn(new Date())}: Risk Diversification for Forex Traders`,
+      keywords: ['forex pair correlation', 'trading session analysis', 'risk diversification', 'institutional risk', 'multi-pair portfolio'],
+      prompt: `Kamu adalah portfolio risk analyst BabahAlgo. Berdasarkan recent pair briefs di DATA_JSON:
+- Identifikasi cluster korelasi (e.g. EUR/CHF/GBP basket vs commodity USD).
+- Sesi trading dominan dari data (Asia/London/NY) — pair mana yang active di sesi mana.
+- Bias fundamental (bullish/bearish) dengan confluence score per pair.
+WAJIB tabel pair-bias di tengah artikel:
+| Pair | Session | Bias | Confluence Score | Notes |
+| --- | --- | --- | --- | --- |
+| (sebut pair dari DATA_JSON) | ... | ... | ... | ... |
+- Rekomendasi position sizing pakai correlation-aware approach: kalau EURUSD + GBPUSD highly correlated, total exposure di kedua pair = 1.5× single-pair limit, bukan 2× (correlation guard di sistem BabahAlgo).
+- Internal link ke /platform/risk-framework untuk technical detail correlation guard.${COMMON_TAIL}`.replace('{{DATA_JSON}}', JSON.stringify(data, null, 2)),
     }),
   },
   5: {
@@ -140,12 +228,22 @@ const dayConfigs: Record<number, DayConfig> = {
     category: 'RISK',
     imageSlugHint: 'risk-management-drawdown-protective-bars',
     fetchData: async () => null, // Conceptual, no specific data
-    buildPrompt: async () => ({
-      titleId: `Insight Risk Management — ${formatDateId(new Date())}`,
-      titleEn: `Risk Management Insight — ${formatDateEn(new Date())}`,
-      keywords: ['risk management', 'kelly criterion', 'position sizing', 'drawdown protection'],
-      prompt: `Kamu adalah risk specialist BabahAlgo. Tulis insight risk management harian — pilih satu konsep (vol-scalar sizing, correlation guard, daily loss cap, breakeven discipline, atau time decay exit) dan elaborasi dengan contoh konkret. Sertakan formula atau heuristik aktual.${COMMON_TAIL}`.replace('{{DATA_JSON}}', '{}'),
-    }),
+    buildPrompt: async () => {
+      const concepts = ['Vol-Target Sizing', 'Correlation Guard', 'Daily Loss Cap', 'Kelly Fraction', 'Drawdown Recovery Math'];
+      const pick = concepts[new Date().getDate() % concepts.length];
+      return {
+        titleId: `Risk Management Forex: ${pick} untuk Trader Profesional`,
+        titleEn: `Forex Risk Management: ${pick} for Professional Traders`,
+        keywords: [pick.toLowerCase().replace(/\s+/g, '-'), 'forex risk management', 'position sizing', 'institutional discipline'],
+        prompt: `Kamu adalah risk specialist BabahAlgo. Tulis deep-dive konsep "${pick}":
+- Definisi + intuisi matematis (sertakan formula block $$...$$).
+- Contoh kongkret: misal "Akun \\$10K, daily DD cap 2% = \\$200 hard stop. Bot otomatis halt trading saat hit \\$200 loss kumulatif harian."
+- Kenapa retail trader sering gagal eksekusi konsep ini (psikologi vs sistem).
+- Bagaimana BabahAlgo enforce konsep ini di kernel: vol-target sizing pakai 1% per trade, scaled by ATR(14); correlation guard cap total exposure 1.5× single-pair; daily DD trigger kill-switch state machine.
+- 3 actionable rules untuk pembaca apply sendiri di MT5.
+- Internal link wajib ke /platform/risk-framework (technical detail 12-layer risk).${COMMON_TAIL}`.replace('{{DATA_JSON}}', '{}'),
+      };
+    },
   },
   6: {
     type: 'strategy',
@@ -153,13 +251,29 @@ const dayConfigs: Record<number, DayConfig> = {
     imageSlugHint: 'trading-strategy-deep-dive-annotated-chart',
     fetchData: async () => null,
     buildPrompt: async () => {
-      const strategies = ['SMC Order Block', 'Wyckoff Spring', 'Fibonacci Confluence', 'ATR Breakout', 'Quasimodo Pattern', 'Liquidity Sweep'];
+      // 3 strategi inti BabahAlgo + 3 pattern teknikal underlying = 6 rotation slot
+      // sesuai backend reality (no Wyckoff/Astronacci/AI Momentum drift).
+      const strategies = [
+        { name: 'SMC Scalper (Quasimodo Family)', slug: 'smc' },
+        { name: 'SMC Swing H1-H4', slug: 'smc-swing' },
+        { name: 'Pivot Mean Reversion', slug: 'pivot-mean-reversion' },
+        { name: 'Order Block Identification', slug: 'smc' },
+        { name: 'Liquidity Sweep + FVG', slug: 'smc' },
+        { name: 'Daily Pivot Fade Setup', slug: 'pivot-mean-reversion' },
+      ];
       const pick = strategies[new Date().getDate() % strategies.length];
       return {
-        titleId: `Strategi: ${pick} — Panduan Mendalam`,
-        titleEn: `Strategy: ${pick} — Deep Dive`,
-        keywords: [pick.toLowerCase(), 'trading strategy', 'institutional pattern', 'forex setup'],
-        prompt: `Kamu adalah technical analyst senior. Tulis deep-dive ${pick}: identifikasi visual, kondisi entry, validasi konfirmasi, common mistakes retail, dan integrasi dengan multi-timeframe context.${COMMON_TAIL}`.replace('{{DATA_JSON}}', '{}'),
+        titleId: `Strategi Trading Forex: ${pick.name} — Panduan Lengkap`,
+        titleEn: `Forex Trading Strategy: ${pick.name} — Complete Guide`,
+        keywords: [pick.name.toLowerCase(), 'forex trading strategy', 'smc institutional', 'multi-timeframe setup'],
+        prompt: `Kamu adalah technical analyst senior BabahAlgo. Tulis deep-dive "${pick.name}":
+- Identifikasi visual (cara recognize pattern di chart, sertakan list checklist).
+- Kondisi entry (precondition + trigger).
+- Validasi konfirmasi (confluence yang harus hit: structure shift / liquidity sweep / news context).
+- Multi-timeframe context: H4 bias → H1 structure → M15 entry → M5 execution.
+- 3-5 common mistakes retail trader saat trade pattern ini.
+- Bagaimana BabahAlgo bot eksekusi setup ini secara otomatis (AI Brain modules: Bandit Routing pilih confluence, Kelly Sizing untuk lot, Markov TP).
+- Internal link ke /platform/strategies/${pick.slug} (strategy page) dan /platform/execution (technical bridge).${COMMON_TAIL}`.replace('{{DATA_JSON}}', '{}'),
       };
     },
   },
@@ -176,10 +290,17 @@ const dayConfigs: Record<number, DayConfig> = {
       } catch { return null; }
     },
     buildPrompt: async (data) => ({
-      titleId: `Preview Pekan Depan — ${formatDateId(new Date())}`,
-      titleEn: `Week Ahead Preview — ${formatDateEn(new Date())}`,
-      keywords: ['week ahead', 'economic calendar', 'forex preview', 'NFP', 'FOMC', 'CPI'],
-      prompt: `Kamu adalah macro analyst. Berdasarkan economic calendar data, identifikasi event high-impact pekan depan dan implikasi positioning. Sertakan tabel event-impact-pair.${COMMON_TAIL}`.replace('{{DATA_JSON}}', JSON.stringify(data, null, 2)),
+      titleId: `Forex Week Ahead ${formatDateId(new Date())}: Event Kalender Ekonomi & Positioning`,
+      titleEn: `Forex Week Ahead ${formatDateEn(new Date())}: Economic Calendar Events & Positioning`,
+      keywords: ['forex week ahead', 'economic calendar', 'NFP forecast', 'FOMC', 'CPI inflation', 'institutional positioning'],
+      prompt: `Kamu adalah macro analyst BabahAlgo. Berdasarkan economic calendar data:
+- Identifikasi 3-5 event high-impact pekan depan (NFP, FOMC, CPI, ECB, BOJ — apa pun yang ada di data).
+- WAJIB tabel event-impact-pair:
+| Hari | Event | Currency | Impact | Pair Affected |
+| --- | --- | --- | --- | --- |
+- Skenario positioning: bullish / bearish / neutral untuk pair primary affected.
+- News blackout reminder: BabahAlgo halt trading 30 min pre-news untuk high-impact.
+- Internal link ke /platform/risk-framework (news blackout layer) atau /portal/notifications.${COMMON_TAIL}`.replace('{{DATA_JSON}}', JSON.stringify(data, null, 2)),
     }),
   },
 };

@@ -425,8 +425,11 @@ function MobileMenu({
         </button>
       </div>
 
-      {/* Scrollable body */}
-      <div className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-6 py-6 space-y-7">
+      {/* Scrollable body — pb-28 di mobile supaya last menu item tidak ketutup
+          ChatWidget icon (fixed bottom-4 right-4, ~56px diameter + margin).
+          sm+ tidak butuh karena chat icon di-anchor ke sm:bottom-6 yang ada
+          space natural dari viewport bottom. */}
+      <div className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-6 py-6 pb-28 sm:pb-6 space-y-7">
         <div>
           <MegaMenuHeading>{tm('platform_heading')}</MegaMenuHeading>
           <div className="space-y-1 pl-1">

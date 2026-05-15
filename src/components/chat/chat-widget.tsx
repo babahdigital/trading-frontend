@@ -118,6 +118,9 @@ export function ChatWidget() {
 
   const [isOpen, setIsOpen] = useState(false);
   const [hasNewMessage, setHasNewMessage] = useState(false);
+  // Hide chat bubble saat mobile nav menu open — supaya tidak overlap dengan
+  // last menu items di bottom. Observe DOM untuk #mobile-nav-panel presence.
+  const [navMenuOpen, setNavMenuOpen] = useState(false);
   const [input, setInput] = useState('');
   const [showJumpButton, setShowJumpButton] = useState(false);
   // Lead gate: true = sudah submit nama/email/telpon (atau logged-in).
@@ -230,6 +233,18 @@ export function ChatWidget() {
     }
   }, [messages, isOpen]);
 
+  // Watch for mobile nav menu open state via DOM. Enterprise nav renders menu
+  // as portal dengan id="mobile-nav-panel". MutationObserver lightweight,
+  // hanya monitor child list di body.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const checkMenu = () => setNavMenuOpen(!!document.getElementById('mobile-nav-panel'));
+    checkMenu();
+    const observer = new MutationObserver(checkMenu);
+    observer.observe(document.body, { childList: true, subtree: false });
+    return () => observer.disconnect();
+  }, []);
+
   // iOS-safe body scroll lock when chat is fullscreen on mobile
   useEffect(() => {
     if (!isOpen) return;
@@ -339,9 +354,9 @@ export function ChatWidget() {
 
   return (
     <>
-      {/* Bubble button */}
+      {/* Bubble button — hide saat mobile nav menu open supaya tidak overlap. */}
       <AnimatePresence>
-        {!isOpen && (
+        {!isOpen && !navMenuOpen && (
           <motion.button
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}

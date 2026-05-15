@@ -26,7 +26,6 @@ import { getOpenRouter, DEFAULT_MODEL } from '@/lib/ai/openrouter';
 import { translateText } from '@/lib/ai/content';
 import { generateArticleImage } from '@/lib/ai/image-generator';
 import { generateSeoMeta } from '@/lib/ai/seo-meta';
-import { applyAffiliateLinks } from '@/lib/blog/affiliate-links';
 import { injectInternalLinks, invalidateInternalLinkCache } from '@/lib/blog/internal-links';
 import { proxyToMasterBackend } from '@/lib/proxy/vps-client';
 import { createLogger } from '@/lib/logger';
@@ -254,8 +253,8 @@ export async function runDailyResearch(): Promise<DailyResearchResult> {
 
     const readTime = Math.max(3, Math.ceil(wordCount / 220));
 
-    // Post-process: affiliate links + internal cross-references
-    body = await applyAffiliateLinks(body);
+    // Post-process: internal cross-references (affiliate link injection dihapus
+    // 2026-05-15 — zero-custody positioning, no broker rebate links in content).
     const { body: linkedBody, linkedSlugs } = await injectInternalLinks(body, {
       ownSlug: slug,
       maxLinks: 5,

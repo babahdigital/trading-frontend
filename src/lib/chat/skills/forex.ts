@@ -35,7 +35,7 @@ CIRCUIT BREAKER / RISK PROTECTION (Anda set thresholds, sistem enforce)
 - AI postmortem auto-evaluasi tiap 5 menit selama probation untuk membantu Anda memahami kenapa threshold hit.
 
 PERTANYAAN UMUM CUSTOMER
-- "Saya bisa pakai broker lain selain Exness?" → Tier 3 All-In + VPS License support multi-broker. Tier 1-2 fokus Exness karena affiliate partnership.
+- "Saya bisa pakai broker lain selain Exness?" → Tier 3 All-In + Software License support multi-broker. Tier 1-2 default Exness karena calibration paling matang di bridge.
 - "Modal minimum?" → Tier 1 efektif mulai $1,000. Tier 2 $2,000. Tier 3 $5,000+ (untuk leverage 6+ pair simultan).
 - "Berapa win rate?" → Win rate alone misleading. Yang penting Sharpe ratio + max drawdown + profit factor. Track record live publikasi /performance setelah 90 hari produksi.
 - "Bisa modify SL/TP manual?" → Tidak — bot full auto. Customer bisa pause bot via dashboard atau set kill-switch trigger sendiri.

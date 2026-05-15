@@ -43,8 +43,6 @@ export interface CompanySettings {
   linkedinUrl: string;
   telegramUrl: string;
   instagramUrl: string;
-  /** Affiliate broker (Exness, dll) */
-  exnessAffiliateUrl: string;
   /** Refund window untuk first-time subscriber (hari) — 0 = no refund */
   refundPolicyDays: number;
 }
@@ -68,7 +66,6 @@ export const COMPANY_DEFAULTS: CompanySettings = {
   linkedinUrl: '',
   telegramUrl: 'https://t.me/babahalgo',
   instagramUrl: '',
-  exnessAffiliateUrl: '',
   refundPolicyDays: 7,
 };
 
@@ -91,7 +88,6 @@ const SETTING_KEYS = [
   'company.linkedin_url',
   'company.telegram_url',
   'company.instagram_url',
-  'company.exness_affiliate_url',
   'company.refund_policy_days',
 ] as const;
 
@@ -116,7 +112,6 @@ const KEY_TO_FIELD: Record<SettingKey, keyof CompanySettings> = {
   'company.linkedin_url': 'linkedinUrl',
   'company.telegram_url': 'telegramUrl',
   'company.instagram_url': 'instagramUrl',
-  'company.exness_affiliate_url': 'exnessAffiliateUrl',
   'company.refund_policy_days': 'refundPolicyDays',
 };
 

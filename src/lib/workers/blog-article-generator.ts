@@ -25,7 +25,6 @@ import { getOpenRouter, DEFAULT_MODEL } from '@/lib/ai/openrouter';
 import { translateText } from '@/lib/ai/content';
 import { generateArticleImage } from '@/lib/ai/image-generator';
 import { generateSeoMeta } from '@/lib/ai/seo-meta';
-import { applyAffiliateLinks } from '@/lib/blog/affiliate-links';
 import { injectInternalLinks, invalidateInternalLinkCache } from '@/lib/blog/internal-links';
 import { proxyToMasterBackend } from '@/lib/proxy/vps-client';
 import { createLogger } from '@/lib/logger';
@@ -254,10 +253,9 @@ async function generateOneTopic(topic: BlogTopic): Promise<{ articleId: string }
     throw new Error(`Validation failed: ${validation.errors.join('; ')}`);
   }
 
-  // Post-process: affiliate link injection (Exness etc.) + internal
-  // article linking (SEO juice via cross-references). Both functions
-  // protect existing markdown links + code blocks from double-wrapping.
-  healed = await applyAffiliateLinks(healed);
+  // Post-process: internal article linking (cross-reference SEO).
+  // Affiliate link injection dihapus 2026-05-15 — zero-custody positioning,
+  // tidak ada broker rebate link di body artikel.
   const { body: linkedBody, linkedSlugs } = await injectInternalLinks(healed, {
     ownSlug: topic.slug,
     maxLinks: 5,

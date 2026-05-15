@@ -28,7 +28,6 @@ export async function GET() {
       whatsappUrl: waUrl,
       whatsappLabel: waUrl ? 'WhatsApp' : null,
       telegramUrl: c.telegramUrl || null,
-      exnessUrl: c.exnessAffiliateUrl || null,
     });
   } catch (err) {
     log.warn(`contact-info read failed: ${err instanceof Error ? err.message : 'unknown'}`);
@@ -37,7 +36,6 @@ export async function GET() {
       whatsappUrl: null,
       whatsappLabel: null,
       telegramUrl: 'https://t.me/babahalgo',
-      exnessUrl: null,
     });
   }
 }

@@ -49,7 +49,6 @@ const putSchema = z.object({
   linkedinUrl: z.string().url().or(z.literal('')).optional(),
   telegramUrl: z.string().url().or(z.literal('')).optional(),
   instagramUrl: z.string().url().or(z.literal('')).optional(),
-  exnessAffiliateUrl: z.string().url().or(z.literal('')).optional(),
   refundPolicyDays: z.number().int().min(0).max(90).optional(),
 });
 

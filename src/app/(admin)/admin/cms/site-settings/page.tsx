@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CmsPageHeader } from '@/components/cms/page-header';
 import { useAuth } from '@/lib/auth/auth-context';
-import { Save, Plus, Trash2 } from 'lucide-react';
+import { Save, Plus } from 'lucide-react';
 
 interface SiteSetting {
   id: string;
@@ -17,16 +17,6 @@ interface SiteSetting {
 }
 
 const KNOWN_SETTINGS: Record<string, { label: string; description: string; placeholder?: string }> = {
-  exness_affiliate_url: {
-    label: 'Exness Affiliate URL',
-    description: 'Setiap kata "Exness" di artikel blog otomatis di-wrap menjadi link ke URL ini. Default fallback: # (no-op).',
-    placeholder: 'https://one.exnesstrack.org/intl/en/a/...',
-  },
-  vps1_affiliate_url: {
-    label: 'VPS Provider Affiliate URL',
-    description: 'URL referral untuk VPS provider yang direkomendasikan customer (Hostinger, Vultr, dll).',
-    placeholder: 'https://example.com/?ref=babahalgo',
-  },
   brevo_unsubscribe_url: {
     label: 'Newsletter Unsubscribe URL',
     description: 'Link unsubscribe untuk email yang dikirim Brevo. Wajib untuk compliance CAN-SPAM.',
@@ -83,16 +73,6 @@ export default function SiteSettingsPage() {
     fetchSettings();
   }
 
-  async function handleApplyAffiliateLinks() {
-    if (!confirm('Apply affiliate + internal links ke semua artikel published? Ini menulis ulang body — tidak destructive tapi sebaiknya backup dulu.')) return;
-    const res = await fetch('/api/admin/articles/apply-links', {
-      method: 'POST',
-      headers: getAuthHeaders(),
-    });
-    const data = await res.json();
-    alert(`Applied to ${data.affected ?? 0} articles. ${data.linkedTotal ?? 0} internal links + ${data.affiliatesTotal ?? 0} affiliate replacements added.`);
-  }
-
   // Display known settings first, then any custom ones
   const knownEntries = Object.entries(KNOWN_SETTINGS);
   const knownKeys = new Set(knownEntries.map(([k]) => k));
@@ -104,11 +84,8 @@ export default function SiteSettingsPage() {
       <div className="flex items-center justify-between">
         <CmsPageHeader
           title="Site Settings"
-          description="Key-value config global — affiliate URLs, integration tokens, feature toggles. Read by content workers + components."
+          description="Key-value config global — integration tokens, feature toggles, compliance URLs. Read by content workers + components."
         />
-        <Button variant="outline" onClick={handleApplyAffiliateLinks}>
-          Apply links to all articles
-        </Button>
       </div>
 
       {loading ? (
@@ -118,7 +95,7 @@ export default function SiteSettingsPage() {
           {/* Known/curated settings (always shown, even if not in DB yet) */}
           <Card>
             <CardHeader>
-              <CardTitle>Affiliate &amp; integrations</CardTitle>
+              <CardTitle>Integrations &amp; compliance</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {knownEntries.map(([key, meta]) => {

@@ -67,7 +67,6 @@ interface ContactInfo {
   whatsappUrl: string | null;
   whatsappLabel: string | null;
   telegramUrl: string | null;
-  exnessUrl: string | null;
 }
 
 const FALLBACK_CONTACT: ContactInfo = {
@@ -75,7 +74,6 @@ const FALLBACK_CONTACT: ContactInfo = {
   whatsappUrl: null,
   whatsappLabel: null,
   telegramUrl: 'https://t.me/babahalgo',
-  exnessUrl: null,
 };
 
 export function EnterpriseFooter() {
@@ -209,20 +207,11 @@ export function EnterpriseFooter() {
           <p className="text-xs text-muted-foreground">
             &copy; {new Date().getFullYear()} CV Babah Digital. {locale === 'id' ? 'Hak cipta dilindungi.' : 'All rights reserved.'}
           </p>
-          {contact.exnessUrl && (
-            <p className="text-xs text-muted-foreground">
-              {locale === 'id' ? 'Trading via' : 'Trading via'}{' '}
-              <a
-                href={contact.exnessUrl}
-                target="_blank"
-                rel="noopener noreferrer sponsored"
-                className="hover:text-amber-400 transition-colors underline underline-offset-2"
-              >
-                Exness
-              </a>{' '}
-              &mdash; {locale === 'id' ? 'Mitra Broker Teregulasi' : 'Regulated Broker Partner'}
-            </p>
-          )}
+          <p className="text-xs text-muted-foreground">
+            {locale === 'id'
+              ? 'Tech provider · Zero-custody · No referral'
+              : 'Tech provider · Zero-custody · No referral'}
+          </p>
         </div>
       </div>
     </footer>

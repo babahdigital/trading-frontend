@@ -27,7 +27,6 @@ interface CompanySettings {
   linkedinUrl: string;
   telegramUrl: string;
   instagramUrl: string;
-  exnessAffiliateUrl: string;
   refundPolicyDays: number;
 }
 
@@ -35,7 +34,7 @@ const EMPTY: CompanySettings = {
   name: '', legalEntity: '', tagline: '', taglineEn: '', logoUrl: '', logoDarkUrl: '',
   address: '', phone: '', whatsappDigits: '', emailGeneral: '', emailCompliance: '',
   emailSupport: '', country: '', foundedYear: '', twitterUrl: '', linkedinUrl: '',
-  telegramUrl: '', instagramUrl: '', exnessAffiliateUrl: '', refundPolicyDays: 7,
+  telegramUrl: '', instagramUrl: '', refundPolicyDays: 7,
 };
 
 export default function CompanySettingsPage() {
@@ -167,7 +166,7 @@ export default function CompanySettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Globe className="h-4 w-4" /> Social & Affiliate
+            <Globe className="h-4 w-4" /> Social
           </CardTitle>
         </CardHeader>
         <CardContent className="grid md:grid-cols-2 gap-4">
@@ -175,7 +174,6 @@ export default function CompanySettingsPage() {
           <Field label="LinkedIn URL" value={data.linkedinUrl} onChange={(v) => set('linkedinUrl', v)} placeholder="https://linkedin.com/company/..." />
           <Field label="Telegram URL" value={data.telegramUrl} onChange={(v) => set('telegramUrl', v)} placeholder="https://t.me/babahalgo" />
           <Field label="Instagram URL" value={data.instagramUrl} onChange={(v) => set('instagramUrl', v)} placeholder="https://instagram.com/..." />
-          <Field label="Exness Affiliate URL" value={data.exnessAffiliateUrl} onChange={(v) => set('exnessAffiliateUrl', v)} placeholder="https://one.exnesstrack.org/..." full />
         </CardContent>
       </Card>
 

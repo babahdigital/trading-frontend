@@ -90,7 +90,7 @@ export default async function GovernancePage() {
                 <a
                   href="https://www.exness.com/"
                   target="_blank"
-                  rel="noopener noreferrer sponsored"
+                  rel="noopener noreferrer"
                   className="text-foreground underline underline-offset-4 hover:text-amber-400 transition-colors"
                 >
                   {t('broker_p1_link')}

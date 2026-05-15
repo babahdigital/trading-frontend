@@ -735,6 +735,19 @@ body.menu-open {
     text-decoration-thickness: 1px;
   }
   .dark .prose-research a { color: var(--brand-amber); }
+
+  /* Responsive prose-research adjustments untuk mobile readability —
+     H2/H3 smaller, padding tighter, tabel-related overflow fix. */
+  @media (max-width: 640px) {
+    .prose-research { line-height: 1.65; font-size: 0.9375rem; }
+    .prose-research h2 { font-size: 1.5rem; margin-top: 2rem; }
+    .prose-research h3 { font-size: 1.15rem; margin-top: 1.5rem; }
+    .prose-research pre { padding: 0.75rem; font-size: 0.75rem; }
+    .prose-research .formula { padding: 0.75rem 1rem; font-size: 0.875rem; }
+    .prose-research table { font-size: 0.8125rem; }
+    .prose-research thead th { padding: 0.5rem 0.75rem; font-size: 0.6875rem; }
+    .prose-research tbody td { padding: 0.5rem 0.75rem; }
+  }
 }
 
 @layer utilities {

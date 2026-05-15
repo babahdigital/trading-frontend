@@ -7,6 +7,15 @@ import { ToastProvider } from '@/components/ui/toast';
 import './globals.css';
 
 export const metadata: Metadata = {
+  // metadataBase resolves relative OG image URLs ke absolute production URL.
+  // Sebelumnya Next.js warn "metadataBase not set, using localhost:3000" saat
+  // render — bikin og:image absolute jadi http://localhost:3000/... (rusak).
+  // Set ke NEXT_PUBLIC_APP_URL kalau ada, else default babahalgo.com production.
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL?.startsWith('http')
+      ? process.env.NEXT_PUBLIC_APP_URL
+      : 'https://babahalgo.com'
+  ),
   title: 'BabahAlgo — Quantitative Trading Infrastructure',
   description: 'Institutional-grade quantitative trading infrastructure. AI-powered strategies, systematic execution, institutional risk management.',
   icons: {

@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth/auth-context';
 import { Plus, Search } from 'lucide-react';
+import { TenantActions } from '@/components/admin/tenant-actions';
 
 interface Customer {
   id: string;
@@ -134,13 +135,14 @@ export default function CustomersPage() {
                   <th className="text-left p-4 font-medium text-muted-foreground">Berakhir</th>
                   <th className="text-left p-4 font-medium text-muted-foreground">VPS</th>
                   <th className="text-left p-4 font-medium text-muted-foreground">Login Terakhir</th>
+                  <th className="text-right p-4 font-medium text-muted-foreground">Aksi</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={6} className="p-4 text-center text-muted-foreground">Memuat data...</td></tr>
+                  <tr><td colSpan={7} className="p-4 text-center text-muted-foreground">Memuat data...</td></tr>
                 ) : customers.length === 0 ? (
-                  <tr><td colSpan={6} className="p-4 text-center text-muted-foreground">Tidak ada customer ditemukan</td></tr>
+                  <tr><td colSpan={7} className="p-4 text-center text-muted-foreground">Tidak ada customer ditemukan</td></tr>
                 ) : (
                   customers.map((c) => {
                     const lBadge = statusBadge(c.license?.status);
@@ -175,6 +177,14 @@ export default function CustomersPage() {
                         </td>
                         <td className="p-4 text-muted-foreground text-xs">
                           {c.lastLoginAt ? new Date(c.lastLoginAt).toLocaleDateString('id-ID') : 'Belum pernah'}
+                        </td>
+                        <td className="p-4 text-right">
+                          {/* Tenant action proxy ke backend forex admin endpoints */}
+                          <TenantActions
+                            tenantId={c.id}
+                            isSuspended={c.license?.status === 'SUSPENDED'}
+                            onMutated={() => fetchCustomers()}
+                          />
                         </td>
                       </tr>
                     );

@@ -2,7 +2,7 @@ import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
-import { ArrowRight, FileCheck, Wrench, LifeBuoy, Wallet, AlertCircle } from 'lucide-react';
+import { ArrowRight, FileCheck, Wrench, LifeBuoy, Wallet, AlertCircle, Building2, Server } from 'lucide-react';
 import { breadcrumbSchema, ldJson, organizationSchema, professionalServiceSchema } from '@/lib/seo-jsonld';
 import { formatPriceRange, formatPrice, type Locale } from '@/lib/pricing-format';
 
@@ -88,10 +88,19 @@ export default async function InstitutionalPage({ params }: { params: { locale: 
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(breadcrumb) }} />
       <EnterpriseNav />
       <main id="main-content">
-        {/* Hero */}
+        {/* Hero — tier badge "B2B Custom" untuk differentiate dari VPS License. */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
+
+            {/* Tier identifier — B2B managed engagement (vs VPS License self-host) */}
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sky-500/10 border border-sky-500/30 mb-5">
+              <Building2 className="w-3.5 h-3.5 text-sky-400" />
+              <span className="text-xs font-mono uppercase tracking-wider text-sky-300">
+                {t('hero_tier_badge')}
+              </span>
+            </div>
+
             <h1 className="t-display-page mb-6 max-w-4xl">
               {t('hero_title')}
             </h1>

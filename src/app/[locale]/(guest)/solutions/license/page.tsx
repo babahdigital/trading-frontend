@@ -2,7 +2,7 @@ import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Server, Building2, TrendingUp, Info } from 'lucide-react';
 import { breadcrumbSchema, financialProductSchema, ldJson, organizationSchema } from '@/lib/seo-jsonld';
 
 export const dynamic = 'force-dynamic';
@@ -68,16 +68,36 @@ export default async function LicensePage() {
     <div className="min-h-screen bg-background text-foreground">
       <EnterpriseNav />
       <main id="main-content">
-        {/* Hero */}
+        {/* Hero — dengan tier badge yang langsung kelihatan untuk differentiate
+            dari /solutions/institutional. Plus info card "beda dari institutional?"
+            di bawah subtitle supaya user tidak bingung antara 2 produk. */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
-            <h1 className="t-display-page mb-6">
+
+            {/* Tier identifier badge — visual cue ini retail product, bukan B2B */}
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 mb-5">
+              <Server className="w-3.5 h-3.5 text-amber-400" />
+              <span className="text-xs font-mono uppercase tracking-wider text-amber-300">
+                {t('hero_tier_badge')}
+              </span>
+            </div>
+
+            <h1 className="t-display-page mb-6 max-w-4xl">
               {t('hero_title')}
             </h1>
-            <p className="t-lead text-foreground/60 max-w-xl sm:max-w-2xl">
+            <p className="t-lead text-foreground/60 max-w-3xl mb-8">
               {t('hero_subtitle')}
             </p>
+
+            {/* Differentiation hint — link ke comparison section bottom */}
+            <div className="inline-flex items-start gap-3 p-4 rounded-lg border border-border/60 bg-muted/30 max-w-2xl">
+              <Info className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold mb-1">{t('hero_diff_label')}</p>
+                <p className="text-xs text-foreground/60 leading-relaxed">{t('hero_diff_body')}</p>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -163,28 +183,47 @@ export default async function LicensePage() {
           </div>
         </section>
 
-        {/* Pricing — 2-col card grid (setup + maintenance) supaya tidak terlihat
-            kurus, plus full-width note section di bawah. */}
+        {/* Pricing — 2 cost cards + total tahun pertama callout. Subtitle
+            section header memperjelas zero-custody positioning. Total
+            year-one membantu user kalkulasi commitment di mukanya. */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-4">{t('pricing_eyebrow')}</p>
-            <h2 className="t-display-sub mb-8 sm:mb-12">{t('pricing_title')}</h2>
-            <div className="grid sm:grid-cols-2 gap-5 max-w-3xl mb-6">
-              <div className="card-enterprise">
+            <div className="mb-8 sm:mb-10 max-w-3xl">
+              <p className="t-eyebrow mb-4">{t('pricing_eyebrow')}</p>
+              <h2 className="t-display-sub mb-4">{t('pricing_title')}</h2>
+              <p className="text-foreground/60 leading-relaxed">{t('pricing_subtitle')}</p>
+            </div>
+
+            {/* 2 cost cards — setup + maintenance, side-by-side */}
+            <div className="grid sm:grid-cols-2 gap-4 sm:gap-5 max-w-3xl mb-5">
+              <div className="card-enterprise border-amber-500/20">
                 <p className="t-eyebrow mb-3">{t('pricing_setup_label')}</p>
-                <p className="font-display text-3xl sm:text-4xl font-medium">
+                <p className="font-display text-2xl sm:text-3xl lg:text-4xl font-medium break-words">
                   {t('pricing_setup_value')}
                 </p>
                 <p className="text-sm text-foreground/60 mt-2">{t('pricing_setup_unit')}</p>
               </div>
-              <div className="card-enterprise">
+              <div className="card-enterprise border-amber-500/20">
                 <p className="t-eyebrow mb-3">{t('pricing_maint_label')}</p>
-                <p className="font-display text-3xl sm:text-4xl font-medium">
-                  {t('pricing_maint_value')}
-                  <span className="text-base text-foreground/60 font-normal ml-1">{t('pricing_maint_unit')}</span>
+                <div className="flex items-baseline flex-wrap gap-x-1.5">
+                  <span className="font-display text-2xl sm:text-3xl lg:text-4xl font-medium break-words">{t('pricing_maint_value')}</span>
+                  <span className="text-base text-foreground/60 font-normal">{t('pricing_maint_unit')}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Year-one total — single line callout */}
+            <div className="max-w-3xl mb-6 p-4 rounded-lg bg-amber-500/[0.04] border border-amber-500/20">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <p className="text-xs text-foreground/60 font-mono uppercase tracking-wider">
+                  {t('pricing_compare_label')}
+                </p>
+                <p className="font-mono text-sm sm:text-base font-semibold text-amber-300">
+                  {t('pricing_compare_value')}
                 </p>
               </div>
             </div>
+
             <p className="t-body-sm text-foreground/60 leading-relaxed max-w-3xl">
               {t('pricing_note')}
             </p>
@@ -226,6 +265,97 @@ export default async function LicensePage() {
                     <p className="t-body-sm text-foreground/60 leading-relaxed">{t(item.aKey)}</p>
                   </div>
                 ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Side-by-side comparison block — VPS License vs Institutional vs
+            Robot Meta retail. Membantu user pilih produk yang tepat sesuai
+            modal mereka. Kalau salah pintu masuk, ini decision tree-nya. */}
+        <section className="section-padding border-b border-border/60">
+          <div className="container-default px-4 sm:px-6">
+            <div className="mb-8 sm:mb-10 max-w-3xl">
+              <p className="t-eyebrow mb-4">{t('compare_eyebrow')}</p>
+              <h2 className="t-display-sub">{t('compare_title')}</h2>
+            </div>
+
+            {/* 2-col comparison: this page vs institutional */}
+            <div className="grid lg:grid-cols-2 gap-5 mb-6">
+              {/* VPS License card — current page indicator */}
+              <div className="rounded-xl border-2 border-amber-500/50 bg-amber-500/[0.04] p-6 sm:p-7">
+                <div className="flex items-center gap-3 mb-4">
+                  <Server className="w-6 h-6 text-amber-400" />
+                  <h3 className="font-semibold text-lg">{t('compare_license_title')}</h3>
+                  <span className="ml-auto text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300">
+                    HALAMAN INI
+                  </span>
+                </div>
+                <ul className="space-y-2.5 text-sm">
+                  <li className="flex gap-2 items-start">
+                    <span className="text-amber-400 mt-0.5">→</span>
+                    <span className="text-foreground/80">{t('compare_license_for')}</span>
+                  </li>
+                  <li className="flex gap-2 items-start">
+                    <span className="text-amber-400 mt-0.5">→</span>
+                    <span className="text-foreground/80">{t('compare_license_modal')}</span>
+                  </li>
+                  <li className="flex gap-2 items-start">
+                    <span className="text-amber-400 mt-0.5">→</span>
+                    <span className="text-foreground/80">{t('compare_license_cost')}</span>
+                  </li>
+                  <li className="flex gap-2 items-start">
+                    <span className="text-amber-400 mt-0.5">→</span>
+                    <span className="text-foreground/80">{t('compare_license_what')}</span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Institutional card — link untuk upgrade */}
+              <div className="rounded-xl border border-border/60 bg-card p-6 sm:p-7 hover:border-sky-500/40 transition-colors">
+                <div className="flex items-center gap-3 mb-4">
+                  <Building2 className="w-6 h-6 text-sky-400" />
+                  <h3 className="font-semibold text-lg">{t('compare_inst_title')}</h3>
+                </div>
+                <ul className="space-y-2.5 text-sm mb-5">
+                  <li className="flex gap-2 items-start">
+                    <span className="text-sky-400 mt-0.5">→</span>
+                    <span className="text-foreground/80">{t('compare_inst_for')}</span>
+                  </li>
+                  <li className="flex gap-2 items-start">
+                    <span className="text-sky-400 mt-0.5">→</span>
+                    <span className="text-foreground/80">{t('compare_inst_modal')}</span>
+                  </li>
+                  <li className="flex gap-2 items-start">
+                    <span className="text-sky-400 mt-0.5">→</span>
+                    <span className="text-foreground/80">{t('compare_inst_cost')}</span>
+                  </li>
+                  <li className="flex gap-2 items-start">
+                    <span className="text-sky-400 mt-0.5">→</span>
+                    <span className="text-foreground/80">{t('compare_inst_what')}</span>
+                  </li>
+                </ul>
+                <Link
+                  href="/solutions/institutional"
+                  className="inline-flex items-center gap-2 text-sm font-medium text-sky-400 hover:text-sky-300 transition-colors"
+                >
+                  {t('compare_inst_cta')} <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
+
+            {/* Retail tier callout — downgrade option untuk user dengan modal kecil */}
+            <div className="rounded-lg border border-border/60 bg-muted/20 p-4 sm:p-5 flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
+              <TrendingUp className="w-5 h-5 text-foreground/50 shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold mb-1">{t('compare_under_label')}</p>
+                <p className="text-xs text-foreground/60 leading-relaxed mb-2">{t('compare_under_body')}</p>
+                <Link
+                  href="/solutions/signal"
+                  className="inline-flex items-center gap-1.5 text-xs font-medium text-foreground/70 hover:text-amber-400 transition-colors"
+                >
+                  {t('compare_under_cta')} <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
               </div>
             </div>
           </div>

@@ -23,31 +23,15 @@ interface LandingClientProps {
   faqs: Array<{ id: string; question: string; answer: string; category: string }>;
 }
 
-// ─── Risk Framework Layers ───
+// ─── Risk Framework Layers (i18n-driven) ───
 // Risk framework — outcome-oriented, retail-friendly copy.
-// Citations sengaja minimal di sini (institutional names ada di
-// /platform/risk-framework page); landing fokus ke "apa hasilnya untuk
-// customer" sambil tetap institutional grade.
-const RISK_LAYERS = {
-  preTrade: [
-    { num: 1, name: 'Ukuran posisi adaptif', desc: 'Lot besar saat pasar tenang, mengecil otomatis saat bergejolak' },
-    { num: 2, name: 'Skala dinamis terkontrol', desc: 'Tiap order di-rescale dalam batas wajar yang tidak pernah kelewat besar' },
-    { num: 3, name: 'Kepercayaan bertahap', desc: 'Posisi dipercayakan lebih besar setelah strategi terbukti via sampel cukup' },
-    { num: 4, name: 'Hindari taruhan tumpuk', desc: 'Tolak entry yang menambah eksposur korelasi tinggi pada satu faktor' },
-    { num: 5, name: 'Spread + news blackout', desc: 'Stop entry saat spread lebar atau menjelang rilis berita penting' },
-  ],
-  inTrade: [
-    { num: 6, name: 'Stop-loss yang tidak mundur + TP bertahap', desc: 'Modal terlindungi dari entry; close 40/35/25% di tiga target untuk konsistensi' },
-    { num: 7, name: 'Kunci profit kecil + SL adaptif', desc: 'Amankan keuntungan sebelum hilang. SL melebar saat news spike, dengan batas wajar — tidak pernah diam-diam menggandakan risiko' },
-    { num: 8, name: 'Trailing stop ikut tren', desc: 'Setelah target pertama, stop bergerak hanya ke arah profit — tidak pernah mundur' },
-    { num: 9, name: 'Exit cepat + AI overseer', desc: 'Close saat asumsi struktur pecah. AI advisor sebagai second-opinion dengan veto rules — bukan pengambil keputusan tunggal' },
-  ],
-  postSystem: [
-    { num: 10, name: 'Rem otomatis bertingkat', desc: 'Pendinginan singkat → masa percobaan → kembali normal — bukan stop kasar 12 jam' },
-    { num: 11, name: 'Evaluasi otomatis tiap 5 menit', desc: '3 menang berturut → kembali normal. 1 loss saat probation → kuncian penuh.' },
-    { num: 12, name: 'Audit anti-edit', desc: 'Setiap perintah trade tercatat permanen — bahkan operator tidak bisa hapus' },
-  ],
-};
+// 12 layers grouped into 3 categories (preTrade/inTrade/postSystem).
+// Resolved via t() from risk_layers namespace di id.json + en.json.
+const RISK_LAYER_KEYS = {
+  preTrade: [1, 2, 3, 4, 5],
+  inTrade: [6, 7, 8, 9],
+  postSystem: [10, 11, 12],
+} as const;
 
 // ─── Pricing Tier Keys (i18n-driven) ───
 // Each tier holds *only* the static metadata (id slug for translation lookup,
@@ -726,9 +710,9 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
           </AnimatedSection>
 
           <div className="grid md:grid-cols-3 gap-8">
-            <RiskPhase title={t('risk_phase_pre')} layers={RISK_LAYERS.preTrade} />
-            <RiskPhase title={t('risk_phase_in')} layers={RISK_LAYERS.inTrade} />
-            <RiskPhase title={t('risk_phase_post')} layers={RISK_LAYERS.postSystem} />
+            <RiskPhase title={t('risk_phase_pre')} layerNums={RISK_LAYER_KEYS.preTrade} t={t} />
+            <RiskPhase title={t('risk_phase_in')} layerNums={RISK_LAYER_KEYS.inTrade} t={t} />
+            <RiskPhase title={t('risk_phase_post')} layerNums={RISK_LAYER_KEYS.postSystem} t={t} />
           </div>
 
           <AnimatedSection delay={0.3}>
@@ -745,11 +729,13 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
       {/* ═══════════════════════════════════════════
           SECTION 5 — PRICING (Split layout)
           ═══════════════════════════════════════════ */}
-      <section className="section-padding border-t border-border/60">
+      <section className="section-padding border-t border-border/60 overflow-hidden">
         <div className="container-default px-4 sm:px-6">
-          <div className="grid lg:grid-cols-12 gap-12 lg:gap-16">
-            {/* Left column — heading, description, tabs */}
-            <div className="lg:col-span-4 lg:sticky lg:top-28 lg:self-start">
+          <div className="grid lg:grid-cols-12 gap-10 lg:gap-16 min-w-0">
+            {/* Left column — heading, description, tabs. min-w-0 wajib supaya
+                grid children tidak push wider dari viewport saat ada horizontal
+                scroll tab di dalamnya. */}
+            <div className="lg:col-span-4 lg:sticky lg:top-28 lg:self-start min-w-0">
               <AnimatedSection>
                 <div className="t-eyebrow mb-4">{t('pricing_eyebrow')}</div>
                 <h2 className="t-display-section text-foreground mb-4">{t('pricing_title')}</h2>
@@ -758,17 +744,20 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
                 </p>
               </AnimatedSection>
 
-              {/* Tab bar — vertical on desktop */}
+              {/* Tab bar — horizontal scroll dengan snap di mobile (6 tabs ×
+                  ~130px = 780px > mobile width 320-400px overflow). Vertical
+                  di desktop (lg+). -mx + px padding bikin scroll bisa flush
+                  ke edge layar di mobile. */}
               <AnimatedSection delay={0.1}>
-                <div className="flex lg:flex-col gap-2 mb-8 lg:mb-10">
+                <div className="flex lg:flex-col gap-2 mb-8 lg:mb-10 overflow-x-auto lg:overflow-x-visible snap-x snap-mandatory scrollbar-hidden -mx-4 px-4 sm:-mx-6 sm:px-6 lg:mx-0 lg:px-0 pb-2 lg:pb-0">
                   {PRICING_TAB_IDS.map(id => (
                     <button
                       key={id}
                       type="button"
-                      className={`text-left px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                      className={`text-left px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 shrink-0 snap-start ${
                         pricingTab === id
                           ? 'bg-amber-500 text-black'
-                          : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 bg-muted/20 lg:bg-transparent'
                       }`}
                       onClick={() => setPricingTab(id)}
                     >
@@ -783,38 +772,42 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
               </AnimatedSection>
             </div>
 
-            {/* Right column — pricing cards */}
-            <div className="lg:col-span-8">
-              <div className="space-y-6">
+            {/* Right column — pricing cards. min-w-0 mencegah price IDR
+                yang panjang ("Rp 1.290.000/bulan") push card overflow ke
+                kanan layar di mobile. */}
+            <div className="lg:col-span-8 min-w-0">
+              <div className="space-y-4 sm:space-y-6 min-w-0">
                 {activeTiers.map((plan, i) => {
                   const features = Array.from({ length: plan.featureCount }, (_, fi) =>
                     t(`tier_${plan.id}_f${fi + 1}`)
                   );
                   return (
                   <AnimatedSection key={plan.id} delay={0.15 + i * 0.1}>
-                    <div className={`rounded-xl p-6 sm:p-8 transition-all duration-300 border ${
+                    <div className={`rounded-xl p-4 sm:p-6 lg:p-8 transition-all duration-300 border min-w-0 ${
                       plan.popular
                         ? 'border-amber-500 ring-1 ring-amber-500'
                         : 'border-border/60 hover:border-amber-500/30'
                     }`}>
-                      {/* Card header — horizontal layout. min-w-0 + flex-wrap
-                          mencegah harga IDR yang panjang (Rp 1.290.000/bulan)
-                          overflow ke kanan layar di mobile. */}
-                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4 mb-6 min-w-0">
+                      {/* Card header — stacked layout di mobile (vertical),
+                          horizontal di sm+. min-w-0 + flex-wrap + break-all
+                          mencegah harga IDR yang panjang (Rp 1.290.000) overflow.
+                          Padding kurangi p-6 → p-5 di mobile supaya card fit
+                          di viewport sempit. */}
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4 mb-5 sm:mb-6 min-w-0">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center flex-wrap gap-2 sm:gap-3 mb-1">
-                            <h3 className="text-lg font-medium text-foreground">{t(`tier_${plan.id}_name`)}</h3>
+                            <h3 className="text-base sm:text-lg font-medium text-foreground">{t(`tier_${plan.id}_name`)}</h3>
                             {plan.popular && (
-                              <span className="px-2.5 py-0.5 rounded-full bg-amber-500 text-black text-[11px] font-medium tracking-wider uppercase">
+                              <span className="px-2 py-0.5 rounded-full bg-amber-500 text-black text-[10px] sm:text-[11px] font-medium tracking-wider uppercase">
                                 {t('pricing_popular_badge')}
                               </span>
                             )}
                           </div>
                           <p className="t-body-sm text-muted-foreground">{t(`tier_${plan.id}_tagline`)}</p>
                         </div>
-                        <div className="flex items-baseline flex-wrap gap-x-1.5 gap-y-0.5 sm:text-right shrink-0 min-w-0 max-w-full">
-                          <span className="font-mono text-2xl sm:text-3xl font-semibold text-foreground break-words">{resolvePrice(plan.price)}</span>
-                          <span className="t-body-sm text-muted-foreground">{t(plan.periodKey)}</span>
+                        <div className="flex items-baseline flex-wrap gap-x-1 gap-y-0.5 sm:text-right shrink-0 min-w-0 max-w-full">
+                          <span className="font-mono text-xl sm:text-2xl lg:text-3xl font-semibold text-foreground break-all">{resolvePrice(plan.price)}</span>
+                          <span className="text-xs sm:text-sm text-muted-foreground">{t(plan.periodKey)}</span>
                         </div>
                       </div>
 
@@ -1145,27 +1138,39 @@ function PillarCard({ icon, eyebrow, title, description, href, linkLabel }: {
   );
 }
 
-function RiskPhase({ title, layers }: { title: string; layers: typeof RISK_LAYERS.preTrade }) {
+function RiskPhase({
+  title,
+  layerNums,
+  t,
+}: {
+  title: string;
+  layerNums: readonly number[];
+  t: ReturnType<typeof useTranslations>;
+}) {
   return (
     <AnimatedSection delay={0.1}>
       <div className="card-enterprise p-6 h-full">
         <div className="t-eyebrow text-amber-400 mb-6">{title}</div>
         <div className="space-y-4">
-          {layers.map(l => (
-            <div key={l.num} className="group/layer">
-              <div className="flex items-start gap-3">
-                <span className="font-mono text-xs text-muted-foreground mt-0.5 w-5 shrink-0">
-                  {String(l.num).padStart(2, '0')}
-                </span>
-                <div>
-                  <div className="text-sm font-medium text-foreground group-hover/layer:text-amber-400 transition-colors">
-                    {l.name}
+          {layerNums.map(num => {
+            const nameKey = `risk_layer_${num}_name` as 'risk_layer_1_name';
+            const descKey = `risk_layer_${num}_desc` as 'risk_layer_1_desc';
+            return (
+              <div key={num} className="group/layer">
+                <div className="flex items-start gap-3">
+                  <span className="font-mono text-xs text-muted-foreground mt-0.5 w-5 shrink-0">
+                    {String(num).padStart(2, '0')}
+                  </span>
+                  <div>
+                    <div className="text-sm font-medium text-foreground group-hover/layer:text-amber-400 transition-colors">
+                      {t(nameKey)}
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-0.5">{t(descKey)}</div>
                   </div>
-                  <div className="text-xs text-muted-foreground mt-0.5">{l.desc}</div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </AnimatedSection>

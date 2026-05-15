@@ -736,6 +736,16 @@ body.menu-open {
   }
   .dark .prose-research a { color: var(--brand-amber); }
 
+  /* Scrollbar-hidden utility — untuk horizontal scroll tab bar di mobile
+     dengan UX yang clean tanpa visual scrollbar noise. */
+  .scrollbar-hidden {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-hidden::-webkit-scrollbar {
+    display: none;
+  }
+
   /* Responsive prose-research adjustments untuk mobile readability —
      H2/H3 smaller, padding tighter, tabel-related overflow fix. */
   @media (max-width: 640px) {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
@@ -9,6 +9,7 @@ import { EquityCurve } from '@/components/charts/equity-curve';
 import { AnimatedSection } from '@/components/ui/animated-section';
 import { EditorialShowcase, type ShowcaseSlide } from '@/components/landing/editorial-showcase';
 import { AiBrainSection } from '@/components/landing/ai-brain-section';
+import { formatPrice, formatUsdAuto, type Locale, type PriceKey } from '@/lib/pricing-format';
 import {
   ArrowRight, ArrowUpRight, Shield, Zap, Brain, ChevronDown, Check,
   TrendingUp, Bitcoin, Sparkles,
@@ -74,19 +75,19 @@ const PRICING_TIERS: Record<string, TierMeta[]> = {
     { id: 'demo_indicator', tier: 'INDICATOR', price: 'tier_price_free', periodKey: 'period_permanent', featureCount: 5, href: '/demo?product=indicator' },
   ],
   forex: [
-    { id: 'forex_swing', tier: 'TIER 1', price: '$19', periodKey: 'period_monthly', featureCount: 5, href: '/register/signal?tier=swing' },
-    { id: 'forex_scalping', tier: 'TIER 2', price: '$79', periodKey: 'period_monthly', featureCount: 5, href: '/register/signal?tier=scalping', popular: true },
-    { id: 'forex_allin', tier: 'TIER 3', price: '$299', periodKey: 'period_monthly', featureCount: 5, href: '/register/signal?tier=all' },
+    { id: 'forex_swing', tier: 'TIER 1', price: '<priceKey>:signal_starter', periodKey: 'period_monthly', featureCount: 5, href: '/register/signal?tier=swing' },
+    { id: 'forex_scalping', tier: 'TIER 2', price: '<priceKey>:signal_pro', periodKey: 'period_monthly', featureCount: 5, href: '/register/signal?tier=scalping', popular: true },
+    { id: 'forex_allin', tier: 'TIER 3', price: '<priceKey>:signal_vip', periodKey: 'period_monthly', featureCount: 5, href: '/register/signal?tier=all' },
   ],
   crypto: [
-    { id: 'crypto_basic', tier: 'CRYPTO', price: '$49', periodKey: 'period_monthly_flat', featureCount: 5, href: '/register/crypto?tier=basic' },
-    { id: 'crypto_pro', tier: 'CRYPTO PRO', price: '$199', periodKey: 'period_monthly_flat', featureCount: 5, href: '/register/crypto?tier=pro', popular: true },
-    { id: 'crypto_hnwi', tier: 'CRYPTO HNWI', price: '$499', periodKey: 'period_monthly_flat', featureCount: 5, href: '/contact?subject=crypto-hnwi' },
+    { id: 'crypto_basic', tier: 'CRYPTO', price: '<priceKey>:crypto_basic', periodKey: 'period_monthly_flat', featureCount: 5, href: '/register/crypto?tier=basic' },
+    { id: 'crypto_pro', tier: 'CRYPTO PRO', price: '<priceKey>:crypto_pro', periodKey: 'period_monthly_flat', featureCount: 5, href: '/register/crypto?tier=pro', popular: true },
+    { id: 'crypto_hnwi', tier: 'CRYPTO HNWI', price: '<priceKey>:crypto_hnwi', periodKey: 'period_monthly_flat', featureCount: 5, href: '/contact?subject=crypto-hnwi' },
   ],
   vps: [
-    { id: 'vps_license', tier: 'VPS', price: '$3,000', periodKey: 'period_one_time_setup', featureCount: 5, href: '/register/vps' },
-    { id: 'vps_premium', tier: 'VPS PRO', price: '$7,500', periodKey: 'period_one_time_setup', featureCount: 5, href: '/register/vps', popular: true },
-    { id: 'vps_dedicated', tier: 'DEDICATED', price: '$1,499', periodKey: 'period_monthly', featureCount: 5, href: '/contact?subject=dedicated-vps' },
+    { id: 'vps_license', tier: 'VPS', price: '<priceKey>:vps_standard_setup', periodKey: 'period_one_time_setup', featureCount: 5, href: '/register/vps' },
+    { id: 'vps_premium', tier: 'VPS PRO', price: '<priceKey>:vps_premium_setup', periodKey: 'period_one_time_setup', featureCount: 5, href: '/register/vps', popular: true },
+    { id: 'vps_dedicated', tier: 'DEDICATED', price: '<priceKey>:vps_dedicated_monthly', periodKey: 'period_monthly', featureCount: 5, href: '/contact?subject=dedicated-vps' },
   ],
   apis: [
     { id: 'api_news', tier: 'NEWS', price: 'tier_price_free', periodKey: 'period_api_to_99', featureCount: 4, href: '/pricing/apis#news' },
@@ -185,10 +186,26 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
     });
   })();
 
-  // Resolve a tier price token. Free / Custom go through translation; raw
-  // dollar prices ("$19") render as-is.
-  const resolvePrice = (price: string): string =>
-    price.startsWith('tier_price_') ? t(price) : price;
+  const localeKey: Locale = useLocale() === 'en' ? 'en' : 'id';
+
+  // Resolve a tier price token locale-aware.
+  // - 'tier_price_free' / 'tier_price_custom' → i18n key
+  // - '<priceKey>:signal_starter' → formatPrice lookup PRICE_TABLE
+  // - '$XX' (raw USD) → formatUsdAuto auto-convert
+  const resolvePrice = (price: string): string => {
+    if (price.startsWith('tier_price_')) return t(price);
+    if (price.startsWith('<priceKey>:')) {
+      const key = price.slice('<priceKey>:'.length) as PriceKey;
+      return formatPrice(key, localeKey, { compact: false });
+    }
+    // Fallback raw USD literal — try auto-convert.
+    const usdMatch = price.match(/^\$([0-9,]+)$/);
+    if (usdMatch) {
+      const usd = parseInt(usdMatch[1].replace(/,/g, ''), 10);
+      if (!Number.isNaN(usd)) return formatUsdAuto(usd, localeKey);
+    }
+    return price;
+  };
 
   // FAQ — CMS overrides default i18n. When CMS rows exist we use their q/a
   // verbatim (CMS owns the translation in that case). Default uses faq_q1..q8.

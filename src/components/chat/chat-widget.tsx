@@ -49,7 +49,7 @@ const COPY: Record<'id' | 'en', CopyBundle> = {
     status_online: 'Online',
     status_offline: 'Offline',
     greeting:
-      'Halo! Saya Babah — asisten AI BabahAlgo. Saya bisa bantu jelaskan layanan Robot Meta (Forex MT5), Robot Crypto (Binance), pricing tier, konsep SMC/Wyckoff, kerangka risiko institusional (vol-target + 6-layer exit + multi-stage kill-switch), atau alur onboarding KYC. Ada yang ingin ditanyakan?',
+      'Halo! Saya Babah — asisten AI BabahAlgo. Saya bisa bantu jelaskan layanan Robot Meta (Forex MT5), Robot Crypto (Binance), pricing tier, konsep SMC Scalper / SMC Swing / Pivot Mean Reversion, kerangka risiko institusional (vol-target + 6-layer exit + multi-stage kill-switch), atau alur onboarding KYC. Ada yang ingin ditanyakan?',
     placeholder: 'Tulis pertanyaan…',
     send_aria: 'Kirim pesan',
     close_aria: 'Tutup chat',
@@ -66,7 +66,7 @@ const COPY: Record<'id' | 'en', CopyBundle> = {
     contact_link: 'Hubungi tim kami →',
     quick_replies: [
       { label: 'Harga Paket', message: 'Berapa harga paket Robot Meta dan Robot Crypto?' },
-      { label: 'SMC vs Wyckoff', message: 'Apa beda strategi SMC dengan Wyckoff di Robot Meta?' },
+      { label: 'SMC vs Pivot Mean Rev', message: 'Apa beda strategi SMC Scalper, SMC Swing, dan Pivot Mean Reversion di Robot Meta?' },
       { label: 'Crypto Bot', message: 'Bagaimana cara kerja Robot Crypto Binance? Modal saya tetap aman?' },
       { label: 'Kerangka Risiko', message: 'Jelaskan kerangka risiko Robot Meta: vol-target sizing, 6-layer exit engine, multi-stage kill-switch (NORMAL → fast 1h → PROBATION → NORMAL).' },
       { label: 'Cara Daftar', message: 'Bagaimana cara mendaftar dan onboarding KYC?' },
@@ -78,7 +78,7 @@ const COPY: Record<'id' | 'en', CopyBundle> = {
     status_online: 'Online',
     status_offline: 'Offline',
     greeting:
-      "Hi! I'm Babah — BabahAlgo's AI assistant. I can walk you through Robot Meta (Forex MT5), Robot Crypto (Binance), pricing tiers, SMC/Wyckoff concepts, the institutional risk framework (vol-target sizing + 6-layer exit + multi-stage kill-switch), or our KYC onboarding flow. What would you like to know?",
+      "Hi! I'm Babah — BabahAlgo's AI assistant. I can walk you through Robot Meta (Forex MT5), Robot Crypto (Binance), pricing tiers, SMC Scalper / SMC Swing / Pivot Mean Reversion concepts, the institutional risk framework (vol-target sizing + 6-layer exit + multi-stage kill-switch), or our KYC onboarding flow. What would you like to know?",
     placeholder: 'Type a question…',
     send_aria: 'Send message',
     close_aria: 'Close chat',
@@ -94,7 +94,7 @@ const COPY: Record<'id' | 'en', CopyBundle> = {
     contact_link: 'Contact our team →',
     quick_replies: [
       { label: 'Pricing', message: 'What are the prices for Robot Meta and Robot Crypto?' },
-      { label: 'SMC vs Wyckoff', message: 'How do SMC and Wyckoff strategies differ inside Robot Meta?' },
+      { label: 'SMC vs Pivot Mean Rev', message: 'How do SMC Scalper, SMC Swing, and Pivot Mean Reversion strategies differ inside Robot Meta?' },
       { label: 'Crypto Bot', message: 'How does the Binance Crypto Bot work? Does my capital stay safe?' },
       { label: 'Risk Framework', message: "Explain Robot Meta's risk framework: vol-target sizing, 6-layer exit engine, multi-stage kill-switch (NORMAL → fast 1h → PROBATION → NORMAL)." },
       { label: 'Get Started', message: 'How do I sign up and complete KYC?' },

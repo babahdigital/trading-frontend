@@ -35,8 +35,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     {
       title: `${t('title')} — BabahAlgo`,
       description: isEn
-        ? 'Robot Meta MT5 $19-$299/mo, Robot Crypto Binance $49-$499/mo, VPS License from $3K, 8 Developer API marketplace, and Institutional access. Zero-custody — capital always stays in your broker / Binance account.'
-        : 'Robot Meta MT5 Rp 299rb-Rp 4,9jt/bulan, Robot Crypto Binance Rp 799rb-Rp 8,2jt/bulan, VPS License mulai Rp 49jt, 8 Developer API marketplace, dan akses Institusional. Zero-custody — modal selalu di akun broker / Binance Anda.',
+        ? 'Robot Meta MT5 $19-$299/mo, Robot Crypto Binance $49-$499/mo, VPS License 3-tier (License Only $320 / Hybrid $750 / Full Turnkey $1,600 setup), 8 Developer API marketplace, and Institutional engagement. Zero-custody — capital always stays in your broker / Binance account.'
+        : 'Robot Meta MT5 Rp 299rb-Rp 4,9jt/bulan, Robot Crypto Binance Rp 799rb-Rp 8,2jt/bulan, VPS License 3-tier (License Only Rp 5jt / Hybrid Rp 12jt / Full Turnkey Rp 25jt setup), 8 Developer API marketplace, dan engagement Institusional. Zero-custody — modal selalu di akun broker / Binance Anda.',
     },
     locale === 'en' ? 'en' : 'id',
   );
@@ -87,7 +87,7 @@ const PUBLIC_APIS: Array<{
     { tier: 'Pro', usd: 49, spec: 'Full feed real-time' },
     { tier: 'VIP', usd: 149, spec: 'Premium AI confidence + reasoning' },
   ] },
-  { id: 'indicators', icon: Brain, name: 'Indicators API', desc: '14 indicator core (SMC, Wyckoff, momentum) + custom parameter', popular: true, tiers: [
+  { id: 'indicators', icon: Brain, name: 'Indicators API', desc: '14 indicator core (SMC order block, FVG, liquidity sweep, daily pivot, AI confluence scoring) + custom parameter', popular: true, tiers: [
     { tier: 'Free', usd: 0, spec: '50 req/hari core indicators' },
     { tier: 'Hobby', usd: 19, spec: '500 req/hari + 5 indicator advanced' },
     { tier: 'Pro', usd: 79, spec: 'Custom parameter, semua indicator' },

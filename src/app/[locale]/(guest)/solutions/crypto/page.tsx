@@ -28,8 +28,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
         ? 'Robot Crypto — Auto-trading on Binance | BabahAlgo'
         : 'Robot Crypto — Auto-trading di Binance | BabahAlgo',
       description: isEn
-        ? 'Institutional Robot Crypto for Binance Spot + USDT-M Futures. SMC, Wyckoff, and momentum strategies running 24/7 under a 12-layer risk framework. Capital stays in your Binance account — no fund custody.'
-        : 'Robot Crypto institusional untuk Binance Spot + USDT-M Futures. Strategi SMC, Wyckoff, dan momentum 24/7 dengan framework risiko 12-layer. Modal tetap di akun Binance Anda — tidak ada custody dana.',
+        ? 'Institutional Robot Crypto for Binance Spot + USDT-M Futures. 3 core strategies (SMC Scalper, SMC Swing, Pivot Mean Reversion) orchestrated by AI Brain, running 24/7 under a 12-layer risk framework. Capital stays in your Binance account — no fund custody.'
+        : 'Robot Crypto institusional untuk Binance Spot + USDT-M Futures. 3 strategi inti (SMC Scalper, SMC Swing, Pivot Mean Reversion) diorkestrasi AI Brain, jalan 24/7 dengan framework risiko 12-layer. Modal tetap di akun Binance Anda — tidak ada custody dana.',
     },
     locale === 'en' ? 'en' : 'id',
   );

@@ -39,6 +39,10 @@ const COPY = {
     sign_x: 'Tidak termasuk',
     pending_badge: 'Backend pending',
     pending_note: 'Tier `micro` belum tersedia sebagai self-service SKU di backend — saat ini akses via konsultasi langsung dengan tim. SKU otomatis dirilis di fase berikutnya.',
+    free_label: 'Gratis',
+    none_label: 'Tidak ada',
+    monthly_suffix: 'bulan',
+    cta_try_demo: 'Coba Demo',
   },
   en: {
     eyebrow: 'Tier Matrix — Forex Robot MT5',
@@ -64,6 +68,10 @@ const COPY = {
     sign_x: 'Not included',
     pending_badge: 'Backend pending',
     pending_note: 'The `micro` tier is not yet available as a self-service SKU — currently accessible through direct consultation. The automated SKU ships in the next phase.',
+    free_label: 'Free',
+    none_label: 'None',
+    monthly_suffix: 'mo',
+    cta_try_demo: 'Try Demo',
   },
 } as const;
 
@@ -71,14 +79,12 @@ export function TierComparisonMatrix({ locale }: TierComparisonMatrixProps) {
   const t = COPY[locale];
 
   function formatPrice(monthlyPrice: number): string {
-    if (monthlyPrice === 0) {
-      return locale === 'id' ? 'Gratis' : 'Free';
-    }
-    return `$${monthlyPrice}/${locale === 'id' ? 'bulan' : 'mo'}`;
+    if (monthlyPrice === 0) return t.free_label;
+    return `$${monthlyPrice}/${t.monthly_suffix}`;
   }
 
   function formatEquity(min: number): string {
-    if (min === 0) return locale === 'id' ? 'Tidak ada' : 'None';
+    if (min === 0) return t.none_label;
     return `$${min.toLocaleString(locale === 'id' ? 'id-ID' : 'en-US')}`;
   }
 
@@ -89,7 +95,7 @@ export function TierComparisonMatrix({ locale }: TierComparisonMatrixProps) {
   }
 
   function ctaForTier(name: TierName): { href: string; label: string } {
-    if (name === 'free') return { href: '/demo?product=robot-meta', label: locale === 'id' ? 'Coba Demo' : 'Try Demo' };
+    if (name === 'free') return { href: '/demo?product=robot-meta', label: t.cta_try_demo };
     if (name === 'micro') return { href: '/contact?subject=tier-micro', label: t.cta_contact };
     if (name === 'starter') return { href: '/register/signal?tier=starter', label: t.cta_register };
     if (name === 'pro') return { href: '/register/signal?tier=pro', label: t.cta_register };

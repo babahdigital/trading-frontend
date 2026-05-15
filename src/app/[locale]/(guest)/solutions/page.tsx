@@ -1,9 +1,10 @@
 import { Link } from '@/i18n/navigation';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, TrendingUp, Server, Building2, Bitcoin } from 'lucide-react';
 import { getPageMetadata } from '@/lib/seo';
 import { getTranslations } from 'next-intl/server';
+import { DecisionQuiz } from '@/components/solutions/decision-quiz';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,6 +29,48 @@ const SOLUTION_KEYS = [
   { keyBase: 'apis', slug: '/pricing#apis' },
   { keyBase: 'institutional', slug: '/solutions/institutional' },
 ] as const;
+
+// Decision ladder — entry-point matrix sesuai modal trader.
+// Membantu user pilih product yang tepat dari pintu masuk /solutions tanpa
+// harus baca semua sub-pages dulu.
+const TIER_LADDER = [
+  {
+    icon: TrendingUp,
+    accent: 'amber' as const,
+    nameKey: 'ladder_retail_name' as const,
+    modalKey: 'ladder_retail_modal' as const,
+    descKey: 'ladder_retail_desc' as const,
+    ctaKey: 'ladder_retail_cta' as const,
+    href: '/solutions/signal',
+  },
+  {
+    icon: Server,
+    accent: 'sky' as const,
+    nameKey: 'ladder_vps_name' as const,
+    modalKey: 'ladder_vps_modal' as const,
+    descKey: 'ladder_vps_desc' as const,
+    ctaKey: 'ladder_vps_cta' as const,
+    href: '/solutions/license',
+  },
+  {
+    icon: Building2,
+    accent: 'emerald' as const,
+    nameKey: 'ladder_inst_name' as const,
+    modalKey: 'ladder_inst_modal' as const,
+    descKey: 'ladder_inst_desc' as const,
+    ctaKey: 'ladder_inst_cta' as const,
+    href: '/solutions/institutional',
+  },
+  {
+    icon: Bitcoin,
+    accent: 'violet' as const,
+    nameKey: 'ladder_crypto_name' as const,
+    modalKey: 'ladder_crypto_modal' as const,
+    descKey: 'ladder_crypto_desc' as const,
+    ctaKey: 'ladder_crypto_cta' as const,
+    href: '/solutions/crypto',
+  },
+];
 
 export default async function SolutionsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -54,6 +97,58 @@ export default async function SolutionsPage({ params }: { params: Promise<{ loca
             <p className="t-lead text-foreground/60 max-w-2xl mx-auto">
               {t('hero_subtitle')}
             </p>
+          </div>
+        </section>
+
+        {/* Decision Ladder — 4-tier matrix sesuai modal trader.
+            Entry-point yang membantu user pilih product yang tepat tanpa
+            harus baca semua sub-pages. */}
+        <section className="section-padding border-b border-white/8 bg-muted/[0.02]">
+          <div className="container-default px-4 sm:px-6">
+            <div className="text-center mb-10 sm:mb-12 max-w-2xl mx-auto">
+              <p className="t-eyebrow mb-4">{t('ladder_eyebrow')}</p>
+              <h2 className="t-display-sub mb-3">{t('ladder_title')}</h2>
+              <p className="text-foreground/60 leading-relaxed">{t('ladder_subtitle')}</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+              {TIER_LADDER.map((tier) => {
+                const Icon = tier.icon;
+                const accentBg =
+                  tier.accent === 'amber' ? 'bg-amber-500/15 border-amber-500/30' :
+                  tier.accent === 'sky' ? 'bg-sky-500/15 border-sky-500/30' :
+                  tier.accent === 'emerald' ? 'bg-emerald-500/15 border-emerald-500/30' :
+                  'bg-violet-500/15 border-violet-500/30';
+                const accentText =
+                  tier.accent === 'amber' ? 'text-amber-400' :
+                  tier.accent === 'sky' ? 'text-sky-400' :
+                  tier.accent === 'emerald' ? 'text-emerald-400' :
+                  'text-violet-400';
+                return (
+                  <Link
+                    key={tier.href}
+                    href={tier.href}
+                    className="card-enterprise group flex flex-col h-full hover:border-amber-500/40 transition-colors"
+                  >
+                    <div className="flex items-center gap-3 mb-4">
+                      <span className={`inline-flex h-10 w-10 rounded-lg ${accentBg} border items-center justify-center shrink-0`}>
+                        <Icon className={`h-5 w-5 ${accentText}`} />
+                      </span>
+                      <h3 className={`font-display text-base font-medium group-hover:${accentText}`}>{t(tier.nameKey)}</h3>
+                    </div>
+                    <p className={`text-xs font-mono uppercase tracking-wider ${accentText} mb-3`}>
+                      {t(tier.modalKey)}
+                    </p>
+                    <p className="t-body-sm text-foreground/60 leading-relaxed mb-5 flex-1">
+                      {t(tier.descKey)}
+                    </p>
+                    <span className={`inline-flex items-center gap-1.5 text-sm font-medium ${accentText} group-hover:gap-2 transition-all`}>
+                      {t(tier.ctaKey)} <ArrowRight className="w-3.5 h-3.5" />
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
           </div>
         </section>
 
@@ -87,6 +182,15 @@ export default async function SolutionsPage({ params }: { params: Promise<{ loca
                 </div>
               ))}
             </div>
+          </div>
+        </section>
+
+        {/* Decision Quiz — 3-pertanyaan auto-routing untuk klien yang belum
+            yakin pilih tier mana. Interactive client component dengan auto-
+            recommendation berdasarkan asset class + modal + technical comfort. */}
+        <section className="section-padding border-b border-white/8">
+          <div className="container-default px-4 sm:px-6">
+            <DecisionQuiz />
           </div>
         </section>
 

@@ -284,6 +284,81 @@ export default async function InstitutionalPage({ params }: { params: { locale: 
           </div>
         </section>
 
+        {/* Reciprocal comparison block — mirror dari /solutions/license.
+            Klien yang landing di institutional page bisa lihat alternatif
+            VPS License Full Turnkey kalau belum siap institutional commitment. */}
+        <section className="section-padding border-b border-border/60">
+          <div className="container-default px-4 sm:px-6">
+            <div className="mb-8 sm:mb-10 max-w-3xl">
+              <p className="t-eyebrow mb-4">{t('compare_eyebrow')}</p>
+              <h2 className="t-display-sub">{t('compare_title')}</h2>
+            </div>
+
+            <div className="grid lg:grid-cols-2 gap-5 mb-6">
+              {/* Institutional card — current page indicator (sky accent) */}
+              <div className="rounded-xl border-2 border-sky-500/50 bg-sky-500/[0.04] p-6 sm:p-7">
+                <div className="flex items-center gap-3 mb-4">
+                  <Building2 className="w-6 h-6 text-sky-400" />
+                  <h3 className="font-semibold text-lg">{t('compare_inst_title')}</h3>
+                  <span className="ml-auto text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300">
+                    HALAMAN INI
+                  </span>
+                </div>
+                <ul className="space-y-2.5 text-sm">
+                  <li className="flex gap-2 items-start">
+                    <span className="text-sky-400 mt-0.5">→</span>
+                    <span className="text-foreground/80">{t('compare_inst_for')}</span>
+                  </li>
+                  <li className="flex gap-2 items-start">
+                    <span className="text-sky-400 mt-0.5">→</span>
+                    <span className="text-foreground/80">{t('compare_inst_modal')}</span>
+                  </li>
+                  <li className="flex gap-2 items-start">
+                    <span className="text-sky-400 mt-0.5">→</span>
+                    <span className="text-foreground/80">{t('compare_inst_cost')}</span>
+                  </li>
+                  <li className="flex gap-2 items-start">
+                    <span className="text-sky-400 mt-0.5">→</span>
+                    <span className="text-foreground/80">{t('compare_inst_what')}</span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* VPS License card — downgrade option (amber accent) */}
+              <div className="rounded-xl border border-border/60 bg-card p-6 sm:p-7 hover:border-amber-500/40 transition-colors">
+                <div className="flex items-center gap-3 mb-4">
+                  <Server className="w-6 h-6 text-amber-400" />
+                  <h3 className="font-semibold text-lg">{t('compare_license_title')}</h3>
+                </div>
+                <ul className="space-y-2.5 text-sm mb-5">
+                  <li className="flex gap-2 items-start">
+                    <span className="text-amber-400 mt-0.5">→</span>
+                    <span className="text-foreground/80">{t('compare_license_for')}</span>
+                  </li>
+                  <li className="flex gap-2 items-start">
+                    <span className="text-amber-400 mt-0.5">→</span>
+                    <span className="text-foreground/80">{t('compare_license_modal')}</span>
+                  </li>
+                  <li className="flex gap-2 items-start">
+                    <span className="text-amber-400 mt-0.5">→</span>
+                    <span className="text-foreground/80">{t('compare_license_cost')}</span>
+                  </li>
+                  <li className="flex gap-2 items-start">
+                    <span className="text-amber-400 mt-0.5">→</span>
+                    <span className="text-foreground/80">{t('compare_license_what')}</span>
+                  </li>
+                </ul>
+                <Link
+                  href="/solutions/license"
+                  className="inline-flex items-center gap-2 text-sm font-medium text-amber-400 hover:text-amber-300 transition-colors"
+                >
+                  {t('compare_license_cta')} <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* CTA */}
         <section className="section-padding">
           <div className="container-default px-4 sm:px-6 text-center">

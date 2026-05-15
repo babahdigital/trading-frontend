@@ -4,6 +4,7 @@ import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { getPageMetadata } from '@/lib/seo';
 import { breadcrumbSchema, faqPageSchema, ldJson, organizationSchema } from '@/lib/seo-jsonld';
+import { formatPrice, type Locale, type PriceKey } from '@/lib/pricing-format';
 import {
   ArrowRight,
   Bitcoin,
@@ -46,7 +47,7 @@ const FEATURE_META = [
 interface TierMeta {
   id: string;
   name: string;
-  price: string;
+  priceKey: PriceKey;
   popular?: boolean;
   descKey: 'tier_basic_desc' | 'tier_pro_desc' | 'tier_hnwi_desc';
   ctaKey: 'tier_basic_cta' | 'tier_pro_cta' | 'tier_hnwi_cta';
@@ -55,9 +56,9 @@ interface TierMeta {
 }
 
 const TIERS_META: TierMeta[] = [
-  { id: 'basic', name: 'Crypto Basic', price: '$49', descKey: 'tier_basic_desc', ctaKey: 'tier_basic_cta', pfKey: 'tier_basic_pf', featuresKey: 'tier_basic_features' },
-  { id: 'pro', name: 'Crypto Pro', price: '$199', popular: true, descKey: 'tier_pro_desc', ctaKey: 'tier_pro_cta', pfKey: 'tier_pro_pf', featuresKey: 'tier_pro_features' },
-  { id: 'hnwi', name: 'Crypto HNWI', price: '$499', descKey: 'tier_hnwi_desc', ctaKey: 'tier_hnwi_cta', pfKey: 'tier_hnwi_pf', featuresKey: 'tier_hnwi_features' },
+  { id: 'basic', name: 'Crypto Basic', priceKey: 'crypto_basic', descKey: 'tier_basic_desc', ctaKey: 'tier_basic_cta', pfKey: 'tier_basic_pf', featuresKey: 'tier_basic_features' },
+  { id: 'pro', name: 'Crypto Pro', priceKey: 'crypto_pro', popular: true, descKey: 'tier_pro_desc', ctaKey: 'tier_pro_cta', pfKey: 'tier_pro_pf', featuresKey: 'tier_pro_features' },
+  { id: 'hnwi', name: 'Crypto HNWI', priceKey: 'crypto_hnwi', descKey: 'tier_hnwi_desc', ctaKey: 'tier_hnwi_cta', pfKey: 'tier_hnwi_pf', featuresKey: 'tier_hnwi_features' },
 ];
 
 const STRATEGY_META = [
@@ -85,8 +86,10 @@ const FAQ_KEYS = [
   { qKey: 'faq_q6', aKey: 'faq_a6' },
 ] as const;
 
-export default async function CryptoBotSolutionPage() {
+export default async function CryptoBotSolutionPage({ params }: { params: Promise<{ locale: string }> }) {
   const t = await getTranslations('solutions_crypto');
+  const { locale } = await params;
+  const localeKey: Locale = locale === 'en' ? 'en' : 'id';
   const FAQ_ITEMS = FAQ_KEYS.map((k) => ({ q: t(k.qKey), a: t(k.aKey) }));
   const breadcrumb = breadcrumbSchema([
     { name: 'Home', url: '/' },
@@ -214,8 +217,7 @@ export default async function CryptoBotSolutionPage() {
                   <h3 className="text-xl font-semibold mb-1">{tier.name}</h3>
                   <p className="text-sm text-foreground/60 mb-5">{t(tier.descKey)}</p>
                   <div className="flex items-baseline gap-1 mb-1">
-                    <span className="text-4xl font-bold">{tier.price}</span>
-                    <span className="text-sm text-foreground/50">{t('tier_period')}</span>
+                    <span className="text-3xl xl:text-4xl font-bold">{formatPrice(tier.priceKey, localeKey, { compact: false })}</span>
                   </div>
                   <p className="text-xs text-amber-400 font-mono uppercase tracking-wider mb-6">{t(tier.pfKey)}</p>
                   <ul className="space-y-2.5 mb-8 flex-1">

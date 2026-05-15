@@ -10,6 +10,7 @@ import {
   Cpu, Activity, Award, Check,
 } from 'lucide-react';
 import { financialProductSchema, ldJson, breadcrumbSchema, faqPageSchema } from '@/lib/seo-jsonld';
+import { formatPrice, type Locale, type PriceKey } from '@/lib/pricing-format';
 
 const FEATURE_META = [
   { titleKey: 'feat1_title', descKey: 'feat1_desc', icon: 'cpu' },
@@ -35,7 +36,7 @@ const FEATURE_ICONS: Record<string, React.ReactNode> = {
 interface PricingMeta {
   tier: string;
   name: string;
-  price: string;
+  priceKey: PriceKey;
   popular?: boolean;
   taglineKey: 'tier1_tagline' | 'tier2_tagline' | 'tier3_tagline';
   ctaKey: 'tier1_cta' | 'tier2_cta' | 'tier3_cta';
@@ -44,9 +45,9 @@ interface PricingMeta {
 }
 
 const PRICING_META: PricingMeta[] = [
-  { tier: 'TIER 1', name: 'Robot Meta · Swing', price: '$19', taglineKey: 'tier1_tagline', ctaKey: 'tier1_cta', featuresKey: 'tier1_features', href: '/register/signal?tier=swing' },
-  { tier: 'TIER 2', name: 'Robot Meta · Scalping', price: '$79', popular: true, taglineKey: 'tier2_tagline', ctaKey: 'tier2_cta', featuresKey: 'tier2_features', href: '/register/signal?tier=scalping' },
-  { tier: 'TIER 3', name: 'Robot Meta · All-In', price: '$299', taglineKey: 'tier3_tagline', ctaKey: 'tier3_cta', featuresKey: 'tier3_features', href: '/register/signal?tier=all' },
+  { tier: 'TIER 1', name: 'Robot Meta · Swing', priceKey: 'signal_starter', taglineKey: 'tier1_tagline', ctaKey: 'tier1_cta', featuresKey: 'tier1_features', href: '/register/signal?tier=swing' },
+  { tier: 'TIER 2', name: 'Robot Meta · Scalping', priceKey: 'signal_pro', popular: true, taglineKey: 'tier2_tagline', ctaKey: 'tier2_cta', featuresKey: 'tier2_features', href: '/register/signal?tier=scalping' },
+  { tier: 'TIER 3', name: 'Robot Meta · All-In', priceKey: 'signal_vip', taglineKey: 'tier3_tagline', ctaKey: 'tier3_cta', featuresKey: 'tier3_features', href: '/register/signal?tier=all' },
 ];
 
 const STEP_META = [
@@ -121,12 +122,16 @@ export default function SignalPage() {
     { name: 'Robot Meta', url: '/solutions/signal' },
   ]);
   const faqJson = faqPageSchema(faq.map((f) => ({ question: f.q, answer: f.a })));
+  const localeKey: Locale = locale === 'en' ? 'en' : 'id';
+  // Schema markup always uses USD per Schema.org Product convention (universal).
+  // Visual price rendering switches IDR/USD via formatPrice() below.
   const tierProducts = PRICING_META.map((tier) => {
     const features = t.raw(tier.featuresKey) as string[];
+    const usdPrice = formatPrice(tier.priceKey, 'en', { compact: false });
     return financialProductSchema({
-      name: `${tier.name} — ${tier.price}/mo`,
+      name: `${tier.name} — ${usdPrice}`,
       description: features.join(' · '),
-      price: tier.price.replace(/[^0-9.]/g, ''),
+      price: usdPrice.replace(/[^0-9.]/g, ''),
       currency: 'USD',
       url: '/solutions/signal',
     });
@@ -198,8 +203,7 @@ export default function SignalPage() {
                   <h3 className="font-display text-xl font-medium mb-1">{tier.name}</h3>
                   <p className="t-body-sm text-muted-foreground mb-4">{t(tier.taglineKey)}</p>
                   <div className="flex items-baseline gap-1 mb-6">
-                    <span className="font-mono text-3xl font-semibold">{tier.price}</span>
-                    <span className="t-body-sm text-foreground/40">/mo</span>
+                    <span className="font-mono text-2xl xl:text-3xl font-semibold">{formatPrice(tier.priceKey, localeKey, { period: 'mo', compact: false })}</span>
                   </div>
                   <ul className="space-y-2.5 mb-6">
                     {(t.raw(tier.featuresKey) as string[]).map((f) => (

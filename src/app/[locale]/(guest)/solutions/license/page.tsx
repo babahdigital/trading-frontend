@@ -163,34 +163,31 @@ export default async function LicensePage() {
           </div>
         </section>
 
-        {/* Pricing */}
+        {/* Pricing — 2-col card grid (setup + maintenance) supaya tidak terlihat
+            kurus, plus full-width note section di bawah. */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">{t('pricing_eyebrow')}</p>
             <h2 className="t-display-sub mb-8 sm:mb-12">{t('pricing_title')}</h2>
-            <div className="card-enterprise max-w-xl">
-              <div className="space-y-6">
-                <div>
-                  <p className="t-eyebrow mb-1">{t('pricing_setup_label')}</p>
-                  <p className="font-display text-4xl font-medium">
-                    {t('pricing_setup_value')}
-                    <span className="text-base text-foreground/60 font-normal ml-2">{t('pricing_setup_unit')}</span>
-                  </p>
-                </div>
-                <div className="border-t border-border/60 pt-6">
-                  <p className="t-eyebrow mb-1">{t('pricing_maint_label')}</p>
-                  <p className="font-display text-4xl font-medium">
-                    {t('pricing_maint_value')}
-                    <span className="text-base text-foreground/60 font-normal">{t('pricing_maint_unit')}</span>
-                  </p>
-                </div>
-                <div className="border-t border-border/60 pt-6">
-                  <p className="t-body-sm text-foreground/60 leading-relaxed">
-                    {t('pricing_note')}
-                  </p>
-                </div>
+            <div className="grid sm:grid-cols-2 gap-5 max-w-3xl mb-6">
+              <div className="card-enterprise">
+                <p className="t-eyebrow mb-3">{t('pricing_setup_label')}</p>
+                <p className="font-display text-3xl sm:text-4xl font-medium">
+                  {t('pricing_setup_value')}
+                </p>
+                <p className="text-sm text-foreground/60 mt-2">{t('pricing_setup_unit')}</p>
+              </div>
+              <div className="card-enterprise">
+                <p className="t-eyebrow mb-3">{t('pricing_maint_label')}</p>
+                <p className="font-display text-3xl sm:text-4xl font-medium">
+                  {t('pricing_maint_value')}
+                  <span className="text-base text-foreground/60 font-normal ml-1">{t('pricing_maint_unit')}</span>
+                </p>
               </div>
             </div>
+            <p className="t-body-sm text-foreground/60 leading-relaxed max-w-3xl">
+              {t('pricing_note')}
+            </p>
           </div>
         </section>
 

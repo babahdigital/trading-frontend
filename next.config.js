@@ -41,6 +41,17 @@ const nextConfig = {
       { source: '/register/pamm', destination: '/register/signal', permanent: true },
       { source: '/:locale(en|id)/solutions/pamm', destination: '/:locale/solutions/signal', permanent: true },
       { source: '/:locale(en|id)/register/pamm', destination: '/:locale/register/signal', permanent: true },
+      // Strategi placeholder (wyckoff/astronacci/ai-momentum/oil-gas) di-purge
+      // 2026-05-15 karena tidak ada implementasi backend. Realnya hanya
+      // SMC scalper + SMC swing (QM Sempurna family) + Pivot Mean Reversion.
+      { source: '/platform/strategies/wyckoff', destination: '/platform/strategies/smc', permanent: true },
+      { source: '/platform/strategies/astronacci', destination: '/platform/strategies/smc', permanent: true },
+      { source: '/platform/strategies/ai-momentum', destination: '/platform/strategies/smc', permanent: true },
+      { source: '/platform/strategies/oil-gas', destination: '/platform/strategies/smc', permanent: true },
+      { source: '/:locale(en|id)/platform/strategies/wyckoff', destination: '/:locale/platform/strategies/smc', permanent: true },
+      { source: '/:locale(en|id)/platform/strategies/astronacci', destination: '/:locale/platform/strategies/smc', permanent: true },
+      { source: '/:locale(en|id)/platform/strategies/ai-momentum', destination: '/:locale/platform/strategies/smc', permanent: true },
+      { source: '/:locale(en|id)/platform/strategies/oil-gas', destination: '/:locale/platform/strategies/smc', permanent: true },
     ];
   },
 };

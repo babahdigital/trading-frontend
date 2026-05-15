@@ -93,13 +93,33 @@ export function AiDecisionIcon({ className = 'w-6 h-6' }: IconProps) {
   );
 }
 
-/** Map strategy slug to icon component */
+/** Pivot Mean Reversion — Daily pivot fade scalper */
+export function PivotIcon({ className = 'w-6 h-6' }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      {/* Daily pivot horizontal line */}
+      <line x1="2" y1="12" x2="22" y2="12" strokeDasharray="3 2" opacity="0.6" />
+      {/* R1/S1 boundary lines */}
+      <line x1="2" y1="6" x2="22" y2="6" strokeDasharray="1 2" opacity="0.3" />
+      <line x1="2" y1="18" x2="22" y2="18" strokeDasharray="1 2" opacity="0.3" />
+      {/* Price oscillation around pivot (mean reverting) */}
+      <path d="M2 12 Q5 6, 8 12 T14 12 T20 12" />
+      {/* Entry arrow back to pivot */}
+      <path d="M18 5 L20 7 L22 5" />
+      <circle cx="20" cy="6" r="1" fill="currentColor" stroke="none" opacity="0.5" />
+    </svg>
+  );
+}
+
+/** Map strategy slug to icon component — hanya 3 strategi real yang ter-deploy. */
 export const STRATEGY_ICONS: Record<string, React.ComponentType<IconProps>> = {
   'smc': SmcIcon,
+  'smc-swing': QuasimodoIcon,
+  'pivot-mean-reversion': PivotIcon,
+  // Re-export classics untuk komponen lain yang mungkin still reference (chat
+  // skill, blog topic). Bukan strategi user-facing.
   'wyckoff': WyckoffIcon,
   'astronacci': AstronacciIcon,
   'ai-momentum': AiDecisionIcon,
   'quasimodo': QuasimodoIcon,
-  'oil-gas': SmcIcon, // Reuse SMC for oil-gas (similar institutional flow)
-  'smc-swing': SmcIcon,
 };

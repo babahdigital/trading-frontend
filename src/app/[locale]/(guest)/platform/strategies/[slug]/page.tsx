@@ -5,11 +5,23 @@ import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { notFound } from 'next/navigation';
 import { breadcrumbSchema, ldJson, organizationSchema } from '@/lib/seo-jsonld';
 import { getTranslations } from 'next-intl/server';
+import {
+  getStrategyStats,
+  formatWinRate,
+  formatRR,
+  formatHoldMinutes,
+  formatCount,
+} from '@/lib/trading/strategy-stats';
 import type { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
 
-const STRATEGY_SLUGS = ['smc', 'wyckoff', 'astronacci', 'ai-momentum', 'oil-gas', 'smc-swing'] as const;
+// Strategy umbrella yang dipublikasikan ke user. Mapping ke backend registry
+// (lihat trading-forex/src/strategies/registry):
+//   - smc                  → scalper.qm_perfect_{pure,ao,adx,full,adx_h4}
+//   - smc-swing            → swing.qm_perfect_{pure,ao,adx,full}
+//   - pivot-mean-reversion → scalper.pivot_mean_reversion
+const STRATEGY_SLUGS = ['smc', 'smc-swing', 'pivot-mean-reversion'] as const;
 
 type StrategySlug = (typeof STRATEGY_SLUGS)[number];
 
@@ -19,17 +31,11 @@ interface StrategyData {
   abstractKeys: [string, string];
   mechanismKeys: string[];
   confluence: { timeframe: string; roleKey: string }[];
-  riskProfile: {
-    winRate: string;
-    avgRR: string;
-    avgHold: string;
-    maxConsecutiveLoss: string;
-  };
 }
 
 const STRATEGY_DATA: Record<StrategySlug, StrategyData> = {
   smc: {
-    name: 'SMC Intraday',
+    name: 'SMC Scalper',
     subtitleKey: 'smc_subtitle',
     abstractKeys: ['smc_abstract_1', 'smc_abstract_2'],
     mechanismKeys: [
@@ -46,112 +52,6 @@ const STRATEGY_DATA: Record<StrategySlug, StrategyData> = {
       { timeframe: 'M15', roleKey: 'smc_confluence_3_role' },
       { timeframe: 'M5', roleKey: 'smc_confluence_4_role' },
     ],
-    riskProfile: {
-      winRate: '62%',
-      avgRR: '1:1.8',
-      avgHold: '1h 45m',
-      maxConsecutiveLoss: '5',
-    },
-  },
-  wyckoff: {
-    name: 'Wyckoff Accumulation-Distribution',
-    subtitleKey: 'wyckoff_subtitle',
-    abstractKeys: ['wyckoff_abstract_1', 'wyckoff_abstract_2'],
-    mechanismKeys: [
-      'wyckoff_mechanism_1',
-      'wyckoff_mechanism_2',
-      'wyckoff_mechanism_3',
-      'wyckoff_mechanism_4',
-      'wyckoff_mechanism_5',
-      'wyckoff_mechanism_6',
-    ],
-    confluence: [
-      { timeframe: 'H4', roleKey: 'wyckoff_confluence_1_role' },
-      { timeframe: 'H1', roleKey: 'wyckoff_confluence_2_role' },
-      { timeframe: 'M15', roleKey: 'wyckoff_confluence_3_role' },
-      { timeframe: 'M5', roleKey: 'wyckoff_confluence_4_role' },
-    ],
-    riskProfile: {
-      winRate: '58%',
-      avgRR: '1:2.2',
-      avgHold: '3h 10m',
-      maxConsecutiveLoss: '4',
-    },
-  },
-  astronacci: {
-    name: 'Astronacci Harmonic',
-    subtitleKey: 'astronacci_subtitle',
-    abstractKeys: ['astronacci_abstract_1', 'astronacci_abstract_2'],
-    mechanismKeys: [
-      'astronacci_mechanism_1',
-      'astronacci_mechanism_2',
-      'astronacci_mechanism_3',
-      'astronacci_mechanism_4',
-      'astronacci_mechanism_5',
-      'astronacci_mechanism_6',
-    ],
-    confluence: [
-      { timeframe: 'H4', roleKey: 'astronacci_confluence_1_role' },
-      { timeframe: 'H1', roleKey: 'astronacci_confluence_2_role' },
-      { timeframe: 'M15', roleKey: 'astronacci_confluence_3_role' },
-      { timeframe: 'M5', roleKey: 'astronacci_confluence_4_role' },
-    ],
-    riskProfile: {
-      winRate: '55%',
-      avgRR: '1:2.5',
-      avgHold: '2h 50m',
-      maxConsecutiveLoss: '6',
-    },
-  },
-  'ai-momentum': {
-    name: 'AI Momentum',
-    subtitleKey: 'ai-momentum_subtitle',
-    abstractKeys: ['ai-momentum_abstract_1', 'ai-momentum_abstract_2'],
-    mechanismKeys: [
-      'ai-momentum_mechanism_1',
-      'ai-momentum_mechanism_2',
-      'ai-momentum_mechanism_3',
-      'ai-momentum_mechanism_4',
-      'ai-momentum_mechanism_5',
-      'ai-momentum_mechanism_6',
-    ],
-    confluence: [
-      { timeframe: 'H4', roleKey: 'ai-momentum_confluence_1_role' },
-      { timeframe: 'H1', roleKey: 'ai-momentum_confluence_2_role' },
-      { timeframe: 'M15', roleKey: 'ai-momentum_confluence_3_role' },
-      { timeframe: 'M5', roleKey: 'ai-momentum_confluence_4_role' },
-    ],
-    riskProfile: {
-      winRate: '64%',
-      avgRR: '1:1.6',
-      avgHold: '1h 20m',
-      maxConsecutiveLoss: '4',
-    },
-  },
-  'oil-gas': {
-    name: 'Oil & Gas Macro',
-    subtitleKey: 'oil-gas_subtitle',
-    abstractKeys: ['oil-gas_abstract_1', 'oil-gas_abstract_2'],
-    mechanismKeys: [
-      'oil-gas_mechanism_1',
-      'oil-gas_mechanism_2',
-      'oil-gas_mechanism_3',
-      'oil-gas_mechanism_4',
-      'oil-gas_mechanism_5',
-      'oil-gas_mechanism_6',
-    ],
-    confluence: [
-      { timeframe: 'H4', roleKey: 'oil-gas_confluence_1_role' },
-      { timeframe: 'H1', roleKey: 'oil-gas_confluence_2_role' },
-      { timeframe: 'M15', roleKey: 'oil-gas_confluence_3_role' },
-      { timeframe: 'M5', roleKey: 'oil-gas_confluence_4_role' },
-    ],
-    riskProfile: {
-      winRate: '57%',
-      avgRR: '1:2.1',
-      avgHold: '2h 30m',
-      maxConsecutiveLoss: '5',
-    },
   },
   'smc-swing': {
     name: 'SMC Swing',
@@ -171,12 +71,25 @@ const STRATEGY_DATA: Record<StrategySlug, StrategyData> = {
       { timeframe: 'H1', roleKey: 'smc-swing_confluence_3_role' },
       { timeframe: 'M15', roleKey: 'smc-swing_confluence_4_role' },
     ],
-    riskProfile: {
-      winRate: '53%',
-      avgRR: '1:2.8',
-      avgHold: '3h 40m',
-      maxConsecutiveLoss: '6',
-    },
+  },
+  'pivot-mean-reversion': {
+    name: 'Pivot Mean Reversion',
+    subtitleKey: 'pivot-mean-reversion_subtitle',
+    abstractKeys: ['pivot-mean-reversion_abstract_1', 'pivot-mean-reversion_abstract_2'],
+    mechanismKeys: [
+      'pivot-mean-reversion_mechanism_1',
+      'pivot-mean-reversion_mechanism_2',
+      'pivot-mean-reversion_mechanism_3',
+      'pivot-mean-reversion_mechanism_4',
+      'pivot-mean-reversion_mechanism_5',
+      'pivot-mean-reversion_mechanism_6',
+    ],
+    confluence: [
+      { timeframe: 'D1', roleKey: 'pivot-mean-reversion_confluence_1_role' },
+      { timeframe: 'H1', roleKey: 'pivot-mean-reversion_confluence_2_role' },
+      { timeframe: 'M15', roleKey: 'pivot-mean-reversion_confluence_3_role' },
+      { timeframe: 'M5', roleKey: 'pivot-mean-reversion_confluence_4_role' },
+    ],
   },
 };
 
@@ -228,8 +141,13 @@ export default async function StrategyDetailPage({
     notFound();
   }
 
-  const t = await getTranslations('platform_strategy_detail');
+  const [t, statsPayload] = await Promise.all([
+    getTranslations('platform_strategy_detail'),
+    getStrategyStats(),
+  ]);
   const strategy = STRATEGY_DATA[slug as StrategySlug];
+  const stat = statsPayload.stats[slug] ?? null;
+  const isPending = statsPayload.source === 'pending' || stat === null;
   const { prev, next } = getAdjacentStrategies(slug as StrategySlug);
 
   const breadcrumb = breadcrumbSchema([
@@ -330,24 +248,43 @@ export default async function StrategyDetailPage({
           </div>
         </section>
 
-        {/* Risk profile */}
+        {/* Risk profile — dynamic dari /api/public/strategy-stats */}
         <section className="mb-16">
-          <h2 className="font-display text-display-sm text-foreground mb-4">
-            {t('section_risk_profile')}
-          </h2>
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <h2 className="font-display text-display-sm text-foreground">
+              {t('section_risk_profile')}
+            </h2>
+            {isPending ? (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-amber-500/30 bg-amber-500/[0.06] text-[10px] font-medium text-amber-400 uppercase tracking-wider">
+                <span className="inline-block h-1.5 w-1.5 rounded-full bg-amber-400/80 animate-pulse" aria-hidden />
+                {t('stats_pending_badge')}
+              </span>
+            ) : stat?.lastUpdated ? (
+              <span className="text-[11px] text-muted-foreground">
+                {t('stats_updated_at', { ts: new Date(stat.lastUpdated).toLocaleString() })}
+              </span>
+            ) : null}
+          </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { label: t('metric_win_rate'), value: strategy.riskProfile.winRate },
-              { label: t('metric_avg_rr'), value: strategy.riskProfile.avgRR },
-              { label: t('metric_avg_hold'), value: strategy.riskProfile.avgHold },
-              { label: t('metric_max_consec_loss'), value: strategy.riskProfile.maxConsecutiveLoss },
+              { label: t('metric_win_rate'), value: formatWinRate(stat?.winRate ?? null) },
+              { label: t('metric_avg_rr'), value: formatRR(stat?.avgRR ?? null) },
+              { label: t('metric_avg_hold'), value: formatHoldMinutes(stat?.avgHoldMinutes ?? null) },
+              { label: t('metric_max_consec_loss'), value: formatCount(stat?.maxConsecutiveLoss ?? null) },
             ].map((metric) => (
               <div key={metric.label} className="border border-border rounded-lg p-8 bg-card text-center">
-                <p className="font-mono text-xl text-accent mb-1">{metric.value}</p>
+                <p className={`font-mono text-xl ${metric.value === '—' ? 'text-foreground/40' : 'text-accent'} mb-1`}>
+                  {metric.value}
+                </p>
                 <p className="text-xs text-muted-foreground">{metric.label}</p>
               </div>
             ))}
           </div>
+          {isPending ? (
+            <p className="mt-4 text-xs text-muted-foreground italic max-w-2xl">
+              {t('stats_pending_note')}
+            </p>
+          ) : null}
         </section>
 
         {/* Navigation */}

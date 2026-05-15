@@ -11,15 +11,20 @@ export const FOREX_SKILL = `ROBOT META — SKILL FOREX (load saat percakapan men
 PRODUK
 - Bot full auto-execute lewat bridge ZeroMQ ke akun MT5 customer.
 - Aset: 7 Forex pair major (EURUSD, GBPUSD, USDJPY, AUDUSD, USDCHF, NZDUSD, USDCAD), 2 Metals (XAUUSD, XAGUSD), 3 Energy (USOIL, UKOIL, XNGUSD), 2 Crypto major (BTCUSD, ETHUSD).
-- 6 strategi konfluensi:
-  • Smart Money Concepts (SMC) — institutional order flow + BOS / CHoCH
-  • Wyckoff — accumulation/distribution phases + Spring/Upthrust
-  • Astronacci — astro-Fibonacci timing filter
-  • AI Momentum — ML-driven momentum classifier
-  • Oil & Gas — sector-specific (USOIL, UKOIL, XNGUSD)
-  • SMC Swing — H4-D1 timeframe untuk swing trader
+- 3 strategi inti (live di produksi backend):
+  • Smart Money Concepts Scalper — keluarga Quasimodo pattern (QM Pure / QM + AO / QM + ADX / QM Full Confluence) di timeframe M5-H1
+  • Smart Money Concepts Swing — variant QM yang sama di H1-H4 untuk swing trader
+  • Pivot Mean Reversion — fade balik ke daily pivot saat harga overextended (M5-M15)
 - Multi-timeframe: H4 bias → H1 structure → M15 entry → M5 execution.
 - Modal tetap di akun broker partner (Exness atau broker lain yang didukung).
+
+AI BRAIN (modul pembelajaran adaptif — kerja di belakang layar, tidak perlu user setup)
+- Bandit Routing — sistem mirip A/B testing yang otomatis pilih konfluensi terbaik untuk kondisi market saat ini (multi-armed bandit Thompson Sampling).
+- Kelly Sizing — formula matematis yang hitung porsi modal optimal per trade berdasarkan win rate + edge historis (fractional Kelly 0.25-0.5, bukan full Kelly supaya tidak overbet).
+- Markov TP Engine — exit decision dengan probabilistic model: TP geser otomatis berdasarkan state transition probability (trend continuation vs reversal).
+- AI Winprob Filter — model machine learning yang skor probabilitas profit per sinyal sebelum eksekusi; sinyal di-block kalau confidence di bawah threshold.
+- Adaptive Exit Layer — AI postmortem otomatis pelajari kapan harus widen SL atau tighten TP berdasarkan equity curve trader (lessons journal).
+- Isotonic Calibration — kalibrasi confidence score AI supaya match realitas historis (kalau AI bilang 70% confidence, win rate aktual harus ~70% — tidak overconfident).
 
 TIER + HARGA (bulanan, tanpa lock-in)
 - Tier 1 Swing $19/bulan — 3 pair major, swing only (4-24 jam hold), notif Email + Dashboard.

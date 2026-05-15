@@ -318,8 +318,10 @@ jobs:
           set -e
           BASE="https://babahalgo.com"
 
-          # Probe table: route → expected status codes (multiple OK karena auth-gate /
-          # redirect bisa return 200/307/401 tergantung deploy mode).
+          # Probe table — semua public page hit middleware locale redirect (root →
+          # /id/* atau /en/* via next-intl). curl tanpa -L return 307 dulu, lalu
+          # final 200 di locale path. Pakai `-L` supaya follow redirect + pakai
+          # `%{http_code}` yang report FINAL status setelah redirect chain.
           # Format: <method>|<path>|<allowed-codes-comma-separated>
           PROBES=(
             "GET|/|200"
@@ -341,10 +343,10 @@ jobs:
             "GET|/platform/strategies/smc|200"
             "GET|/platform/strategies/smc-swing|200"
             "GET|/platform/strategies/pivot-mean-reversion|200"
-            "GET|/platform/strategies/wyckoff|308,301"
-            "GET|/platform/strategies/astronacci|308,301"
-            "GET|/platform/strategies/ai-momentum|308,301"
-            "GET|/platform/strategies/oil-gas|308,301"
+            "GET|/platform/strategies/wyckoff|200"
+            "GET|/platform/strategies/astronacci|200"
+            "GET|/platform/strategies/ai-momentum|200"
+            "GET|/platform/strategies/oil-gas|200"
             "GET|/platform/technology|200"
             "GET|/platform/risk-framework|200"
             "GET|/platform/execution|200"
@@ -363,8 +365,8 @@ jobs:
             "GET|/legal/regulatory|200"
             "GET|/legal/cookies|200"
             "GET|/forgot-password|200"
-            "GET|/portal|200,307"
-            "GET|/admin|200,307"
+            "GET|/portal|200,307,308"
+            "GET|/admin|200,307,308"
             "GET|/non-existent-page-xyz|404"
             "GET|/sitemap.xml|200"
             "GET|/robots.txt|200"
@@ -400,7 +402,10 @@ jobs:
             REST="${probe#*|}"
             PATH_PART="${REST%%|*}"
             ALLOWED="${REST##*|}"
-            CODE=$(curl -sS -o /dev/null -m 10 -X "$METHOD" -w "%{http_code}" "$BASE$PATH_PART" || echo "ERR")
+            # -L: follow redirect (locale redirect via next-intl). %{http_code}
+            # report FINAL response code di chain — supaya /register hit 307→200.
+            # Untuk /api/* yang gak ada redirect, behavior sama (200/401 langsung).
+            CODE=$(curl -sS -L -o /dev/null -m 15 -X "$METHOD" -w "%{http_code}" "$BASE$PATH_PART" || echo "ERR")
             if echo ",$ALLOWED," | grep -q ",$CODE,"; then
               PASS=$((PASS + 1))
               echo "✓ $METHOD $PATH_PART → $CODE (expected: $ALLOWED)"
@@ -411,10 +416,11 @@ jobs:
             fi
           done
 
-          # Body sanity check — pastikan landing render content (bukan blank shell)
+          # Body sanity check — pastikan landing render content (bukan blank shell).
+          # Pakai -L supaya curl follow locale redirect lalu fetch HTML body real.
           echo ""
           echo "== body sanity check =="
-          BODY_LEN=$(curl -sS -m 10 "$BASE/" | wc -c)
+          BODY_LEN=$(curl -sS -L -m 15 "$BASE/" | wc -c)
           echo "Landing body bytes: $BODY_LEN"
           if [ "$BODY_LEN" -lt 5000 ]; then
             FAIL=$((FAIL + 1))
@@ -422,11 +428,26 @@ jobs:
             echo "::error::Landing page body suspiciously small ($BODY_LEN bytes)"
           fi
 
+          # Content marker check — pastikan key strings ada di HTML render
+          echo ""
+          echo "== content marker check =="
+          HTML=$(curl -sS -L -m 15 "$BASE/")
+          MARKERS=("BabahAlgo" "Robot")
+          for marker in "${MARKERS[@]}"; do
+            if echo "$HTML" | grep -q "$marker"; then
+              echo "✓ marker found: $marker"
+            else
+              FAIL=$((FAIL + 1))
+              REPORT="$REPORT- Marker missing: \`$marker\`\n"
+              echo "::error::marker missing: $marker"
+            fi
+          done
+
           {
             echo "### Smoke Test Result"
             echo "- Passed: $PASS"
             echo "- Failed: $FAIL"
-            echo "- Total: $((PASS + FAIL))"
+            echo "- Total probes: $((PASS + FAIL))"
             if [ "$FAIL" -gt 0 ]; then
               echo ""
               echo "**Failures:**"
@@ -435,10 +456,10 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
           if [ "$FAIL" -gt 0 ]; then
-            echo "::error::$FAIL endpoint(s) returned unexpected status"
+            echo "::error::$FAIL endpoint(s) returned unexpected status or marker missing"
             exit 1
           fi
-          echo "All $PASS endpoints pass."
+          echo "All $PASS probes pass + content markers verified."
 
       # Hygiene: setiap deploy bikin image lama jadi <none> tagged → numpuk cepat.
       # `docker image prune -af` hapus semua image yang tidak referenced container

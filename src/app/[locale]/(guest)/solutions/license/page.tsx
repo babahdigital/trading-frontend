@@ -2,8 +2,9 @@ import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
-import { ArrowRight, Server, Building2, TrendingUp, Info } from 'lucide-react';
+import { ArrowRight, Server, Building2, TrendingUp, Info, Cpu, ShieldCheck, Activity, FileCheck, Zap, Wrench, Check } from 'lucide-react';
 import { breadcrumbSchema, financialProductSchema, ldJson, organizationSchema } from '@/lib/seo-jsonld';
+import { formatPrice, type Locale } from '@/lib/pricing-format';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,13 +20,73 @@ const SPEC_META = [
 ] as const;
 
 const FEATURE_META = [
-  { titleKey: 'feat1_title', descKey: 'feat1_desc' },
-  { titleKey: 'feat2_title', descKey: 'feat2_desc' },
-  { titleKey: 'feat3_title', descKey: 'feat3_desc' },
-  { titleKey: 'feat4_title', descKey: 'feat4_desc' },
-  { titleKey: 'feat5_title', descKey: 'feat5_desc' },
-  { titleKey: 'feat6_title', descKey: 'feat6_desc' },
+  { titleKey: 'feat1_title', descKey: 'feat1_desc', icon: Server },
+  { titleKey: 'feat2_title', descKey: 'feat2_desc', icon: Wrench },
+  { titleKey: 'feat3_title', descKey: 'feat3_desc', icon: Zap },
+  { titleKey: 'feat4_title', descKey: 'feat4_desc', icon: ShieldCheck },
+  { titleKey: 'feat5_title', descKey: 'feat5_desc', icon: FileCheck },
+  { titleKey: 'feat6_title', descKey: 'feat6_desc', icon: Activity },
 ] as const;
+
+type TierMeta = {
+  key: string;
+  icon: typeof Cpu;
+  accent: 'amber' | 'sky' | 'emerald';
+  popular?: boolean;
+  setupKey: string;
+  monthlyKey: string;
+  nameKey: string;
+  taglineKey: string;
+  totalKey: string;
+  popularKey?: string;
+  youKey: string;
+  usKey: string;
+  bestKey: string;
+};
+
+const TIER_META: TierMeta[] = [
+  {
+    key: 'tier1',
+    icon: Cpu,
+    accent: 'amber',
+    setupKey: 'tier1_setup_value',
+    monthlyKey: 'tier1_monthly_value',
+    nameKey: 'tier1_name',
+    taglineKey: 'tier1_tagline',
+    totalKey: 'tier1_total_year1',
+    youKey: 'tier1_what_you_provide',
+    usKey: 'tier1_what_we_provide',
+    bestKey: 'tier1_best_for',
+  },
+  {
+    key: 'tier2',
+    icon: Server,
+    accent: 'sky',
+    popular: true,
+    setupKey: 'tier2_setup_value',
+    monthlyKey: 'tier2_monthly_value',
+    nameKey: 'tier2_name',
+    taglineKey: 'tier2_tagline',
+    totalKey: 'tier2_total_year1',
+    popularKey: 'tier2_popular',
+    youKey: 'tier2_what_you_provide',
+    usKey: 'tier2_what_we_provide',
+    bestKey: 'tier2_best_for',
+  },
+  {
+    key: 'tier3',
+    icon: Building2,
+    accent: 'emerald',
+    setupKey: 'tier3_setup_value',
+    monthlyKey: 'tier3_monthly_value',
+    nameKey: 'tier3_name',
+    taglineKey: 'tier3_tagline',
+    totalKey: 'tier3_total_year1',
+    youKey: 'tier3_what_you_provide',
+    usKey: 'tier3_what_we_provide',
+    bestKey: 'tier3_best_for',
+  },
+];
 
 const STEP_META = [
   { step: '01', titleKey: 'step1_title', descKey: 'step1_desc' },
@@ -150,83 +211,116 @@ export default async function LicensePage() {
           </div>
         </section>
 
-        {/* Features — alternating left-right sections */}
+        {/* Features — clean 2x3 icon grid. Sebelumnya alternating left-right
+            dengan large aspect-[4/3] image placeholder yang user keluhan
+            "terlalu besar, tidak baik di pandang". Sekarang compact card grid
+            dengan icon Lucide untuk visual variety tanpa noise. */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
             <p className="t-eyebrow mb-4">{t('cap_eyebrow')}</p>
-            <h2 className="t-display-sub mb-10 sm:mb-14">{t('cap_title')}</h2>
-            <div className="space-y-12 sm:space-y-16">
-              {FEATURE_META.map((feature, i) => (
-                <div
-                  key={feature.titleKey}
-                  className={`grid md:grid-cols-2 gap-6 sm:gap-8 md:gap-16 items-center ${
-                    i % 2 === 1 ? 'md:[direction:rtl]' : ''
-                  }`}
-                >
-                  {/* Image placeholder */}
-                  <div className={`${i % 2 === 1 ? 'md:[direction:ltr]' : ''}`}>
-                    <div className="aspect-[4/3] rounded-lg border border-border/60 bg-muted/30 flex items-center justify-center">
-                      <div className="text-center">
-                        <p className="font-mono text-6xl text-amber-500/10 font-bold">{String(i + 1).padStart(2, '0')}</p>
-                        <p className="t-body-sm text-foreground/20 mt-2">{t(feature.titleKey)}</p>
-                      </div>
+            <h2 className="t-display-sub mb-8 sm:mb-12 max-w-3xl">{t('cap_title')}</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+              {FEATURE_META.map((feature, i) => {
+                const Icon = feature.icon;
+                return (
+                  <div key={feature.titleKey} className="card-enterprise flex flex-col h-full">
+                    <div className="flex items-center gap-3 mb-3">
+                      <span className="inline-flex h-10 w-10 rounded-lg bg-amber-500/15 border border-amber-500/30 items-center justify-center shrink-0">
+                        <Icon className="h-5 w-5 text-amber-400" />
+                      </span>
+                      <span className="font-mono text-xs text-foreground/40">{String(i + 1).padStart(2, '0')}</span>
                     </div>
+                    <h3 className="font-display text-lg font-medium mb-2">{t(feature.titleKey)}</h3>
+                    <p className="t-body-sm text-foreground/60 leading-relaxed">{t(feature.descKey)}</p>
                   </div>
-                  {/* Text */}
-                  <div className={`${i % 2 === 1 ? 'md:[direction:ltr]' : ''}`}>
-                    <h3 className="font-display text-xl font-medium mb-4">{t(feature.titleKey)}</h3>
-                    <p className="t-body text-foreground/60 leading-relaxed">{t(feature.descKey)}</p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </section>
 
-        {/* Pricing — 2 cost cards + total tahun pertama callout. Subtitle
-            section header memperjelas zero-custody positioning. Total
-            year-one membantu user kalkulasi commitment di mukanya. */}
+        {/* Pricing — 3-tier card grid mapping ke 3 model arsitektur:
+            License Only / Hybrid / Full Turnkey. Setiap card menampilkan
+            "Anda sediakan apa" vs "Kami sediakan apa" supaya klien jelas
+            scope responsibility-nya. */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <div className="mb-8 sm:mb-10 max-w-3xl">
+            <div className="mb-10 sm:mb-12 max-w-3xl">
               <p className="t-eyebrow mb-4">{t('pricing_eyebrow')}</p>
               <h2 className="t-display-sub mb-4">{t('pricing_title')}</h2>
               <p className="text-foreground/60 leading-relaxed">{t('pricing_subtitle')}</p>
             </div>
 
-            {/* 2 cost cards — setup + maintenance, side-by-side */}
-            <div className="grid sm:grid-cols-2 gap-4 sm:gap-5 max-w-3xl mb-5">
-              <div className="card-enterprise border-amber-500/20">
-                <p className="t-eyebrow mb-3">{t('pricing_setup_label')}</p>
-                <p className="font-display text-2xl sm:text-3xl lg:text-4xl font-medium break-words">
-                  {t('pricing_setup_value')}
-                </p>
-                <p className="text-sm text-foreground/60 mt-2">{t('pricing_setup_unit')}</p>
-              </div>
-              <div className="card-enterprise border-amber-500/20">
-                <p className="t-eyebrow mb-3">{t('pricing_maint_label')}</p>
-                <div className="flex items-baseline flex-wrap gap-x-1.5">
-                  <span className="font-display text-2xl sm:text-3xl lg:text-4xl font-medium break-words">{t('pricing_maint_value')}</span>
-                  <span className="text-base text-foreground/60 font-normal">{t('pricing_maint_unit')}</span>
-                </div>
-              </div>
-            </div>
+            {/* 3-tier grid — responsive 1/3 col. Setiap card: header, harga,
+                pembagian Anda/Kami sediakan, best-for, year-1 total */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5">
+              {TIER_META.map((tier) => {
+                const Icon = tier.icon;
+                const accentRing = tier.popular
+                  ? 'border-2 border-sky-500/60 ring-1 ring-sky-500/30'
+                  : 'border border-border/60';
+                const accentText = tier.accent === 'amber' ? 'text-amber-400' : tier.accent === 'sky' ? 'text-sky-400' : 'text-emerald-400';
+                const accentBg = tier.accent === 'amber' ? 'bg-amber-500/15 border-amber-500/30' : tier.accent === 'sky' ? 'bg-sky-500/15 border-sky-500/30' : 'bg-emerald-500/15 border-emerald-500/30';
+                return (
+                  <div
+                    key={tier.key}
+                    className={`rounded-xl ${accentRing} bg-card p-6 sm:p-7 flex flex-col h-full relative`}
+                  >
+                    {tier.popular && tier.popularKey && (
+                      <span className="absolute -top-3 left-6 inline-flex items-center px-2.5 py-0.5 rounded-full bg-sky-500 text-white text-[10px] font-bold uppercase tracking-wider">
+                        {t(tier.popularKey as 'tier2_popular')}
+                      </span>
+                    )}
+                    {/* Header */}
+                    <div className="flex items-center gap-3 mb-4">
+                      <span className={`inline-flex h-10 w-10 rounded-lg ${accentBg} border items-center justify-center shrink-0`}>
+                        <Icon className={`h-5 w-5 ${accentText}`} />
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-display text-lg font-medium">{t(tier.nameKey)}</h3>
+                        <p className="text-xs text-foreground/60 mt-0.5">{t(tier.taglineKey)}</p>
+                      </div>
+                    </div>
 
-            {/* Year-one total — single line callout */}
-            <div className="max-w-3xl mb-6 p-4 rounded-lg bg-amber-500/[0.04] border border-amber-500/20">
-              <div className="flex items-center justify-between gap-3 flex-wrap">
-                <p className="text-xs text-foreground/60 font-mono uppercase tracking-wider">
-                  {t('pricing_compare_label')}
-                </p>
-                <p className="font-mono text-sm sm:text-base font-semibold text-amber-300">
-                  {t('pricing_compare_value')}
-                </p>
-              </div>
-            </div>
+                    {/* Pricing block */}
+                    <div className="mb-5 pb-5 border-b border-border/40">
+                      <div className="flex items-baseline justify-between gap-2 mb-1.5">
+                        <span className="text-xs font-mono uppercase tracking-wider text-foreground/50">{t('tier_label_setup')}</span>
+                        <span className="font-mono font-semibold text-sm sm:text-base">{t(tier.setupKey)}</span>
+                      </div>
+                      <div className="flex items-baseline justify-between gap-2">
+                        <span className="text-xs font-mono uppercase tracking-wider text-foreground/50">{t('tier_label_monthly')}</span>
+                        <span className={`font-mono font-semibold text-sm sm:text-base ${accentText}`}>{t(tier.monthlyKey)}</span>
+                      </div>
+                    </div>
 
-            <p className="t-body-sm text-foreground/60 leading-relaxed max-w-3xl">
-              {t('pricing_note')}
-            </p>
+                    {/* Who provides what */}
+                    <div className="space-y-3 mb-5 flex-1">
+                      <div>
+                        <p className="text-[10px] font-mono uppercase tracking-wider text-foreground/40 mb-1.5">{t('tier_label_provide_you')}</p>
+                        <p className="text-xs text-foreground/70 leading-relaxed">{t(tier.youKey)}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-mono uppercase tracking-wider text-foreground/40 mb-1.5">{t('tier_label_provide_us')}</p>
+                        <p className="text-xs text-foreground/70 leading-relaxed">{t(tier.usKey)}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-mono uppercase tracking-wider text-foreground/40 mb-1.5">{t('tier_label_best_for')}</p>
+                        <p className="text-xs text-foreground/70 leading-relaxed">{t(tier.bestKey)}</p>
+                      </div>
+                    </div>
+
+                    {/* Year-1 total footer */}
+                    <div className="pt-3 border-t border-border/40">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[10px] font-mono uppercase tracking-wider text-foreground/40">{t('tier_label_total')}</span>
+                        <span className={`font-mono text-xs sm:text-sm font-semibold ${accentText}`}>{t(tier.totalKey)}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </section>
 

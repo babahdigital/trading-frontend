@@ -25,12 +25,37 @@ export const PRICE_TABLE = {
   crypto_pro: { usd: 199, idr: 3_290_000 },
   crypto_hnwi: { usd: 499, idr: 8_200_000 },
 
-  // VPS License
-  vps_standard_setup: { usd: 3_000, idr: 49_500_000 },
-  vps_standard_monthly: { usd: 150, idr: 2_490_000 },
-  vps_premium_setup: { usd: 7_500, idr: 123_500_000 },
-  vps_premium_monthly: { usd: 300, idr: 4_950_000 },
-  vps_dedicated_monthly: { usd: 1_499, idr: 24_700_000 },
+  // VPS License — 3 tier mapping ke 3 model arsitektur (License-Only / Hybrid /
+  // Full Turnkey). Recalibrate 2026-05-15 berdasarkan riset VPS market:
+  // - Vultr Windows 8GB: $48/bln (Rp 800rb raw cost)
+  // - Beeks VPS broker-grade: $60-150/bln (Rp 1-2,5jt)
+  // - Niagahoster lokal 8GB: Rp 500-800rb/bln
+  // - Setup typical: 1-3 bulan worth (industri)
+  // - Margin BabahAlgo: bot install + config + paper-trade + monitoring + support
+  //
+  // Tier 1 (License Only) — klien sediakan SEMUA VPS sendiri, BabahAlgo charge
+  //   software license + install + ongoing support. Margin paling tinggi karena
+  //   no VPS hosting cost di BabahAlgo side.
+  // Tier 2 (Hybrid) — klien punya Windows MT5 (broker biasanya kasih), BabahAlgo
+  //   provision Linux orchestrator (Vultr 12GB ~Rp 1,5jt cost + margin).
+  // Tier 3 (Full Turnkey) — BabahAlgo bundle 2 VPS (Windows MT5 + Linux orchestrator)
+  //   plus full management. All-in-one untuk klien yang mau set & forget.
+  vps_license_only_setup: { usd: 320, idr: 5_000_000 },
+  vps_license_only_monthly: { usd: 95, idr: 1_500_000 },
+  vps_hybrid_setup: { usd: 750, idr: 12_000_000 },
+  vps_hybrid_monthly: { usd: 195, idr: 3_000_000 },
+  vps_turnkey_setup: { usd: 1_600, idr: 25_000_000 },
+  // Full Turnkey monthly recalibrate 2026-05-15 dari Rp 4,5jt → Rp 7,5jt.
+  // Reasoning: BabahAlgo harus sewa 2 VPS (Windows 8GB ~Rp 1,5jt + Linux 12GB
+  // ~Rp 2,5jt = raw cost Rp 4jt/bln). Sisa Rp 3,5jt untuk monitoring, support,
+  // software license amortize, margin. Rp 4,5jt/bln break-even, tidak sustainable.
+  vps_turnkey_monthly: { usd: 475, idr: 7_500_000 },
+  // Legacy keys — kept for backward compat sampai semua surface migrate ke 3-tier baru.
+  vps_standard_setup: { usd: 320, idr: 5_000_000 },
+  vps_standard_monthly: { usd: 95, idr: 1_500_000 },
+  vps_premium_setup: { usd: 1_600, idr: 25_000_000 },
+  vps_premium_monthly: { usd: 475, idr: 7_500_000 },
+  vps_dedicated_monthly: { usd: 475, idr: 7_500_000 },
 
   // Institutional — calibrated 2026-05-15 berdasarkan market research:
   // - QuantConnect institutional: $20-150K/year

@@ -462,8 +462,10 @@ jobs:
           echo "All $PASS probes pass + content markers verified."
 
       # Auto-trigger seed cron — populate /changelog + pricing tiers post-deploy.
-      # Pakai SSH ke container supaya CRON_SECRET tidak perlu di-leak ke action runner
-      # (lebih aman daripada curl public URL dengan secret di action log).
+      # CRON_SECRET source priority:
+      # 1. GitHub Actions secret (CRON_SECRET) — pass via env ke remote shell
+      # 2. Container env (kalau .env VPS3 sudah set CRON_SECRET=...)
+      # Mana yang ada lebih dulu yang dipakai. Kalau dua-duanya kosong, skip.
       - name: Trigger seed crons (changelog + pricing tiers)
         if: success()
         continue-on-error: true
@@ -471,24 +473,27 @@ jobs:
           SSH_HOST: ${{ secrets.VPS3_SSH_HOST }}
           SSH_PORT: ${{ secrets.VPS3_SSH_PORT }}
           SSH_USER: ${{ secrets.VPS3_SSH_USER }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
           ssh -i ~/.ssh/deploy_key -p "$SSH_PORT" -o BatchMode=yes \
-            "$SSH_USER@$SSH_HOST" 'bash -s' <<'REMOTE'
+            -o SendEnv=CRON_SECRET \
+            "$SSH_USER@$SSH_HOST" "CRON_SECRET='$CRON_SECRET' bash -s" <<'REMOTE'
           set -euo pipefail
-          # Read CRON_SECRET dari container env (auto-loaded saat compose up).
-          CRON_SECRET=$(docker exec babahalgo-frontend printenv CRON_SECRET 2>/dev/null || echo "")
-          if [ -z "$CRON_SECRET" ]; then
-            echo "!! CRON_SECRET not set in container — skip seed trigger"
-            exit 0
+          # Fallback: kalau secret dari GH Actions kosong, coba ambil dari container env.
+          if [ -z "${CRON_SECRET:-}" ]; then
+            CRON_SECRET=$(docker exec babahalgo-frontend printenv CRON_SECRET 2>/dev/null || echo "")
+          fi
+          AUTH_HEADER=""
+          if [ -n "${CRON_SECRET:-}" ]; then
+            AUTH_HEADER="-H \"Authorization: Bearer $CRON_SECRET\""
+            echo "== auth: Bearer token (CRON_SECRET set)"
+          else
+            echo "== auth: bootstrap mode (CRON_SECRET kosong, endpoint allow kalau DB empty)"
           fi
           echo "== trigger /api/cron/seed-changelog =="
-          docker exec babahalgo-frontend curl -sf \
-            -H "Authorization: Bearer $CRON_SECRET" \
-            http://localhost:3000/api/cron/seed-changelog | head -5 || echo "  (changelog seed failed — non-fatal)"
+          docker exec babahalgo-frontend sh -c "curl -sf $AUTH_HEADER http://localhost:3000/api/cron/seed-changelog" | head -5 || echo "  (changelog seed failed — non-fatal)"
           echo "== trigger /api/cron/seed-pricing-tiers =="
-          docker exec babahalgo-frontend curl -sf \
-            -H "Authorization: Bearer $CRON_SECRET" \
-            http://localhost:3000/api/cron/seed-pricing-tiers | head -5 || echo "  (pricing seed failed — non-fatal)"
+          docker exec babahalgo-frontend sh -c "curl -sf $AUTH_HEADER http://localhost:3000/api/cron/seed-pricing-tiers" | head -5 || echo "  (pricing seed failed — non-fatal)"
           REMOTE
 
       # Hygiene: setiap deploy bikin image lama jadi <none> tagged → numpuk cepat.

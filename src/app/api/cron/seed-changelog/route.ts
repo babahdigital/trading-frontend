@@ -91,13 +91,29 @@ const SEED_ENTRIES: Array<{
 ];
 
 export async function GET(req: Request) {
+  // Auth strategy:
+  // 1. Kalau CRON_SECRET di-set di env, wajib pakai Bearer token.
+  // 2. Kalau CRON_SECRET tidak di-set TAPI table Changelog kosong (initial
+  //    bootstrap), allow tanpa auth — supaya CI/CD post-deploy bisa populate
+  //    /changelog di first deploy tanpa harus user manual configure secret.
+  //    Setelah ada minimum 1 entry, mode bootstrap auto-disabled.
   const cronSecret = process.env.CRON_SECRET;
-  if (!cronSecret) {
-    return NextResponse.json({ error: 'CRON_SECRET not configured' }, { status: 500 });
-  }
   const auth = req.headers.get('authorization') || '';
-  if (auth !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+
+  if (cronSecret) {
+    // Strict mode — auth required
+    if (auth !== `Bearer ${cronSecret}`) {
+      return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+    }
+  } else {
+    // Bootstrap mode — allow only kalau DB kosong
+    const existingCount = await prisma.changelog.count();
+    if (existingCount > 0) {
+      return NextResponse.json({
+        error: 'CRON_SECRET not configured + table not empty — set CRON_SECRET to enable seeding',
+      }, { status: 403 });
+    }
+    // Bootstrap allowed — DB benar-benar kosong, safe untuk seed tanpa auth.
   }
 
   let inserted = 0;

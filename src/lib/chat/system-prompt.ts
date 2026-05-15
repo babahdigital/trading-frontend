@@ -22,11 +22,12 @@
  */
 
 import { buildIdentitySection } from './skills/identity';
-import { GLOBAL_SKILL } from './skills/global';
-import { FOREX_SKILL, isForexTopic } from './skills/forex';
-import { CRYPTO_SKILL, isCryptoTopic } from './skills/crypto';
+import { getGlobalSkill } from './skills/global';
+import { getForexSkill, isForexTopic } from './skills/forex';
+import { getCryptoSkill, isCryptoTopic } from './skills/crypto';
 import { buildAuthenticatedSkill, ANONYMOUS_CONTEXT, type AuthenticatedContext } from './skills/authenticated';
 import type { ChatLocale, ChatPromptContext } from './types';
+import type { Locale } from '@/lib/pricing-format';
 
 export type { ChatLocale };
 export type { AuthenticatedContext };
@@ -39,9 +40,11 @@ export function buildSystemPrompt(localeOrContext: ChatLocale | ChatPromptContex
       : localeOrContext;
 
   const sections: string[] = [];
+  // ChatLocale ('id'|'en') maps directly to pricing Locale.
+  const pricingLocale: Locale = ctx.locale === 'en' ? 'en' : 'id';
 
   sections.push(buildIdentitySection(ctx.locale));
-  sections.push(GLOBAL_SKILL);
+  sections.push(getGlobalSkill(pricingLocale));
 
   const txt = ctx.recentUserText.toLowerCase();
   const forexHit = isForexTopic(txt);
@@ -51,10 +54,10 @@ export function buildSystemPrompt(localeOrContext: ChatLocale | ChatPromptContex
   // customer dan landing page condong ke forex. Crypto-specific muncul saat
   // user spesifik nyebut crypto/Binance.
   if (forexHit || (!forexHit && !cryptoHit)) {
-    sections.push(FOREX_SKILL);
+    sections.push(getForexSkill(pricingLocale));
   }
   if (cryptoHit) {
-    sections.push(CRYPTO_SKILL);
+    sections.push(getCryptoSkill(pricingLocale));
   }
 
   if (ctx.authenticated) {

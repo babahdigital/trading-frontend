@@ -4,9 +4,19 @@
  * Selalu loaded. Skill ini menjawab pertanyaan tentang BabahAlgo sebagai
  * perusahaan + arsitektur platform secara umum (bukan detail forex/crypto
  * spesifik).
+ *
+ * Locale-aware: getGlobalSkill('id') → harga IDR, getGlobalSkill('en') → USD.
  */
 
-export const GLOBAL_SKILL = `BABAHALGO — SKILL UMUM (selalu tersedia)
+import { formatPrice, formatPriceRange, type Locale } from '@/lib/pricing-format';
+
+export function getGlobalSkill(locale: Locale): string {
+  const robotMetaRange = `${formatPrice('signal_starter', locale, { compact: false })}–${formatPrice('signal_vip', locale, { period: 'mo', compact: false })}`;
+  const robotCryptoRange = `${formatPrice('crypto_basic', locale, { compact: false })}–${formatPrice('crypto_hnwi', locale, { period: 'mo', compact: false })}`;
+  const vpsSetupRange = formatPriceRange('vps_standard_setup', 'vps_premium_setup', locale, { compact: true });
+  const vpsMonthlyRange = locale === 'id' ? 'Rp 2,5–4,9 juta/bulan' : '$150–$300/mo';
+
+  return `BABAHALGO — SKILL UMUM (selalu tersedia)
 
 PERUSAHAAN
 - BabahAlgo dioperasikan CV Babah Digital, Indonesia.
@@ -34,9 +44,9 @@ PENDAFTARAN / ONBOARDING
 - Beta program by application (limited spots): /contact?subject=beta-application — kami review aplikasi case-by-case berdasarkan trading experience + modal commit.
 
 PRICING TINGKAT TINGGI
-- Robot Meta: 3 tier $19 - $299/bulan, month-to-month tanpa lock-in.
-- Robot Crypto: 3 tier $49 - $499/bulan flat, no profit share.
-- VPS License: $3K-$7.5K setup + $150-$300/bulan (on-prem).
+- Robot Meta: 3 tier ${robotMetaRange}, month-to-month tanpa lock-in.
+- Robot Crypto: 3 tier ${robotCryptoRange} flat, no profit share.
+- VPS License: ${vpsSetupRange} setup + ${vpsMonthlyRange} (on-prem).
 - Developer API: 8 produk publik, freemium.
 - Detail lengkap: /pricing.
 
@@ -66,3 +76,7 @@ KEY PAGES
 - Status sistem real-time: /status
 - Riset / artikel: /research
 - Kontak: /contact`;
+}
+
+/** @deprecated kept for backward compat — defaults to 'id' locale. Use getGlobalSkill(locale). */
+export const GLOBAL_SKILL = getGlobalSkill('id');

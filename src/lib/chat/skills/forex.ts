@@ -4,9 +4,24 @@
  * Lazy-load: hanya inject ke system prompt kalau topic detection mendeteksi
  * pertanyaan forex (forex|mt5|metatrader|smc|wyckoff|emas|gold|XAU). Untuk
  * percakapan crypto-only, skip skill ini supaya prompt budget lebih hemat.
+ *
+ * Locale-aware pricing: getForexSkill('id') return harga dalam IDR (Rupiah),
+ * getForexSkill('en') return harga dalam USD. Single source of truth via
+ * lib/pricing-format.ts PRICE_TABLE.
  */
 
-export const FOREX_SKILL = `ROBOT META — SKILL FOREX (load saat percakapan menyangkut forex / MT5)
+import { formatPrice, type Locale } from '@/lib/pricing-format';
+
+export function getForexSkill(locale: Locale): string {
+  const t1 = formatPrice('signal_starter', locale, { period: 'mo', compact: false });
+  const t2 = formatPrice('signal_pro', locale, { period: 'mo', compact: false });
+  const t3 = formatPrice('signal_vip', locale, { period: 'mo', compact: false });
+  const vpsLicense = formatPrice('vps_standard_setup', locale, { compact: false });
+  const modal1k = locale === 'id' ? 'Rp 16 juta' : '$1,000';
+  const modal2k = locale === 'id' ? 'Rp 33 juta' : '$2,000';
+  const modal5k = locale === 'id' ? 'Rp 80 juta' : '$5,000';
+
+  return `ROBOT META — SKILL FOREX (load saat percakapan menyangkut forex / MT5)
 
 PRODUK
 - Bot full auto-execute lewat bridge ZeroMQ ke akun MT5 customer.
@@ -27,9 +42,9 @@ AI BRAIN (modul pembelajaran adaptif — kerja di belakang layar, tidak perlu us
 - Isotonic Calibration — kalibrasi confidence score AI supaya match realitas historis (kalau AI bilang 70% confidence, win rate aktual harus ~70% — tidak overconfident).
 
 TIER + HARGA (bulanan, tanpa lock-in)
-- Tier 1 Swing $19/bulan — 3 pair major, swing only (4-24 jam hold), notif Email + Dashboard.
-- Tier 2 Scalping $79/bulan (POPULAR) — 8 pair (Major + Cross + Gold + Silver), swing + scalping, notif WhatsApp + Telegram + Email.
-- Tier 3 All-In $299/bulan — unlimited pair, semua 6 strategi paralel, premium AI advisor, dedicated support 24/7, custom backtest sweep + Payout API.
+- Tier 1 Swing ${t1} — 3 pair major, swing only (4-24 jam hold), notif Email + Dashboard.
+- Tier 2 Scalping ${t2} (POPULAR) — 8 pair (Major + Cross + Gold + Silver), swing + scalping, notif WhatsApp + Telegram + Email.
+- Tier 3 All-In ${t3} — unlimited pair, semua 3 strategi inti + AI Brain orchestration paralel, premium AI advisor, dedicated support 24/7, custom backtest sweep + Payout API.
 
 CIRCUIT BREAKER / RISK PROTECTION (Anda set thresholds, sistem enforce)
 - Anda configure 3 threshold di /portal/kill-switch: DAILY_LOSS (max rugi harian dalam %), LOSS_STREAK (jumlah loss berturut), EQUITY_DRAWDOWN (drawdown intraday %).
@@ -41,7 +56,7 @@ CIRCUIT BREAKER / RISK PROTECTION (Anda set thresholds, sistem enforce)
 
 PERTANYAAN UMUM CUSTOMER
 - "Saya bisa pakai broker lain selain Exness?" → Tier 3 All-In + Software License support multi-broker. Tier 1-2 default Exness karena calibration paling matang di bridge.
-- "Modal minimum?" → Tier 1 efektif mulai $1,000. Tier 2 $2,000. Tier 3 $5,000+ (untuk leverage 6+ pair simultan).
+- "Modal minimum?" → Tier 1 efektif mulai ${modal1k}. Tier 2 ${modal2k}. Tier 3 ${modal5k}+ (untuk leverage 6+ pair simultan).
 - "Berapa win rate?" → Win rate alone misleading. Yang penting Sharpe ratio + max drawdown + profit factor. Track record live publikasi /performance setelah 90 hari produksi.
 - "Bisa modify SL/TP manual?" → Tidak — bot full auto. Customer bisa pause bot via dashboard atau set kill-switch trigger sendiri.
 - "Kalau bot rugi, bisa refund?" → Subscription fee non-refundable (tech provider service). Profit/loss trading di akun broker customer — kami tidak custody.
@@ -56,7 +71,11 @@ SOFTWARE LICENSE + SETUP SERVICE (formerly VPS License)
 - Yang BabahAlgo provide: (a) software license (algorithm + execution engine), (b) optional setup service (one-time consultation + installation di VPS Subscriber), (c) optional ongoing technical support.
 - Yang Subscriber miliki + control: VPS hardware/cloud instance (account Subscriber di VPS provider), MT5 platform installation, broker account credentials, semua trading decisions + outcomes.
 - CV Babah Digital TIDAK host software, TIDAK akses MT5 credentials Subscriber, TIDAK execute trades atas nama Subscriber, TIDAK akses dana Subscriber kapan pun.
-- Pricing: Software License starts $3,000 (license + setup). VPS hardware/cloud cost separate (Subscriber bayar langsung ke provider VPS).`;
+- Pricing: Software License starts ${vpsLicense} (license + setup). VPS hardware/cloud cost separate (Subscriber bayar langsung ke provider VPS).`;
+}
+
+/** @deprecated kept for backward compat — defaults to 'id' locale. Use getForexSkill(locale). */
+export const FOREX_SKILL = getForexSkill('id');
 
 const FOREX_KEYWORDS = [
   'forex', 'mt5', 'metatrader', 'meta trader',

@@ -95,9 +95,11 @@ export default function ChangelogPage() {
                       {new Date(e.releasedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
                     </time>
                   </header>
-                  <h2 className="text-xl font-semibold mb-3">{e.title}</h2>
+                  <h2 className="text-xl font-semibold mb-3">
+                    {locale === 'en' && e.title_en ? e.title_en : e.title}
+                  </h2>
                   <div className="prose prose-invert prose-sm max-w-none text-foreground/80 whitespace-pre-wrap">
-                    {e.body}
+                    {locale === 'en' && e.body_en ? e.body_en : e.body}
                   </div>
                 </article>
               ))}

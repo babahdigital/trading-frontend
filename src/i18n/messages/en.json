@@ -1698,8 +1698,6 @@
       "btn_confirm": "Confirm Registration",
       "btn_activate_demo": "Activate Demo",
       "success_register": "Registration successful. Your account will be activated by admin.",
-      "footer_broker_part1": "We recommend",
-      "footer_broker_part2": "as your broker for optimal signal execution.",
       "footer_risk": "Trading involves significant risk of loss. Past performance does not guarantee future results."
     },
     "institutional": {

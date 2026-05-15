@@ -288,16 +288,10 @@ function RegisterSignalInner() {
                 </form>
               </div>
 
-              <p className="text-xs text-foreground/50 text-center mt-6">
-                {tSignal('footer_broker_part1')}{' '}
-                <a href="#" className="text-amber-400 hover:text-amber-300 underline underline-offset-2 transition-colors">
-                  Exness
-                </a>{' '}
-                {tSignal('footer_broker_part2')}
-              </p>
-              <p className="t-body-sm text-foreground/60 text-center mt-4">
-                {tSignal('footer_risk')}
-              </p>
+              {/* Broker recommendation copy dihapus 2026-05-15 — zero-custody
+                  positioning, kami tidak mengarahkan customer ke broker spesifik.
+                  Risk disclosure cukup di footer (EnterpriseFooter) yang muncul
+                  di setiap halaman. */}
             </div>
           </div>
         </section>

@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { ArrowLeft, Clock, User as UserIcon } from 'lucide-react';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
-import { ArticleCardImage } from '@/components/research/article-card-image';
 import { articleSchema, ldJson } from '@/lib/seo-jsonld';
 
 export interface ArticleDetail {
@@ -322,9 +321,11 @@ export function ArticleDetailClient({ article }: ArticleDetailClientProps) {
           </section>
         ) : (
           <>
-            {/* Hero — research-page distinct stamp (page-stamp-rule) */}
+            {/* Hero — research-page distinct stamp (page-stamp-rule).
+                Container naik dari max-w-3xl → max-w-4xl supaya konsisten dengan
+                body section, kurangi visual jomplang. */}
             <section className="page-stamp-rule border-b border-border">
-              <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-12 pb-10 lg:pt-16 lg:pb-12">
+              <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-10 lg:pt-16 lg:pb-12">
                 <Link
                   href={`/${locale}/research`}
                   className="inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors mb-6"
@@ -357,25 +358,15 @@ export function ArticleDetailClient({ article }: ArticleDetailClientProps) {
               </div>
             </section>
 
-            {/* Cover image — selalu render box dengan aspect 16/9 supaya artikel
-                tanpa imageUrl tetap punya visual anchor di hero. Fallback gradient
-                + category icon kalau imageUrl null (mirror dengan card list). */}
-            <section className="border-b border-border">
-              <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-                <div className="rounded-lg overflow-hidden border border-border/60">
-                  <ArticleCardImage
-                    imageUrl={article.imageUrl}
-                    alt={title}
-                    category={article.category}
-                    aspectClass="aspect-[21/9]"
-                  />
-                </div>
-              </div>
-            </section>
+            {/* Cover image dihapus 2026-05-15 — Pak Abdullah feedback "gambar
+                masih aneh dan acak", cukup ditampilkan di list /research saja.
+                Detail page focus ke reading experience tanpa visual noise. */}
 
-            {/* Body — institutional research prose */}
-            <section className="py-12 lg:py-16">
-              <div className="max-w-3xl mx-auto px-4 sm:px-6">
+            {/* Body — institutional research prose. Container naik dari
+                max-w-3xl (768px) → max-w-4xl (896px) supaya breathing room
+                lebih lebar di laptop. Mobile tetap full-bleed via padding. */}
+            <section className="py-10 lg:py-14">
+              <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                 <article
                   className="prose-research"
                   dangerouslySetInnerHTML={{ __html: renderMarkdown(body) }}
@@ -385,7 +376,7 @@ export function ArticleDetailClient({ article }: ArticleDetailClientProps) {
 
             {/* Footer back link */}
             <section className="pb-16 border-t border-border">
-              <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-8">
+              <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
                 <Link
                   href={`/${locale}/research`}
                   className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"

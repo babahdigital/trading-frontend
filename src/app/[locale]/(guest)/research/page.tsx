@@ -5,7 +5,6 @@ import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
-import { NewsletterForm } from '@/components/layout/newsletter-form';
 import { Pagination } from '@/components/ui/pagination';
 import { ArticleCardImage } from '@/components/research/article-card-image';
 
@@ -206,27 +205,10 @@ export default function ResearchPage() {
           </div>
         </section>
 
-        {/* Newsletter — pakai NewsletterForm yang sudah ter-wire ke /api/public/subscribers
-            (sebelumnya form di sini disconnected — submit no-op). */}
-        <section className="section-padding">
-          <div className="container-default px-4 sm:px-6">
-            <div className="max-w-xl mx-auto text-center">
-              <p className="t-eyebrow mb-3">{t('newsletter_eyebrow')}</p>
-              <h2 className="t-display-sub mb-3">
-                {t('newsletter_title')}
-              </h2>
-              <p className="t-body-sm text-foreground/60 mb-8">
-                {t('newsletter_lead')}
-              </p>
-              <div className="max-w-md mx-auto text-left">
-                <NewsletterForm locale={locale === 'en' ? 'en' : 'id'} />
-              </div>
-              <p className="text-xs text-foreground/40 mt-4">
-                {t('newsletter_disclaimer')}
-              </p>
-            </div>
-          </div>
-        </section>
+        {/* Newsletter section dihapus 2026-05-15 — redundant dengan
+            EnterpriseFooter subscribe band (full-width banner di setiap halaman).
+            Mendekati standar institusional: 1 newsletter prompt per halaman,
+            tidak repetitive. */}
       </main>
       <EnterpriseFooter />
     </div>

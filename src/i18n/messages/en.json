@@ -544,14 +544,12 @@
   },
   "solutions": {
     "title": "Choose the model that fits your capital and involvement.",
-    "signal_title": "Signal Service",
-    "signal_desc": "Daily trading signals for retail traders.",
-    "pamm_title": "PAMM Account",
-    "pamm_desc": "Deprecated tier — we do not offer PAMM or managed accounts. See Robot Meta or Software License for our software-vendor model.",
-    "license_title": "VPS License",
-    "license_desc": "Dedicated bot infrastructure for professional traders.",
-    "institutional_title": "Institutional",
-    "institutional_desc": "Custom mandate for family offices and funds."
+    "signal_title": "Forex Robot (MT5)",
+    "signal_desc": "Institutional auto-trading with SMC + Pivot Mean Reversion strategies. Capital stays in your broker account.",
+    "license_title": "Software License",
+    "license_desc": "Bot software installed on your private VPS — full control, one-time setup fee.",
+    "institutional_title": "Institutional / B2B",
+    "institutional_desc": "Custom API + B2B Service Agreement for family offices, funds, and brokerage partners."
   },
   "unsubscribe_page": {
     "meta_title": "Unsubscribed — BabahAlgo",
@@ -1295,7 +1293,7 @@
     "form_error_submit_failed": "Failed to submit inquiry. Please try again.",
     "form_error_unexpected": "An unexpected error occurred.",
     "topic_signal": "Signal Service",
-    "topic_pamm": "PAMM Account",
+    "topic_crypto": "Crypto Robot",
     "topic_license": "VPS License",
     "topic_institutional": "Institutional Mandate",
     "topic_partnership": "Partnership",
@@ -1337,7 +1335,6 @@
     "package_label": "Choose Package",
     "success": "Registration successful! Our team will contact you.",
     "signal": "Signal",
-    "pamm": "PAMM",
     "vps": "VPS License"
   },
   "privacy": {
@@ -1558,8 +1555,6 @@
     "signin_body": "Log in to your portal dashboard to view performance, signals, and manage your subscription.",
     "tier_signal_name": "Signal Subscriber",
     "tier_signal_desc": "Real-time signals from the BabahAlgo bot with full transparency.",
-    "tier_pamm_name": "PAMM Account",
-    "tier_pamm_desc": "Deprecated tier — we do not offer PAMM or managed accounts. See Robot Meta or Software License for our software-vendor model.",
     "tier_vps_name": "Software License",
     "tier_vps_desc": "Software installed on your private VPS — full control, one-time payment.",
     "tier_crypto_name": "Crypto Bot",
@@ -1573,7 +1568,6 @@
     "sign_in_link": "Sign in here",
     "fallback_packages": {
       "signal_price": "$19 — $299 / mo",
-      "pamm_price": "Not offered",
       "vps_price": "$3,000 — $7,500 setup",
       "crypto_price": "$49 — $499 / mo",
       "institutional_price": "Custom — usage-based",
@@ -1586,10 +1580,6 @@
       "signal_feature_2": "Forex + commodities signals",
       "signal_feature_3": "Audit log + transparency",
       "signal_feature_4": "Telegram notifications",
-      "pamm_feature_1": "This tier is deprecated",
-      "pamm_feature_2": "We do not offer PAMM or managed accounts",
-      "pamm_feature_3": "See Robot Meta for signal software",
-      "pamm_feature_4": "See Software License for full deployment",
       "vps_feature_1": "Dedicated VPS",
       "vps_feature_2": "Full bot access",
       "vps_feature_3": "Priority support 24/7",

@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 
 const TOPIC_VALUES = [
   'signal',
-  'pamm',
+  'crypto',
   'license',
   'institutional',
   'partnership',
@@ -144,7 +144,7 @@ export default function ContactForm() {
             <option key={value} value={value}>
               {t(`topic_${value}` as
                 | 'topic_signal'
-                | 'topic_pamm'
+                | 'topic_crypto'
                 | 'topic_license'
                 | 'topic_institutional'
                 | 'topic_partnership'

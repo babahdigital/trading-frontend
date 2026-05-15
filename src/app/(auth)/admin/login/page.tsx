@@ -115,7 +115,7 @@ export default function AdminLoginPage() {
             <ArrowLeft className="h-3.5 w-3.5" strokeWidth={2.25} />
             {t('back_to_home')}
           </Link>
-          <BrandLogo height={36} priority />
+          <BrandLogo height={44} priority />
         </div>
 
         <div className="relative z-10 max-w-sm">
@@ -156,8 +156,8 @@ export default function AdminLoginPage() {
 
         <div className="flex-1 flex items-center justify-center px-4 sm:px-8 lg:px-16 py-8 sm:py-12">
           <div className="w-full max-w-md">
-            <div className="lg:hidden mb-10">
-              <BrandLogo height={28} priority />
+            <div className="lg:hidden mb-10 flex justify-center">
+              <BrandLogo height={36} priority />
             </div>
 
             <div className="mb-8">

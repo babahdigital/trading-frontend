@@ -9,35 +9,38 @@ import { NewsletterForm } from '@/components/layout/newsletter-form';
 
 type LocaleStr = { id: string; en: string };
 
+// Footer link structure — designed untuk hindari redundansi (sebelumnya
+// "Get Started" column duplicate /contact + /register links yang udah ada di
+// main nav). Sekarang 5 kolom semantic distinct: Platform, Solutions, Resources,
+// Company, Legal. Setiap link unik (no duplicate destination).
 const FOOTER_LINKS: Record<string, Array<{ href: string; label: LocaleStr }>> = {
   platform: [
     { href: '/platform', label: { id: 'Overview', en: 'Overview' } },
-    { href: '/platform/strategies/smc', label: { id: 'Strategi', en: 'Strategies' } },
+    { href: '/platform/strategies', label: { id: 'Strategi', en: 'Strategies' } },
     { href: '/platform/technology', label: { id: 'Teknologi', en: 'Technology' } },
     { href: '/platform/risk-framework', label: { id: 'Risk Framework', en: 'Risk Framework' } },
-    { href: '/performance', label: { id: 'Performa', en: 'Performance' } },
+    { href: '/platform/execution', label: { id: 'Eksekusi', en: 'Execution' } },
+    { href: '/platform/instruments', label: { id: 'Instrumen', en: 'Instruments' } },
   ],
   solutions: [
     { href: '/solutions/signal', label: { id: 'Robot Forex', en: 'Forex Robot' } },
     { href: '/solutions/crypto', label: { id: 'Robot Crypto', en: 'Crypto Robot' } },
     { href: '/solutions/license', label: { id: 'Software License', en: 'Software License' } },
-    { href: '/pricing#apis', label: { id: 'Public API', en: 'Public API' } },
-    { href: '/demo', label: { id: 'Coba Demo (Gratis)', en: 'Try Demo (Free)' } },
+    { href: '/solutions/institutional', label: { id: 'Institutional / B2B', en: 'Institutional / B2B' } },
+    { href: '/register', label: { id: 'Daftar', en: 'Sign up' } },
   ],
-  getStarted: [
-    { href: '/register/signal', label: { id: 'Daftar Forex', en: 'Sign up for Forex' } },
-    { href: '/register/crypto', label: { id: 'Daftar Crypto', en: 'Sign up for Crypto' } },
-    { href: '/register/vps', label: { id: 'Daftar Software License', en: 'Sign up for Software License' } },
-    { href: '/register/institutional', label: { id: 'Permintaan Institusional', en: 'Institutional Inquiry' } },
-    { href: '/contact', label: { id: 'Jadwalkan Briefing', en: 'Schedule Briefing' } },
+  resources: [
+    { href: '/pricing', label: { id: 'Harga', en: 'Pricing' } },
+    { href: '/performance', label: { id: 'Performa', en: 'Performance' } },
+    { href: '/research', label: { id: 'Riset', en: 'Research' } },
+    { href: '/demo', label: { id: 'Demo Gratis', en: 'Free Demo' } },
+    { href: '/changelog', label: { id: 'Changelog', en: 'Changelog' } },
+    { href: '/status', label: { id: 'Status', en: 'Status' } },
   ],
   company: [
     { href: '/about', label: { id: 'Tentang Kami', en: 'About' } },
     { href: '/about/team', label: { id: 'Tim', en: 'Team' } },
     { href: '/about/governance', label: { id: 'Tata Kelola', en: 'Governance' } },
-    { href: '/research', label: { id: 'Riset', en: 'Research' } },
-    { href: '/changelog', label: { id: 'Changelog', en: 'Changelog' } },
-    { href: '/status', label: { id: 'Status', en: 'Status' } },
     { href: '/contact', label: { id: 'Kontak', en: 'Contact' } },
   ],
   legal: [
@@ -52,7 +55,7 @@ const FOOTER_LINKS: Record<string, Array<{ href: string; label: LocaleStr }>> = 
 const COLUMN_TITLES: Record<string, LocaleStr> = {
   platform: { id: 'Platform', en: 'Platform' },
   solutions: { id: 'Layanan', en: 'Solutions' },
-  getStarted: { id: 'Mulai', en: 'Get Started' },
+  resources: { id: 'Resources', en: 'Resources' },
   company: { id: 'Perusahaan', en: 'Company' },
   legal: { id: 'Legal', en: 'Legal' },
 };
@@ -155,10 +158,10 @@ export function EnterpriseFooter() {
             </p>
           </div>
 
-          {/* Links — locale-aware */}
+          {/* Links — locale-aware, distinct destination per row (no redundant linking) */}
           <FooterColumn title={COLUMN_TITLES.platform[locale]} links={FOOTER_LINKS.platform} locale={locale} />
           <FooterColumn title={COLUMN_TITLES.solutions[locale]} links={FOOTER_LINKS.solutions} locale={locale} />
-          <FooterColumn title={COLUMN_TITLES.getStarted[locale]} links={FOOTER_LINKS.getStarted} locale={locale} />
+          <FooterColumn title={COLUMN_TITLES.resources[locale]} links={FOOTER_LINKS.resources} locale={locale} />
           <FooterColumn title={COLUMN_TITLES.company[locale]} links={FOOTER_LINKS.company} locale={locale} />
           <FooterColumn title={COLUMN_TITLES.legal[locale]} links={FOOTER_LINKS.legal} locale={locale} />
         </div>

@@ -6,6 +6,7 @@ import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { localizePricingTier } from '@/lib/i18n/localize-cms';
 import { breadcrumbSchema, ldJson, organizationSchema } from '@/lib/seo-jsonld';
 import { CapabilityLadder } from '@/components/pricing/capability-ladder';
+import { TierComparisonMatrix } from '@/components/pricing/tier-comparison-matrix';
 import {
   ArrowRight,
   Check,
@@ -177,6 +178,15 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
             <p className="text-xs text-[hsl(var(--primary))] font-mono uppercase tracking-wider mt-6">
               {tp('hero_disclaimer')}
             </p>
+          </div>
+        </section>
+
+        {/* Tier comparison matrix — full 5-tier side-by-side (free/micro/starter/pro/vip)
+            sebelum tier card list. Single-screen comparison untuk visitor yang mau
+            cepat lihat fitur antar tier tanpa scroll panjang. */}
+        <section className="border-b border-border/60">
+          <div className="container-default px-4 sm:px-6 py-12 sm:py-16">
+            <TierComparisonMatrix locale={locale === 'en' ? 'en' : 'id'} />
           </div>
         </section>
 

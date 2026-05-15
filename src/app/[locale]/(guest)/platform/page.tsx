@@ -4,6 +4,8 @@ import { Link } from '@/i18n/navigation';
 import { getPageMetadata } from '@/lib/seo';
 import { breadcrumbSchema, ldJson, organizationSchema, professionalServiceSchema } from '@/lib/seo-jsonld';
 import { getTranslations } from 'next-intl/server';
+import { ArrowRight, Brain, Cpu, ShieldCheck } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -13,33 +15,44 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     {
       title: 'Platform Overview — Quantitative Trading Infrastructure | BabahAlgo',
       description: isEn
-        ? 'Three BabahAlgo pillars: AI Confluence Engine, Sub-2ms ZeroMQ Bridge, Institutional Risk Framework (vol-target + 6-layer exit + multi-stage kill-switch). Multi-strategy (SMC, Wyckoff, Momentum) across Forex + Crypto.'
-        : 'Tiga pilar BabahAlgo: AI Confluence Engine, Sub-2ms ZeroMQ Bridge, Kerangka Risiko Institusional (vol-target + 6-layer exit + multi-stage kill-switch). Multi-strategi (SMC, Wyckoff, Momentum) untuk Forex + Crypto.',
+        ? 'Three BabahAlgo pillars: Strategy Framework (SMC Scalper, SMC Swing, Pivot Mean Reversion), Sub-2ms ZeroMQ Bridge, Institutional Risk Framework (vol-target + 6-layer exit + multi-stage kill-switch). Forex + Crypto with AI Brain orchestration.'
+        : 'Tiga pilar BabahAlgo: Strategy Framework (SMC Scalper, SMC Swing, Pivot Mean Reversion), Sub-2ms ZeroMQ Bridge, Kerangka Risiko Institusional (vol-target + 6-layer exit + multi-stage kill-switch). Forex + Crypto dengan orkestrasi AI Brain.',
     },
     locale === 'en' ? 'en' : 'id',
   );
 }
-import { ArrowRight } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
-const PILLARS = [
+interface Pillar {
+  titleKey: 'pillar_strategy_title' | 'pillar_technology_title' | 'pillar_risk_title';
+  descKey: 'pillar_strategy_desc' | 'pillar_technology_desc' | 'pillar_risk_desc';
+  href: string;
+  icon: LucideIcon;
+}
+
+// Pillar link target — strategi → halaman strategi index (3 strategi umbrella),
+// bukan ke spesifik /smc supaya user lihat seluruh family.
+const PILLARS: Pillar[] = [
   {
     titleKey: 'pillar_strategy_title',
     descKey: 'pillar_strategy_desc',
-    href: '/platform/strategies/smc',
+    href: '/platform/strategies',
+    icon: Brain,
   },
   {
     titleKey: 'pillar_technology_title',
     descKey: 'pillar_technology_desc',
     href: '/platform/technology',
+    icon: Cpu,
   },
   {
     titleKey: 'pillar_risk_title',
     descKey: 'pillar_risk_desc',
     href: '/platform/risk-framework',
+    icon: ShieldCheck,
   },
-] as const;
+];
 
 const INSTRUMENTS = [
   { ticker: 'EURUSD', assetClassKey: 'asset_class_forex' },
@@ -103,19 +116,25 @@ export default async function PlatformPage() {
               {t('pillars_lead')}
             </p>
             <div className="grid lg:grid-cols-3 gap-6">
-              {PILLARS.map((pillar) => (
-                <Link key={pillar.titleKey} href={pillar.href} className="card-enterprise group flex flex-col">
-                  <h3 className="text-xl font-medium mb-4 group-hover:text-amber-400 transition-colors">
-                    {t(pillar.titleKey)}
-                  </h3>
-                  <p className="t-body-sm text-foreground/60 leading-relaxed mb-6 flex-1">
-                    {t(pillar.descKey)}
-                  </p>
-                  <span className="btn-tertiary text-sm">
-                    {t('pillar_learn_more')} <ArrowRight className="w-3.5 h-3.5" />
-                  </span>
-                </Link>
-              ))}
+              {PILLARS.map((pillar) => {
+                const Icon = pillar.icon;
+                return (
+                  <Link key={pillar.titleKey} href={pillar.href} className="card-enterprise group flex flex-col">
+                    <div className="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 mb-5 group-hover:bg-amber-500/15 transition-colors">
+                      <Icon className="h-5 w-5" strokeWidth={2} aria-hidden />
+                    </div>
+                    <h3 className="text-xl font-medium mb-3 group-hover:text-amber-500 dark:group-hover:text-amber-400 transition-colors">
+                      {t(pillar.titleKey)}
+                    </h3>
+                    <p className="t-body-sm text-foreground/60 leading-relaxed mb-6 flex-1">
+                      {t(pillar.descKey)}
+                    </p>
+                    <span className="btn-tertiary text-sm">
+                      {t('pillar_learn_more')} <ArrowRight className="w-3.5 h-3.5" />
+                    </span>
+                  </Link>
+                );
+              })}
             </div>
           </div>
         </section>

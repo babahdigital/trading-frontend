@@ -8,15 +8,26 @@ import { formatPrice, type Locale } from '@/lib/pricing-format';
 
 export const dynamic = 'force-dynamic';
 
+// 2-VPS architecture spec — Windows MT5 (broker connection) + Linux orchestrator
+// (backend). Setiap tier punya pembagian responsibility yang berbeda, ditampilkan
+// di responsibility matrix di bawah tabel.
 const SPEC_META = [
-  { specKey: 'spec_cpu', valueKey: 'spec_cpu_value', noteKey: 'spec_cpu_note' },
-  { specKey: 'spec_ram', valueKey: 'spec_ram_value', noteKey: 'spec_ram_note' },
-  { specKey: 'spec_storage', valueKey: 'spec_storage_value', noteKey: 'spec_storage_note' },
-  { specKey: 'spec_network', valueKey: 'spec_network_value', noteKey: 'spec_network_note' },
-  { specKey: 'spec_uptime', valueKey: 'spec_uptime_value', noteKey: 'spec_uptime_note' },
-  { specKey: 'spec_os', valueKey: 'spec_os_value', noteKey: 'spec_os_note' },
-  { specKey: 'spec_monitoring', valueKey: 'spec_monitoring_value', noteKey: 'spec_monitoring_note' },
-  { specKey: 'spec_backup', valueKey: 'spec_backup_value', noteKey: 'spec_backup_note' },
+  { specKey: 'spec_role', winKey: 'spec_role_windows', linuxKey: 'spec_role_linux' },
+  { specKey: 'spec_os', winKey: 'spec_os_windows', linuxKey: 'spec_os_linux' },
+  { specKey: 'spec_cpu', winKey: 'spec_cpu_windows', linuxKey: 'spec_cpu_linux' },
+  { specKey: 'spec_ram', winKey: 'spec_ram_windows', linuxKey: 'spec_ram_linux' },
+  { specKey: 'spec_storage', winKey: 'spec_storage_windows', linuxKey: 'spec_storage_linux' },
+  { specKey: 'spec_network', winKey: 'spec_network_windows', linuxKey: 'spec_network_linux' },
+  { specKey: 'spec_uptime', winKey: 'spec_uptime_windows', linuxKey: 'spec_uptime_linux' },
+  { specKey: 'spec_monitoring', winKey: 'spec_monitoring_windows', linuxKey: 'spec_monitoring_linux' },
+  { specKey: 'spec_backup', winKey: 'spec_backup_windows', linuxKey: 'spec_backup_linux' },
+] as const;
+
+// Responsibility matrix per tier — Yang sediakan apa di tiap tier
+const RESPONSIBILITY_META = [
+  { tierKey: 'matrix_t1_tier', winKey: 'matrix_t1_windows', linuxKey: 'matrix_t1_linux', tone: 'neutral' as const },
+  { tierKey: 'matrix_t2_tier', winKey: 'matrix_t2_windows', linuxKey: 'matrix_t2_linux', tone: 'highlight' as const },
+  { tierKey: 'matrix_t3_tier', winKey: 'matrix_t3_windows', linuxKey: 'matrix_t3_linux', tone: 'turnkey' as const },
 ] as const;
 
 const FEATURE_META = [
@@ -106,6 +117,23 @@ const FAQ_META = [
 
 const ELIG_KEYS = ['elig_b1', 'elig_b2', 'elig_b3'] as const;
 
+/**
+ * Responsibility badge — colored chip yang highlight "Anda sediakan" vs
+ * "BabahAlgo provision". Visual cue cepat untuk distinguish keduanya.
+ */
+function ResponsibilityBadge({ value }: { value: string }) {
+  // Auto-detect provider dari string content (locale-aware: ID + EN)
+  const isBabahAlgo = /babahalgo provision|babahalgo|kami sediakan/i.test(value);
+  const colorClass = isBabahAlgo
+    ? 'bg-sky-500/15 border-sky-500/40 text-sky-300'
+    : 'bg-amber-500/15 border-amber-500/40 text-amber-300';
+  return (
+    <span className={`inline-flex items-center px-2.5 py-1 rounded-md border text-xs font-medium ${colorClass}`}>
+      {value}
+    </span>
+  );
+}
+
 export default async function LicensePage() {
   const t = await getTranslations('solutions_license');
   const breadcrumb = breadcrumbSchema([
@@ -162,34 +190,111 @@ export default async function LicensePage() {
           </div>
         </section>
 
-        {/* Technical Specs Table */}
+        {/* 2-VPS Architecture Spec — dual-column table (Windows MT5 vs
+            Linux Orchestrator). Plus responsibility matrix di bawahnya supaya
+            user clear siapa provision apa per tier.
+
+            Refactor 2026-05-15: tabel lama hanya 1 VPS spec (4 vCPU, 8GB)
+            tidak akurat untuk 3-tier baru yang pakai 2 VPS. */}
         <section className="section-padding border-b border-border/60">
           <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-3">{t('infra_eyebrow')}</p>
-            <h2 className="t-display-sub mb-4">{t('infra_title')}</h2>
-            <p className="t-body text-foreground/60 mb-8 sm:mb-10 max-w-xl">
-              {t('infra_subtitle')}
-            </p>
-            <div className="overflow-x-auto max-w-4xl">
-              <div className="table-enterprise-wrapper min-w-[500px]">
-              <table className="table-enterprise w-full">
-                <thead>
-                  <tr className="border-b border-border/60">
-                    <th className="text-left px-4 sm:px-6 py-3">{t('col_component')}</th>
-                    <th className="text-left px-4 sm:px-6 py-3">{t('col_spec')}</th>
-                    <th className="text-left px-4 sm:px-6 py-3 hidden md:table-cell">{t('col_notes')}</th>
-                  </tr>
-                </thead>
-                <tbody className="text-sm">
-                  {SPEC_META.map((row) => (
-                    <tr key={row.specKey} className="border-b border-border/60 last:border-0">
-                      <td className="px-4 sm:px-6 py-3 font-medium text-foreground/80">{t(row.specKey)}</td>
-                      <td className="px-4 sm:px-6 py-3 font-mono text-amber-400">{t(row.valueKey)}</td>
-                      <td className="px-4 sm:px-6 py-3 text-foreground/50 hidden md:table-cell">{t(row.noteKey)}</td>
+            <div className="mb-8 sm:mb-10 max-w-3xl">
+              <p className="t-eyebrow mb-3">{t('infra_eyebrow')}</p>
+              <h2 className="t-display-sub mb-4">{t('infra_title')}</h2>
+              <p className="t-body text-foreground/60 leading-relaxed">
+                {t('infra_subtitle')}
+              </p>
+            </div>
+
+            {/* Dual-VPS spec table — responsive: stacked di mobile, table di desktop */}
+            <div className="max-w-5xl mb-10 sm:mb-12">
+              <div className="overflow-x-auto rounded-lg border border-border/60">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border/60 bg-muted/30">
+                      <th className="text-left px-3 sm:px-5 py-3 font-semibold text-xs uppercase tracking-wider text-foreground/60 w-1/4">
+                        {t('col_component')}
+                      </th>
+                      <th className="text-left px-3 sm:px-5 py-3 font-semibold text-xs uppercase tracking-wider w-[37.5%]">
+                        <span className="text-amber-400">{t('col_vps_windows')}</span>
+                      </th>
+                      <th className="text-left px-3 sm:px-5 py-3 font-semibold text-xs uppercase tracking-wider w-[37.5%]">
+                        <span className="text-sky-400">{t('col_vps_linux')}</span>
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {SPEC_META.map((row) => (
+                      <tr key={row.specKey} className="border-b border-border/40 last:border-0 hover:bg-muted/10 transition-colors">
+                        <td className="px-3 sm:px-5 py-3 font-medium text-foreground/80 align-top">
+                          {t(row.specKey)}
+                        </td>
+                        <td className="px-3 sm:px-5 py-3 font-mono text-xs sm:text-sm text-amber-300 align-top">
+                          {t(row.winKey)}
+                        </td>
+                        <td className="px-3 sm:px-5 py-3 font-mono text-xs sm:text-sm text-sky-300 align-top">
+                          {t(row.linuxKey)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Responsibility matrix — siapa provision apa per tier */}
+            <div className="max-w-5xl">
+              <div className="mb-6">
+                <p className="t-eyebrow mb-3">{t('matrix_eyebrow')}</p>
+                <h3 className="font-display text-xl sm:text-2xl font-medium mb-3">{t('matrix_title')}</h3>
+                <p className="t-body-sm text-foreground/60 leading-relaxed max-w-3xl">
+                  {t('matrix_subtitle')}
+                </p>
+              </div>
+
+              <div className="overflow-x-auto rounded-lg border border-border/60">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border/60 bg-muted/30">
+                      <th className="text-left px-3 sm:px-5 py-3 font-semibold text-xs uppercase tracking-wider text-foreground/60">
+                        {t('matrix_col_tier')}
+                      </th>
+                      <th className="text-left px-3 sm:px-5 py-3 font-semibold text-xs uppercase tracking-wider text-amber-400">
+                        {t('matrix_col_windows')}
+                      </th>
+                      <th className="text-left px-3 sm:px-5 py-3 font-semibold text-xs uppercase tracking-wider text-sky-400">
+                        {t('matrix_col_linux')}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {RESPONSIBILITY_META.map((row) => (
+                      <tr key={row.tierKey} className="border-b border-border/40 last:border-0 hover:bg-muted/10 transition-colors">
+                        <td className="px-3 sm:px-5 py-3 font-medium text-foreground/80 align-top">
+                          {t(row.tierKey)}
+                        </td>
+                        <td className="px-3 sm:px-5 py-3 align-top">
+                          <ResponsibilityBadge
+                            value={t(row.winKey)}
+                          />
+                        </td>
+                        <td className="px-3 sm:px-5 py-3 align-top">
+                          <ResponsibilityBadge
+                            value={t(row.linuxKey)}
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Tip note — broker biasanya kasih VPS Windows gratis */}
+              <div className="mt-5 p-4 rounded-lg bg-emerald-500/[0.05] border border-emerald-500/20 flex items-start gap-3">
+                <span className="text-emerald-400 mt-0.5">💡</span>
+                <p className="text-xs sm:text-sm text-foreground/70 leading-relaxed flex-1">
+                  {t('matrix_note')}
+                </p>
               </div>
             </div>
           </div>

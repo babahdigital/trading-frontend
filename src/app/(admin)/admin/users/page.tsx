@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Trash2, ShieldCheck, UserCog, Power } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
 
 interface User {
@@ -13,9 +13,21 @@ interface User {
   name: string | null;
   role: string;
   mt5Account: string | null;
+  isActive?: boolean;
   createdAt: string;
   lastLoginAt: string | null;
   _count: { licenses: number; subscriptions: number };
+}
+
+const ROLE_OPTIONS = [
+  { value: 'CLIENT', label: 'CLIENT', color: 'bg-blue-500/20 text-blue-400' },
+  { value: 'OPERATOR', label: 'OPERATOR', color: 'bg-emerald-500/20 text-emerald-400' },
+  { value: 'ADMIN', label: 'ADMIN', color: 'bg-purple-500/20 text-purple-400' },
+  { value: 'SUPER_ADMIN', label: 'SUPER ADMIN', color: 'bg-rose-500/20 text-rose-400' },
+];
+
+function roleColor(role: string): string {
+  return ROLE_OPTIONS.find((r) => r.value === role)?.color || 'bg-blue-500/20 text-blue-400';
 }
 
 export default function UsersPage() {
@@ -90,6 +102,71 @@ export default function UsersPage() {
     }
   }
 
+  async function handleDelete(user: User) {
+    if (!confirm(`Delete user ${user.email}? This cannot be undone.\n\nLicenses akan ikut terhapus. Only CLIENT users can be deleted.`)) {
+      return;
+    }
+    try {
+      const res = await fetch(`/api/admin/users?id=${user.id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+      });
+      if (res.ok) {
+        void fetchUsers();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(`Delete failed: ${data.error || res.statusText}`);
+      }
+    } catch (err) {
+      alert(`Network error: ${err instanceof Error ? err.message : 'unknown'}`);
+    }
+  }
+
+  async function handleChangeRole(user: User, newRole: string) {
+    if (newRole === user.role) return;
+    if (!confirm(`Change role for ${user.email} from ${user.role} to ${newRole}?`)) {
+      return;
+    }
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'PATCH',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ id: user.id, role: newRole }),
+      });
+      if (res.ok) {
+        void fetchUsers();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(`Role change failed: ${data.error || res.statusText}`);
+      }
+    } catch (err) {
+      alert(`Network error: ${err instanceof Error ? err.message : 'unknown'}`);
+    }
+  }
+
+  async function handleToggleActive(user: User) {
+    const next = !(user.isActive ?? true);
+    const action = next ? 'reaktivasi' : 'nonaktifkan';
+    if (!confirm(`${action.charAt(0).toUpperCase() + action.slice(1)} ${user.email}?`)) {
+      return;
+    }
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'PATCH',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ id: user.id, isActive: next }),
+      });
+      if (res.ok) {
+        void fetchUsers();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(`Toggle failed: ${data.error || res.statusText}`);
+      }
+    } catch (err) {
+      alert(`Network error: ${err instanceof Error ? err.message : 'unknown'}`);
+    }
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
@@ -131,8 +208,9 @@ export default function UsersPage() {
                   aria-label="Role"
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
-                  <option value="CLIENT">CLIENT</option>
-                  <option value="ADMIN">ADMIN</option>
+                  {ROLE_OPTIONS.filter(r => r.value !== 'SUPER_ADMIN').map(r => (
+                    <option key={r.value} value={r.value}>{r.label}</option>
+                  ))}
                 </select>
               </div>
               <div>
@@ -160,33 +238,76 @@ export default function UsersPage() {
                   <th className="text-left p-4 font-medium text-muted-foreground">Name</th>
                   <th className="text-left p-4 font-medium text-muted-foreground">Email</th>
                   <th className="text-left p-4 font-medium text-muted-foreground">Role</th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">Status</th>
                   <th className="text-left p-4 font-medium text-muted-foreground">MT5</th>
                   <th className="text-left p-4 font-medium text-muted-foreground">Licenses</th>
                   <th className="text-left p-4 font-medium text-muted-foreground">Last Login</th>
+                  <th className="text-right p-4 font-medium text-muted-foreground">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={6} className="p-4 text-center text-muted-foreground">Loading...</td></tr>
+                  <tr><td colSpan={8} className="p-4 text-center text-muted-foreground">Loading...</td></tr>
                 ) : users.length === 0 ? (
-                  <tr><td colSpan={6} className="p-4 text-center text-muted-foreground">No users found.</td></tr>
+                  <tr><td colSpan={8} className="p-4 text-center text-muted-foreground">No users found.</td></tr>
                 ) : (
-                  users.map((user) => (
-                    <tr key={user.id} className="border-b hover:bg-accent/50 transition-colors">
-                      <td className="p-4 font-medium">{user.name || '-'}</td>
-                      <td className="p-4">{user.email}</td>
-                      <td className="p-4">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${user.role === 'ADMIN' ? 'bg-purple-500/20 text-purple-400' : 'bg-blue-500/20 text-blue-400'}`}>
-                          {user.role}
-                        </span>
-                      </td>
-                      <td className="p-4 font-mono text-xs">{user.mt5Account || '-'}</td>
-                      <td className="p-4">{user._count.licenses}</td>
-                      <td className="p-4 text-muted-foreground">
-                        {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : 'Never'}
-                      </td>
-                    </tr>
-                  ))
+                  users.map((user) => {
+                    const isActive = user.isActive ?? true;
+                    const isSuperAdmin = user.role === 'SUPER_ADMIN';
+                    return (
+                      <tr key={user.id} className="border-b hover:bg-accent/50 transition-colors">
+                        <td className="p-4 font-medium">{user.name || '-'}</td>
+                        <td className="p-4">{user.email}</td>
+                        <td className="p-4">
+                          <select
+                            value={user.role}
+                            disabled={isSuperAdmin}
+                            onChange={(e) => handleChangeRole(user, e.target.value)}
+                            aria-label="Change role"
+                            className={`px-2 py-1 rounded text-xs font-medium border-0 cursor-pointer disabled:cursor-not-allowed ${roleColor(user.role)}`}
+                          >
+                            {ROLE_OPTIONS.map((r) => (
+                              <option key={r.value} value={r.value} disabled={r.value === 'SUPER_ADMIN' && !isSuperAdmin}>
+                                {r.label}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+                        <td className="p-4">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${isActive ? 'bg-emerald-500/20 text-emerald-400' : 'bg-zinc-500/20 text-zinc-400'}`}>
+                            {isActive ? 'AKTIF' : 'NONAKTIF'}
+                          </span>
+                        </td>
+                        <td className="p-4 font-mono text-xs">{user.mt5Account || '-'}</td>
+                        <td className="p-4">{user._count.licenses}</td>
+                        <td className="p-4 text-muted-foreground">
+                          {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : 'Never'}
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => handleToggleActive(user)}
+                              disabled={isSuperAdmin}
+                              title={isActive ? 'Nonaktifkan user' : 'Aktifkan kembali user'}
+                              className="p-1.5 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                            >
+                              <Power className={`h-4 w-4 ${isActive ? 'text-emerald-400' : 'text-zinc-400'}`} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDelete(user)}
+                              disabled={user.role !== 'CLIENT'}
+                              title={user.role === 'CLIENT' ? 'Hapus user' : 'Hanya CLIENT yang bisa di-delete'}
+                              className="p-1.5 rounded hover:bg-rose-500/20 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                            >
+                              <Trash2 className="h-4 w-4 text-rose-400" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
@@ -199,35 +320,75 @@ export default function UsersPage() {
             ) : users.length === 0 ? (
               <li className="p-4 text-center text-muted-foreground text-sm">No users found.</li>
             ) : (
-              users.map((user) => (
-                <li key={user.id} className="p-4 space-y-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <div className="font-medium text-sm break-words">{user.name || '-'}</div>
-                      <div className="text-xs text-muted-foreground break-all">{user.email}</div>
+              users.map((user) => {
+                const isActive = user.isActive ?? true;
+                const isSuperAdmin = user.role === 'SUPER_ADMIN';
+                return (
+                  <li key={user.id} className="p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="font-medium text-sm break-words">{user.name || '-'}</div>
+                        <div className="text-xs text-muted-foreground break-all">{user.email}</div>
+                      </div>
+                      <span className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider ${roleColor(user.role)}`}>
+                        {user.role}
+                      </span>
                     </div>
-                    <span className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider ${user.role === 'ADMIN' ? 'bg-purple-500/20 text-purple-400' : 'bg-blue-500/20 text-blue-400'}`}>
-                      {user.role}
-                    </span>
-                  </div>
-                  <dl className="grid grid-cols-3 gap-2 text-xs">
-                    <div>
-                      <dt className="text-muted-foreground/70 text-[10px] uppercase tracking-wider">MT5</dt>
-                      <dd className="font-mono mt-0.5 truncate">{user.mt5Account || '-'}</dd>
+                    <dl className="grid grid-cols-3 gap-2 text-xs">
+                      <div>
+                        <dt className="text-muted-foreground/70 text-[10px] uppercase tracking-wider">Status</dt>
+                        <dd className={`mt-0.5 font-medium ${isActive ? 'text-emerald-400' : 'text-zinc-400'}`}>
+                          {isActive ? 'AKTIF' : 'NONAKTIF'}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-muted-foreground/70 text-[10px] uppercase tracking-wider">Licenses</dt>
+                        <dd className="font-medium mt-0.5">{user._count.licenses}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-muted-foreground/70 text-[10px] uppercase tracking-wider">Last Login</dt>
+                        <dd className="mt-0.5 text-muted-foreground truncate">
+                          {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString() : 'Never'}
+                        </dd>
+                      </div>
+                    </dl>
+                    {/* Mobile actions row */}
+                    <div className="flex items-center gap-2 pt-2 border-t border-border/40">
+                      <select
+                        value={user.role}
+                        disabled={isSuperAdmin}
+                        onChange={(e) => handleChangeRole(user, e.target.value)}
+                        aria-label="Change role"
+                        className="flex-1 h-8 px-2 rounded border border-input bg-background text-xs disabled:opacity-50"
+                      >
+                        {ROLE_OPTIONS.map((r) => (
+                          <option key={r.value} value={r.value} disabled={r.value === 'SUPER_ADMIN' && !isSuperAdmin}>
+                            {r.label}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => handleToggleActive(user)}
+                        disabled={isSuperAdmin}
+                        className="p-1.5 rounded hover:bg-accent transition-colors disabled:opacity-30"
+                        aria-label="Toggle active"
+                      >
+                        <Power className={`h-4 w-4 ${isActive ? 'text-emerald-400' : 'text-zinc-400'}`} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(user)}
+                        disabled={user.role !== 'CLIENT'}
+                        className="p-1.5 rounded hover:bg-rose-500/20 transition-colors disabled:opacity-30"
+                        aria-label="Delete user"
+                      >
+                        <Trash2 className="h-4 w-4 text-rose-400" />
+                      </button>
                     </div>
-                    <div>
-                      <dt className="text-muted-foreground/70 text-[10px] uppercase tracking-wider">Licenses</dt>
-                      <dd className="font-medium mt-0.5">{user._count.licenses}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-muted-foreground/70 text-[10px] uppercase tracking-wider">Last Login</dt>
-                      <dd className="mt-0.5 text-muted-foreground truncate">
-                        {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString() : 'Never'}
-                      </dd>
-                    </div>
-                  </dl>
-                </li>
-              ))
+                  </li>
+                );
+              })
             )}
           </ul>
         </CardContent>

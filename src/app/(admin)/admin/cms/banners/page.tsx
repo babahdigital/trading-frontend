@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CmsPageHeader } from '@/components/cms/page-header';
 import { useAuth } from '@/lib/auth/auth-context';
+import { useToast } from '@/components/ui/toast';
 
 interface BannerItem {
   id: string;
@@ -24,30 +25,87 @@ interface BannerItem {
 
 export default function CmsBannersPage() {
   const { getAuthHeaders } = useAuth();
+  const { push } = useToast();
   const [banners, setBanners] = useState<BannerItem[]>([]);
   const [editing, setEditing] = useState<BannerItem | null>(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   const fetchBanners = useCallback(async () => {
-    const res = await fetch('/api/admin/cms/banners', { headers: getAuthHeaders() });
-    if (res.ok) setBanners(await res.json());
-    setLoading(false);
-  }, [getAuthHeaders]);
+    try {
+      const res = await fetch('/api/admin/cms/banners', { headers: getAuthHeaders() });
+      if (res.ok) {
+        setBanners(await res.json());
+      } else {
+        push({ title: 'Gagal memuat banners', description: `HTTP ${res.status}`, tone: 'error' });
+      }
+    } catch (err) {
+      push({ title: 'Network error', description: err instanceof Error ? err.message : 'Unknown', tone: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  }, [getAuthHeaders, push]);
 
   useEffect(() => { fetchBanners(); }, [fetchBanners]);
 
   async function handleSave() {
     if (!editing) return;
-    const method = editing.id ? 'PUT' : 'POST';
-    await fetch('/api/admin/cms/banners', { method, headers: getAuthHeaders(), body: JSON.stringify(editing) });
-    setEditing(null);
-    fetchBanners();
+    setSaving(true);
+    try {
+      const method = editing.id ? 'PUT' : 'POST';
+      const res = await fetch('/api/admin/cms/banners', {
+        method,
+        headers: getAuthHeaders(),
+        body: JSON.stringify(editing),
+      });
+      if (res.ok) {
+        push({ title: 'Banner tersimpan', tone: 'success' });
+        setEditing(null);
+        fetchBanners();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        push({
+          title: 'Gagal menyimpan banner',
+          description: data.error || `HTTP ${res.status}`,
+          tone: 'error',
+        });
+      }
+    } catch (err) {
+      push({
+        title: 'Network error',
+        description: err instanceof Error ? err.message : 'Unknown',
+        tone: 'error',
+      });
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function handleDelete(id: string) {
     if (!confirm('Hapus banner ini?')) return;
-    await fetch(`/api/admin/cms/banners?id=${id}`, { method: 'DELETE', headers: getAuthHeaders() });
-    fetchBanners();
+    try {
+      const res = await fetch(`/api/admin/cms/banners?id=${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+      });
+      if (res.ok) {
+        push({ title: 'Banner dihapus', tone: 'success' });
+        fetchBanners();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        push({
+          title: 'Gagal menghapus banner',
+          description: data.error || `HTTP ${res.status}`,
+          tone: 'error',
+        });
+      }
+    } catch (err) {
+      push({
+        title: 'Network error',
+        description: err instanceof Error ? err.message : 'Unknown',
+        tone: 'error',
+      });
+    }
   }
 
   const emptyBanner: BannerItem = { id: '', title: '', content: '', linkUrl: '', linkLabel: '', position: 'TOP', bgColor: '#0ea5e9', textColor: '#ffffff', isActive: true, startsAt: null, endsAt: null };
@@ -91,8 +149,12 @@ export default function CmsBannersPage() {
               </label>
             </div>
             <div className="flex gap-3">
-              <Button onClick={handleSave}>Simpan</Button>
-              <Button variant="outline" onClick={() => setEditing(null)}>Batal</Button>
+              <Button onClick={handleSave} disabled={saving}>
+                {saving ? 'Menyimpan…' : 'Simpan'}
+              </Button>
+              <Button variant="outline" onClick={() => setEditing(null)} disabled={saving}>
+                Batal
+              </Button>
             </div>
           </CardContent>
         </Card>

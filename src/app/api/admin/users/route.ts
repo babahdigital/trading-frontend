@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
         where,
         select: {
           id: true, email: true, name: true, role: true, mt5Account: true,
-          createdAt: true, lastLoginAt: true,
+          isActive: true, createdAt: true, lastLoginAt: true,
           _count: { select: { licenses: true, subscriptions: true } },
         },
         orderBy: { createdAt: 'desc' },
@@ -82,6 +82,77 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(user, { status: 201 });
   } catch (error) {
     log.error('Create user error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+/**
+ * PATCH — update user role (promote/demote) atau toggle active state.
+ * Body: { id, role?, isActive? }
+ *
+ * Safety:
+ * - Only SUPER_ADMIN bisa promote ke ADMIN/SUPER_ADMIN (cek role current user)
+ * - Cannot demote SUPER_ADMIN (always immutable)
+ * - Audit logged dengan oldRole + newRole untuk tracking.
+ */
+export async function PATCH(request: NextRequest) {
+  const guard = requireAdmin(request);
+  if (guard) return guard;
+  try {
+    const body = await request.json();
+    const { id, role, isActive } = body;
+    const callerRole = request.headers.get('x-user-role');
+
+    if (!id) {
+      return NextResponse.json({ error: 'Missing user id' }, { status: 400 });
+    }
+    if (!role && typeof isActive !== 'boolean') {
+      return NextResponse.json({ error: 'Nothing to update' }, { status: 400 });
+    }
+
+    const existing = await prisma.user.findUnique({ where: { id } });
+    if (!existing) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    // Immutable SUPER_ADMIN role
+    if (existing.role === 'SUPER_ADMIN' && role && role !== 'SUPER_ADMIN') {
+      return NextResponse.json({ error: 'Cannot modify SUPER_ADMIN role' }, { status: 403 });
+    }
+
+    // Hanya SUPER_ADMIN bisa promote ke ADMIN level
+    if (role && ['ADMIN', 'SUPER_ADMIN'].includes(role) && callerRole !== 'SUPER_ADMIN') {
+      return NextResponse.json({ error: 'Only SUPER_ADMIN can promote to ADMIN level' }, { status: 403 });
+    }
+
+    const updateData: Record<string, unknown> = {};
+    if (role) updateData.role = role;
+    if (typeof isActive === 'boolean') updateData.isActive = isActive;
+
+    const updated = await prisma.user.update({
+      where: { id },
+      data: updateData,
+      select: { id: true, email: true, name: true, role: true, isActive: true, createdAt: true },
+    });
+
+    await prisma.auditLog.create({
+      data: {
+        userId: request.headers.get('x-user-id'),
+        action: role ? 'user_role_changed' : 'user_active_toggled',
+        metadata: {
+          targetUserId: id,
+          email: existing.email,
+          oldRole: existing.role,
+          newRole: role || existing.role,
+          oldActive: existing.isActive,
+          newActive: typeof isActive === 'boolean' ? isActive : existing.isActive,
+        },
+      },
+    });
+
+    return NextResponse.json(updated);
+  } catch (error) {
+    log.error('Update user error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

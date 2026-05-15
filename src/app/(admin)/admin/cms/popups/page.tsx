@@ -6,7 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CmsPageHeader } from '@/components/cms/page-header';
+import { ImageUploadField } from '@/components/admin/image-upload-field';
 import { useAuth } from '@/lib/auth/auth-context';
+import { useToast } from '@/components/ui/toast';
 
 interface PopupItem {
   id: string;
@@ -22,30 +24,87 @@ interface PopupItem {
 
 export default function CmsPopupsPage() {
   const { getAuthHeaders } = useAuth();
+  const { push } = useToast();
   const [popups, setPopups] = useState<PopupItem[]>([]);
   const [editing, setEditing] = useState<PopupItem | null>(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   const fetchPopups = useCallback(async () => {
-    const res = await fetch('/api/admin/cms/popups', { headers: getAuthHeaders() });
-    if (res.ok) setPopups(await res.json());
-    setLoading(false);
-  }, [getAuthHeaders]);
+    try {
+      const res = await fetch('/api/admin/cms/popups', { headers: getAuthHeaders() });
+      if (res.ok) {
+        setPopups(await res.json());
+      } else {
+        push({ title: 'Gagal memuat popups', description: `HTTP ${res.status}`, tone: 'error' });
+      }
+    } catch (err) {
+      push({ title: 'Network error', description: err instanceof Error ? err.message : 'Unknown', tone: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  }, [getAuthHeaders, push]);
 
   useEffect(() => { fetchPopups(); }, [fetchPopups]);
 
   async function handleSave() {
     if (!editing) return;
-    const method = editing.id ? 'PUT' : 'POST';
-    await fetch('/api/admin/cms/popups', { method, headers: getAuthHeaders(), body: JSON.stringify(editing) });
-    setEditing(null);
-    fetchPopups();
+    setSaving(true);
+    try {
+      const method = editing.id ? 'PUT' : 'POST';
+      const res = await fetch('/api/admin/cms/popups', {
+        method,
+        headers: getAuthHeaders(),
+        body: JSON.stringify(editing),
+      });
+      if (res.ok) {
+        push({ title: 'Popup tersimpan', tone: 'success' });
+        setEditing(null);
+        fetchPopups();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        push({
+          title: 'Gagal menyimpan popup',
+          description: data.error || `HTTP ${res.status}`,
+          tone: 'error',
+        });
+      }
+    } catch (err) {
+      push({
+        title: 'Network error',
+        description: err instanceof Error ? err.message : 'Unknown',
+        tone: 'error',
+      });
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function handleDelete(id: string) {
     if (!confirm('Hapus popup ini?')) return;
-    await fetch(`/api/admin/cms/popups?id=${id}`, { method: 'DELETE', headers: getAuthHeaders() });
-    fetchPopups();
+    try {
+      const res = await fetch(`/api/admin/cms/popups?id=${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+      });
+      if (res.ok) {
+        push({ title: 'Popup dihapus', tone: 'success' });
+        fetchPopups();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        push({
+          title: 'Gagal menghapus popup',
+          description: data.error || `HTTP ${res.status}`,
+          tone: 'error',
+        });
+      }
+    } catch (err) {
+      push({
+        title: 'Network error',
+        description: err instanceof Error ? err.message : 'Unknown',
+        tone: 'error',
+      });
+    }
   }
 
   const emptyPopup: PopupItem = { id: '', title: '', content: '', imageUrl: '', ctaLabel: '', ctaLink: '', trigger: 'DELAY', triggerValue: '3000', isActive: true };
@@ -82,13 +141,21 @@ export default function CmsPopupsPage() {
               <div><label className="text-sm font-medium mb-1 block">CTA Label</label><Input value={editing.ctaLabel || ''} onChange={(e) => setEditing({ ...editing, ctaLabel: e.target.value })} /></div>
               <div><label className="text-sm font-medium mb-1 block">CTA Link</label><Input value={editing.ctaLink || ''} onChange={(e) => setEditing({ ...editing, ctaLink: e.target.value })} /></div>
             </div>
-            <div><label className="text-sm font-medium mb-1 block">Image URL</label><Input value={editing.imageUrl || ''} onChange={(e) => setEditing({ ...editing, imageUrl: e.target.value })} /></div>
+            <ImageUploadField
+              label="Image URL"
+              value={editing.imageUrl}
+              onChange={(url) => setEditing({ ...editing, imageUrl: url })}
+            />
             <div className="flex items-center gap-4">
               <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={editing.isActive} onChange={(e) => setEditing({ ...editing, isActive: e.target.checked })} /> Active</label>
             </div>
             <div className="flex gap-3">
-              <Button onClick={handleSave}>Simpan</Button>
-              <Button variant="outline" onClick={() => setEditing(null)}>Batal</Button>
+              <Button onClick={handleSave} disabled={saving}>
+                {saving ? 'Menyimpan…' : 'Simpan'}
+              </Button>
+              <Button variant="outline" onClick={() => setEditing(null)} disabled={saving}>
+                Batal
+              </Button>
             </div>
           </CardContent>
         </Card>

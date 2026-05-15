@@ -461,6 +461,36 @@ jobs:
           fi
           echo "All $PASS probes pass + content markers verified."
 
+      # Auto-trigger seed cron — populate /changelog + pricing tiers post-deploy.
+      # Pakai SSH ke container supaya CRON_SECRET tidak perlu di-leak ke action runner
+      # (lebih aman daripada curl public URL dengan secret di action log).
+      - name: Trigger seed crons (changelog + pricing tiers)
+        if: success()
+        continue-on-error: true
+        env:
+          SSH_HOST: ${{ secrets.VPS3_SSH_HOST }}
+          SSH_PORT: ${{ secrets.VPS3_SSH_PORT }}
+          SSH_USER: ${{ secrets.VPS3_SSH_USER }}
+        run: |
+          ssh -i ~/.ssh/deploy_key -p "$SSH_PORT" -o BatchMode=yes \
+            "$SSH_USER@$SSH_HOST" 'bash -s' <<'REMOTE'
+          set -euo pipefail
+          # Read CRON_SECRET dari container env (auto-loaded saat compose up).
+          CRON_SECRET=$(docker exec babahalgo-frontend printenv CRON_SECRET 2>/dev/null || echo "")
+          if [ -z "$CRON_SECRET" ]; then
+            echo "!! CRON_SECRET not set in container — skip seed trigger"
+            exit 0
+          fi
+          echo "== trigger /api/cron/seed-changelog =="
+          docker exec babahalgo-frontend curl -sf \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            http://localhost:3000/api/cron/seed-changelog | head -5 || echo "  (changelog seed failed — non-fatal)"
+          echo "== trigger /api/cron/seed-pricing-tiers =="
+          docker exec babahalgo-frontend curl -sf \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            http://localhost:3000/api/cron/seed-pricing-tiers | head -5 || echo "  (pricing seed failed — non-fatal)"
+          REMOTE
+
       # Hygiene: setiap deploy bikin image lama jadi <none> tagged → numpuk cepat.
       # `docker image prune -af` hapus semua image yang tidak referenced container
       # running. Aman karena healthcheck di atas sudah pass = container baru

@@ -124,6 +124,54 @@ export function websiteSchema() {
   };
 }
 
+export interface ArticleSchemaInput {
+  slug: string;
+  title: string;
+  description: string;
+  author: string;
+  publishedAt?: string | null;
+  modifiedAt?: string | null;
+  imageUrl?: string | null;
+  category?: string | null;
+  locale: 'id' | 'en';
+}
+
+/**
+ * Article schema (https://schema.org/Article) — emit di halaman detail
+ * /research/[slug] supaya Google SERP tampilkan rich card (image + byline +
+ * publish date). Per Google docs: cukup minimal headline + datePublished
+ * + author; sisanya tingkatkan kelayakan rich snippet.
+ */
+export function articleSchema(a: ArticleSchemaInput) {
+  const url = `${SITE_BASE}${a.locale === 'en' ? '/en' : ''}/research/${a.slug}`;
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: a.title,
+    description: a.description,
+    inLanguage: a.locale === 'en' ? 'en-US' : 'id-ID',
+    author: {
+      '@type': 'Organization',
+      name: a.author || 'BabahAlgo Research Desk',
+      url: SITE_BASE,
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'BabahAlgo',
+      logo: {
+        '@type': 'ImageObject',
+        url: `${SITE_BASE}/logo/babahalgo-icon-256.png`,
+      },
+    },
+    mainEntityOfPage: { '@type': 'WebPage', '@id': url },
+    url,
+    ...(a.publishedAt ? { datePublished: a.publishedAt } : {}),
+    ...(a.modifiedAt ? { dateModified: a.modifiedAt } : {}),
+    ...(a.imageUrl ? { image: [a.imageUrl] } : {}),
+    ...(a.category ? { articleSection: a.category } : {}),
+  };
+}
+
 /**
  * Render helper — JSON.stringify with no extra whitespace (production-friendly).
  */

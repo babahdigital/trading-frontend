@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { ArrowLeft, Clock, User as UserIcon } from 'lucide-react';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
+import { ArticleCardImage } from '@/components/research/article-card-image';
+import { articleSchema, ldJson } from '@/lib/seo-jsonld';
 
 export interface ArticleDetail {
   id: string;
@@ -281,8 +283,27 @@ export function ArticleDetailClient({ article }: ArticleDetailClientProps) {
   const body = article ? ((isEn && article.body_en) ? article.body_en : article.body) : '';
   const excerpt = article ? ((isEn && article.excerpt_en) ? article.excerpt_en : article.excerpt) : '';
 
+  const jsonLd = article
+    ? articleSchema({
+        slug: article.slug,
+        title,
+        description: excerpt || title,
+        author: article.author,
+        publishedAt: article.publishedAt ?? undefined,
+        imageUrl: article.imageUrl,
+        category: article.category,
+        locale: isEn ? 'en' : 'id',
+      })
+    : null;
+
   return (
     <div className="min-h-screen bg-background text-foreground">
+      {jsonLd ? (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: ldJson(jsonLd) }}
+        />
+      ) : null}
       <EnterpriseNav />
       <main id="main-content">
         {!article ? (
@@ -303,10 +324,10 @@ export function ArticleDetailClient({ article }: ArticleDetailClientProps) {
           <>
             {/* Hero — research-page distinct stamp (page-stamp-rule) */}
             <section className="page-stamp-rule border-b border-border">
-              <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-12 pb-10 lg:pt-20 lg:pb-14">
+              <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-12 pb-10 lg:pt-16 lg:pb-12">
                 <Link
                   href={`/${locale}/research`}
-                  className="inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors mb-8"
+                  className="inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors mb-6"
                 >
                   <ArrowLeft className="h-3.5 w-3.5" strokeWidth={2.25} />
                   {isEn ? 'Back to Research' : 'Kembali ke Riset'}
@@ -332,6 +353,22 @@ export function ArticleDetailClient({ article }: ArticleDetailClientProps) {
                     <Clock className="h-3.5 w-3.5" strokeWidth={2} />
                     {article.readTime} {isEn ? 'min read' : 'min baca'}
                   </span>
+                </div>
+              </div>
+            </section>
+
+            {/* Cover image — selalu render box dengan aspect 16/9 supaya artikel
+                tanpa imageUrl tetap punya visual anchor di hero. Fallback gradient
+                + category icon kalau imageUrl null (mirror dengan card list). */}
+            <section className="border-b border-border">
+              <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+                <div className="rounded-lg overflow-hidden border border-border/60">
+                  <ArticleCardImage
+                    imageUrl={article.imageUrl}
+                    alt={title}
+                    category={article.category}
+                    aspectClass="aspect-[21/9]"
+                  />
                 </div>
               </div>
             </section>

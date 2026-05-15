@@ -1,0 +1,96 @@
+'use client';
+
+import Image from 'next/image';
+import { LineChart, BookOpen, Brain, Globe, BarChart3, Calendar, Sparkles } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+
+/**
+ * Article cover image — selalu render box dengan aspect 16/9 supaya card height
+ * konsisten antara article yang punya `imageUrl` dan yang tidak.
+ *
+ * - imageUrl null → fallback gradient + category icon (pattern Stripe/Linear)
+ * - imageUrl ada → next/image dengan fill + sizes hint
+ *
+ * Decorative: icon dipilih dari kategori artikel.
+ */
+
+interface ArticleCardImageProps {
+  imageUrl?: string | null;
+  alt: string;
+  category?: string;
+  className?: string;
+  /** Aspect ratio Tailwind (default 16/9). Pakai `aspect-square` untuk variant grid. */
+  aspectClass?: string;
+}
+
+// Category icon mapping — institutional categories (per backend daily-research)
+const CATEGORY_ICONS: Record<string, LucideIcon> = {
+  market_recap: BarChart3,
+  ai_lesson: Brain,
+  case_study: LineChart,
+  correlation: Globe,
+  risk: BookOpen,
+  strategy: Sparkles,
+  preview: Calendar,
+  default: BookOpen,
+};
+
+function pickCategoryIcon(category: string | undefined): LucideIcon {
+  if (!category) return CATEGORY_ICONS.default;
+  const key = category.toLowerCase();
+  for (const [pattern, icon] of Object.entries(CATEGORY_ICONS)) {
+    if (key.includes(pattern)) return icon;
+  }
+  return CATEGORY_ICONS.default;
+}
+
+export function ArticleCardImage({
+  imageUrl,
+  alt,
+  category,
+  className = '',
+  aspectClass = 'aspect-[16/9]',
+}: ArticleCardImageProps) {
+  const Icon = pickCategoryIcon(category);
+
+  if (imageUrl) {
+    return (
+      <div className={`relative ${aspectClass} bg-muted/30 overflow-hidden ${className}`}>
+        <Image
+          src={imageUrl}
+          alt={alt}
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+          quality={85}
+        />
+      </div>
+    );
+  }
+
+  // Fallback — gradient + icon. Pattern terinspirasi Stripe/Linear article cards.
+  return (
+    <div
+      className={`relative ${aspectClass} overflow-hidden ${className}`}
+      role="img"
+      aria-label={alt}
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-amber-500/[0.08] via-amber-500/[0.04] to-transparent dark:from-amber-500/[0.12] dark:via-amber-500/[0.06]" />
+      <div className="absolute inset-0 [background-image:radial-gradient(circle_at_1px_1px,_rgba(245,181,71,0.18)_1px,transparent_0)] [background-size:24px_24px] opacity-50" />
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="inline-flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full bg-amber-500/[0.06] dark:bg-amber-500/[0.10] ring-1 ring-amber-500/30 backdrop-blur-sm">
+          <Icon
+            className="h-7 w-7 sm:h-8 sm:w-8 text-amber-600 dark:text-amber-300"
+            strokeWidth={1.5}
+            aria-hidden
+          />
+        </div>
+      </div>
+      {category ? (
+        <span className="absolute bottom-2.5 left-2.5 inline-flex items-center px-2 py-0.5 rounded-full bg-background/80 backdrop-blur text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
+          {category}
+        </span>
+      ) : null}
+    </div>
+  );
+}

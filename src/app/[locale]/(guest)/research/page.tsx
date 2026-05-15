@@ -3,10 +3,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
-import Image from 'next/image';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
+import { NewsletterForm } from '@/components/layout/newsletter-form';
 import { Pagination } from '@/components/ui/pagination';
+import { ArticleCardImage } from '@/components/research/article-card-image';
 
 const PER_PAGE = 9;
 
@@ -155,35 +156,34 @@ export default function ResearchPage() {
                       <Link
                         key={article.slug}
                         href={`/${locale}/research/${article.slug}`}
-                        className="card-enterprise flex flex-col group cursor-pointer hover:border-amber-500/20 transition-colors overflow-hidden"
+                        className="card-enterprise flex flex-col group cursor-pointer hover:border-amber-500/30 transition-colors overflow-hidden p-0"
                       >
-                        {article.imageUrl && (
-                          <div className="relative w-[calc(100%+4rem)] aspect-[16/9] bg-muted/30 -ml-8 -mt-8 mb-6 overflow-hidden rounded-t-[var(--radius-lg)]">
-                            <Image
-                              src={article.imageUrl}
-                              alt={title || t('image_alt_fallback')}
-                              fill
-                              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                              className="object-cover group-hover:scale-[1.02] transition-transform duration-500"
-                              quality={85}
-                            />
+                        {/* Image area — selalu render box dengan aspect 16/9 supaya
+                            card height konsisten. Fallback gradient + icon kalau
+                            imageUrl null (sebelumnya area kosong → tinggi card jomplang). */}
+                        <ArticleCardImage
+                          imageUrl={article.imageUrl}
+                          alt={title || t('image_alt_fallback')}
+                          category={article.category}
+                          aspectClass="aspect-[16/9]"
+                        />
+                        <div className="p-5 sm:p-6 flex flex-col flex-1">
+                          <p className="t-eyebrow mb-3">{article.category}</p>
+                          <h2 className="text-lg font-medium mb-3 line-clamp-2 group-hover:text-amber-500 dark:group-hover:text-amber-400 transition-colors">
+                            {title}
+                          </h2>
+                          <p className="t-body-sm text-foreground/60 leading-relaxed line-clamp-3 mb-6 flex-1">
+                            {excerpt}
+                          </p>
+                          <div className="flex items-center gap-2 text-[11px] text-muted-foreground pt-4 border-t border-border/40 whitespace-nowrap overflow-hidden">
+                            <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/30 font-mono uppercase tracking-wider text-[10px]">
+                              {shortAuthor(article.author, t('author_research_label'))}
+                            </span>
+                            <span className="text-foreground/30">·</span>
+                            <span>{formatDate(article.publishedAt, locale)}</span>
+                            <span className="text-foreground/30">·</span>
+                            <span>{article.readTime} {t('min_read')}</span>
                           </div>
-                        )}
-                        <p className="t-eyebrow mb-3">{article.category}</p>
-                        <h2 className="text-lg font-medium mb-3 line-clamp-2 group-hover:text-amber-400 transition-colors">
-                          {title}
-                        </h2>
-                        <p className="t-body-sm text-foreground/60 leading-relaxed line-clamp-3 mb-6 flex-1">
-                          {excerpt}
-                        </p>
-                        <div className="flex items-center gap-2 text-[11px] text-muted-foreground pt-4 border-t border-border/40 whitespace-nowrap overflow-hidden">
-                          <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/30 font-mono uppercase tracking-wider text-[10px]">
-                            {shortAuthor(article.author, t('author_research_label'))}
-                          </span>
-                          <span className="text-foreground/30">·</span>
-                          <span>{formatDate(article.publishedAt, locale)}</span>
-                          <span className="text-foreground/30">·</span>
-                          <span>{article.readTime} {t('min_read')}</span>
                         </div>
                       </Link>
                     );
@@ -206,7 +206,8 @@ export default function ResearchPage() {
           </div>
         </section>
 
-        {/* Newsletter */}
+        {/* Newsletter — pakai NewsletterForm yang sudah ter-wire ke /api/public/subscribers
+            (sebelumnya form di sini disconnected — submit no-op). */}
         <section className="section-padding">
           <div className="container-default px-4 sm:px-6">
             <div className="max-w-xl mx-auto text-center">
@@ -217,17 +218,9 @@ export default function ResearchPage() {
               <p className="t-body-sm text-foreground/60 mb-8">
                 {t('newsletter_lead')}
               </p>
-              <form className="flex gap-3 max-w-md mx-auto">
-                <input
-                  type="email"
-                  placeholder={t('newsletter_email_placeholder')}
-                  className="flex-1 border border-white/10 rounded-md px-4 py-3 bg-white/[0.03] text-foreground text-sm font-mono placeholder:text-foreground/30 focus:outline-none focus:ring-1 focus:ring-amber-500/50 transition-shadow"
-                  required
-                />
-                <button type="submit" className="btn-primary shrink-0 py-3 px-6">
-                  {t('newsletter_submit')}
-                </button>
-              </form>
+              <div className="max-w-md mx-auto text-left">
+                <NewsletterForm locale={locale === 'en' ? 'en' : 'id'} />
+              </div>
               <p className="text-xs text-foreground/40 mt-4">
                 {t('newsletter_disclaimer')}
               </p>

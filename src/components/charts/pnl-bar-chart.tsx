@@ -1,15 +1,18 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, CartesianGrid,
   type TooltipProps,
 } from 'recharts';
 import { useThemeTokens } from '@/components/ui/theme-tokens';
+import { ChartEmptyState } from '@/components/charts/chart-empty-state';
 
 interface PnlBarChartProps {
   data: { date: string; pnl: number; trades?: number; winRate?: number }[];
   height?: number;
   className?: string;
+  locale?: 'id' | 'en';
 }
 
 function formatUsd(v: number): string {
@@ -39,8 +42,25 @@ function ChartTooltip(props: TooltipProps<number, string>) {
   );
 }
 
-export function PnlBarChart({ data, height = 360, className = '' }: PnlBarChartProps) {
+export function PnlBarChart({ data, height = 360, className = '', locale = 'id' }: PnlBarChartProps) {
   const t = useThemeTokens();
+  const [yAxisWidth, setYAxisWidth] = useState(48);
+
+  useEffect(() => {
+    function updateWidth() {
+      // Mobile <640px: shrink Y-axis untuk save horizontal space (33% di iPhone SE).
+      if (typeof window !== 'undefined') {
+        setYAxisWidth(window.innerWidth < 640 ? 36 : 48);
+      }
+    }
+    updateWidth();
+    window.addEventListener('resize', updateWidth);
+    return () => window.removeEventListener('resize', updateWidth);
+  }, []);
+
+  if (!data || data.length === 0) {
+    return <ChartEmptyState height={height} className={className} locale={locale} />;
+  }
 
   return (
     <div className={className}>
@@ -70,11 +90,12 @@ export function PnlBarChart({ data, height = 360, className = '' }: PnlBarChartP
             axisLine={false}
             tickLine={false}
             tickFormatter={formatUsd}
-            width={48}
+            width={yAxisWidth}
           />
           <Tooltip
             cursor={{ fill: t.muted, opacity: 0.4 }}
             content={<ChartTooltip />}
+            wrapperStyle={{ outline: 'none' }}
           />
           <Bar dataKey="pnl" radius={[6, 6, 0, 0]} maxBarSize={32}>
             {data.map((entry, index) => (

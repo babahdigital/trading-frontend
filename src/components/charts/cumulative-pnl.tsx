@@ -1,15 +1,18 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
   type TooltipProps,
 } from 'recharts';
 import { useThemeTokens } from '@/components/ui/theme-tokens';
+import { ChartEmptyState } from '@/components/charts/chart-empty-state';
 
 interface CumulativePnlProps {
   data: { trade: number; pnl: number }[];
   height?: number;
   className?: string;
+  locale?: 'id' | 'en';
 }
 
 function formatUsd(v: number): string {
@@ -32,8 +35,24 @@ function ChartTooltip(props: TooltipProps<number, string>) {
   );
 }
 
-export function CumulativePnl({ data, height = 200, className = '' }: CumulativePnlProps) {
+export function CumulativePnl({ data, height = 200, className = '', locale = 'id' }: CumulativePnlProps) {
   const t = useThemeTokens();
+  const [yAxisWidth, setYAxisWidth] = useState(48);
+
+  useEffect(() => {
+    function updateWidth() {
+      if (typeof window !== 'undefined') {
+        setYAxisWidth(window.innerWidth < 640 ? 36 : 48);
+      }
+    }
+    updateWidth();
+    window.addEventListener('resize', updateWidth);
+    return () => window.removeEventListener('resize', updateWidth);
+  }, []);
+
+  if (!data || data.length === 0) {
+    return <ChartEmptyState height={height} className={className} locale={locale} />;
+  }
 
   return (
     <div className={className}>
@@ -58,11 +77,12 @@ export function CumulativePnl({ data, height = 200, className = '' }: Cumulative
             axisLine={false}
             tickLine={false}
             tickFormatter={formatUsd}
-            width={48}
+            width={yAxisWidth}
           />
           <Tooltip
             cursor={{ stroke: t.primary, strokeOpacity: 0.4 }}
             content={<ChartTooltip />}
+            wrapperStyle={{ outline: 'none' }}
           />
           <Area
             type="monotone"

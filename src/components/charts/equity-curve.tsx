@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createChart, ColorType, type IChartApi } from 'lightweight-charts';
 import { chartTheme } from '@/lib/charts/theme';
+import { ChartEmptyState } from '@/components/charts/chart-empty-state';
 
 interface EquityCurveProps {
   data: { time: string; value: number }[];
@@ -12,6 +13,7 @@ interface EquityCurveProps {
   onPeriodChange?: (period: string) => void;
   showDrawdown?: boolean;
   className?: string;
+  locale?: 'id' | 'en';
 }
 
 export function EquityCurve({
@@ -21,13 +23,16 @@ export function EquityCurve({
   activePeriod = '30D',
   onPeriodChange,
   className = '',
+  locale = 'id',
 }: EquityCurveProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const [currentPeriod, setCurrentPeriod] = useState(activePeriod);
+  const isEmpty = !data || data.length === 0;
 
   useEffect(() => {
     if (!chartContainerRef.current) return;
+    if (isEmpty) return;
 
     const chart = createChart(chartContainerRef.current, {
       layout: {
@@ -81,7 +86,7 @@ export function EquityCurve({
       window.removeEventListener('resize', handleResize);
       chart.remove();
     };
-  }, [data, height]);
+  }, [data, height, isEmpty]);
 
   const handlePeriodChange = (period: string) => {
     setCurrentPeriod(period);
@@ -104,7 +109,11 @@ export function EquityCurve({
           ))}
         </div>
       )}
-      <div ref={chartContainerRef} className="w-full" />
+      {isEmpty ? (
+        <ChartEmptyState height={height} locale={locale} />
+      ) : (
+        <div ref={chartContainerRef} className="w-full" style={{ minHeight: height }} />
+      )}
     </div>
   );
 }

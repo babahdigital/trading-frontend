@@ -130,3 +130,49 @@ export function formatPriceRange(
 function stripCurrencyPrefix(s: string, locale: Locale): string {
   return locale === 'id' ? s.replace(/^Rp\s/, '') : s.replace(/^\$/, '');
 }
+
+/**
+ * Auto-convert USD ke locale dengan psychological rounding.
+ * Untuk pricing surface yang tidak butuh entry di PRICE_TABLE (e.g. Developer
+ * API marketplace tier prices, dimana audience technical sehingga rounding
+ * presisi tidak critical).
+ *
+ * USD → IDR pakai exchange rate konstanta (~16.500 per 2026-05) lalu
+ * di-round ke psychological brackets: ratusan ribu / juta / puluhan juta.
+ */
+const USD_TO_IDR_RATE = 16_500;
+
+export function formatUsdAuto(usd: number, locale: Locale, period?: 'mo' | 'yr' | 'setup'): string {
+  if (usd === 0) return locale === 'id' ? 'Gratis' : '$0';
+
+  if (locale === 'id') {
+    const idr = roundIdrPsychological(usd * USD_TO_IDR_RATE);
+    return appendPeriodId(formatIdrCompact(idr), period);
+  }
+
+  const usdStr = usd >= 1_000 ? `$${usd.toLocaleString('en-US')}` : `$${usd}`;
+  return appendPeriodEn(usdStr, period);
+}
+
+function roundIdrPsychological(idr: number): number {
+  if (idr < 1_000_000) return Math.round(idr / 50_000) * 50_000; // round to 50k
+  if (idr < 10_000_000) return Math.round(idr / 100_000) * 100_000; // round to 100k
+  if (idr < 100_000_000) return Math.round(idr / 1_000_000) * 1_000_000; // round to 1M
+  if (idr < 1_000_000_000) return Math.round(idr / 10_000_000) * 10_000_000; // round to 10M
+  return Math.round(idr / 100_000_000) * 100_000_000; // round to 100M for billions
+}
+
+/** Range "$X-$Y" auto-converted. Used for AI Explainability "$99-$299/mo" style. */
+export function formatUsdRangeAuto(
+  lowUsd: number,
+  highUsd: number,
+  locale: Locale,
+  period?: 'mo' | 'yr' | 'setup',
+): string {
+  if (locale === 'id') {
+    const low = formatIdrCompact(roundIdrPsychological(lowUsd * USD_TO_IDR_RATE));
+    const high = formatIdrCompact(roundIdrPsychological(highUsd * USD_TO_IDR_RATE));
+    return appendPeriodId(`${stripCurrencyPrefix(low, 'id')}–${high}`, period);
+  }
+  return appendPeriodEn(`$${lowUsd}–$${highUsd}`, period);
+}

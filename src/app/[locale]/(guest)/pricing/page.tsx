@@ -7,6 +7,7 @@ import { localizePricingTier } from '@/lib/i18n/localize-cms';
 import { breadcrumbSchema, ldJson, organizationSchema } from '@/lib/seo-jsonld';
 import { CapabilityLadder } from '@/components/pricing/capability-ladder';
 import { TierComparisonMatrix } from '@/components/pricing/tier-comparison-matrix';
+import { formatPrice, formatUsdAuto, formatUsdRangeAuto, type Locale, type PriceKey } from '@/lib/pricing-format';
 import {
   ArrowRight,
   Check,
@@ -35,88 +36,111 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       title: `${t('title')} — BabahAlgo`,
       description: isEn
         ? 'Robot Meta MT5 $19-$299/mo, Robot Crypto Binance $49-$499/mo, VPS License from $3K, 8 Developer API marketplace, and Institutional access. Zero-custody — capital always stays in your broker / Binance account.'
-        : 'Robot Meta MT5 $19-$299/bulan, Robot Crypto Binance $49-$499/bulan, VPS License mulai $3K, 8 Developer API marketplace, dan akses Institusional. Zero-custody — modal selalu di akun broker / Binance Anda.',
+        : 'Robot Meta MT5 Rp 299rb-Rp 4,9jt/bulan, Robot Crypto Binance Rp 799rb-Rp 8,2jt/bulan, VPS License mulai Rp 49jt, 8 Developer API marketplace, dan akses Institusional. Zero-custody — modal selalu di akun broker / Binance Anda.',
     },
     locale === 'en' ? 'en' : 'id',
   );
 }
 
-// Tier metadata: prices, hrefs, popular flag stay hardcoded (universal).
-// Names + features + periods resolved from i18n at render. Tier slugs (`t1`,
-// `t2`, `t3`) map to feature key suffixes in pricing_page namespace.
-const SIGNAL_TIER_META = [
-  { slug: 't1', name: 'Tier 1 · Swing', price: '$19', cta: '/register/signal?tier=swing' },
-  { slug: 't2', name: 'Tier 2 · Scalping', price: '$79', popular: true, cta: '/register/signal?tier=scalping' },
-  { slug: 't3', name: 'Tier 3 · All-In', price: '$299', cta: '/register/signal?tier=all' },
+// Tier metadata — slug, name, popular flag, cta href stay hardcoded.
+// Prices are PriceKey references resolved locale-aware via formatPrice() di
+// render function. Names + features + periods resolved from i18n.
+const SIGNAL_TIER_META: Array<{ slug: 't1' | 't2' | 't3'; name: string; priceKey: PriceKey; cta: string; popular?: boolean }> = [
+  { slug: 't1', name: 'Tier 1 · Swing', priceKey: 'signal_starter', cta: '/register/signal?tier=swing' },
+  { slug: 't2', name: 'Tier 2 · Scalping', priceKey: 'signal_pro', popular: true, cta: '/register/signal?tier=scalping' },
+  { slug: 't3', name: 'Tier 3 · All-In', priceKey: 'signal_vip', cta: '/register/signal?tier=all' },
 ];
 
-const CRYPTO_TIER_META = [
-  { slug: 't1', name: 'Tier Basic', price: '$49', periodKey: 'crypto_period_t1', cta: '/register/crypto?tier=basic' },
-  { slug: 't2', name: 'Tier Pro', price: '$199', periodKey: 'crypto_period_t2', popular: true, cta: '/register/crypto?tier=pro' },
-  { slug: 't3', name: 'Tier HNWI', price: '$499', periodKey: 'crypto_period_t3', cta: '/contact?subject=crypto-hnwi' },
+const CRYPTO_TIER_META: Array<{ slug: 't1' | 't2' | 't3'; name: string; priceKey: PriceKey; periodKey: 'crypto_period_t1' | 'crypto_period_t2' | 'crypto_period_t3'; cta: string; popular?: boolean }> = [
+  { slug: 't1', name: 'Tier Basic', priceKey: 'crypto_basic', periodKey: 'crypto_period_t1', cta: '/register/crypto?tier=basic' },
+  { slug: 't2', name: 'Tier Pro', priceKey: 'crypto_pro', periodKey: 'crypto_period_t2', popular: true, cta: '/register/crypto?tier=pro' },
+  { slug: 't3', name: 'Tier HNWI', priceKey: 'crypto_hnwi', periodKey: 'crypto_period_t3', cta: '/contact?subject=crypto-hnwi' },
 ];
 
-const VPS_TIER_META = [
-  { slug: 't1', name: 'VPS Standard', price: '$3,000', periodKey: 'vps_period_setup_150', cta: '/register/vps' },
-  { slug: 't2', name: 'VPS Premium', price: '$7,500', periodKey: 'vps_period_setup_300', popular: true, cta: '/register/vps' },
-  { slug: 't3', name: 'Dedicated Tier', price: '$1,499', periodKey: 'vps_period_dedicated', cta: '/contact?subject=dedicated-vps' },
+const VPS_TIER_META: Array<{ slug: 't1' | 't2' | 't3'; name: string; priceKey: PriceKey; periodKey: 'vps_period_setup_150' | 'vps_period_setup_300' | 'vps_period_dedicated'; cta: string; popular?: boolean }> = [
+  { slug: 't1', name: 'VPS Standard', priceKey: 'vps_standard_setup', periodKey: 'vps_period_setup_150', cta: '/register/vps' },
+  { slug: 't2', name: 'VPS Premium', priceKey: 'vps_premium_setup', periodKey: 'vps_period_setup_300', popular: true, cta: '/register/vps' },
+  { slug: 't3', name: 'Dedicated Tier', priceKey: 'vps_dedicated_monthly', periodKey: 'vps_period_dedicated', cta: '/contact?subject=dedicated-vps' },
 ];
 
-const PUBLIC_APIS = [
+// Developer API marketplace prices: stored as USD numbers, rendered locale-aware
+// via formatUsdAuto() (auto-convert + psychological rounding). Special markers
+// 'enterprise' for AI tier and 'custom' for Market Data enterprise.
+type ApiTierPrice = number | 'custom';
+const PUBLIC_APIS: Array<{
+  id: string;
+  icon: typeof Newspaper;
+  name: string;
+  desc: string;
+  popular?: boolean;
+  tiers: Array<{ tier: string; usd: ApiTierPrice; usdHigh?: number; spec: string }>;
+}> = [
   { id: 'news', icon: Newspaper, name: 'News & Sentiment', desc: 'Forex + Crypto news dengan sentiment scoring + bias analysis', tiers: [
-    { tier: 'Free', price: '$0', spec: '100 req/hari curated' },
-    { tier: 'Starter', price: '$9/mo', spec: '500 req/hari + sentiment basic' },
-    { tier: 'Pro', price: '$29/mo', spec: '5K req/hari + sentiment + impact scoring' },
-    { tier: 'VIP', price: '$99/mo', spec: 'Unlimited + WebSocket stream' },
+    { tier: 'Free', usd: 0, spec: '100 req/hari curated' },
+    { tier: 'Starter', usd: 9, spec: '500 req/hari + sentiment basic' },
+    { tier: 'Pro', usd: 29, spec: '5K req/hari + sentiment + impact scoring' },
+    { tier: 'VIP', usd: 99, spec: 'Unlimited + WebSocket stream' },
   ] },
   { id: 'signals', icon: TrendingUp, name: 'Signals API', desc: 'REST/WebSocket signal feed untuk integrasi pihak ketiga', tiers: [
-    { tier: 'Free', price: '$0', spec: '3 signal terakhir per hari' },
-    { tier: 'Starter', price: '$19/mo', spec: 'Last 50/hari, REST poll' },
-    { tier: 'Pro', price: '$49/mo', spec: 'Full feed real-time' },
-    { tier: 'VIP', price: '$149/mo', spec: 'Premium AI confidence + reasoning' },
+    { tier: 'Free', usd: 0, spec: '3 signal terakhir per hari' },
+    { tier: 'Starter', usd: 19, spec: 'Last 50/hari, REST poll' },
+    { tier: 'Pro', usd: 49, spec: 'Full feed real-time' },
+    { tier: 'VIP', usd: 149, spec: 'Premium AI confidence + reasoning' },
   ] },
   { id: 'indicators', icon: Brain, name: 'Indicators API', desc: '14 indicator core (SMC, Wyckoff, momentum) + custom parameter', popular: true, tiers: [
-    { tier: 'Free', price: '$0', spec: '50 req/hari core indicators' },
-    { tier: 'Hobby', price: '$19/mo', spec: '500 req/hari + 5 indicator advanced' },
-    { tier: 'Pro', price: '$79/mo', spec: 'Custom parameter, semua indicator' },
-    { tier: 'VIP', price: '$199/mo', spec: 'Backtest sweep + walk-forward' },
+    { tier: 'Free', usd: 0, spec: '50 req/hari core indicators' },
+    { tier: 'Hobby', usd: 19, spec: '500 req/hari + 5 indicator advanced' },
+    { tier: 'Pro', usd: 79, spec: 'Custom parameter, semua indicator' },
+    { tier: 'VIP', usd: 199, spec: 'Backtest sweep + walk-forward' },
   ] },
   { id: 'calendar', icon: Calendar, name: 'Calendar API', desc: 'Economic calendar dengan impact scoring + sentiment overlay', tiers: [
-    { tier: 'Free', price: '$0', spec: '100 req/hari high-impact only' },
-    { tier: 'Hobby', price: '$19/mo', spec: 'Full calendar all-impact' },
-    { tier: 'Pro', price: '$49/mo', spec: 'Webhook delivery + filter' },
-    { tier: 'VIP', price: '$99/mo', spec: 'Unlimited + custom alert rules' },
+    { tier: 'Free', usd: 0, spec: '100 req/hari high-impact only' },
+    { tier: 'Hobby', usd: 19, spec: 'Full calendar all-impact' },
+    { tier: 'Pro', usd: 49, spec: 'Webhook delivery + filter' },
+    { tier: 'VIP', usd: 99, spec: 'Unlimited + custom alert rules' },
   ] },
   { id: 'market', icon: Database, name: 'Market Data API', desc: 'Tick + bar OHLC 14 instrumen (forex, metals, energy, crypto majors)', tiers: [
-    { tier: 'Hobby', price: '$29/mo', spec: '1y history bar data' },
-    { tier: 'Pro', price: '$99/mo', spec: '5y history + tick data' },
-    { tier: 'VIP', price: '$249/mo', spec: 'WebSocket stream + aggregation' },
-    { tier: 'Enterprise', price: 'Custom', spec: 'Custom feed, redundant edge' },
+    { tier: 'Hobby', usd: 29, spec: '1y history bar data' },
+    { tier: 'Pro', usd: 99, spec: '5y history + tick data' },
+    { tier: 'VIP', usd: 249, spec: 'WebSocket stream + aggregation' },
+    { tier: 'Enterprise', usd: 'custom', spec: 'Custom feed, redundant edge' },
   ] },
   { id: 'correlation', icon: GitMerge, name: 'Correlation API', desc: 'Korelasi pair real-time + heatmap multi-timeframe', tiers: [
-    { tier: 'Free', price: '$0', spec: '30 req/hari H1 matrix' },
-    { tier: 'Hobby', price: '$9/mo', spec: 'Multi-timeframe matrix' },
-    { tier: 'Pro', price: '$19/mo', spec: 'Custom basket correlation' },
-    { tier: 'VIP', price: '$49/mo', spec: 'Historical correlation backtest' },
+    { tier: 'Free', usd: 0, spec: '30 req/hari H1 matrix' },
+    { tier: 'Hobby', usd: 9, spec: 'Multi-timeframe matrix' },
+    { tier: 'Pro', usd: 19, spec: 'Custom basket correlation' },
+    { tier: 'VIP', usd: 49, spec: 'Historical correlation backtest' },
   ] },
   { id: 'broker', icon: Building2, name: 'Broker Specs API', desc: 'Spec broker (spread, commission, leverage cap, margin)', tiers: [
-    { tier: 'Free', price: '$0', spec: '100 req/hari shared with Calendar' },
-    { tier: 'Pro', price: '$19/mo', spec: 'Unlimited query + 30+ broker' },
-    { tier: 'VIP', price: '$49/mo', spec: 'Historical spread tracking' },
+    { tier: 'Free', usd: 0, spec: '100 req/hari shared with Calendar' },
+    { tier: 'Pro', usd: 19, spec: 'Unlimited query + 30+ broker' },
+    { tier: 'VIP', usd: 49, spec: 'Historical spread tracking' },
   ] },
   { id: 'ai', icon: Brain, name: 'AI Explainability API', desc: 'Per-trade rationale + counterfactual analysis (Enterprise NDA)', tiers: [
-    { tier: 'Enterprise', price: '$99-$299/mo', spec: 'NDA only — kontak ir@babahalgo.com' },
+    { tier: 'Enterprise', usd: 99, usdHigh: 299, spec: 'NDA only — kontak ir@babahalgo.com' },
   ] },
 ];
+
+function renderApiTierPrice(
+  tier: { usd: ApiTierPrice; usdHigh?: number },
+  locale: Locale,
+  customLabel: string,
+): string {
+  if (tier.usd === 'custom') return customLabel;
+  if (tier.usdHigh) return formatUsdRangeAuto(tier.usd as number, tier.usdHigh, locale, 'mo');
+  return formatUsdAuto(tier.usd as number, locale, 'mo');
+}
 
 export default async function PricingPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const t = await getTranslations('pricing');
   const tp = await getTranslations('pricing_page');
+  const localeKey: Locale = locale === 'en' ? 'en' : 'id';
+  const apiCustomLabel = tp('api_custom_label', { defaultValue: localeKey === 'id' ? 'Custom' : 'Custom' });
 
   const signalTiers = SIGNAL_TIER_META.map((m) => ({
     name: m.name,
-    price: m.price,
+    price: formatPrice(m.priceKey, localeKey, { compact: false }),
     period: tp('signal_period_monthly'),
     features: tp.raw(`signal_${m.slug}_features`) as string[],
     cta: m.cta,
@@ -124,16 +148,16 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
   }));
   const cryptoTiers = CRYPTO_TIER_META.map((m) => ({
     name: m.name,
-    price: m.price,
-    period: tp(m.periodKey as 'crypto_period_t1' | 'crypto_period_t2' | 'crypto_period_t3'),
+    price: formatPrice(m.priceKey, localeKey, { compact: false }),
+    period: tp(m.periodKey),
     features: tp.raw(`crypto_${m.slug}_features`) as string[],
     cta: m.cta,
     popular: m.popular,
   }));
   const vpsTiers = VPS_TIER_META.map((m) => ({
     name: m.name,
-    price: m.price,
-    period: tp(m.periodKey as 'vps_period_setup_150' | 'vps_period_setup_300' | 'vps_period_dedicated'),
+    price: formatPrice(m.priceKey, localeKey, { compact: false }),
+    period: tp(m.periodKey),
     features: tp.raw(`vps_${m.slug}_features`) as string[],
     cta: m.cta,
     popular: m.popular,
@@ -260,7 +284,7 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
                     {api.tiers.map((tier) => (
                       <div key={tier.tier} className="flex items-baseline justify-between text-xs gap-2 py-1.5 border-b border-border/40 last:border-b-0">
                         <span className="font-mono uppercase tracking-wider text-muted-foreground">{tier.tier}</span>
-                        <span className="font-mono font-semibold text-amber-300 shrink-0">{tier.price}</span>
+                        <span className="font-mono font-semibold text-amber-300 shrink-0">{renderApiTierPrice(tier, localeKey, apiCustomLabel)}</span>
                       </div>
                     ))}
                   </div>

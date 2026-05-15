@@ -32,10 +32,12 @@ const PLATFORM_MENU = {
   },
 };
 
+// Solutions menu — diversify icons supaya recognize cepat (sebelumnya 3 forex
+// items semua pakai TrendingUp icon, mata user susah filter).
 const SOLUTIONS_MENU = {
   forex: [
     { href: '/solutions/signal', labelKey: 'forex_signal_label', descKey: 'forex_signal_desc', icon: TrendingUp },
-    { href: '/solutions/license', labelKey: 'forex_license_label', descKey: 'forex_license_desc', icon: TrendingUp },
+    { href: '/solutions/license', labelKey: 'forex_license_label', descKey: 'forex_license_desc', icon: BookOpen },
     { href: '/solutions/institutional', labelKey: 'forex_inst_label', descKey: 'forex_inst_desc', icon: Sparkles },
   ],
   crypto: [
@@ -46,6 +48,7 @@ const SOLUTIONS_MENU = {
   ],
   register: [
     { href: '/demo', labelKey: 'register_demo_label', descKey: 'register_demo_desc' },
+    { href: '/register/free', labelKey: 'register_free_label', descKey: 'register_free_desc' },
     { href: '/register/signal', labelKey: 'register_signal_label', descKey: 'register_signal_desc' },
     { href: '/register/crypto', labelKey: 'register_crypto_label', descKey: 'register_crypto_desc' },
     { href: '/register/vps', labelKey: 'register_vps_label', descKey: 'register_vps_desc' },
@@ -53,21 +56,24 @@ const SOLUTIONS_MENU = {
   ],
 };
 
+// Company menu — drop duplikat URL (sebelumnya 3 about column semua ke /about,
+// 2 resources semua ke /research). Sekarang setiap link unik destination.
 const COMPANY_MENU = {
   about: [
     { href: '/about', labelKey: 'company_about_story', icon: BookOpen },
-    { href: '/about', labelKey: 'company_about_mission', icon: BookOpen },
-    { href: '/about', labelKey: 'company_about_why', icon: BookOpen },
-  ],
-  governance: [
     { href: '/about/team', labelKey: 'company_gov_team', icon: Users },
     { href: '/about/governance', labelKey: 'company_gov_audit', icon: FileCheck },
+  ],
+  governance: [
     { href: '/legal/risk-disclosure', labelKey: 'company_gov_risk', icon: ShieldCheck },
     { href: '/legal/regulatory', labelKey: 'company_gov_reg', icon: Scale },
+    { href: '/legal/terms', labelKey: 'company_legal_terms', icon: FileText },
+    { href: '/legal/privacy', labelKey: 'company_legal_privacy', icon: ShieldCheck },
   ],
   resources: [
     { href: '/research', labelKey: 'company_res_library', icon: Library },
-    { href: '/research', labelKey: 'company_res_cases', icon: FileText },
+    { href: '/changelog', labelKey: 'company_res_changelog', icon: FileText },
+    { href: '/status', labelKey: 'company_res_status', icon: ShieldCheck },
   ],
 };
 

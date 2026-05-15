@@ -6,32 +6,49 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 export const revalidate = 0;
 
+/**
+ * Status snapshot endpoint — return raw enum codes + data, let client render
+ * via i18n. Sebelumnya descriptions di-hardcode Bahasa Indonesia di server,
+ * yang break saat user pilih locale EN.
+ *
+ * Returns:
+ * - components[]: { name, status, descCode, descData? } — name pakai i18n key
+ *   yang client resolve, descCode + descData supaya copy locale-aware.
+ * - workers[]: raw consumerState rows
+ * - recentHealthChecks[]: raw healthCheck rows
+ */
+
+type StatusEnum = 'operational' | 'degraded' | 'outage';
+
+interface ComponentRow {
+  /** i18n key reference (e.g. 'portal', 'database', 'trading_engine') — client resolve via status_components namespace */
+  nameKey: string;
+  status: StatusEnum;
+  /** Description code enum supaya client render via i18n. Variants di status_components.desc.* */
+  descCode: 'portal_ok' | 'db_ok' | 'db_down' | 'trading_engine_ok' | 'trading_engine_down' | 'worker_never_run' | 'worker_recent_ok' | 'worker_stale' | 'worker_error';
+  /** Data interpolation untuk template — mins/items/error/latency. Optional fields. */
+  descData?: { mins?: number; items?: number; error?: string; latency?: number };
+}
+
 const WORKER_SCOPES: Array<{
-  key: string;
-  label: string;
+  scope: string;
+  nameKey: string;
   /** Max age before worker is considered stale (ms) */
   staleAfterMs: number;
 }> = [
-  { key: 'signals', label: 'Sinyal Trading', staleAfterMs: 10 * 60 * 1000 },             // 10m (runs every 30s)
-  { key: 'trade_events', label: 'Event Trading', staleAfterMs: 10 * 60 * 1000 },          // 10m (runs every 20s)
-  { key: 'research_ingester', label: 'Pengimpor Riset', staleAfterMs: 7 * 60 * 60 * 1000 }, // 7h (runs every 6h)
+  { scope: 'signals', nameKey: 'signals', staleAfterMs: 10 * 60 * 1000 },           // 10m (runs every 30s)
+  { scope: 'trade_events', nameKey: 'trade_events', staleAfterMs: 10 * 60 * 1000 }, // 10m (runs every 20s)
+  { scope: 'research_ingester', nameKey: 'research_ingester', staleAfterMs: 7 * 60 * 60 * 1000 }, // 7h (runs every 6h)
 ];
 
 export async function GET() {
-  // Fetch the latest run per worker separately so high-frequency workers
-  // (signals/trade_events ~300 runs/h) can't push low-frequency ones
-  // (research_ingester every 6h) out of the result window. Previous
-  // implementation used a single findMany({ take: 100 }) which only ever
-  // returned signals/trade_events rows once they accumulated past 100 —
-  // the research ingester would then show "Not yet run / Degraded" even
-  // though it had run successfully minutes earlier.
   const [dbOk, vps1, workerRunsPerScope, consumerStates, recentChecks] = await Promise.all([
     prisma.$queryRaw`SELECT 1`.then(() => true).catch(() => false),
     getHealth(),
     Promise.all(
-      WORKER_SCOPES.map(({ key }) =>
+      WORKER_SCOPES.map(({ scope }) =>
         prisma.workerRun.findFirst({
-          where: { worker: key },
+          where: { worker: scope },
           orderBy: { startedAt: 'desc' },
           select: { worker: true, startedAt: true, finishedAt: true, status: true, itemsProcessed: true, errorMessage: true },
         }),
@@ -47,46 +64,56 @@ export async function GET() {
     }),
   ]);
 
-  const workerComponents = WORKER_SCOPES.map(({ label, staleAfterMs }, idx) => {
+  const workerComponents: ComponentRow[] = WORKER_SCOPES.map(({ nameKey, staleAfterMs }, idx) => {
     const last = workerRunsPerScope[idx];
     if (!last) {
-      return { name: label, status: 'degraded' as const, description: 'Belum pernah dijalankan' };
+      return { nameKey, status: 'degraded', descCode: 'worker_never_run' };
     }
     const ageMs = Date.now() - last.startedAt.getTime();
     const failed = last.status === 'ERROR';
     const stale = ageMs > staleAfterMs;
-    const status = failed || stale ? 'degraded' as const : 'operational' as const;
+    const status: StatusEnum = failed || stale ? 'degraded' : 'operational';
+    const mins = Math.max(0, Math.round(ageMs / 60000));
 
-    // Human-friendly age (Bahasa Indonesia)
-    const mins = Math.round(ageMs / 60000);
-    const ageStr = mins < 1 ? 'baru saja' : mins < 60 ? `${mins}m lalu` : `${Math.round(mins / 60)}j lalu`;
-
-    const desc = failed
-      ? `Jalan terakhir ${ageStr} — error: ${last.errorMessage?.slice(0, 80) ?? 'unknown'}`
-      : `Jalan terakhir ${ageStr} — ${last.itemsProcessed} item`;
-    return { name: label, status, description: desc };
+    if (failed) {
+      return {
+        nameKey,
+        status,
+        descCode: 'worker_error',
+        descData: { mins, error: (last.errorMessage ?? 'unknown').slice(0, 80) },
+      };
+    }
+    if (stale) {
+      return { nameKey, status, descCode: 'worker_stale', descData: { mins } };
+    }
+    return {
+      nameKey,
+      status,
+      descCode: 'worker_recent_ok',
+      descData: { mins, items: last.itemsProcessed ?? 0 },
+    };
   });
 
-  const components = [
+  const components: ComponentRow[] = [
+    { nameKey: 'portal', status: 'operational', descCode: 'portal_ok' },
     {
-      name: 'Portal BabahAlgo',
-      status: 'operational' as const,
-      description: 'Website publik, portal klien, dan CMS admin',
+      nameKey: 'database',
+      status: dbOk ? 'operational' : 'outage',
+      descCode: dbOk ? 'db_ok' : 'db_down',
     },
     {
-      name: 'Database',
-      status: dbOk ? 'operational' as const : 'outage' as const,
-      description: dbOk ? 'PostgreSQL terkoneksi' : 'PostgreSQL tidak terjangkau',
-    },
-    {
-      name: 'Mesin Trading',
-      status: vps1.ok ? 'operational' as const : 'degraded' as const,
-      description: vps1.ok ? `Latensi ${vps1.latencyMs}ms` : `${vps1.error ?? 'Tidak terjangkau'} (${vps1.latencyMs}ms)`,
+      nameKey: 'trading_engine',
+      status: vps1.ok ? 'operational' : 'degraded',
+      descCode: vps1.ok ? 'trading_engine_ok' : 'trading_engine_down',
+      descData: {
+        latency: vps1.latencyMs ?? 0,
+        error: vps1.ok ? '' : (vps1.error ?? 'unreachable'),
+      },
     },
     ...workerComponents,
   ];
 
-  const overall = components.some((c) => c.status === 'outage')
+  const overall: StatusEnum = components.some((c) => c.status === 'outage')
     ? 'outage'
     : components.some((c) => c.status === 'degraded')
     ? 'degraded'
@@ -112,5 +139,11 @@ export async function GET() {
       zmqConnected: c.zmqConnected,
     })),
     timestamp: new Date().toISOString(),
+    // Deploy metadata untuk operational transparency
+    deploy: {
+      commit: process.env.GIT_COMMIT_SHA?.slice(0, 7) ?? null,
+      version: process.env.APP_VERSION ?? '0.16.0',
+      buildTime: process.env.BUILD_TIMESTAMP ?? null,
+    },
   });
 }

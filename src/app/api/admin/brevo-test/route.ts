@@ -22,14 +22,14 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
-  const adminToken = process.env.ADMIN_TOKEN;
-  if (!adminToken) {
-    return NextResponse.json({ error: 'Admin test disabled (ADMIN_TOKEN unset)' }, { status: 404 });
+  const allowedToken = process.env.ADMIN_TOKEN || process.env.CRON_SECRET;
+  if (!allowedToken) {
+    return NextResponse.json({ error: 'Admin test disabled (ADMIN_TOKEN/CRON_SECRET unset)' }, { status: 404 });
   }
 
   const auth = req.headers.get('authorization') || '';
   const provided = auth.startsWith('Bearer ') ? auth.slice(7) : '';
-  if (provided !== adminToken) {
+  if (provided !== allowedToken) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
 
@@ -89,14 +89,14 @@ export async function POST(req: Request) {
  * GET — check Brevo configuration tanpa send email.
  */
 export async function GET(req: Request) {
-  const adminToken = process.env.ADMIN_TOKEN;
-  if (!adminToken) {
-    return NextResponse.json({ error: 'Admin test disabled (ADMIN_TOKEN unset)' }, { status: 404 });
+  const allowedToken = process.env.ADMIN_TOKEN || process.env.CRON_SECRET;
+  if (!allowedToken) {
+    return NextResponse.json({ error: 'Admin test disabled (ADMIN_TOKEN/CRON_SECRET unset)' }, { status: 404 });
   }
 
   const auth = req.headers.get('authorization') || '';
   const provided = auth.startsWith('Bearer ') ? auth.slice(7) : '';
-  if (provided !== adminToken) {
+  if (provided !== allowedToken) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
 

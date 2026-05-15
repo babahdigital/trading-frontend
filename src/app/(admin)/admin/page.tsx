@@ -59,13 +59,24 @@ function formatDuration(seconds: number) {
   return `${m}m ${s}s`;
 }
 
+// Setup color tagging untuk admin audit table — mapping ke backend strategy id
+// real (qm_perfect family + pivot_mean_reversion) plus alias legacy untuk row
+// historikal yang masih ada di DB.
 const SETUP_COLORS: Record<string, string> = {
-  smc: 'bg-blue-500/20 text-blue-400',
-  wyckoff: 'bg-purple-500/20 text-purple-400',
-  momentum: 'bg-orange-500/20 text-orange-400',
-  oil_gas: 'bg-amber-500/20 text-amber-400',
-  astronacci: 'bg-cyan-500/20 text-cyan-400',
-  swing: 'bg-pink-500/20 text-pink-400',
+  smc: 'bg-blue-500/20 text-blue-400 dark:bg-blue-500/15 dark:text-blue-300',
+  qm_perfect_pure: 'bg-blue-500/20 text-blue-400 dark:bg-blue-500/15 dark:text-blue-300',
+  qm_perfect_ao: 'bg-cyan-500/20 text-cyan-400 dark:bg-cyan-500/15 dark:text-cyan-300',
+  qm_perfect_adx: 'bg-violet-500/20 text-violet-400 dark:bg-violet-500/15 dark:text-violet-300',
+  qm_perfect_full: 'bg-fuchsia-500/20 text-fuchsia-400 dark:bg-fuchsia-500/15 dark:text-fuchsia-300',
+  qm_perfect_adx_h4: 'bg-purple-500/20 text-purple-400 dark:bg-purple-500/15 dark:text-purple-300',
+  swing: 'bg-pink-500/20 text-pink-400 dark:bg-pink-500/15 dark:text-pink-300',
+  smc_swing: 'bg-pink-500/20 text-pink-400 dark:bg-pink-500/15 dark:text-pink-300',
+  pivot_mean_reversion: 'bg-amber-500/20 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300',
+  // Legacy alias — audit rows historikal sebelum 2026-05-15
+  wyckoff: 'bg-purple-500/20 text-purple-700 dark:bg-purple-500/15 dark:text-purple-300',
+  momentum: 'bg-orange-500/20 text-orange-700 dark:bg-orange-500/15 dark:text-orange-300',
+  oil_gas: 'bg-amber-500/20 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300',
+  astronacci: 'bg-cyan-500/20 text-cyan-700 dark:bg-cyan-500/15 dark:text-cyan-300',
 };
 
 export default function AdminDashboard() {

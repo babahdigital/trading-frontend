@@ -246,8 +246,7 @@ jobs:
           done
           REMOTE
 
-      - name: Cleanup source code (whitelist-only, non-fatal)
-        continue-on-error: true
+      - name: Cleanup source code (whitelist-only)
         env:
           SSH_HOST: ${{ secrets.VPS3_SSH_HOST }}
           SSH_PORT: ${{ secrets.VPS3_SSH_PORT }}
@@ -260,44 +259,186 @@ jobs:
           set -euo pipefail
           cd "$DEPLOY_PATH"
 
-          # Whitelist: hanya file/folder ini yang TIDAK dihapus
-          KEEP_PATTERN='^(docker-compose\.prod\.yml|docker-compose\.db\.yml|\.env|\.env\.example|data|public|scratch|\.docker)$'
+          # Whitelist: file/folder yang TIDAK dihapus saat cleanup.
+          # Pattern bash anchored regex (=~) — pakai ERE flavor.
+          KEEP_RE='^(docker-compose\.prod\.yml|docker-compose\.db\.yml|\.env|\.env\.example|data|public|scratch|\.docker)$'
+          BACKUP_RE='^\.env\.bak-'
 
           echo "== state SEBELUM cleanup =="
           ls -A | head -30
 
-          # List entries yang BUKAN di whitelist + bukan dotfile penting
-          echo "== entries to delete =="
-          ls -A | grep -vE "$KEEP_PATTERN" | grep -vE '^\.env\.bak-' || true
+          # Collect entries dengan bash array (avoid pipefail pitfall — grep return
+          # 1 saat 0 matches yang akan trigger exit 1 di pipefail+set-e).
+          mapfile -t ENTRIES < <(ls -A)
 
-          # Delete everything not in whitelist (kecuali .env.bak-* yang separate handling)
-          # File root-owned di-coba sudo (kalau NOPASSWD ada), kalau gagal skip
-          ls -A | grep -vE "$KEEP_PATTERN" | grep -vE '^\.env\.bak-' | while read item; do
-            if [ -e "$item" ]; then
-              echo "  rm -rf $item"
-              rm -rf "$item" 2>/dev/null || sudo -n rm -rf "$item" 2>/dev/null || \
-                echo "    !! gagal hapus $item (mungkin owned by root, butuh manual cleanup)"
+          TO_DELETE=()
+          for item in "${ENTRIES[@]}"; do
+            [ -z "$item" ] && continue
+            if [[ "$item" =~ $KEEP_RE ]] || [[ "$item" =~ $BACKUP_RE ]]; then
+              continue
+            fi
+            TO_DELETE+=("$item")
+          done
+
+          echo "== entries to delete (${#TO_DELETE[@]}) =="
+          if [ ${#TO_DELETE[@]} -eq 0 ]; then
+            echo "  (none — workspace already clean)"
+          else
+            printf '  %s\n' "${TO_DELETE[@]}"
+          fi
+
+          # Delete loop — root-owned items pakai sudo -n fallback (NOPASSWD), kalau
+          # gagal skip dengan warning (non-fatal, akan di-pickup cleanup berikutnya).
+          DELETED=0
+          SKIPPED=0
+          for item in "${TO_DELETE[@]:-}"; do
+            [ -z "$item" ] && continue
+            if [ ! -e "$item" ]; then continue; fi
+            if rm -rf "$item" 2>/dev/null; then
+              DELETED=$((DELETED + 1))
+            elif sudo -n rm -rf "$item" 2>/dev/null; then
+              DELETED=$((DELETED + 1))
+            else
+              echo "  !! skip $item (mungkin root-owned tanpa NOPASSWD)"
+              SKIPPED=$((SKIPPED + 1))
             fi
           done
 
-          # Hapus juga .env.bak lama (lebih dari 30 hari, keep recent backup)
-          find . -maxdepth 1 -name '.env.bak-*' -mtime +30 -delete 2>/dev/null || true
+          # Hapus .env.bak lama (>30 hari) — keep recent backup untuk audit
+          PRUNED_BAK=$(find . -maxdepth 1 -name '.env.bak-*' -mtime +30 -print -delete 2>/dev/null | wc -l)
 
           echo "== state SETELAH cleanup =="
           ls -A
           du -sh . 2>/dev/null | head -1
+          echo "summary: deleted=$DELETED skipped=$SKIPPED pruned_old_backups=$PRUNED_BAK"
           REMOTE
 
-      - name: Public smoke test
+      - name: Public smoke test (full API + page surface)
         run: |
           set -e
-          echo "== /api/health =="
-          curl -fsS https://babahalgo.com/api/health -o /dev/null -w "HTTP %{http_code}\n"
-          echo "== /api/public/capabilities =="
-          curl -fsS https://babahalgo.com/api/public/capabilities | head -c 200
+          BASE="https://babahalgo.com"
+
+          # Probe table: route → expected status codes (multiple OK karena auth-gate /
+          # redirect bisa return 200/307/401 tergantung deploy mode).
+          # Format: <method>|<path>|<allowed-codes-comma-separated>
+          PROBES=(
+            "GET|/|200"
+            "GET|/login|200"
+            "GET|/admin/login|200"
+            "GET|/register|200"
+            "GET|/pricing|200"
+            "GET|/demo|200"
+            "GET|/contact|200"
+            "GET|/about|200"
+            "GET|/about/team|200"
+            "GET|/about/governance|200"
+            "GET|/performance|200"
+            "GET|/research|200"
+            "GET|/status|200"
+            "GET|/changelog|200"
+            "GET|/platform|200"
+            "GET|/platform/strategies|200"
+            "GET|/platform/strategies/smc|200"
+            "GET|/platform/strategies/smc-swing|200"
+            "GET|/platform/strategies/pivot-mean-reversion|200"
+            "GET|/platform/strategies/wyckoff|308,301"
+            "GET|/platform/strategies/astronacci|308,301"
+            "GET|/platform/strategies/ai-momentum|308,301"
+            "GET|/platform/strategies/oil-gas|308,301"
+            "GET|/platform/technology|200"
+            "GET|/platform/risk-framework|200"
+            "GET|/platform/execution|200"
+            "GET|/platform/instruments|200"
+            "GET|/solutions/signal|200"
+            "GET|/solutions/crypto|200"
+            "GET|/solutions/license|200"
+            "GET|/solutions/institutional|200"
+            "GET|/register/signal|200"
+            "GET|/register/crypto|200"
+            "GET|/register/vps|200"
+            "GET|/register/institutional|200"
+            "GET|/legal/terms|200"
+            "GET|/legal/privacy|200"
+            "GET|/legal/risk-disclosure|200"
+            "GET|/legal/regulatory|200"
+            "GET|/legal/cookies|200"
+            "GET|/forgot-password|200"
+            "GET|/portal|200,307"
+            "GET|/admin|200,307"
+            "GET|/non-existent-page-xyz|404"
+            "GET|/sitemap.xml|200"
+            "GET|/robots.txt|200"
+            "GET|/api/health|200"
+            "GET|/api/public/capabilities|200"
+            "GET|/api/public/strategy-stats|200"
+            "GET|/api/public/contact-info|200"
+            "GET|/api/public/company|200"
+            "GET|/api/public/performance|200"
+            "GET|/api/public/pricing|200"
+            "GET|/api/public/landing|200"
+            "GET|/api/public/changelog|200"
+            "GET|/api/public/articles|200"
+            "GET|/api/public/banners|200"
+            "GET|/api/public/popups|200"
+            "GET|/api/public/testimonials|200"
+            "GET|/api/public/faq|200"
+            "GET|/api/public/status|200"
+            "GET|/api/client/signals|401"
+            "GET|/api/client/positions|401"
+            "GET|/api/client/notifications/recent|401"
+            "GET|/api/client/notifications/outbound|401"
+            "GET|/api/admin/dashboard|401"
+            "GET|/api/admin/audit|401"
+            "GET|/api/auth/me|401"
+          )
+
+          FAIL=0
+          PASS=0
+          REPORT=""
+          for probe in "${PROBES[@]}"; do
+            METHOD="${probe%%|*}"
+            REST="${probe#*|}"
+            PATH_PART="${REST%%|*}"
+            ALLOWED="${REST##*|}"
+            CODE=$(curl -sS -o /dev/null -m 10 -X "$METHOD" -w "%{http_code}" "$BASE$PATH_PART" || echo "ERR")
+            if echo ",$ALLOWED," | grep -q ",$CODE,"; then
+              PASS=$((PASS + 1))
+              echo "✓ $METHOD $PATH_PART → $CODE (expected: $ALLOWED)"
+            else
+              FAIL=$((FAIL + 1))
+              echo "✗ $METHOD $PATH_PART → $CODE (expected: $ALLOWED)"
+              REPORT="$REPORT- \`$METHOD $PATH_PART\` returned **$CODE**, expected $ALLOWED\n"
+            fi
+          done
+
+          # Body sanity check — pastikan landing render content (bukan blank shell)
           echo ""
-          echo "== /pricing =="
-          curl -fsS https://babahalgo.com/pricing -o /dev/null -w "HTTP %{http_code}\n"
+          echo "== body sanity check =="
+          BODY_LEN=$(curl -sS -m 10 "$BASE/" | wc -c)
+          echo "Landing body bytes: $BODY_LEN"
+          if [ "$BODY_LEN" -lt 5000 ]; then
+            FAIL=$((FAIL + 1))
+            REPORT="$REPORT- Landing body too small ($BODY_LEN bytes) — possible render failure\n"
+            echo "::error::Landing page body suspiciously small ($BODY_LEN bytes)"
+          fi
+
+          {
+            echo "### Smoke Test Result"
+            echo "- Passed: $PASS"
+            echo "- Failed: $FAIL"
+            echo "- Total: $((PASS + FAIL))"
+            if [ "$FAIL" -gt 0 ]; then
+              echo ""
+              echo "**Failures:**"
+              echo -e "$REPORT"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$FAIL" -gt 0 ]; then
+            echo "::error::$FAIL endpoint(s) returned unexpected status"
+            exit 1
+          fi
+          echo "All $PASS endpoints pass."
 
       # Hygiene: setiap deploy bikin image lama jadi <none> tagged → numpuk cepat.
       # `docker image prune -af` hapus semua image yang tidak referenced container

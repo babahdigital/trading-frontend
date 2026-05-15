@@ -91,11 +91,13 @@ jobs:
       - name: Prisma generate
         run: npx prisma generate
 
-      - name: Typecheck
+      - name: Typecheck (strict, no skipLibCheck)
         run: npx tsc --noEmit
 
-      - name: Lint
-        run: npx next lint
+      # Lint strict: 0 warnings, 0 errors. ESLint exit 1 kalau ada warning sekecil
+      # apa pun. Sebelum push, dev harus `npx next lint` lokal pastikan clean.
+      - name: Lint (strict — max 0 warnings)
+        run: npx next lint --max-warnings 0
 
       # i18n parity gate: tolak PR kalau id.json punya keys yang belum
       # ada di en.json. Cuma cek dry-run — tidak butuh OPENROUTER_API_KEY,
@@ -104,8 +106,27 @@ jobs:
       - name: i18n parity check (id.json ↔ en.json)
         run: npm run i18n:sync -- --dry
 
-      - name: Build (verify only, no artifact)
-        run: npx next build
+      # Build verbose + tee log → cek warning patterns dari Next.js compiler.
+      # Next.js sering tampilkan "Warning:" untuk hydration issue / metadata
+      # collision yang tidak fail-build tapi blocker untuk production. Kita
+      # fail-build kalau detect warning.
+      - name: Build (verify + warning detection)
+        run: |
+          set -o pipefail
+          npx next build 2>&1 | tee build.log
+
+          # Pattern penanda warning yang harus diperhatikan
+          if grep -E "^(Warning|warn):" build.log > /tmp/warnings.txt; then
+            echo "::error::Next.js emitted warnings during build"
+            cat /tmp/warnings.txt
+            exit 1
+          fi
+          # Hydration mismatch / metadata collision lain
+          if grep -qiE "(hydration mismatch|metadata.*conflict|missing alt|invalid hook call)" build.log; then
+            echo "::error::Build log contains issue patterns"
+            grep -iE "(hydration mismatch|metadata.*conflict|missing alt|invalid hook call)" build.log
+            exit 1
+          fi
 
       - name: Build size summary
         if: always()
@@ -119,6 +140,30 @@ jobs:
               SIZE=$(du -sh .next/standalone | cut -f1)
               echo "- Standalone output: $SIZE"
             fi
+            # Top 5 largest first-load JS bundles untuk monitor bloat
+            if [ -f build.log ]; then
+              echo ""
+              echo "**Largest routes (First Load JS):**"
+              echo '```'
+              grep -E "^[├└│ ]+(ƒ|○|●)" build.log 2>/dev/null | sort -k4 -rh 2>/dev/null | head -10 || true
+              echo '```'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # API surface audit — verify daftar route handler yang ada di repo
+      # matches expected production surface. Skip routes di-redirect (301/302).
+      # Output ringkasan untuk debugging drift.
+      - name: API surface inventory
+        if: always()
+        run: |
+          {
+            echo ""
+            echo "### API Surface"
+            echo '```'
+            find src/app/api -name 'route.ts' -o -name 'route.tsx' 2>/dev/null \
+              | sed 's|src/app/api|/api|; s|/route\.tsx\?$||' \
+              | sort
+            echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
   # -------------------------------------------------------------

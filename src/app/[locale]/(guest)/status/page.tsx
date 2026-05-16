@@ -18,7 +18,8 @@ type DescCode =
   | 'worker_never_run'
   | 'worker_recent_ok'
   | 'worker_stale'
-  | 'worker_error';
+  | 'worker_error'
+  | 'worker_cascade';
 
 interface ComponentRow {
   nameKey: string;
@@ -115,6 +116,10 @@ const COPY = {
         const ageStr = ageHuman('id', Number(d.mins));
         return `Error ${ageStr}: ${d.error}`;
       },
+      worker_cascade: (d: Record<string, string | number>) => {
+        const ageStr = ageHuman('id', Number(d.mins));
+        return `Tidak dapat fetch data karena VPS1 Backend unreachable (cascade). Worker auto-recover saat VPS1 online. Terakhir dicoba ${ageStr}.`;
+      },
     } as Record<string, string | ((d: Record<string, string | number>) => string)>,
   },
   en: {
@@ -176,6 +181,10 @@ const COPY = {
         const ageStr = ageHuman('en', Number(d.mins));
         return `Error ${ageStr}: ${d.error}`;
       },
+      worker_cascade: (d: Record<string, string | number>) => {
+        const ageStr = ageHuman('en', Number(d.mins));
+        return `Cannot fetch data because VPS1 Backend is unreachable (cascade). Worker will auto-recover when VPS1 comes back online. Last attempt ${ageStr}.`;
+      },
     } as Record<string, string | ((d: Record<string, string | number>) => string)>,
   },
 };
@@ -218,8 +227,7 @@ const COMPONENT_ICONS: Record<string, typeof Server> = {
   database: Database,
   trading_engine: Cpu,
   signals: Activity,
-  trade_events: Activity,
-  research_ingester: Activity,
+  pair_brief: Activity,
 };
 
 function makeRelTime(localeCopy: typeof COPY.id, dateLocale: string) {

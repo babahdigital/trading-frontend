@@ -25,7 +25,7 @@ interface ComponentRow {
   nameKey: string;
   status: StatusEnum;
   /** Description code enum supaya client render via i18n. Variants di status_components.desc.* */
-  descCode: 'portal_ok' | 'db_ok' | 'db_down' | 'trading_engine_ok' | 'trading_engine_down' | 'worker_never_run' | 'worker_recent_ok' | 'worker_stale' | 'worker_error';
+  descCode: 'portal_ok' | 'db_ok' | 'db_down' | 'trading_engine_ok' | 'trading_engine_down' | 'worker_never_run' | 'worker_recent_ok' | 'worker_stale' | 'worker_error' | 'worker_cascade';
   /** Data interpolation untuk template — mins/items/error/latency. Optional fields. */
   descData?: { mins?: number; items?: number; error?: string; latency?: number };
 }
@@ -74,6 +74,12 @@ export async function GET() {
     }),
   ]);
 
+  // VPS1 cascade: kalau backend VPS1 unreachable, semua worker yang fetch
+  // signals/events/pair-brief dari VPS1 akan error juga. Tandai sebagai
+  // cascade biar UI bisa show "akibat VPS1 down" daripada show duplicate
+  // error tiap worker yang misleading.
+  const vps1Cascade = !vps1.ok;
+
   const workerComponents: ComponentRow[] = WORKER_SCOPES.map(({ nameKey, staleAfterMs }, idx) => {
     const last = workerRunsPerScope[idx];
     if (!last) {
@@ -86,10 +92,13 @@ export async function GET() {
     const mins = Math.max(0, Math.round(ageMs / 60000));
 
     if (failed) {
+      // Cascade detection: kalau VPS1 down, jangan tampilkan error worker
+      // sebagai separate issue — itu side-effect, akar masalah di VPS1.
+      const descCode = vps1Cascade ? 'worker_cascade' : 'worker_error';
       return {
         nameKey,
         status,
-        descCode: 'worker_error',
+        descCode,
         descData: { mins, error: (last.errorMessage ?? 'unknown').slice(0, 80) },
       };
     }

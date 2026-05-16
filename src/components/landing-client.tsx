@@ -94,7 +94,9 @@ const PRICING_TIERS: Record<string, TierMeta[]> = {
 // the two main retail products — same idea, different exchange. VPS License
 // is the on-prem deployment tier. Public APIs are for developer integration
 // only (NOT execution-as-product).
-const PRICING_TAB_IDS = ['demo', 'forex', 'crypto', 'vps', 'apis', 'institutional'] as const;
+// Tab "apis" dihapus 2026-05-16 — Developer API marketplace di-defer ke
+// pengembangan berikutnya. Tab list sekarang 5 tab (sebelumnya 6).
+const PRICING_TAB_IDS = ['demo', 'forex', 'crypto', 'vps', 'institutional'] as const;
 
 // FAQ — 8 entries; localized via faq_q1..q8 + faq_a1..a8.
 const FAQ_COUNT = 8;

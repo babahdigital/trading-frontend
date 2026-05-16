@@ -7,19 +7,13 @@ import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { breadcrumbSchema, ldJson, organizationSchema } from '@/lib/seo-jsonld';
 import { CapabilityLadder } from '@/components/pricing/capability-ladder';
 import { TierComparisonMatrix } from '@/components/pricing/tier-comparison-matrix';
-import { formatPrice, formatUsdAuto, formatUsdRangeAuto, type Locale, type PriceKey } from '@/lib/pricing-format';
+import { formatPrice, type Locale, type PriceKey } from '@/lib/pricing-format';
 import {
   ArrowRight,
   Check,
   TrendingUp,
   Bitcoin,
   Server,
-  Database,
-  Calendar,
-  Brain,
-  Newspaper,
-  Zap,
-  Layers,
 } from 'lucide-react';
 
 // Tier type dropped 2026-05-16 — CMS tiers section removed.
@@ -63,90 +57,17 @@ const VPS_TIER_META: Array<{ slug: 't1' | 't2' | 't3'; name: string; priceKey: P
   { slug: 't3', name: 'Dedicated Tier', priceKey: 'vps_dedicated_monthly', periodKey: 'vps_period_dedicated', cta: '/contact?subject=dedicated-vps' },
 ];
 
-// Developer API marketplace — disesuaikan dengan backend reality per audit
-// 2026-05-16. 6 API yang BENAR-BENAR running di VPS1 + sesuai marketing
-// priority Pak (drop Correlation + Broker Specs yang tidak prioritas).
-//
-// Backend services (audit 2026-05-16):
-// - News API (port 8210), Signals API (8211), Indicators API (8212),
-//   Calendar API (8215), Market Data API (8213), AI Explainability (8217),
-//   Execution Cloud (8218), Market Substrate (8220).
-// - Drop dari marketing: Correlation (8216), Broker Specs (8214) — backend
-//   ada tapi user prefer fokus core 6 untuk avoid bloat tampilan.
-//
-// Tier price stored as USD number, name/desc/spec di i18n keys supaya
-// locale-aware (sebelumnya hardcoded mix language).
-type ApiTierPrice = number | 'custom';
-type ApiTierMeta = { tier: string; usd: ApiTierPrice; usdHigh?: number; specKey: string };
-type ApiMarketplaceItem = {
-  id: string;
-  icon: typeof Newspaper;
-  popular?: boolean;
-  tiers: ApiTierMeta[];
-};
-
-const PUBLIC_APIS: ApiMarketplaceItem[] = [
-  { id: 'news', icon: Newspaper, tiers: [
-    { tier: 'Free', usd: 0, specKey: 'apis_news_t1_spec' },
-    { tier: 'Starter', usd: 9, specKey: 'apis_news_t2_spec' },
-    { tier: 'Pro', usd: 29, specKey: 'apis_news_t3_spec' },
-    { tier: 'VIP', usd: 99, specKey: 'apis_news_t4_spec' },
-  ] },
-  { id: 'signals', icon: TrendingUp, tiers: [
-    { tier: 'Free', usd: 0, specKey: 'apis_signals_t1_spec' },
-    { tier: 'Starter', usd: 19, specKey: 'apis_signals_t2_spec' },
-    { tier: 'Pro', usd: 49, specKey: 'apis_signals_t3_spec' },
-    { tier: 'VIP', usd: 149, specKey: 'apis_signals_t4_spec' },
-  ] },
-  { id: 'indicators', icon: Brain, popular: true, tiers: [
-    { tier: 'Free', usd: 0, specKey: 'apis_indicators_t1_spec' },
-    { tier: 'Hobby', usd: 19, specKey: 'apis_indicators_t2_spec' },
-    { tier: 'Pro', usd: 79, specKey: 'apis_indicators_t3_spec' },
-    { tier: 'VIP', usd: 199, specKey: 'apis_indicators_t4_spec' },
-  ] },
-  { id: 'calendar', icon: Calendar, tiers: [
-    { tier: 'Free', usd: 0, specKey: 'apis_calendar_t1_spec' },
-    { tier: 'Hobby', usd: 19, specKey: 'apis_calendar_t2_spec' },
-    { tier: 'Pro', usd: 49, specKey: 'apis_calendar_t3_spec' },
-    { tier: 'VIP', usd: 99, specKey: 'apis_calendar_t4_spec' },
-  ] },
-  { id: 'market', icon: Database, tiers: [
-    { tier: 'Hobby', usd: 29, specKey: 'apis_market_t1_spec' },
-    { tier: 'Pro', usd: 99, specKey: 'apis_market_t2_spec' },
-    { tier: 'VIP', usd: 249, specKey: 'apis_market_t3_spec' },
-    { tier: 'Enterprise', usd: 'custom', specKey: 'apis_market_t4_spec' },
-  ] },
-  { id: 'substrate', icon: Layers, tiers: [
-    { tier: 'Hobby', usd: 39, specKey: 'apis_substrate_t1_spec' },
-    { tier: 'Pro', usd: 119, specKey: 'apis_substrate_t2_spec' },
-    { tier: 'VIP', usd: 299, specKey: 'apis_substrate_t3_spec' },
-  ] },
-  { id: 'execution', icon: Zap, tiers: [
-    { tier: 'Pro', usd: 199, specKey: 'apis_execution_t1_spec' },
-    { tier: 'VIP', usd: 499, specKey: 'apis_execution_t2_spec' },
-    { tier: 'Enterprise', usd: 'custom', specKey: 'apis_execution_t3_spec' },
-  ] },
-  { id: 'ai', icon: Brain, tiers: [
-    { tier: 'Enterprise', usd: 99, usdHigh: 299, specKey: 'apis_ai_t1_spec' },
-  ] },
-];
-
-function renderApiTierPrice(
-  tier: { usd: ApiTierPrice; usdHigh?: number },
-  locale: Locale,
-  customLabel: string,
-): string {
-  if (tier.usd === 'custom') return customLabel;
-  if (tier.usdHigh) return formatUsdRangeAuto(tier.usd as number, tier.usdHigh, locale, 'mo');
-  return formatUsdAuto(tier.usd as number, locale, 'mo');
-}
+// Developer API marketplace di-defer ke pengembangan berikutnya (decision
+// 2026-05-16). Section + PUBLIC_APIS array + render logic dihapus dari
+// /pricing. i18n keys preserved di id.json + en.json supaya re-aktivasi
+// cepat saat ready. Tab "apis" juga di-hide di homepage pricing tabs.
 
 export default async function PricingPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const t = await getTranslations('pricing');
   const tp = await getTranslations('pricing_page');
   const localeKey: Locale = locale === 'en' ? 'en' : 'id';
-  const apiCustomLabel = tp('api_custom_label', { defaultValue: localeKey === 'id' ? 'Kustom' : 'Custom' });
+  // apiCustomLabel dihapus 2026-05-16 — Developer API marketplace di-defer.
 
   const signalTiers = SIGNAL_TIER_META.map((m) => ({
     name: m.name,
@@ -247,65 +168,11 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
           selectLabel={(name) => tp('select_tier', { name })}
         />
 
-        {/* Developer API Marketplace */}
-        <section id="apis" className="section-padding border-b border-border/60">
-          <div className="container-default px-4 sm:px-6">
-            <p className="t-eyebrow mb-3">{tp('apis_eyebrow')}</p>
-            <h2 className="t-display-section mb-3 max-w-xl sm:max-w-2xl">{tp('apis_title')}</h2>
-            <p className="t-body text-foreground/60 max-w-xl sm:max-w-2xl mb-8 sm:mb-12">
-              {tp('apis_subtitle_prefix')}
-              {' '}<Link href="/contact?subject=api-docs" className="text-amber-400 hover:underline">{tp('apis_subtitle_link')}</Link>.
-            </p>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {PUBLIC_APIS.map((api) => {
-                const apiName = tp(`apis_${api.id}_name` as 'apis_news_name');
-                const apiDesc = tp(`apis_${api.id}_desc` as 'apis_news_desc');
-                const topTierSpec = tp(api.tiers[api.tiers.length - 1].specKey as 'apis_news_t1_spec');
-                return (
-                  <div
-                    key={api.id}
-                    id={api.id}
-                    className={`card-enterprise scroll-mt-24 ${api.popular ? 'border-amber-500/50 ring-2 ring-amber-500/20' : ''}`}
-                  >
-                    <div className="flex items-start gap-3 mb-4">
-                      <span className="inline-flex h-10 w-10 rounded-lg bg-amber-500/15 border border-amber-500/30 items-center justify-center shrink-0">
-                        <api.icon className="h-5 w-5 text-amber-400" />
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-base leading-tight">{apiName}</h3>
-                        {api.popular && (
-                          <span className="inline-block mt-1 text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300">
-                            {tp('api_popular_label')}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <p className="t-body-sm text-foreground/65 leading-relaxed mb-4">{apiDesc}</p>
-                    <div className="space-y-1.5 mb-4">
-                      {api.tiers.map((tier) => (
-                        <div key={tier.tier} className="flex items-baseline justify-between text-xs gap-2 py-1.5 border-b border-border/40 last:border-b-0">
-                          <span className="font-mono uppercase tracking-wider text-muted-foreground">{tier.tier}</span>
-                          <span className="font-mono font-semibold text-amber-300 shrink-0">{renderApiTierPrice(tier, localeKey, apiCustomLabel)}</span>
-                        </div>
-                      ))}
-                    </div>
-                    <p className="text-[11px] text-foreground/50 leading-relaxed">
-                      {topTierSpec}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
-            <div className="mt-8 text-center">
-              <Link
-                href="/contact?subject=api-marketplace"
-                className="btn-secondary inline-flex items-center gap-2 px-5 py-2.5 rounded-md text-sm"
-              >
-                {tp('apis_consult_cta')} <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
-          </div>
-        </section>
+        {/* Developer API Marketplace section dihapus 2026-05-16 — per user
+            decision di-defer ke pengembangan berikutnya. PUBLIC_APIS array +
+            ApiTierMeta type + render logic semua dihapus. i18n keys
+            (apis_*_name/desc/spec) tetap di id.json + en.json sebagai
+            preserved untuk re-aktivasi cepat saat ready. */}
 
         {/* Institutional / B2B */}
         <section className="section-padding border-b border-border/60">

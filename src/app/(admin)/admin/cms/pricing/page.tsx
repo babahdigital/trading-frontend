@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CmsPageHeader } from '@/components/cms/page-header';
 import { GenerateEnglishButton } from '@/components/cms/generate-english-button';
 import { useAuth } from '@/lib/auth/auth-context';
+import { useToast } from '@/components/ui/toast';
 
 interface PricingTier {
   id: string;
@@ -30,31 +31,80 @@ interface PricingTier {
 
 export default function CmsPricingPage() {
   const { getAuthHeaders } = useAuth();
+  const { push } = useToast();
   const [tiers, setTiers] = useState<PricingTier[]>([]);
   const [editing, setEditing] = useState<PricingTier | null>(null);
   const [translatingId, setTranslatingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   const fetchTiers = useCallback(async () => {
-    const res = await fetch('/api/admin/cms/pricing', { headers: getAuthHeaders() });
-    if (res.ok) setTiers(await res.json());
-    setLoading(false);
-  }, [getAuthHeaders]);
+    try {
+      const res = await fetch('/api/admin/cms/pricing', { headers: getAuthHeaders() });
+      if (res.ok) {
+        setTiers(await res.json());
+      } else {
+        push({ title: 'Gagal memuat tier', description: `HTTP ${res.status}`, tone: 'error' });
+      }
+    } catch (err) {
+      push({ title: 'Network error', description: err instanceof Error ? err.message : 'Unknown', tone: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  }, [getAuthHeaders, push]);
 
   useEffect(() => { fetchTiers(); }, [fetchTiers]);
 
   async function handleSave() {
     if (!editing) return;
-    const method = editing.id ? 'PUT' : 'POST';
-    await fetch('/api/admin/cms/pricing', { method, headers: getAuthHeaders(), body: JSON.stringify(editing) });
-    setEditing(null);
-    fetchTiers();
+    setSaving(true);
+    try {
+      const method = editing.id ? 'PUT' : 'POST';
+      const res = await fetch('/api/admin/cms/pricing', {
+        method,
+        headers: getAuthHeaders(),
+        body: JSON.stringify(editing),
+      });
+      if (res.ok) {
+        push({ title: 'Tier tersimpan', tone: 'success' });
+        setEditing(null);
+        fetchTiers();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        push({
+          title: 'Gagal menyimpan tier',
+          description: data.error || `HTTP ${res.status}`,
+          tone: 'error',
+        });
+      }
+    } catch (err) {
+      push({ title: 'Network error', description: err instanceof Error ? err.message : 'Unknown', tone: 'error' });
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Hapus tier ini?')) return;
-    await fetch(`/api/admin/cms/pricing?id=${id}`, { method: 'DELETE', headers: getAuthHeaders() });
-    fetchTiers();
+    if (!confirm('Hapus tier ini? Tindakan tidak bisa dibatalkan.')) return;
+    try {
+      const res = await fetch(`/api/admin/cms/pricing?id=${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+      });
+      if (res.ok) {
+        push({ title: 'Tier dihapus', tone: 'success' });
+        fetchTiers();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        push({
+          title: 'Gagal menghapus tier',
+          description: data.error || `HTTP ${res.status}`,
+          tone: 'error',
+        });
+      }
+    } catch (err) {
+      push({ title: 'Network error', description: err instanceof Error ? err.message : 'Unknown', tone: 'error' });
+    }
   }
 
   async function handleTranslateRow(id: string) {
@@ -67,9 +117,14 @@ export default function CmsPricingPage() {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        alert(`Auto-translate gagal: ${data.error ?? 'unknown'}`);
+        push({
+          title: 'Auto-translate gagal',
+          description: data.error || `HTTP ${res.status}`,
+          tone: 'error',
+        });
         return;
       }
+      push({ title: 'Tier ter-translate ke English', tone: 'success' });
       await fetchTiers();
       if (editing?.id === id) {
         const updated = await fetch(`/api/admin/cms/pricing`, { headers: getAuthHeaders() });
@@ -80,7 +135,11 @@ export default function CmsPricingPage() {
         }
       }
     } catch (err) {
-      alert(`Auto-translate error: ${String(err)}`);
+      push({
+        title: 'Auto-translate error',
+        description: err instanceof Error ? err.message : 'Unknown',
+        tone: 'error',
+      });
     } finally {
       setTranslatingId(null);
     }
@@ -177,8 +236,10 @@ export default function CmsPricingPage() {
             </div>
 
             <div className="flex gap-3">
-              <Button onClick={handleSave}>Simpan</Button>
-              <Button variant="outline" onClick={() => setEditing(null)}>Batal</Button>
+              <Button onClick={handleSave} disabled={saving}>
+                {saving ? 'Menyimpan…' : 'Simpan'}
+              </Button>
+              <Button variant="outline" onClick={() => setEditing(null)} disabled={saving}>Batal</Button>
             </div>
           </CardContent>
         </Card>

@@ -30,15 +30,25 @@ interface ComponentRow {
   descData?: { mins?: number; items?: number; error?: string; latency?: number };
 }
 
+/**
+ * Workers yang frontend monitor — harus align dengan backend reality.
+ * Per audit 2026-05-16:
+ *   - signals: ada di backend src/background/signal_dispatcher_loop
+ *   - pair_brief: ada di backend (consumerState menunjukkan runCount > 300)
+ *   - trade_events: TIDAK ADA di backend → drop dari monitoring (fake permanent degraded)
+ *   - research_ingester: TIDAK ADA di backend → drop
+ *
+ * Workers yang real di backend tapi belum di-monitor di sini bisa ditambah
+ * setelah backend confirm naming convention.
+ */
 const WORKER_SCOPES: Array<{
   scope: string;
   nameKey: string;
   /** Max age before worker is considered stale (ms) */
   staleAfterMs: number;
 }> = [
-  { scope: 'signals', nameKey: 'signals', staleAfterMs: 10 * 60 * 1000 },           // 10m (runs every 30s)
-  { scope: 'trade_events', nameKey: 'trade_events', staleAfterMs: 10 * 60 * 1000 }, // 10m (runs every 20s)
-  { scope: 'research_ingester', nameKey: 'research_ingester', staleAfterMs: 7 * 60 * 60 * 1000 }, // 7h (runs every 6h)
+  { scope: 'signals', nameKey: 'signals', staleAfterMs: 10 * 60 * 1000 },         // 10m (runs every 30s di backend)
+  { scope: 'pair_brief', nameKey: 'pair_brief', staleAfterMs: 30 * 60 * 1000 },   // 30m (pair brief generation)
 ];
 
 export async function GET() {

@@ -93,9 +93,8 @@ const COPY = {
       portal: 'Portal & Frontend BabahAlgo',
       database: 'Database PostgreSQL',
       trading_engine: 'Mesin Trading Backend (VPS1)',
-      signals: 'Worker Sinyal Trading',
-      trade_events: 'Worker Event Trading',
-      research_ingester: 'Worker Pengimpor Riset',
+      signals: 'Worker Dispatcher Sinyal',
+      pair_brief: 'Worker Generator Pair Brief',
     } as Record<string, string>,
     desc: {
       portal_ok: 'Website publik, portal klien, dan CMS admin online',
@@ -155,9 +154,8 @@ const COPY = {
       portal: 'BabahAlgo Portal & Frontend',
       database: 'PostgreSQL Database',
       trading_engine: 'Trading Engine Backend (VPS1)',
-      signals: 'Trading Signals Worker',
-      trade_events: 'Trade Events Worker',
-      research_ingester: 'Research Ingester Worker',
+      signals: 'Signal Dispatcher Worker',
+      pair_brief: 'Pair Brief Generator Worker',
     } as Record<string, string>,
     desc: {
       portal_ok: 'Public website, client portal, and admin CMS online',

@@ -16,10 +16,10 @@ import {
   Server,
   Database,
   Calendar,
-  GitMerge,
-  Building2,
   Brain,
   Newspaper,
+  Zap,
+  Layers,
 } from 'lucide-react';
 
 type Tier = Parameters<typeof localizePricingTier>[0];
@@ -63,61 +63,71 @@ const VPS_TIER_META: Array<{ slug: 't1' | 't2' | 't3'; name: string; priceKey: P
   { slug: 't3', name: 'Dedicated Tier', priceKey: 'vps_dedicated_monthly', periodKey: 'vps_period_dedicated', cta: '/contact?subject=dedicated-vps' },
 ];
 
-// Developer API marketplace prices: stored as USD numbers, rendered locale-aware
-// via formatUsdAuto() (auto-convert + psychological rounding). Special markers
-// 'enterprise' for AI tier and 'custom' for Market Data enterprise.
+// Developer API marketplace — disesuaikan dengan backend reality per audit
+// 2026-05-16. 6 API yang BENAR-BENAR running di VPS1 + sesuai marketing
+// priority Pak (drop Correlation + Broker Specs yang tidak prioritas).
+//
+// Backend services (audit 2026-05-16):
+// - News API (port 8210), Signals API (8211), Indicators API (8212),
+//   Calendar API (8215), Market Data API (8213), AI Explainability (8217),
+//   Execution Cloud (8218), Market Substrate (8220).
+// - Drop dari marketing: Correlation (8216), Broker Specs (8214) — backend
+//   ada tapi user prefer fokus core 6 untuk avoid bloat tampilan.
+//
+// Tier price stored as USD number, name/desc/spec di i18n keys supaya
+// locale-aware (sebelumnya hardcoded mix language).
 type ApiTierPrice = number | 'custom';
-const PUBLIC_APIS: Array<{
+type ApiTierMeta = { tier: string; usd: ApiTierPrice; usdHigh?: number; specKey: string };
+type ApiMarketplaceItem = {
   id: string;
   icon: typeof Newspaper;
-  name: string;
-  desc: string;
   popular?: boolean;
-  tiers: Array<{ tier: string; usd: ApiTierPrice; usdHigh?: number; spec: string }>;
-}> = [
-  { id: 'news', icon: Newspaper, name: 'News & Sentiment', desc: 'Forex + Crypto news dengan sentiment scoring + bias analysis', tiers: [
-    { tier: 'Free', usd: 0, spec: '100 req/hari curated' },
-    { tier: 'Starter', usd: 9, spec: '500 req/hari + sentiment basic' },
-    { tier: 'Pro', usd: 29, spec: '5K req/hari + sentiment + impact scoring' },
-    { tier: 'VIP', usd: 99, spec: 'Unlimited + WebSocket stream' },
+  tiers: ApiTierMeta[];
+};
+
+const PUBLIC_APIS: ApiMarketplaceItem[] = [
+  { id: 'news', icon: Newspaper, tiers: [
+    { tier: 'Free', usd: 0, specKey: 'apis_news_t1_spec' },
+    { tier: 'Starter', usd: 9, specKey: 'apis_news_t2_spec' },
+    { tier: 'Pro', usd: 29, specKey: 'apis_news_t3_spec' },
+    { tier: 'VIP', usd: 99, specKey: 'apis_news_t4_spec' },
   ] },
-  { id: 'signals', icon: TrendingUp, name: 'Signals API', desc: 'REST/WebSocket signal feed untuk integrasi pihak ketiga', tiers: [
-    { tier: 'Free', usd: 0, spec: '3 signal terakhir per hari' },
-    { tier: 'Starter', usd: 19, spec: 'Last 50/hari, REST poll' },
-    { tier: 'Pro', usd: 49, spec: 'Full feed real-time' },
-    { tier: 'VIP', usd: 149, spec: 'Premium AI confidence + reasoning' },
+  { id: 'signals', icon: TrendingUp, tiers: [
+    { tier: 'Free', usd: 0, specKey: 'apis_signals_t1_spec' },
+    { tier: 'Starter', usd: 19, specKey: 'apis_signals_t2_spec' },
+    { tier: 'Pro', usd: 49, specKey: 'apis_signals_t3_spec' },
+    { tier: 'VIP', usd: 149, specKey: 'apis_signals_t4_spec' },
   ] },
-  { id: 'indicators', icon: Brain, name: 'Indicators API', desc: '14 indicator core (SMC order block, FVG, liquidity sweep, daily pivot, AI confluence scoring) + custom parameter', popular: true, tiers: [
-    { tier: 'Free', usd: 0, spec: '50 req/hari core indicators' },
-    { tier: 'Hobby', usd: 19, spec: '500 req/hari + 5 indicator advanced' },
-    { tier: 'Pro', usd: 79, spec: 'Custom parameter, semua indicator' },
-    { tier: 'VIP', usd: 199, spec: 'Backtest sweep + walk-forward' },
+  { id: 'indicators', icon: Brain, popular: true, tiers: [
+    { tier: 'Free', usd: 0, specKey: 'apis_indicators_t1_spec' },
+    { tier: 'Hobby', usd: 19, specKey: 'apis_indicators_t2_spec' },
+    { tier: 'Pro', usd: 79, specKey: 'apis_indicators_t3_spec' },
+    { tier: 'VIP', usd: 199, specKey: 'apis_indicators_t4_spec' },
   ] },
-  { id: 'calendar', icon: Calendar, name: 'Calendar API', desc: 'Economic calendar dengan impact scoring + sentiment overlay', tiers: [
-    { tier: 'Free', usd: 0, spec: '100 req/hari high-impact only' },
-    { tier: 'Hobby', usd: 19, spec: 'Full calendar all-impact' },
-    { tier: 'Pro', usd: 49, spec: 'Webhook delivery + filter' },
-    { tier: 'VIP', usd: 99, spec: 'Unlimited + custom alert rules' },
+  { id: 'calendar', icon: Calendar, tiers: [
+    { tier: 'Free', usd: 0, specKey: 'apis_calendar_t1_spec' },
+    { tier: 'Hobby', usd: 19, specKey: 'apis_calendar_t2_spec' },
+    { tier: 'Pro', usd: 49, specKey: 'apis_calendar_t3_spec' },
+    { tier: 'VIP', usd: 99, specKey: 'apis_calendar_t4_spec' },
   ] },
-  { id: 'market', icon: Database, name: 'Market Data API', desc: 'Tick + bar OHLC 14 instrumen (forex, metals, energy, crypto majors)', tiers: [
-    { tier: 'Hobby', usd: 29, spec: '1y history bar data' },
-    { tier: 'Pro', usd: 99, spec: '5y history + tick data' },
-    { tier: 'VIP', usd: 249, spec: 'WebSocket stream + aggregation' },
-    { tier: 'Enterprise', usd: 'custom', spec: 'Custom feed, redundant edge' },
+  { id: 'market', icon: Database, tiers: [
+    { tier: 'Hobby', usd: 29, specKey: 'apis_market_t1_spec' },
+    { tier: 'Pro', usd: 99, specKey: 'apis_market_t2_spec' },
+    { tier: 'VIP', usd: 249, specKey: 'apis_market_t3_spec' },
+    { tier: 'Enterprise', usd: 'custom', specKey: 'apis_market_t4_spec' },
   ] },
-  { id: 'correlation', icon: GitMerge, name: 'Correlation API', desc: 'Korelasi pair real-time + heatmap multi-timeframe', tiers: [
-    { tier: 'Free', usd: 0, spec: '30 req/hari H1 matrix' },
-    { tier: 'Hobby', usd: 9, spec: 'Multi-timeframe matrix' },
-    { tier: 'Pro', usd: 19, spec: 'Custom basket correlation' },
-    { tier: 'VIP', usd: 49, spec: 'Historical correlation backtest' },
+  { id: 'substrate', icon: Layers, tiers: [
+    { tier: 'Hobby', usd: 39, specKey: 'apis_substrate_t1_spec' },
+    { tier: 'Pro', usd: 119, specKey: 'apis_substrate_t2_spec' },
+    { tier: 'VIP', usd: 299, specKey: 'apis_substrate_t3_spec' },
   ] },
-  { id: 'broker', icon: Building2, name: 'Broker Specs API', desc: 'Spec broker (spread, commission, leverage cap, margin)', tiers: [
-    { tier: 'Free', usd: 0, spec: '100 req/hari shared with Calendar' },
-    { tier: 'Pro', usd: 19, spec: 'Unlimited query + 30+ broker' },
-    { tier: 'VIP', usd: 49, spec: 'Historical spread tracking' },
+  { id: 'execution', icon: Zap, tiers: [
+    { tier: 'Pro', usd: 199, specKey: 'apis_execution_t1_spec' },
+    { tier: 'VIP', usd: 499, specKey: 'apis_execution_t2_spec' },
+    { tier: 'Enterprise', usd: 'custom', specKey: 'apis_execution_t3_spec' },
   ] },
-  { id: 'ai', icon: Brain, name: 'AI Explainability API', desc: 'Per-trade rationale + counterfactual analysis (Enterprise NDA)', tiers: [
-    { tier: 'Enterprise', usd: 99, usdHigh: 299, spec: 'NDA only — kontak ir@babahalgo.com' },
+  { id: 'ai', icon: Brain, tiers: [
+    { tier: 'Enterprise', usd: 99, usdHigh: 299, specKey: 'apis_ai_t1_spec' },
   ] },
 ];
 
@@ -136,7 +146,7 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
   const t = await getTranslations('pricing');
   const tp = await getTranslations('pricing_page');
   const localeKey: Locale = locale === 'en' ? 'en' : 'id';
-  const apiCustomLabel = tp('api_custom_label', { defaultValue: localeKey === 'id' ? 'Custom' : 'Custom' });
+  const apiCustomLabel = tp('api_custom_label', { defaultValue: localeKey === 'id' ? 'Kustom' : 'Custom' });
 
   const signalTiers = SIGNAL_TIER_META.map((m) => ({
     name: m.name,
@@ -260,39 +270,44 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
               {' '}<Link href="/contact?subject=api-docs" className="text-amber-400 hover:underline">{tp('apis_subtitle_link')}</Link>.
             </p>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {PUBLIC_APIS.map((api) => (
-                <div
-                  key={api.id}
-                  id={api.id}
-                  className={`card-enterprise scroll-mt-24 ${api.popular ? 'border-amber-500/50 ring-2 ring-amber-500/20' : ''}`}
-                >
-                  <div className="flex items-start gap-3 mb-4">
-                    <span className="inline-flex h-10 w-10 rounded-lg bg-amber-500/15 border border-amber-500/30 items-center justify-center shrink-0">
-                      <api.icon className="h-5 w-5 text-amber-400" />
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-base leading-tight">{api.name}</h3>
-                      {api.popular && (
-                        <span className="inline-block mt-1 text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300">
-                          {tp('api_popular_label')}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <p className="t-body-sm text-foreground/65 leading-relaxed mb-4">{api.desc}</p>
-                  <div className="space-y-1.5 mb-4">
-                    {api.tiers.map((tier) => (
-                      <div key={tier.tier} className="flex items-baseline justify-between text-xs gap-2 py-1.5 border-b border-border/40 last:border-b-0">
-                        <span className="font-mono uppercase tracking-wider text-muted-foreground">{tier.tier}</span>
-                        <span className="font-mono font-semibold text-amber-300 shrink-0">{renderApiTierPrice(tier, localeKey, apiCustomLabel)}</span>
+              {PUBLIC_APIS.map((api) => {
+                const apiName = tp(`apis_${api.id}_name` as 'apis_news_name');
+                const apiDesc = tp(`apis_${api.id}_desc` as 'apis_news_desc');
+                const topTierSpec = tp(api.tiers[api.tiers.length - 1].specKey as 'apis_news_t1_spec');
+                return (
+                  <div
+                    key={api.id}
+                    id={api.id}
+                    className={`card-enterprise scroll-mt-24 ${api.popular ? 'border-amber-500/50 ring-2 ring-amber-500/20' : ''}`}
+                  >
+                    <div className="flex items-start gap-3 mb-4">
+                      <span className="inline-flex h-10 w-10 rounded-lg bg-amber-500/15 border border-amber-500/30 items-center justify-center shrink-0">
+                        <api.icon className="h-5 w-5 text-amber-400" />
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-base leading-tight">{apiName}</h3>
+                        {api.popular && (
+                          <span className="inline-block mt-1 text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300">
+                            {tp('api_popular_label')}
+                          </span>
+                        )}
                       </div>
-                    ))}
+                    </div>
+                    <p className="t-body-sm text-foreground/65 leading-relaxed mb-4">{apiDesc}</p>
+                    <div className="space-y-1.5 mb-4">
+                      {api.tiers.map((tier) => (
+                        <div key={tier.tier} className="flex items-baseline justify-between text-xs gap-2 py-1.5 border-b border-border/40 last:border-b-0">
+                          <span className="font-mono uppercase tracking-wider text-muted-foreground">{tier.tier}</span>
+                          <span className="font-mono font-semibold text-amber-300 shrink-0">{renderApiTierPrice(tier, localeKey, apiCustomLabel)}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-[11px] text-foreground/50 leading-relaxed">
+                      {topTierSpec}
+                    </p>
                   </div>
-                  <p className="text-[11px] text-foreground/50 leading-relaxed">
-                    {api.tiers[api.tiers.length - 1].spec}
-                  </p>
-                </div>
-              ))}
+                );
+              })}
             </div>
             <div className="mt-8 text-center">
               <Link

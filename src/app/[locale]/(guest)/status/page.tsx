@@ -102,7 +102,7 @@ const COPY = {
       db_ok: 'PostgreSQL terkoneksi, semua kueri responsif',
       db_down: 'PostgreSQL tidak terjangkau — investigasi diperlukan',
       trading_engine_ok: (d: Record<string, string | number>) => `Backend terjangkau, latensi ${d.latency}ms`,
-      trading_engine_down: (d: Record<string, string | number>) => `Tidak terjangkau (${d.latency}ms): ${d.error}`,
+      trading_engine_down: (d: Record<string, string | number>) => `Backend gateway sedang offline (latency ${d.latency}ms). Tim infrastruktur sudah ditugaskan untuk recovery — sinyal trading & analitik mungkin tertunda. Operasi non-trading (portal, riset, akun) tetap normal.`,
       worker_never_run: 'Belum pernah dijalankan',
       worker_recent_ok: (d: Record<string, string | number>) => {
         const ageStr = ageHuman('id', Number(d.mins));
@@ -118,7 +118,7 @@ const COPY = {
       },
       worker_cascade: (d: Record<string, string | number>) => {
         const ageStr = ageHuman('id', Number(d.mins));
-        return `Tidak dapat fetch data karena VPS1 Backend unreachable (cascade). Worker auto-recover saat VPS1 online. Terakhir dicoba ${ageStr}.`;
+        return `Menunggu backend trading kembali online — worker akan auto-recover saat gateway pulih. Terakhir dicoba ${ageStr}.`;
       },
     } as Record<string, string | ((d: Record<string, string | number>) => string)>,
   },
@@ -167,7 +167,7 @@ const COPY = {
       db_ok: 'PostgreSQL connected, all queries responsive',
       db_down: 'PostgreSQL unreachable — investigation required',
       trading_engine_ok: (d: Record<string, string | number>) => `Backend reachable, latency ${d.latency}ms`,
-      trading_engine_down: (d: Record<string, string | number>) => `Unreachable (${d.latency}ms): ${d.error}`,
+      trading_engine_down: (d: Record<string, string | number>) => `Trading backend gateway is offline (latency ${d.latency}ms). Infrastructure team has been notified — trading signals & analytics may be delayed. Non-trading operations (portal, research, account) remain normal.`,
       worker_never_run: 'Has never run',
       worker_recent_ok: (d: Record<string, string | number>) => {
         const ageStr = ageHuman('en', Number(d.mins));
@@ -183,7 +183,7 @@ const COPY = {
       },
       worker_cascade: (d: Record<string, string | number>) => {
         const ageStr = ageHuman('en', Number(d.mins));
-        return `Cannot fetch data because VPS1 Backend is unreachable (cascade). Worker will auto-recover when VPS1 comes back online. Last attempt ${ageStr}.`;
+        return `Waiting for trading backend to come back online — worker will auto-recover when gateway is restored. Last attempt ${ageStr}.`;
       },
     } as Record<string, string | ((d: Record<string, string | number>) => string)>,
   },

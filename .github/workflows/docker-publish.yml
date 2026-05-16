@@ -492,8 +492,9 @@ jobs:
           fi
           echo "== trigger /api/cron/seed-changelog =="
           docker exec babahalgo-frontend sh -c "curl -sf $AUTH_HEADER http://localhost:3000/api/cron/seed-changelog" | head -5 || echo "  (changelog seed failed — non-fatal)"
-          echo "== trigger /api/cron/seed-pricing-tiers =="
-          docker exec babahalgo-frontend sh -c "curl -sf $AUTH_HEADER http://localhost:3000/api/cron/seed-pricing-tiers" | head -5 || echo "  (pricing seed failed — non-fatal)"
+          # seed-pricing-tiers disabled 2026-05-16 — single source of truth pindah ke
+          # PRICE_TABLE di lib/pricing-format.ts. PricingTier DB tetap exist tapi
+          # tidak auto-seeded untuk avoid duplicate render di /pricing.
           REMOTE
 
       # Hygiene: setiap deploy bikin image lama jadi <none> tagged → numpuk cepat.

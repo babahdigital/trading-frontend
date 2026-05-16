@@ -3,7 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
-import { localizePricingTier } from '@/lib/i18n/localize-cms';
+// localizePricingTier dropped 2026-05-16 — CMS tiers section removed.
 import { breadcrumbSchema, ldJson, organizationSchema } from '@/lib/seo-jsonld';
 import { CapabilityLadder } from '@/components/pricing/capability-ladder';
 import { TierComparisonMatrix } from '@/components/pricing/tier-comparison-matrix';
@@ -22,7 +22,7 @@ import {
   Layers,
 } from 'lucide-react';
 
-type Tier = Parameters<typeof localizePricingTier>[0];
+// Tier type dropped 2026-05-16 — CMS tiers section removed.
 
 export const dynamic = 'force-dynamic';
 
@@ -173,22 +173,9 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
     popular: m.popular,
   }));
 
-  let cmsTiers: Array<{
-    slug: string; name: string; price: string; subtitle: string | null;
-    features: string[]; ctaLabel: string; ctaLink: string;
-  }> = [];
-  try {
-    const { prisma } = await import('@/lib/db/prisma');
-    const raw = await prisma.pricingTier.findMany({ where: { isVisible: true }, orderBy: { sortOrder: 'asc' } });
-    cmsTiers = raw.map((r: Tier) => {
-      const loc = localizePricingTier(r, locale);
-      return {
-        slug: loc.slug, name: loc.name, price: loc.price, subtitle: loc.subtitle,
-        features: Array.isArray(loc.features) ? (loc.features as string[]) : [],
-        ctaLabel: loc.ctaLabel, ctaLink: loc.ctaLink,
-      };
-    });
-  } catch { /* DB unavailable — use fallback */ }
+  // CMS tiers fetch dihapus 2026-05-16 — single source of truth dari
+  // PRICE_TABLE (lib/pricing-format.ts). PricingTier DB tetap exist untuk
+  // admin CMS workflow tapi tidak render di public /pricing.
 
   const breadcrumb = breadcrumbSchema([
     { name: 'Home', url: '/' },
@@ -359,30 +346,10 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
           </div>
         </section>
 
-        {/* CMS tiers (admin override) */}
-        {cmsTiers.length > 0 && (
-          <section className="section-padding border-b border-border/60">
-            <div className="container-default px-4 sm:px-6">
-              <p className="t-eyebrow mb-3">{tp('cms_eyebrow')}</p>
-              <h2 className="t-display-sub mb-8 sm:mb-12">{tp('cms_title')}</h2>
-              <div className="grid md:grid-cols-3 gap-5 sm:gap-6">
-                {cmsTiers.map((tier) => (
-                  <div key={tier.slug} className="card-enterprise flex flex-col">
-                    <h3 className="text-xl font-medium">{tier.name}</h3>
-                    {tier.subtitle && <p className="t-body-sm text-foreground/50 mt-1">{tier.subtitle}</p>}
-                    <p className="font-mono text-2xl font-semibold mt-3 mb-6">{tier.price}</p>
-                    <ul className="space-y-2.5 flex-1 mb-8">
-                      {tier.features.map((f, i) => <FeatureItem key={i}>{String(f)}</FeatureItem>)}
-                    </ul>
-                    <Link href={tier.ctaLink} className="btn-secondary w-full justify-center">
-                      {tier.ctaLabel}
-                    </Link>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
+        {/* CMS tiers section dihapus 2026-05-16 — duplikat dengan sections
+            utama yang sudah pakai PRICE_TABLE locale-aware. Admin tetap bisa
+            view/edit PricingTier di /admin/cms/pricing tapi tidak render
+            di public supaya single source of truth. */}
 
         {/* Free Demo CTA */}
         <section className="section-padding">

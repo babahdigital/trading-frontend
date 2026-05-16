@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CmsPageHeader } from '@/components/cms/page-header';
 import { GenerateEnglishButton } from '@/components/cms/generate-english-button';
 import { useAuth } from '@/lib/auth/auth-context';
+import { useToast } from '@/components/ui/toast';
 
 interface FaqItem {
   id: string;
@@ -22,31 +23,88 @@ interface FaqItem {
 
 export default function CmsFaqPage() {
   const { getAuthHeaders } = useAuth();
+  const { push } = useToast();
   const [faqs, setFaqs] = useState<FaqItem[]>([]);
   const [editing, setEditing] = useState<FaqItem | null>(null);
   const [translatingId, setTranslatingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   const fetchFaqs = useCallback(async () => {
-    const res = await fetch('/api/admin/cms/faq', { headers: getAuthHeaders() });
-    if (res.ok) setFaqs(await res.json());
-    setLoading(false);
-  }, [getAuthHeaders]);
+    try {
+      const res = await fetch('/api/admin/cms/faq', { headers: getAuthHeaders() });
+      if (res.ok) {
+        setFaqs(await res.json());
+      } else {
+        push({ title: 'Gagal memuat FAQ', description: `HTTP ${res.status}`, tone: 'error' });
+      }
+    } catch (err) {
+      push({ title: 'Network error', description: err instanceof Error ? err.message : 'Unknown', tone: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  }, [getAuthHeaders, push]);
 
   useEffect(() => { fetchFaqs(); }, [fetchFaqs]);
 
   async function handleSave() {
     if (!editing) return;
-    const method = editing.id ? 'PUT' : 'POST';
-    await fetch('/api/admin/cms/faq', { method, headers: getAuthHeaders(), body: JSON.stringify(editing) });
-    setEditing(null);
-    fetchFaqs();
+    setSaving(true);
+    try {
+      const method = editing.id ? 'PUT' : 'POST';
+      const res = await fetch('/api/admin/cms/faq', {
+        method,
+        headers: getAuthHeaders(),
+        body: JSON.stringify(editing),
+      });
+      if (res.ok) {
+        push({ title: 'FAQ tersimpan', tone: 'success' });
+        setEditing(null);
+        fetchFaqs();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        push({
+          title: 'Gagal menyimpan FAQ',
+          description: data.error || `HTTP ${res.status}`,
+          tone: 'error',
+        });
+      }
+    } catch (err) {
+      push({
+        title: 'Network error',
+        description: err instanceof Error ? err.message : 'Unknown',
+        tone: 'error',
+      });
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Hapus FAQ ini?')) return;
-    await fetch(`/api/admin/cms/faq?id=${id}`, { method: 'DELETE', headers: getAuthHeaders() });
-    fetchFaqs();
+    if (!confirm('Hapus FAQ ini? Tindakan tidak bisa dibatalkan.')) return;
+    try {
+      const res = await fetch(`/api/admin/cms/faq?id=${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+      });
+      if (res.ok) {
+        push({ title: 'FAQ dihapus', tone: 'success' });
+        fetchFaqs();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        push({
+          title: 'Gagal menghapus FAQ',
+          description: data.error || `HTTP ${res.status}`,
+          tone: 'error',
+        });
+      }
+    } catch (err) {
+      push({
+        title: 'Network error',
+        description: err instanceof Error ? err.message : 'Unknown',
+        tone: 'error',
+      });
+    }
   }
 
   async function handleTranslateRow(id: string) {
@@ -59,9 +117,14 @@ export default function CmsFaqPage() {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        alert(`Auto-translate gagal: ${data.error ?? 'unknown'}`);
+        push({
+          title: 'Auto-translate gagal',
+          description: data.error || `HTTP ${res.status}`,
+          tone: 'error',
+        });
         return;
       }
+      push({ title: 'Auto-translate selesai', tone: 'success' });
       await fetchFaqs();
       // If currently editing this row, refresh editing state with new EN values
       if (editing?.id === id) {
@@ -73,7 +136,11 @@ export default function CmsFaqPage() {
         }
       }
     } catch (err) {
-      alert(`Auto-translate error: ${String(err)}`);
+      push({
+        title: 'Auto-translate error',
+        description: err instanceof Error ? err.message : 'Unknown',
+        tone: 'error',
+      });
     } finally {
       setTranslatingId(null);
     }
@@ -183,8 +250,12 @@ export default function CmsFaqPage() {
             </div>
 
             <div className="flex gap-3">
-              <Button onClick={handleSave}>Simpan</Button>
-              <Button variant="outline" onClick={() => setEditing(null)}>Batal</Button>
+              <Button onClick={handleSave} disabled={saving}>
+                {saving ? 'Menyimpan…' : 'Simpan'}
+              </Button>
+              <Button variant="outline" onClick={() => setEditing(null)} disabled={saving}>
+                Batal
+              </Button>
             </div>
           </CardContent>
         </Card>

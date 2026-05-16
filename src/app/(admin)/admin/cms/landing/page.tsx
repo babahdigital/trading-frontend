@@ -9,6 +9,7 @@ import { CmsPageHeader } from '@/components/cms/page-header';
 import { ReorderButtons } from '@/components/cms/reorder-buttons';
 import { GenerateEnglishButton } from '@/components/cms/generate-english-button';
 import { useAuth } from '@/lib/auth/auth-context';
+import { useToast } from '@/components/ui/toast';
 
 interface LandingSection {
   id: string;
@@ -22,34 +23,87 @@ interface LandingSection {
 
 export default function CmsLandingPage() {
   const { getAuthHeaders } = useAuth();
+  const { push } = useToast();
   const [sections, setSections] = useState<LandingSection[]>([]);
   const [editing, setEditing] = useState<LandingSection | null>(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   const fetchSections = useCallback(async () => {
-    const res = await fetch('/api/admin/cms/landing-sections', { headers: getAuthHeaders() });
-    if (res.ok) setSections(await res.json());
-    setLoading(false);
-  }, [getAuthHeaders]);
+    try {
+      const res = await fetch('/api/admin/cms/landing-sections', { headers: getAuthHeaders() });
+      if (res.ok) {
+        setSections(await res.json());
+      } else {
+        push({ title: 'Gagal memuat section', description: `HTTP ${res.status}`, tone: 'error' });
+      }
+    } catch (err) {
+      push({ title: 'Network error', description: err instanceof Error ? err.message : 'Unknown', tone: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  }, [getAuthHeaders, push]);
 
   useEffect(() => { fetchSections(); }, [fetchSections]);
 
   async function handleSave() {
     if (!editing) return;
-    const method = editing.id ? 'PUT' : 'POST';
-    await fetch('/api/admin/cms/landing-sections', {
-      method,
-      headers: getAuthHeaders(),
-      body: JSON.stringify(editing),
-    });
-    setEditing(null);
-    fetchSections();
+    setSaving(true);
+    try {
+      const method = editing.id ? 'PUT' : 'POST';
+      const res = await fetch('/api/admin/cms/landing-sections', {
+        method,
+        headers: getAuthHeaders(),
+        body: JSON.stringify(editing),
+      });
+      if (res.ok) {
+        push({ title: 'Section tersimpan', tone: 'success' });
+        setEditing(null);
+        fetchSections();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        push({
+          title: 'Gagal menyimpan section',
+          description: data.error || `HTTP ${res.status}`,
+          tone: 'error',
+        });
+      }
+    } catch (err) {
+      push({
+        title: 'Network error',
+        description: err instanceof Error ? err.message : 'Unknown',
+        tone: 'error',
+      });
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Hapus section ini?')) return;
-    await fetch(`/api/admin/cms/landing-sections?id=${id}`, { method: 'DELETE', headers: getAuthHeaders() });
-    fetchSections();
+    if (!confirm('Hapus section ini? Tindakan tidak bisa dibatalkan.')) return;
+    try {
+      const res = await fetch(`/api/admin/cms/landing-sections?id=${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+      });
+      if (res.ok) {
+        push({ title: 'Section dihapus', tone: 'success' });
+        fetchSections();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        push({
+          title: 'Gagal menghapus section',
+          description: data.error || `HTTP ${res.status}`,
+          tone: 'error',
+        });
+      }
+    } catch (err) {
+      push({
+        title: 'Network error',
+        description: err instanceof Error ? err.message : 'Unknown',
+        tone: 'error',
+      });
+    }
   }
 
   async function handleReorder(index: number, direction: 'up' | 'down') {
@@ -57,11 +111,27 @@ export default function CmsLandingPage() {
     if (swapIndex < 0 || swapIndex >= sections.length) return;
     const a = sections[index];
     const b = sections[swapIndex];
-    await Promise.all([
-      fetch('/api/admin/cms/landing-sections', { method: 'PUT', headers: getAuthHeaders(), body: JSON.stringify({ id: a.id, sortOrder: b.sortOrder }) }),
-      fetch('/api/admin/cms/landing-sections', { method: 'PUT', headers: getAuthHeaders(), body: JSON.stringify({ id: b.id, sortOrder: a.sortOrder }) }),
-    ]);
-    fetchSections();
+    try {
+      const results = await Promise.all([
+        fetch('/api/admin/cms/landing-sections', { method: 'PUT', headers: getAuthHeaders(), body: JSON.stringify({ id: a.id, sortOrder: b.sortOrder }) }),
+        fetch('/api/admin/cms/landing-sections', { method: 'PUT', headers: getAuthHeaders(), body: JSON.stringify({ id: b.id, sortOrder: a.sortOrder }) }),
+      ]);
+      const failed = results.find((r) => !r.ok);
+      if (failed) {
+        push({
+          title: 'Gagal mengubah urutan',
+          description: `HTTP ${failed.status}`,
+          tone: 'error',
+        });
+      }
+      fetchSections();
+    } catch (err) {
+      push({
+        title: 'Network error',
+        description: err instanceof Error ? err.message : 'Unknown',
+        tone: 'error',
+      });
+    }
   }
 
   return (
@@ -115,8 +185,12 @@ export default function CmsLandingPage() {
               </label>
             </div>
             <div className="flex gap-3">
-              <Button onClick={handleSave}>Simpan</Button>
-              <Button variant="outline" onClick={() => setEditing(null)}>Batal</Button>
+              <Button onClick={handleSave} disabled={saving}>
+                {saving ? 'Menyimpan…' : 'Simpan'}
+              </Button>
+              <Button variant="outline" onClick={() => setEditing(null)} disabled={saving}>
+                Batal
+              </Button>
             </div>
           </CardContent>
         </Card>

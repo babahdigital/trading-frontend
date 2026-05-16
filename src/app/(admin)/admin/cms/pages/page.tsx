@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CmsPageHeader } from '@/components/cms/page-header';
 import { useAuth } from '@/lib/auth/auth-context';
+import { useToast } from '@/components/ui/toast';
 
 interface PageContent {
   id: string;
@@ -28,34 +29,87 @@ const EMPTY_PAGE: PageContent = {
 
 export default function CmsPagesPage() {
   const { getAuthHeaders } = useAuth();
+  const { push } = useToast();
   const [pages, setPages] = useState<PageContent[]>([]);
   const [editing, setEditing] = useState<PageContent | null>(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   const fetchPages = useCallback(async () => {
-    const res = await fetch('/api/admin/cms/pages', { headers: getAuthHeaders() });
-    if (res.ok) setPages(await res.json());
-    setLoading(false);
-  }, [getAuthHeaders]);
+    try {
+      const res = await fetch('/api/admin/cms/pages', { headers: getAuthHeaders() });
+      if (res.ok) {
+        setPages(await res.json());
+      } else {
+        push({ title: 'Gagal memuat page', description: `HTTP ${res.status}`, tone: 'error' });
+      }
+    } catch (err) {
+      push({ title: 'Network error', description: err instanceof Error ? err.message : 'Unknown', tone: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  }, [getAuthHeaders, push]);
 
   useEffect(() => { fetchPages(); }, [fetchPages]);
 
   async function handleSave() {
     if (!editing) return;
-    const method = editing.id ? 'PUT' : 'POST';
-    await fetch('/api/admin/cms/pages', {
-      method,
-      headers: getAuthHeaders(),
-      body: JSON.stringify(editing),
-    });
-    setEditing(null);
-    fetchPages();
+    setSaving(true);
+    try {
+      const method = editing.id ? 'PUT' : 'POST';
+      const res = await fetch('/api/admin/cms/pages', {
+        method,
+        headers: getAuthHeaders(),
+        body: JSON.stringify(editing),
+      });
+      if (res.ok) {
+        push({ title: 'Page tersimpan', tone: 'success' });
+        setEditing(null);
+        fetchPages();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        push({
+          title: 'Gagal menyimpan page',
+          description: data.error || `HTTP ${res.status}`,
+          tone: 'error',
+        });
+      }
+    } catch (err) {
+      push({
+        title: 'Network error',
+        description: err instanceof Error ? err.message : 'Unknown',
+        tone: 'error',
+      });
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Delete this page content?')) return;
-    await fetch(`/api/admin/cms/pages?id=${id}`, { method: 'DELETE', headers: getAuthHeaders() });
-    fetchPages();
+    if (!confirm('Hapus page ini? Tindakan tidak bisa dibatalkan.')) return;
+    try {
+      const res = await fetch(`/api/admin/cms/pages?id=${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+      });
+      if (res.ok) {
+        push({ title: 'Page dihapus', tone: 'success' });
+        fetchPages();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        push({
+          title: 'Gagal menghapus page',
+          description: data.error || `HTTP ${res.status}`,
+          tone: 'error',
+        });
+      }
+    } catch (err) {
+      push({
+        title: 'Network error',
+        description: err instanceof Error ? err.message : 'Unknown',
+        tone: 'error',
+      });
+    }
   }
 
   return (
@@ -116,8 +170,12 @@ export default function CmsPagesPage() {
               </label>
             </div>
             <div className="flex gap-3">
-              <Button onClick={handleSave}>Save</Button>
-              <Button variant="outline" onClick={() => setEditing(null)}>Cancel</Button>
+              <Button onClick={handleSave} disabled={saving}>
+                {saving ? 'Menyimpan…' : 'Simpan'}
+              </Button>
+              <Button variant="outline" onClick={() => setEditing(null)} disabled={saving}>
+                Batal
+              </Button>
             </div>
           </CardContent>
         </Card>

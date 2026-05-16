@@ -1,14 +1,18 @@
 /**
- * VPS1 commercial API client.
+ * VPS1 commercial API client — microservice-aware (post 2026-05-16 audit).
  *
- * Supports scoped tokens (signals, trade_events, research, pamm, stats) with a
- * single admin-token fallback. Scope tokens are read from env vars at call
- * time so .env changes on the server do not require code changes.
+ * Backend VPS1 sudah migrate dari unified gateway (port 8000, sekarang dead)
+ * ke microservices terdistribusi:
+ *   - 8101  Trading-forex backend (`/api/forex/*`, X-API-Token)
+ *   - 8211  Signals API (`/v1/signals/*`, X-Api-Key)
+ *   - 8210..8220  News / Indicators / Market-data / Calendar / dll
  *
- * Signal endpoints target the public Signals API microservice (`/v1/signals/*`
- * — X-Api-Key + Scope.SIGNALS_READ). Per backend `signals_api/routers/signals.py`
- * canonical paths: `/v1/signals/latest`, `/v1/signals/history` (cursor),
- * `/v1/signals/{uuid}`.
+ * Each scope routes ke base URL + header type yang berbeda. Env vars:
+ *   - VPS1_FOREX_URL  (8101) — fallback ke VPS1_BACKEND_URL
+ *   - VPS1_SIGNALS_URL (8211) — fallback ke VPS1_BACKEND_URL
+ *   - VPS1_BACKEND_URL (legacy / fallback)
+ *
+ * Scope tokens dibaca per-call sehingga env change di server tidak butuh redeploy.
  */
 
 type Scope = 'signals' | 'trade_events' | 'research' | 'pamm' | 'stats' | 'admin' | 'tenant';
@@ -26,14 +30,50 @@ const SCOPE_ENV: Record<Scope, string> = {
   tenant: 'VPS1_ADMIN_TOKEN',
 };
 
+/**
+ * Auth header per scope. Signals API microservice expects `X-Api-Key`;
+ * forex backend + research/stats endpoints (yang dulu via gateway) expect
+ * `X-API-Token`. Beda backend, beda standard.
+ */
+const SCOPE_AUTH_HEADER: Record<Scope, 'X-Api-Key' | 'X-API-Token'> = {
+  signals: 'X-Api-Key',
+  trade_events: 'X-Api-Key',
+  research: 'X-API-Token',
+  pamm: 'X-API-Token',
+  stats: 'X-API-Token',
+  admin: 'X-API-Token',
+  tenant: 'X-API-Token',
+};
+
 function tokenFor(scope: Scope): string | undefined {
   return process.env[SCOPE_ENV[scope]] || process.env.VPS1_ADMIN_TOKEN || undefined;
 }
 
-function baseUrl(): string {
-  const url = process.env.VPS1_BACKEND_URL;
+/**
+ * Resolve base URL per scope. Signals/trade_events hit signals-api microservice;
+ * lainnya hit forex backend (yang dulu dianggap gateway).
+ */
+function baseUrlFor(scope: Scope): string {
+  const fallback = process.env.VPS1_BACKEND_URL;
+  if (scope === 'signals' || scope === 'trade_events') {
+    const url = process.env.VPS1_SIGNALS_URL || fallback;
+    if (!url) {
+      throw new Vps1Error(503, 'VPS1_SIGNALS_URL / VPS1_BACKEND_URL not configured — signals API tidak dapat dijangkau.');
+    }
+    return url;
+  }
+  const url = process.env.VPS1_FOREX_URL || fallback;
   if (!url) {
-    throw new Vps1Error(503, 'VPS1_BACKEND_URL not configured — backend forex tidak dapat dijangkau.');
+    throw new Vps1Error(503, 'VPS1_FOREX_URL / VPS1_BACKEND_URL not configured — backend forex tidak dapat dijangkau.');
+  }
+  return url;
+}
+
+/** Forex backend URL khusus untuk /health probe — public, no scope dispatch needed. */
+function forexBaseUrl(): string {
+  const url = process.env.VPS1_FOREX_URL || process.env.VPS1_BACKEND_URL;
+  if (!url) {
+    throw new Vps1Error(503, 'VPS1_FOREX_URL / VPS1_BACKEND_URL not configured');
   }
   return url;
 }
@@ -50,13 +90,14 @@ async function request<T>(scope: Scope, path: string, init: RequestInit = {}): P
   if (!token) {
     throw new Vps1Error(503, `VPS1 token missing for scope "${scope}"`);
   }
-  const url = `${baseUrl()}${path}`;
+  const url = `${baseUrlFor(scope)}${path}`;
+  const authHeader = SCOPE_AUTH_HEADER[scope];
   const res = await fetch(url, {
     ...init,
     headers: {
       ...Object.fromEntries(new Headers(init.headers as HeadersInit || {}).entries()),
-      'X-API-Token': token,
-      'User-Agent': 'babahalgo-vps2/1.0',
+      [authHeader]: token,
+      'User-Agent': 'babahalgo-frontend/1.0',
       'Accept': 'application/json',
     },
     signal: AbortSignal.timeout(15_000),
@@ -443,7 +484,7 @@ export function getTechnicalExtras(pair: string) {
 export async function getHealth(): Promise<{ ok: boolean; latencyMs: number; body?: unknown; error?: string }> {
   const start = Date.now();
   try {
-    const res = await fetch(`${baseUrl()}/health`, {
+    const res = await fetch(`${forexBaseUrl()}/health`, {
       signal: AbortSignal.timeout(5_000),
       cache: 'no-store',
     });

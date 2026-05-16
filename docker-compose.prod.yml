@@ -41,8 +41,11 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - LICENSE_MW_MASTER_KEY=${LICENSE_MW_MASTER_KEY:?LICENSE_MW_MASTER_KEY must be set}
 
-      # Backend proxy
+      # Backend proxy — scope-aware URLs (audit 2026-05-16: gateway 8000 retired)
+      # BACKEND_URL = legacy fallback; FOREX_URL/SIGNALS_URL = per-microservice direct
       - VPS1_BACKEND_URL=${VPS1_BACKEND_URL:?VPS1_BACKEND_URL must be set}
+      - VPS1_FOREX_URL=${VPS1_FOREX_URL:-}
+      - VPS1_SIGNALS_URL=${VPS1_SIGNALS_URL:-}
       - VPS1_ADMIN_TOKEN=${VPS1_ADMIN_TOKEN:-}
       - VPS1_TOKEN_SIGNALS=${VPS1_TOKEN_SIGNALS:-}
       - VPS1_TOKEN_TRADE_EVENTS=${VPS1_TOKEN_TRADE_EVENTS:-}

@@ -769,6 +769,66 @@ export function getIndicators(): Promise<{ items: Vps1IndicatorDef[] } | Vps1Ind
   );
 }
 
+export interface Vps1AiAdvice {
+  signal_id?: string;
+  symbol?: string;
+  direction?: string;
+  rationale?: string;
+  confidence?: number;
+  key_factors?: string[];
+  created_at?: string;
+  [key: string]: unknown;
+}
+
+export function getAiExplainAdvice(params: { limit?: number; symbol?: string } = {}): Promise<{ items: Vps1AiAdvice[] } | Vps1AiAdvice[]> {
+  const q = new URLSearchParams();
+  if (params.limit !== undefined) q.set('limit', String(params.limit));
+  if (params.symbol) q.set('symbol', params.symbol);
+  const qs = q.toString();
+  return tolerate404(
+    request<{ items: Vps1AiAdvice[] } | Vps1AiAdvice[]>('ai_explain', `/v1/ai-explain/advice${qs ? `?${qs}` : ''}`),
+    { items: [] },
+  );
+}
+
+export interface Vps1AiKellyEntry {
+  symbol?: string;
+  kelly_fraction?: number;
+  recommended_size?: number;
+  win_rate?: number;
+  payoff?: number;
+  [key: string]: unknown;
+}
+
+export function getAiExplainKelly(params: { symbol?: string } = {}): Promise<{ items: Vps1AiKellyEntry[] } | Vps1AiKellyEntry[]> {
+  const q = new URLSearchParams();
+  if (params.symbol) q.set('symbol', params.symbol);
+  const qs = q.toString();
+  return tolerate404(
+    request<{ items: Vps1AiKellyEntry[] } | Vps1AiKellyEntry[]>('ai_explain', `/v1/ai-explain/kelly${qs ? `?${qs}` : ''}`),
+    { items: [] },
+  );
+}
+
+export interface Vps1AiObservation {
+  id?: string;
+  observation?: string;
+  outcome?: string;
+  confidence?: number;
+  created_at?: string;
+  [key: string]: unknown;
+}
+
+export function getAiExplainObservations(params: { limit?: number } = {}): Promise<{ items: Vps1AiObservation[] } | Vps1AiObservation[]> {
+  const q = new URLSearchParams();
+  if (params.limit !== undefined) q.set('limit', String(params.limit));
+  const qs = q.toString();
+  return tolerate404(
+    request<{ items: Vps1AiObservation[] } | Vps1AiObservation[]>('ai_explain', `/v1/ai-explain/observations${qs ? `?${qs}` : ''}`),
+    { items: [] },
+  );
+}
+
 // ─── Health ──────────────────────────────────────────────────────────────────
 
 export async function getHealth(): Promise<{ ok: boolean; latencyMs: number; body?: unknown; error?: string }> {

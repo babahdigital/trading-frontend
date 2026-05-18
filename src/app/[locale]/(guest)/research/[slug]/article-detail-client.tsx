@@ -335,7 +335,7 @@ export function ArticleDetailClient({ article }: ArticleDetailClientProps) {
                   {isEn ? 'Back to Research' : 'Kembali ke Riset'}
                 </Link>
 
-                <div className="t-eyebrow mb-4 text-[hsl(var(--primary))]">{article.category}</div>
+                <div className="t-eyebrow mb-4 text-[hsl(var(--primary))]">{article.category?.replace(/_/g, ' ')}</div>
                 <h1 className="font-display text-3xl md:text-5xl leading-tight tracking-tight text-foreground mb-6">
                   {title}
                 </h1>

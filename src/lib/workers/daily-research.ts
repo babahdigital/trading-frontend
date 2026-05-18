@@ -64,17 +64,45 @@ ANTI-HALUSINASI (paling kritis):
 - Tidak boleh klaim "win rate 75%" atau "+5% return bulan ini" tanpa source data eksplisit.
 - Forward-looking statements WAJIB dalam bahasa hipotetis: "potensi", "skenario", "indikasi" — bukan prediksi.
 
-MARKDOWN RICH FORMATTING (renderer support penuh):
-- Headings: ## (h2 mandatory min 3), ### (h3 untuk sub-sections)
-- Lists: - bullet, 1. ordered
-- Tabel WAJIB kalau ada perbandingan numerik:
-  | Pair | Win Rate | R:R | Notes |
-  | --- | --- | --- | --- |
-  | EURUSD | 62% | 1.8 | ... |
-- Formula inline: \`$E = R \\cdot p - (1-p)$\` (Kelly criterion expectancy)
-- Formula block: \`$$\\sigma_t = \\sqrt{\\frac{1}{N}\\sum(r_i - \\bar{r})^2}$$\` (volatility std-dev)
-- Highlight insight kritis: ==text== untuk callout
-- Code fence \`\`\`python untuk pseudo-code algorithm
+ANTI-RAW-LEAK (jangan publikasikan JSON internal):
+- DILARANG menulis nama field JSON apapun ke dalam artikel: \`confluence_score\`, \`bias\`, \`snd_zones\`, \`key_levels\`, \`trade_ideas\`, \`fundamentalBias\`, dll.
+  Itu field telemetri internal — pembaca tidak peduli format raw.
+- DILARANG menyebut endpoint API: \`/v1/substrate\`, \`/v1/key-levels\`, \`/v1/sessions\`, \`/v1/upcoming-news\`, \`market-substrate-api\`, port 8220 — itu detail infrastruktur backend.
+- DILARANG underscore-italic markdown (\`_text_\`); pakai dash atau format normal. Underscore stray (\`_Konten edukasi\`) merusak rendering.
+- Numeric scores harus dijelaskan dalam bahasa awam: tulis "skor konfluensi 0.82 dari 1.0 (high-confidence)" BUKAN "confluence_score: 0.82".
+- Sebut konsep teknikal (SMC zones, key levels, pivots) sebagai konsep — JANGAN sebagai endpoint atau field.
+
+MARKDOWN MASTERY (renderer support penuh — eksploitasi):
+- Headings hierarchical: H1 sudah di-set oleh title; jangan repeat. Pakai
+  ## (h2 mandatory min 3, harus action-oriented & keyword-rich) +
+  ### (h3 untuk sub-sections, opsional). H4-H6 untuk anatomi mendalam.
+- Lists: gunakan - bullet untuk enumerasi paralel; 1. ordered untuk
+  step-by-step procedure. JANGAN bullet kalau cuma 1-2 item — paragraph
+  lebih natural.
+- Tabel WAJIB minimum 1× per artikel kalau ada >2 angka komparatif.
+  Format strict:
+    | Pair | Win Rate | R:R | Drawdown | Notes |
+    | --- | ---: | ---: | ---: | --- |
+    | EURUSD | 62% | 1.8 | -4.2% | Trend kuat London |
+  Align numeric columns dengan ":---" / "---:" / ":---:".
+- Formula matematis pakai KaTeX-compatible LaTeX:
+  • Inline: \`$E = R \\cdot p - (1-p)$\` untuk perhitungan singkat.
+  • Block: \`$$\\sigma = \\sqrt{\\frac{1}{N}\\sum_{i=1}^{N}(r_i - \\bar{r})^2}$$\`
+    untuk derivation / multi-step. Block formula HARUS pada baris sendiri
+    dengan \`$$\` di line awal & line akhir terpisah.
+- Highlight CRITICAL insight: \`==important phrase==\` untuk callout
+  (renderer wraps di <mark>). Pakai maksimal 3× per artikel.
+- Code fence untuk pseudo-code algorithmic / config snippet:
+  \`\`\`python
+  if confluence >= 0.75 and risk_per_trade <= 0.01:
+      enter_position(direction, size)
+  \`\`\`
+- Blockquote untuk source citation atau emphasis: \`> insight quotable...\`
+- Bold (\`**text**\`) untuk key terms first appearance; italic (\`*text*\`)
+  untuk concept emphasis. JANGAN underscore italic (\`_text_\`) — bisa
+  render literal kalau orphan; pakai asterisk.
+- Internal anchors: setiap H2 secara otomatis dapat ID by slugify —
+  kalau cite section lain: "(lihat bagian Risk Framework di atas)".
 
 INTERNAL LINKING (topical authority + UX):
 Sebar 2-4 link internal ke halaman BabahAlgo relevan, misal:
@@ -87,20 +115,46 @@ Sebar 2-4 link internal ke halaman BabahAlgo relevan, misal:
 - [Tradeable Instruments](/platform/instruments) — saat bahas pair coverage
 Jangan over-link (max 5 per artikel) dan harus contextual — bukan footer link dump.
 
-DATA SUBSTRATE AWARENESS (backend yang power BabahAlgo):
-BabahAlgo punya market-substrate-api (VPS1:8220) yang expose data primitives:
-- SMC zones (order block, FVG, breaker block) dari /v1/substrate
-- Key levels (daily/weekly pivot, S/R) dari /v1/key-levels
-- Trading sessions (Asia/London/NY) dari /v1/sessions
-- Upcoming news (high-impact events) dari /v1/upcoming-news
-Sebut data substrate ini saat relevan supaya pembaca paham riset bukan opini — tapi grounded di telemetri sistem.
+DATA SUBSTRATE AWARENESS (refer sebagai KONSEP, BUKAN endpoint):
+BabahAlgo grounded di telemetri pasar realtime: SMC zones (order block,
+FVG, breaker block), key levels (daily/weekly pivot, S/R), trading
+sessions (Asia/London/NY), high-impact news calendar. Sebut konsep ini
+saat relevan supaya pembaca paham riset bukan opini — TAPI JANGAN
+sebut format/endpoint backend (/v1/..., port 8220, api-substrate, dll).
 
-SEO + TYPOGRAPHY:
-- Hook 1 paragraf (50-80 kata) — bukan basa-basi, langsung value proposition.
-- 3-5 H2 sections, masing-masing 150-300 kata.
-- Tabel atau list di setiap section yang membandingkan/membedakan.
-- Penutup: list "Key Takeaway" (3-5 bullet, masing-masing <20 kata).
-- 1 baris disclaimer di akhir (mandatory): "Konten edukasi — bukan saran investasi. Trading forex melibatkan risiko kehilangan modal."
+SEO MASTERY (search-engine + human readability):
+- Hook 1 paragraf (50-80 kata) — bukan basa-basi, langsung value
+  proposition. Sebutkan keyword utama (pair, strategi, atau metric) di
+  100 char pertama supaya Google Featured Snippet eligible.
+- 3-5 H2 sections, masing-masing 150-300 kata. Setiap H2 harus mengandung
+  primary OR secondary keyword (lihat \`built.keywords\`). Hindari H2
+  generik "Pendahuluan" / "Kesimpulan" — gunakan keyword-rich.
+- 1-2 tabel komparatif di tengah artikel (tabel meningkatkan dwell-time
+  dan kemungkinan rich snippet di SERP).
+- Semantic HTML implied: pertanyaan retoris → H3 mirror common Google
+  "People Also Ask" (e.g. "Bagaimana cara identifikasi SMC zone?").
+- LSI keywords: weave related terms tanpa keyword stuffing. Untuk SMC
+  artikel: order block, fair value gap, market structure, liquidity grab.
+- Internal links 2-4× dengan anchor text descriptive (BUKAN "klik di
+  sini") — boost topical authority + crawl depth.
+- Penutup wajib "Key Takeaway" list (3-5 bullet, <20 kata each) +
+  "Pertanyaan Berikutnya" section dengan 2-3 H3 questions linking ke
+  related research (FAQ-like for snippet eligibility).
+- 1 baris disclaimer akhir (mandatory; rendered sebagai italic via
+  asterisk, BUKAN underscore): "*Konten edukasi — bukan saran investasi.
+  Trading forex melibatkan risiko kehilangan modal.*"
+
+TITLE GENERATION (SEO + human-engaging):
+- Length 50-65 char (Google SERP truncates >65).
+- Format: \`<Topik utama> <Angle/Twist> [opt: tahun atau "Update <bulan>"]\`
+  Contoh:
+  • "SMC Confluence Stack: 4 Konfirmasi Wajib Sebelum Entry"
+  • "Pivot Mean Reversion EURUSD: Win Rate 64% Sesi London (Mei 2026)"
+  • "Risk Management Pro: Vol-Target Sizing dengan Kelly Fraction"
+- Include 1 keyword utama, 1 specific number/metric, 1 timeframe/sesi
+  jika relevan. Hindari clickbait ("WAJIB tahu!", "Rahasia").
+- Title yang Anda return DIGUNAKAN langsung sebagai H1 + meta title +
+  OG tag — tidak ada post-edit, jadi craft once + perfect.
 
 PANJANG: 800-1500 kata (artikel pendek 500 kata OK kalau data sparse).
 BAHASA: Bahasa Indonesia profesional, institutional tone. Avoid clickbait / hype words.
@@ -109,6 +163,36 @@ DATA INJECTED (gunakan ini sebagai satu-satunya sumber kebenaran):
 {{DATA_JSON}}
 
 Return ONLY markdown body, tanpa preamble, tanpa code fence wrapper.`;
+
+/**
+ * Strip raw-JSON / endpoint leakage from generated markdown. Even with
+ * the anti-leak prompt rules, AI occasionally writes `confluence_score:
+ * 0.82` or `/v1/substrate` verbatim. Public reader doesn't need either
+ * — scrub them post-generation so the article reads cleanly without
+ * regenerating.
+ */
+function scrubRawJsonLeak(md: string): string {
+  let out = md;
+  // 1. snake_case field-name fragments followed by `:` or value
+  out = out.replace(/\bconfluence_score\b\s*[:=]?\s*/gi, 'skor konfluensi ');
+  out = out.replace(/\bfundamental_?bias\b\s*[:=]?\s*/gi, 'bias fundamental ');
+  out = out.replace(/\bsnd_zones\b/gi, 'SMC zones');
+  out = out.replace(/\bkey_levels\b/gi, 'key levels');
+  out = out.replace(/\btrade_ideas\b/gi, 'ide trading');
+  out = out.replace(/\bsupport_levels\b/gi, 'level support');
+  out = out.replace(/\bresistance_levels\b/gi, 'level resistance');
+  // 2. endpoint paths that should never appear in public content
+  out = out.replace(/`?\/v1\/(?:substrate|key-levels|sessions|upcoming-news|signals|news|calendar|indicators|market-data|ai-explain)[^\s`]*`?/g, '');
+  out = out.replace(/`?market-substrate-api`?/gi, 'telemetri pasar');
+  out = out.replace(/VPS1:[0-9]{4,5}/g, 'backend');
+  // 3. stray leading underscore italic at line start ("_Konten edukasi"
+  //    without closing underscore — markdown parser renders it literal)
+  out = out.replace(/^_(?=\S)/gm, '*');
+  out = out.replace(/(?<=\S)_$/gm, '*');
+  // 4. collapse double-spaces left by removals
+  out = out.replace(/  +/g, ' ').replace(/\n{3,}/g, '\n\n');
+  return out;
+}
 
 /**
  * Fallback data source — pull recent PairBrief rows from local DB ketika
@@ -414,9 +498,11 @@ export async function runDailyResearch(): Promise<DailyResearchResult> {
     });
 
     const DISCLAIMER = 'Konten edukasi — bukan saran investasi. Trading forex melibatkan risiko kehilangan modal.';
-    let body = rawBody.trim();
+    let body = scrubRawJsonLeak(rawBody.trim());
     if (!/bukan saran investasi|risiko kehilangan|not investment advice/i.test(body)) {
-      body = `${body}\n\n_${DISCLAIMER}_`;
+      // Plain paragraph (no leading underscore) — markdown italic via _..._
+      // pernah render literal kalau penutup di end-of-document tanpa space.
+      body = `${body}\n\n*${DISCLAIMER}*`;
     }
 
     const wordCount = body.split(/\s+/).length;
@@ -437,12 +523,21 @@ export async function runDailyResearch(): Promise<DailyResearchResult> {
     }
     body = linkedBody;
 
-    // Generate hero image (concept-illustrative via slug hint)
-    const imageResult = await generateArticleImage(built.titleEn, {
-      category: config.category,
-      keywords: built.keywords,
-      slug: config.imageSlugHint,
-    });
+    // 2026-05-19 — AI hero image generation DISABLED.
+    // Pollinations Flux output telah berulang menghasilkan visual yang
+    // tidak konsisten dengan institutional brand standard (Pak Abdullah
+    // feedback: "gambar masih jelek, matikan saja"). Article rendering
+    // graceful-degrades ke gradient + category icon fallback (lihat
+    // ArticleCardImage). Aktivasi kembali memerlukan provider yang
+    // konsisten (mis. fal.ai Flux Pro berbayar atau in-house SVG
+    // template) — sampai itu, set IMAGE_GEN_ENABLED=1 untuk override.
+    const imageResult = process.env.IMAGE_GEN_ENABLED === '1'
+      ? await generateArticleImage(built.titleEn, {
+          category: config.category,
+          keywords: built.keywords,
+          slug: config.imageSlugHint,
+        })
+      : null;
 
     // SEO meta — Indonesian
     const seoId = await generateSeoMeta({

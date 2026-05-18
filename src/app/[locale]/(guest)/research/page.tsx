@@ -45,6 +45,14 @@ function shortAuthor(raw: string | undefined, fallbackResearchLabel: string): st
   return raw;
 }
 
+/** Humanise ArticleCategory enum (MARKET_ANALYSIS → MARKET ANALYSIS).
+ *  Categories are stored as Prisma enum strings (SCREAMING_SNAKE) but
+ *  must render as plain typographic labels in UI eyebrow. */
+function humanizeCategory(raw: string | undefined | null): string {
+  if (!raw) return '';
+  return raw.replace(/_/g, ' ');
+}
+
 export default function ResearchPage() {
   const locale = useLocale();
   const isEn = locale === 'en';
@@ -163,11 +171,11 @@ export default function ResearchPage() {
                         <ArticleCardImage
                           imageUrl={article.imageUrl}
                           alt={title || t('image_alt_fallback')}
-                          category={article.category}
+                          category={humanizeCategory(article.category)}
                           aspectClass="aspect-[16/9]"
                         />
                         <div className="p-5 sm:p-6 flex flex-col flex-1">
-                          <p className="t-eyebrow mb-3">{article.category}</p>
+                          <p className="t-eyebrow mb-3">{humanizeCategory(article.category)}</p>
                           <h2 className="text-lg font-medium mb-3 line-clamp-2 group-hover:text-amber-500 dark:group-hover:text-amber-400 transition-colors">
                             {title}
                           </h2>

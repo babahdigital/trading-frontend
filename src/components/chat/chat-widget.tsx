@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useLocale } from 'next-intl';
 import {
   MessageCircle, X, Send, Bot, User as UserIcon, AlertTriangle, RotateCcw, ArrowDown,
-  Sparkles, ShieldCheck,
+  Sparkles, ShieldCheck, Trash2,
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -87,6 +87,8 @@ interface CopyBundle {
   placeholder: string;
   send_aria: string;
   close_aria: string;
+  clear_aria: string;
+  clear_confirm: string;
   open_aria: string;
   scroll_to_latest: string;
   retry: string;
@@ -111,6 +113,8 @@ const COPY: Record<'id' | 'en', CopyBundle> = {
     placeholder: 'Tulis pertanyaan…',
     send_aria: 'Kirim pesan',
     close_aria: 'Tutup chat',
+    clear_aria: 'Bersihkan riwayat chat',
+    clear_confirm: 'Hapus riwayat chat? Aksi ini tidak bisa dibatalkan.',
     open_aria: 'Buka asisten Babah AI',
     scroll_to_latest: 'Pesan terbaru',
     retry: 'Coba lagi',
@@ -140,6 +144,8 @@ const COPY: Record<'id' | 'en', CopyBundle> = {
     placeholder: 'Type a question…',
     send_aria: 'Send message',
     close_aria: 'Close chat',
+    clear_aria: 'Clear chat history',
+    clear_confirm: 'Clear chat history? This action cannot be undone.',
     open_aria: 'Open Babah AI assistant',
     scroll_to_latest: 'Latest',
     retry: 'Retry',
@@ -514,23 +520,46 @@ export function ChatWidget() {
                   </p>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setIsOpen(false)}
-                className={cn(
-                  // Close button harus selalu kontras: di mobile fullscreen
-                  // sering miss-tap kalau cuma h-9. h-11 = 44px (Apple HIG)
-                  // dengan ring + bg-muted untuk kontras tinggi.
-                  'inline-flex items-center justify-center h-11 w-11 shrink-0',
-                  'rounded-full border border-border bg-muted/60',
-                  'text-foreground hover:bg-muted hover:border-foreground/40',
-                  'active:scale-95 transition-all',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+              <div className="flex items-center gap-1.5">
+                {messages.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (typeof window !== 'undefined' && !window.confirm(copy.clear_confirm)) return;
+                      clearHistory();
+                      setMessages(initialMessages);
+                    }}
+                    className={cn(
+                      'inline-flex items-center justify-center h-9 w-9 shrink-0',
+                      'rounded-full border border-border bg-card text-muted-foreground',
+                      'hover:text-destructive hover:border-destructive/40',
+                      'active:scale-95 transition-all',
+                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                    )}
+                    aria-label={copy.clear_aria}
+                    title={copy.clear_aria}
+                  >
+                    <Trash2 className="h-4 w-4" strokeWidth={2.25} />
+                  </button>
                 )}
-                aria-label={copy.close_aria}
-              >
-                <X className="h-5 w-5" strokeWidth={2.5} />
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setIsOpen(false)}
+                  className={cn(
+                    // Close button harus selalu kontras: di mobile fullscreen
+                    // sering miss-tap kalau cuma h-9. h-11 = 44px (Apple HIG)
+                    // dengan ring + bg-muted untuk kontras tinggi.
+                    'inline-flex items-center justify-center h-11 w-11 shrink-0',
+                    'rounded-full border border-border bg-muted/60',
+                    'text-foreground hover:bg-muted hover:border-foreground/40',
+                    'active:scale-95 transition-all',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                  )}
+                  aria-label={copy.close_aria}
+                >
+                  <X className="h-5 w-5" strokeWidth={2.5} />
+                </button>
+              </div>
             </div>
 
             {/* Lead capture gate — block chat sampai user submit nama/email/telpon.

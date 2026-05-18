@@ -121,7 +121,7 @@ export function UpgradePanel() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const tiers = data?.tiers ?? [];
+  const tiers = useMemo(() => data?.tiers ?? [], [data]);
   const currentRank = data?.currentTierRank ?? 0;
   const currentTier = data?.currentTier ?? '';
 

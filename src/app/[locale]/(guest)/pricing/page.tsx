@@ -51,10 +51,15 @@ const CRYPTO_TIER_META: Array<{ slug: 't1' | 't2' | 't3'; name: string; priceKey
   { slug: 't3', name: 'Tier HNWI', priceKey: 'crypto_hnwi', periodKey: 'crypto_period_t3', cta: '/contact?subject=crypto-hnwi' },
 ];
 
+// 2026-05-18 — realigned to canonical 3-tier (License Only / Hybrid / Turnkey).
+// Previous legacy mapping skipped the Hybrid tier entirely (used `vps_standard` /
+// `vps_premium` aliases that point to License Only + Turnkey prices), causing
+// the middle "popular" card on /pricing to show $1,600 setup while solutions/license
+// shows Hybrid at $750. Aligned with `solutions/license/page.tsx` 3-tier.
 const VPS_TIER_META: Array<{ slug: 't1' | 't2' | 't3'; name: string; priceKey: PriceKey; periodKey: 'vps_period_setup_150' | 'vps_period_setup_300' | 'vps_period_dedicated'; cta: string; popular?: boolean }> = [
-  { slug: 't1', name: 'VPS Standard', priceKey: 'vps_standard_setup', periodKey: 'vps_period_setup_150', cta: '/register/vps' },
-  { slug: 't2', name: 'VPS Premium', priceKey: 'vps_premium_setup', periodKey: 'vps_period_setup_300', popular: true, cta: '/register/vps' },
-  { slug: 't3', name: 'Dedicated Tier', priceKey: 'vps_dedicated_monthly', periodKey: 'vps_period_dedicated', cta: '/contact?subject=dedicated-vps' },
+  { slug: 't1', name: 'License Only', priceKey: 'vps_license_only_setup', periodKey: 'vps_period_setup_150', cta: '/register/vps' },
+  { slug: 't2', name: 'Hybrid', priceKey: 'vps_hybrid_setup', periodKey: 'vps_period_setup_300', popular: true, cta: '/register/vps' },
+  { slug: 't3', name: 'Full Turnkey', priceKey: 'vps_turnkey_setup', periodKey: 'vps_period_dedicated', cta: '/contact?subject=dedicated-vps' },
 ];
 
 // Developer API marketplace di-defer ke pengembangan berikutnya (decision

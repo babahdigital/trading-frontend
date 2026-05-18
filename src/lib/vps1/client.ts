@@ -216,12 +216,41 @@ export interface Vps1ResearchItem {
   [key: string]: unknown;
 }
 
-export function getLatestResearch(limit = 20) {
-  return request<Vps1ResearchItem[]>('research', `/api/research/latest?limit=${limit}`);
+/**
+ * NOTE 2026-05-18 — `/api/research/*` endpoints were retired from the
+ * forex backend (port 8101). They previously served as a gateway
+ * aggregating substrate + indicators + signals output; equivalent data
+ * now lives across 821x microservices (signals 8211, indicators 8212,
+ * substrate/key-levels 8220, calendar 8215). Until VPS1 SSH `permitopen`
+ * is extended to include those ports, the calls below 404 from VPS3.
+ *
+ * Behavior: returns empty payload on 404 so research UI renders an
+ * "awaiting data" empty state instead of crashing. Other status codes
+ * still throw Vps1Error.
+ */
+async function tolerate404<T>(promise: Promise<T>, fallback: T): Promise<T> {
+  try {
+    return await promise;
+  } catch (err) {
+    if (err instanceof Vps1Error && err.status === 404) {
+      return fallback;
+    }
+    throw err;
+  }
 }
 
-export function getTopSignals(hours = 24, limit = 10) {
-  return request<Vps1ResearchItem[]>('research', `/api/research/top-signals?hours=${hours}&limit=${limit}`);
+export function getLatestResearch(limit = 20): Promise<Vps1ResearchItem[]> {
+  return tolerate404(
+    request<Vps1ResearchItem[]>('research', `/api/research/latest?limit=${limit}`),
+    [],
+  );
+}
+
+export function getTopSignals(hours = 24, limit = 10): Promise<Vps1ResearchItem[]> {
+  return tolerate404(
+    request<Vps1ResearchItem[]>('research', `/api/research/top-signals?hours=${hours}&limit=${limit}`),
+    [],
+  );
 }
 
 export interface Vps1WeeklyRecap {
@@ -235,8 +264,18 @@ export interface Vps1WeeklyRecap {
   [key: string]: unknown;
 }
 
-export function getWeeklyRecap() {
-  return request<Vps1WeeklyRecap>('research', `/api/research/weekly-recap`);
+const EMPTY_RECAP: Vps1WeeklyRecap = {
+  week_start: '',
+  week_end: '',
+  total_signals: 0,
+  highlights: [],
+};
+
+export function getWeeklyRecap(): Promise<Vps1WeeklyRecap> {
+  return tolerate404(
+    request<Vps1WeeklyRecap>('research', `/api/research/weekly-recap`),
+    EMPTY_RECAP,
+  );
 }
 
 // ─── Tenant positions domain (Wave-29S-D) ───────────────────────────────────
@@ -297,8 +336,16 @@ export interface Vps1PerformanceStats {
   [key: string]: unknown;
 }
 
-export function getPerformanceStats(period_days = 30) {
-  return request<Vps1PerformanceStats>('stats', `/api/stats/performance?period_days=${period_days}`);
+const EMPTY_PERFORMANCE: Vps1PerformanceStats = {
+  period_days: 0,
+  total_trades: 0,
+};
+
+export function getPerformanceStats(period_days = 30): Promise<Vps1PerformanceStats> {
+  return tolerate404(
+    request<Vps1PerformanceStats>('stats', `/api/stats/performance?period_days=${period_days}`),
+    { ...EMPTY_PERFORMANCE, period_days },
+  );
 }
 
 // ─── Research: Dedicated Pair Endpoints ─────────────────────────────────────
@@ -364,8 +411,11 @@ export interface Vps1MarketSnapshot {
   [key: string]: unknown;
 }
 
-export function getMarketSnapshot(pair: string) {
-  return request<Vps1MarketSnapshot>('research', `/api/research/market-snapshot/${pair}`);
+export function getMarketSnapshot(pair: string): Promise<Vps1MarketSnapshot> {
+  return tolerate404(
+    request<Vps1MarketSnapshot>('research', `/api/research/market-snapshot/${pair}`),
+    { pair, timestamp_utc: new Date().toISOString() },
+  );
 }
 
 export interface Vps1CalendarEvent {
@@ -385,8 +435,11 @@ export interface Vps1Calendar {
   [key: string]: unknown;
 }
 
-export function getCalendar(pair: string) {
-  return request<Vps1Calendar>('research', `/api/research/calendar/${pair}`);
+export function getCalendar(pair: string): Promise<Vps1Calendar> {
+  return tolerate404(
+    request<Vps1Calendar>('research', `/api/research/calendar/${pair}`),
+    { pair, events: [] },
+  );
 }
 
 /**
@@ -449,8 +502,11 @@ export interface Vps1TechnicalAnalysis {
   [key: string]: unknown;
 }
 
-export function getTechnicalAnalysis(pair: string) {
-  return request<Vps1TechnicalAnalysis>('research', `/api/research/technical-analysis/${pair}`);
+export function getTechnicalAnalysis(pair: string): Promise<Vps1TechnicalAnalysis> {
+  return tolerate404(
+    request<Vps1TechnicalAnalysis>('research', `/api/research/technical-analysis/${pair}`),
+    { pair, timestamp_utc: new Date().toISOString(), timeframes: {} },
+  );
 }
 
 export interface Vps1FibLevel {
@@ -475,8 +531,11 @@ export interface Vps1TechnicalExtras {
   [key: string]: unknown;
 }
 
-export function getTechnicalExtras(pair: string) {
-  return request<Vps1TechnicalExtras>('research', `/api/research/technical-extras/${pair}`);
+export function getTechnicalExtras(pair: string): Promise<Vps1TechnicalExtras> {
+  return tolerate404(
+    request<Vps1TechnicalExtras>('research', `/api/research/technical-extras/${pair}`),
+    { pair, timestamp_utc: new Date().toISOString() },
+  );
 }
 
 // ─── Health ──────────────────────────────────────────────────────────────────

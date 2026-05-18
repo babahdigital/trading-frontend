@@ -68,10 +68,16 @@ const PRICING_TIERS: Record<string, TierMeta[]> = {
     { id: 'crypto_pro', tier: 'CRYPTO PRO', price: '<priceKey>:crypto_pro', periodKey: 'period_monthly_flat', featureCount: 5, href: '/register/crypto?tier=pro', popular: true },
     { id: 'crypto_hnwi', tier: 'CRYPTO HNWI', price: '<priceKey>:crypto_hnwi', periodKey: 'period_monthly_flat', featureCount: 5, href: '/contact?subject=crypto-hnwi' },
   ],
+  // 2026-05-18 — priceKey realigned to canonical 3-tier (License Only / Hybrid
+  // / Turnkey) so the landing matches solutions/license. Tier IDs (`vps_license`
+  // / `vps_premium` / `vps_dedicated`) RETAINED to avoid invalidating the i18n
+  // tier_<id>_{name,f1..f5,cta} keys that admins may have already customised
+  // via CMS. The ID is a label / i18n slug only; pricing comes from the new
+  // priceKey which feeds formatPrice() against PRICE_TABLE.
   vps: [
-    { id: 'vps_license', tier: 'VPS', price: '<priceKey>:vps_standard_setup', periodKey: 'period_one_time_setup', featureCount: 5, href: '/register/vps' },
-    { id: 'vps_premium', tier: 'VPS PRO', price: '<priceKey>:vps_premium_setup', periodKey: 'period_one_time_setup', featureCount: 5, href: '/register/vps', popular: true },
-    { id: 'vps_dedicated', tier: 'DEDICATED', price: '<priceKey>:vps_dedicated_monthly', periodKey: 'period_monthly', featureCount: 5, href: '/contact?subject=dedicated-vps' },
+    { id: 'vps_license', tier: 'LICENSE ONLY', price: '<priceKey>:vps_license_only_setup', periodKey: 'period_one_time_setup', featureCount: 5, href: '/register/vps' },
+    { id: 'vps_premium', tier: 'HYBRID', price: '<priceKey>:vps_hybrid_setup', periodKey: 'period_one_time_setup', featureCount: 5, href: '/register/vps', popular: true },
+    { id: 'vps_dedicated', tier: 'FULL TURNKEY', price: '<priceKey>:vps_turnkey_setup', periodKey: 'period_one_time_setup', featureCount: 5, href: '/contact?subject=dedicated-vps' },
   ],
   apis: [
     { id: 'api_news', tier: 'NEWS', price: 'tier_price_free', periodKey: 'period_api_to_99', featureCount: 4, href: '/pricing/apis#news' },

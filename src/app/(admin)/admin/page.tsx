@@ -68,6 +68,16 @@ interface DashboardStats {
   totalUsers: number;
   recentKillSwitchEvents: number;
   expiringIn7Days: number;
+  trend7d?: {
+    licenses: number[] | null;
+    users: number[] | null;
+    vpsOnline: number[] | null;
+  };
+  trendPct?: {
+    licenses: number | null;
+    users: number | null;
+    vpsOnline: number | null;
+  };
 }
 
 interface AuditEntry {
@@ -307,21 +317,27 @@ export default function AdminDashboard() {
       value: stats ? `${stats.activeLicenses}/${stats.totalLicenses}` : '-',
       sub: stats?.expiringIn7Days ? `${stats.expiringIn7Days} expiring` : 'Healthy',
       icon: KeyRound, color: 'text-blue-500',
-      trend: null, spark: null, sparkPositive: true,
+      trend: stats?.trendPct?.licenses ?? null,
+      spark: stats?.trend7d?.licenses ?? null,
+      sparkPositive: (stats?.trendPct?.licenses ?? 0) >= 0,
     },
     {
       title: 'VPS Online',
       value: stats ? `${stats.onlineVps}/${stats.totalVps}` : '-',
       sub: 'Instances',
       icon: Server, color: 'text-green-500',
-      trend: null, spark: null, sparkPositive: true,
+      trend: stats?.trendPct?.vpsOnline ?? null,
+      spark: stats?.trend7d?.vpsOnline ?? null,
+      sparkPositive: (stats?.trendPct?.vpsOnline ?? 0) >= 0,
     },
     {
       title: 'Total Users',
       value: stats?.totalUsers ?? '-',
       sub: 'Registered',
       icon: Users, color: 'text-purple-500',
-      trend: null, spark: null, sparkPositive: true,
+      trend: stats?.trendPct?.users ?? null,
+      spark: stats?.trend7d?.users ?? null,
+      sparkPositive: (stats?.trendPct?.users ?? 0) >= 0,
     },
     {
       title: 'Open Trades',

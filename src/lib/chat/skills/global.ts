@@ -13,8 +13,12 @@ import { formatPrice, formatPriceRange, type Locale } from '@/lib/pricing-format
 export function getGlobalSkill(locale: Locale): string {
   const robotMetaRange = `${formatPrice('signal_starter', locale, { compact: false })}–${formatPrice('signal_vip', locale, { period: 'mo', compact: false })}`;
   const robotCryptoRange = `${formatPrice('crypto_basic', locale, { compact: false })}–${formatPrice('crypto_hnwi', locale, { period: 'mo', compact: false })}`;
-  const vpsSetupRange = formatPriceRange('vps_standard_setup', 'vps_premium_setup', locale, { compact: true });
-  const vpsMonthlyRange = locale === 'id' ? 'Rp 2,5–4,9 juta/bulan' : '$150–$300/mo';
+  // 2026-05-18 — realigned to canonical 3-tier keys (License Only / Hybrid /
+  // Turnkey) instead of legacy aliases that skipped Hybrid entirely.
+  // vpsMonthlyRange was hardcoded "Rp 2,5–4,9 juta" which matched no actual
+  // tier; replaced with computed range from canonical PRICE_TABLE entries.
+  const vpsSetupRange = formatPriceRange('vps_license_only_setup', 'vps_turnkey_setup', locale, { compact: true });
+  const vpsMonthlyRange = formatPriceRange('vps_license_only_monthly', 'vps_turnkey_monthly', locale, { period: 'mo', compact: true });
 
   return `BABAHALGO — SKILL UMUM (selalu tersedia)
 

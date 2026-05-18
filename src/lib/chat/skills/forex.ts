@@ -16,7 +16,9 @@ export function getForexSkill(locale: Locale): string {
   const t1 = formatPrice('signal_starter', locale, { period: 'mo', compact: false });
   const t2 = formatPrice('signal_pro', locale, { period: 'mo', compact: false });
   const t3 = formatPrice('signal_vip', locale, { period: 'mo', compact: false });
-  const vpsLicense = formatPrice('vps_standard_setup', locale, { compact: false });
+  // 2026-05-18 — switched to canonical License Only key (was legacy alias
+  // pointing to the same value but clearer for future maintainers).
+  const vpsLicense = formatPrice('vps_license_only_setup', locale, { compact: false });
   const modal1k = locale === 'id' ? 'Rp 16 juta' : '$1,000';
   const modal2k = locale === 'id' ? 'Rp 33 juta' : '$2,000';
   const modal5k = locale === 'id' ? 'Rp 80 juta' : '$5,000';

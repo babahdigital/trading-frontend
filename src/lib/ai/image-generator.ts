@@ -165,70 +165,94 @@ export interface ImageGenerationResult {
  * as PNG binary via URL; we fetch + base64 encode for storage in
  * Article.imageUrl as data URI.
  */
+const IMAGE_GEN_TIMEOUT_MS = 45_000;
+const MIN_VALID_IMAGE_BYTES = 4_000; // tightened from 1000; smaller usually = Pollinations error placeholder
+
+async function fetchOneImage(opts: {
+  url: string;
+  signal?: AbortSignal;
+  subject: string;
+}): Promise<ImageGenerationResult | null> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(new Error('image_gen_timeout')), IMAGE_GEN_TIMEOUT_MS);
+  // Compose user-supplied abort with our timeout abort.
+  const combinedSignal = opts.signal
+    ? AbortSignal.any
+      ? AbortSignal.any([opts.signal, controller.signal])
+      : controller.signal
+    : controller.signal;
+
+  try {
+    const res = await fetch(opts.url, {
+      method: 'GET',
+      signal: combinedSignal,
+      headers: { Accept: 'image/*' },
+    });
+    if (!res.ok) {
+      log.warn(`Image gen HTTP ${res.status} for "${opts.subject.slice(0, 40)}"`);
+      return null;
+    }
+    const contentType = res.headers.get('content-type') ?? 'image/png';
+    if (!contentType.startsWith('image/')) {
+      log.warn(`Image gen unexpected content-type ${contentType} for "${opts.subject.slice(0, 40)}"`);
+      return null;
+    }
+    const buf = await res.arrayBuffer();
+    if (buf.byteLength < MIN_VALID_IMAGE_BYTES) {
+      log.warn(`Image gen suspiciously small (${buf.byteLength} bytes) for "${opts.subject.slice(0, 40)}"`);
+      return null;
+    }
+    const base64 = Buffer.from(buf).toString('base64');
+    const ext = contentType.includes('jpeg') ? 'jpeg' : contentType.includes('webp') ? 'webp' : 'png';
+    const dataUri = `data:${contentType.split(';')[0]};base64,${base64}`;
+    log.info(`Generated image ${ext} ${buf.byteLength} bytes for "${opts.subject.slice(0, 40)}"`);
+    return { dataUri, sizeBytes: buf.byteLength, model: `pollinations` };
+  } catch (err) {
+    log.warn(`Image gen error for "${opts.subject.slice(0, 40)}": ${err instanceof Error ? err.message : 'unknown'}`);
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export async function generateArticleImage(
   subject: string,
   options: ImageGenerationOptions = {},
 ): Promise<ImageGenerationResult | null> {
   const model = options.model ?? DEFAULT_MODEL;
-  // Default upgraded to 1536x864 — premium quality without massive bandwidth.
-  // Articles with high-impact slugs may override to 1920x1080.
+  // 1536x864 = sweet spot — premium quality without Pollinations free-tier
+  // timeouts (1920x1080 had ~30% failure rate). Articles with high-impact
+  // slugs may still override.
   const size = options.size ?? '1536x864';
   const [widthStr, heightStr] = size.split('x');
   const width = parseInt(widthStr, 10);
   const height = parseInt(heightStr, 10);
-  const seed = options.seed ?? Math.floor(Math.random() * 1_000_000);
 
   const prompt = buildImagePrompt(subject, { category: options.category, keywords: options.keywords, slug: options.slug });
 
-  // Pollinations accepts prompt in URL path (encoded). Query params
-  // control size, seed, model, nologo, enhance (prompt expansion via LLM).
-  const url = new URL(`${POLLINATIONS_BASE}/${encodeURIComponent(prompt)}`);
-  url.searchParams.set('width', String(width));
-  url.searchParams.set('height', String(height));
-  url.searchParams.set('seed', String(seed));
-  url.searchParams.set('model', model);
-  url.searchParams.set('nologo', 'true');
-  url.searchParams.set('enhance', 'true');
-  if (options.private) url.searchParams.set('private', 'true');
-
-  try {
-    const res = await fetch(url.toString(), {
-      method: 'GET',
-      signal: options.signal,
-      headers: { Accept: 'image/*' },
-    });
-
-    if (!res.ok) {
-      log.warn(`Image gen HTTP ${res.status} for "${subject.slice(0, 40)}"`);
-      return null;
-    }
-
-    const contentType = res.headers.get('content-type') ?? 'image/png';
-    if (!contentType.startsWith('image/')) {
-      log.warn(`Image gen unexpected content-type ${contentType} for "${subject.slice(0, 40)}"`);
-      return null;
-    }
-
-    const buf = await res.arrayBuffer();
-    if (buf.byteLength < 1000) {
-      // Pollinations sometimes returns a tiny error image; guard against
-      log.warn(`Image gen suspiciously small (${buf.byteLength} bytes) for "${subject.slice(0, 40)}"`);
-      return null;
-    }
-
-    const base64 = Buffer.from(buf).toString('base64');
-    const ext = contentType.includes('jpeg') ? 'jpeg' : contentType.includes('webp') ? 'webp' : 'png';
-    const dataUri = `data:${contentType.split(';')[0]};base64,${base64}`;
-
-    log.info(`Generated image ${ext} ${buf.byteLength} bytes via pollinations/${model} for "${subject.slice(0, 40)}"`);
-
-    return {
-      dataUri,
-      sizeBytes: buf.byteLength,
-      model: `pollinations/${model}`,
-    };
-  } catch (err) {
-    log.warn(`Image gen error for "${subject.slice(0, 40)}": ${err instanceof Error ? err.message : 'unknown'}`);
-    return null;
+  function buildUrl(seed: number): string {
+    const url = new URL(`${POLLINATIONS_BASE}/${encodeURIComponent(prompt)}`);
+    url.searchParams.set('width', String(width));
+    url.searchParams.set('height', String(height));
+    url.searchParams.set('seed', String(seed));
+    url.searchParams.set('model', model);
+    url.searchParams.set('nologo', 'true');
+    // `enhance=true` previously routed prompt via Pollinations LLM expansion
+    // — that sometimes injected weird elements (chart UIs, fake text) that
+    // contradicted our brand prompt's NO-chart / NO-numbers constraints.
+    // Drop it so the prompt is honoured verbatim.
+    if (options.private) url.searchParams.set('private', 'true');
+    return url.toString();
   }
+
+  const firstSeed = options.seed ?? Math.floor(Math.random() * 1_000_000);
+  const firstAttempt = await fetchOneImage({ url: buildUrl(firstSeed), signal: options.signal, subject });
+  if (firstAttempt) return firstAttempt;
+
+  // Single retry with a fresh seed when the first attempt failed / returned
+  // an undersized error placeholder. Doubles throughput on Pollinations
+  // free-tier flakiness without spamming.
+  const retrySeed = Math.floor(Math.random() * 1_000_000);
+  log.info(`Retrying image gen for "${subject.slice(0, 40)}" with seed=${retrySeed}`);
+  return fetchOneImage({ url: buildUrl(retrySeed), signal: options.signal, subject });
 }

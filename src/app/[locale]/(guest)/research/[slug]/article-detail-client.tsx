@@ -322,10 +322,11 @@ export function ArticleDetailClient({ article }: ArticleDetailClientProps) {
         ) : (
           <>
             {/* Hero — research-page distinct stamp (page-stamp-rule).
-                Container naik dari max-w-3xl → max-w-4xl supaya konsisten dengan
-                body section, kurangi visual jomplang. */}
+                Container unified ke max-w-5xl untuk align dengan body section
+                + footer back link (sebelumnya max-w-4xl yang lebih sempit
+                menyebabkan visual jomplang). */}
             <section className="page-stamp-rule border-b border-border">
-              <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-10 lg:pt-16 lg:pb-12">
+              <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-10 lg:pt-16 lg:pb-12">
                 <Link
                   href={`/${locale}/research`}
                   className="inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors mb-6"

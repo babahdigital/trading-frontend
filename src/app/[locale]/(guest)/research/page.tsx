@@ -146,7 +146,7 @@ export default function ResearchPage() {
               </div>
             ) : (
               <>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {visibleArticles.map((article) => {
                     const title = (isEn && article.title_en) ? article.title_en : article.title;
                     const excerpt = (isEn && article.excerpt_en) ? article.excerpt_en : article.excerpt;

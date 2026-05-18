@@ -568,13 +568,22 @@ export default async function LicensePage() {
             <p className="text-foreground/60 mb-8 max-w-lg mx-auto">
               {t('cta_body')}
             </p>
-            <Link
-              href="/contact"
-              className="btn-primary inline-flex items-center gap-2"
-            >
-              {t('cta_button')}
-              <ArrowRight className="w-4 h-4" />
-            </Link>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <Link
+                href="/register/vps"
+                className="btn-primary inline-flex items-center gap-2"
+              >
+                {t('cta_register')}
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+              <Link
+                href="/contact"
+                className="btn-secondary inline-flex items-center gap-2"
+              >
+                {t('cta_button')}
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
           </div>
         </section>
       </main>

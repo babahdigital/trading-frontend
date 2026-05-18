@@ -6,6 +6,8 @@ import { z } from 'zod';
 import { createLogger } from '@/lib/logger';
 import { detectRequestLocale } from '@/lib/i18n/server-locale';
 import { renderWelcomeEmail } from '@/lib/email/welcome-template';
+import { forexSignup } from '@/lib/forex/auth';
+import { ForexApiError } from '@/lib/forex/types';
 
 const log = createLogger('api/auth/register');
 
@@ -120,6 +122,38 @@ export async function POST(request: NextRequest) {
 
       return { user, subscription };
     });
+
+    // Phase 14V FE bridge — best-effort provision a backend tenant via
+    // `POST /api/forex/auth/signup`. The returned plaintext api_token is
+    // stored encrypted at rest in User.forexApiToken so subsequent /login
+    // can bridge the browser to a backend JWT pair. Failure NEVER blocks
+    // the FE-side registration — customer can be linked later by ops.
+    if (tier !== 'DEMO') {
+      try {
+        const signup = await forexSignup({
+          email,
+          displayName: name,
+          language: detectRequestLocale(request) === 'en' ? 'en' : 'id',
+          timezone: 'Asia/Jakarta',
+        });
+        await prisma.user.update({
+          where: { id: result.user.id },
+          data: {
+            forexTenantId: signup.tenant_id,
+            forexApiToken: signup.api_token,
+            forexLinkedAt: new Date(),
+          },
+        });
+        log.info(`forex tenant provisioned for ${email} tenant_id=${signup.tenant_id}`);
+      } catch (bridgeErr) {
+        if (bridgeErr instanceof ForexApiError) {
+          log.warn(`forex signup failed for ${email}: ${bridgeErr.code} (${bridgeErr.status})`);
+        } else {
+          log.error('forex signup unexpected:', bridgeErr);
+        }
+        // best-effort: customer record exists, ops will link manually
+      }
+    }
 
     // Kirim notifikasi Telegram ke admin (fire-and-forget)
     const botToken = process.env.TELEGRAM_BOT_TOKEN;

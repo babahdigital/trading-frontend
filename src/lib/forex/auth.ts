@@ -15,6 +15,53 @@
 import { forexRequest } from './client';
 import { ForexApiError, type ForexLoginResponse } from './types';
 
+export interface ForexSignupRequest {
+  email: string;
+  displayName: string;
+  language?: 'en' | 'id' | 'zh' | 'ja' | 'ar' | 'vi';
+  timezone?: string;
+}
+
+export interface ForexSignupResponse {
+  tenant_id: string;
+  external_id: string;
+  tier: string;
+  api_token: string;
+  token_hint: string;
+  products: string[];
+}
+
+/**
+ * Provision a backend tenant via `POST /api/forex/auth/signup`. The
+ * response contains the plaintext `api_token` ONCE — the FE caller
+ * MUST persist it immediately (encrypted at rest in User.forexApiToken)
+ * because the backend only stores a SHA-256 hash and cannot recover the
+ * raw token afterwards.
+ *
+ * Failure modes (envelope `code`):
+ *   - `TENANT_ALREADY_EXISTS`  email + external_id collision
+ *   - `VALIDATION_FAILED`      malformed email / language / timezone
+ *   - `RATE_LIMIT`             >20 anon POST/min from caller IP
+ *
+ * Best-effort wiring guidance: call this from /api/auth/register AFTER
+ * the FE-side User row is committed; catch ForexApiError and log it
+ * but DO NOT rollback the FE registration. Customer can be linked
+ * later by ops or via a /portal/account/link route.
+ */
+export async function forexSignup(args: ForexSignupRequest): Promise<ForexSignupResponse> {
+  return forexRequest<ForexSignupResponse>({
+    method: 'POST',
+    path: '/api/forex/auth/signup',
+    auth: { type: 'none' },
+    body: {
+      email: args.email,
+      display_name: args.displayName,
+      language: args.language ?? 'id',
+      timezone: args.timezone ?? 'Asia/Jakarta',
+    },
+  });
+}
+
 /**
  * Exchange (email, api_token) for an access+refresh JWT pair.
  * Maps backend `AUTH_LOGIN_FAILED` to a generic 401 — the caller decides

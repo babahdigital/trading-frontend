@@ -15,6 +15,64 @@ import { ChatLeadForm } from './chat-lead-form';
 
 const LEAD_STORAGE_KEY = 'babah.chat.lead';
 
+// Chat history persistence — versioned key so a schema bump (e.g. new
+// message part types) invalidates stale entries gracefully.
+const HISTORY_STORAGE_KEY = 'babah.chat.history.v1';
+const HISTORY_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+const HISTORY_MAX_MESSAGES = 30; // keep last 30 (greeting + 29 exchange turns)
+const HISTORY_MAX_BYTES = 50 * 1024; // safety cap so we never bloat localStorage
+
+interface PersistedHistory {
+  locale: 'id' | 'en';
+  savedAt: number;
+  messages: UIMessage[];
+}
+
+function loadHistory(locale: 'id' | 'en'): UIMessage[] | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(HISTORY_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as PersistedHistory;
+    if (!parsed || typeof parsed !== 'object') return null;
+    if (parsed.locale !== locale) return null; // locale switch → start fresh
+    if (Date.now() - (parsed.savedAt ?? 0) > HISTORY_TTL_MS) {
+      localStorage.removeItem(HISTORY_STORAGE_KEY);
+      return null;
+    }
+    if (!Array.isArray(parsed.messages) || parsed.messages.length === 0) return null;
+    return parsed.messages;
+  } catch {
+    return null;
+  }
+}
+
+function saveHistory(locale: 'id' | 'en', messages: UIMessage[]): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const trimmed = messages.slice(-HISTORY_MAX_MESSAGES);
+    const payload: PersistedHistory = {
+      locale,
+      savedAt: Date.now(),
+      messages: trimmed,
+    };
+    const serialized = JSON.stringify(payload);
+    if (serialized.length > HISTORY_MAX_BYTES) return; // skip oversized
+    localStorage.setItem(HISTORY_STORAGE_KEY, serialized);
+  } catch {
+    // localStorage full / disabled — non-fatal
+  }
+}
+
+function clearHistory(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.removeItem(HISTORY_STORAGE_KEY);
+  } catch {
+    // ignore
+  }
+}
+
 interface QuickReply {
   label: string;
   message: string;
@@ -175,12 +233,26 @@ export function ChatWidget() {
 
   const isLoading = status === 'streaming' || status === 'submitted';
 
+  // Hydrate persisted history on mount (per locale). Falls back to
+  // greeting-only when storage is empty / expired / different locale.
   useEffect(() => {
-    if (messages.length <= 1) {
+    const restored = loadHistory(locale);
+    if (restored && restored.length > 0) {
+      setMessages(restored);
+    } else if (messages.length <= 1) {
       setMessages(initialMessages);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [locale]);
+
+  // Persist on every settled state (i.e. when not actively streaming). We
+  // skip when only the greeting is present so refresh-empty doesn't clobber
+  // a longer prior session from another tab.
+  useEffect(() => {
+    if (isLoading) return;
+    if (messages.length <= 1) return;
+    saveHistory(locale, messages);
+  }, [messages, isLoading, locale]);
 
   const isNearBottom = useCallback((): boolean => {
     const c = messagesContainerRef.current;

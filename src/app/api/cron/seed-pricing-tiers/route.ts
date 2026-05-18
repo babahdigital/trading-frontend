@@ -36,7 +36,7 @@ const CANONICAL_TIERS: CanonicalTier[] = [
   // FOREX SIGNAL
   {
     slug: 'signal-starter', name: 'Signal Starter', name_en: 'Signal Starter',
-    price: '$19/bulan',
+    price: '$39/bulan',
     subtitle: 'Entry tier — coba sinyal harian',
     subtitle_en: 'Entry tier — try daily signals',
     features: ['Live signals (≤3 simbol)', '1 strategy aktif', 'Rule-based AI explainability', 'MT5 bridge ringan', 'Email support'],

@@ -802,25 +802,26 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
                         ? 'border-amber-500 ring-1 ring-amber-500'
                         : 'border-border/60 hover:border-amber-500/30'
                     }`}>
-                      {/* Card header — stacked layout di mobile (vertical),
-                          horizontal di sm+. min-w-0 + flex-wrap + break-all
-                          mencegah harga IDR yang panjang (Rp 1.290.000) overflow.
-                          Padding kurangi p-6 → p-5 di mobile supaya card fit
-                          di viewport sempit. */}
-                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4 mb-5 sm:mb-6 min-w-0">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center flex-wrap gap-2 sm:gap-3 mb-1">
-                            <h3 className="text-base sm:text-lg font-medium text-foreground">{t(`tier_${plan.id}_name`)}</h3>
-                            {plan.popular && (
-                              <span className="px-2 py-0.5 rounded-full bg-amber-500 text-black text-[10px] sm:text-[11px] font-medium tracking-wider uppercase">
-                                {t('pricing_popular_badge')}
-                              </span>
-                            )}
-                          </div>
-                          <p className="t-body-sm text-muted-foreground">{t(`tier_${plan.id}_tagline`)}</p>
+                      {/* Card header — selalu STACK vertical untuk content
+                          padat (institutional tagline + AUM caveat sering
+                          panjang). Title + popular badge di atas, tagline
+                          di tengah, price block dengan border-top di bawah
+                          supaya jelas visual hierarchy + tidak mepet ke
+                          right-edge. Sebelumnya sm:flex-row menyebabkan
+                          institutional card (long tagline + long IDR
+                          price + AUM period) mash up tidak terbaca. */}
+                      <div className="mb-5 sm:mb-6 min-w-0 space-y-3">
+                        <div className="flex items-center flex-wrap gap-2 sm:gap-3">
+                          <h3 className="text-base sm:text-lg font-medium text-foreground">{t(`tier_${plan.id}_name`)}</h3>
+                          {plan.popular && (
+                            <span className="px-2 py-0.5 rounded-full bg-amber-500 text-black text-[10px] sm:text-[11px] font-medium tracking-wider uppercase">
+                              {t('pricing_popular_badge')}
+                            </span>
+                          )}
                         </div>
-                        <div className="flex items-baseline flex-wrap gap-x-1 gap-y-0.5 sm:text-right shrink-0 min-w-0 max-w-full">
-                          <span className="font-mono text-xl sm:text-2xl lg:text-3xl font-semibold text-foreground break-all">{resolvePrice(plan.price)}</span>
+                        <p className="t-body-sm text-muted-foreground leading-relaxed">{t(`tier_${plan.id}_tagline`)}</p>
+                        <div className="flex items-baseline flex-wrap gap-x-2 gap-y-1 pt-3 border-t border-border/40 min-w-0">
+                          <span className="font-mono text-xl sm:text-2xl lg:text-3xl font-semibold text-foreground break-words">{resolvePrice(plan.price)}</span>
                           <span className="text-xs sm:text-sm text-muted-foreground">{t(plan.periodKey)}</span>
                         </div>
                       </div>

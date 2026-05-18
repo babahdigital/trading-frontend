@@ -16,7 +16,12 @@ type PriceEntry = { usd: number; idr: number };
 
 export const PRICE_TABLE = {
   // Signal tiers
-  signal_starter: { usd: 19, idr: 299_000 },
+  // 2026-05-19 — Tier 1 Swing dinaikkan dari \$19 (Rp 299rb) → \$39 (Rp 600rb)
+  // berdasarkan economic audit: AI cost (\$25 swing exit advisor 24h × 2 posisi)
+  // + infra share (\$10) = \$35 baseline cost. \$19 net margin −\$16/customer/mo
+  // (rugi struktural). \$39 → ~+\$4-15/customer gross margin sehat 10-40%
+  // dengan AI budget cap \$3-5 per-tier. Tier 2 + Tier 3 already healthy.
+  signal_starter: { usd: 39, idr: 600_000 },
   signal_pro: { usd: 79, idr: 1_290_000 },
   signal_vip: { usd: 299, idr: 4_900_000 },
 

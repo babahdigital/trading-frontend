@@ -51,10 +51,12 @@ export default function EmailTemplatesPage() {
         <p className="text-sm text-muted-foreground">
           Total: <span className="font-semibold text-foreground">{templates.length}</span> template
         </p>
-        <Button variant="outline" disabled title="Coming soon — buat template baru lewat seed migration dulu">
-          <Plus className="h-4 w-4 mr-2" />
-          New Template
-        </Button>
+        <Link href="/admin/cms/email-templates/new">
+          <Button variant="outline">
+            <Plus className="h-4 w-4 mr-2" />
+            New Template
+          </Button>
+        </Link>
       </div>
 
       {loading ? (

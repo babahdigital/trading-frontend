@@ -110,6 +110,56 @@ DATA INJECTED (gunakan ini sebagai satu-satunya sumber kebenaran):
 
 Return ONLY markdown body, tanpa preamble, tanpa code fence wrapper.`;
 
+/**
+ * Fallback data source — pull recent PairBrief rows from local DB ketika
+ * VPS1 backend `/api/research/*` returns 404 (microservice tunnel belum
+ * di-extend). Gives the AI prompt grounded context dari published research
+ * di portal yang sudah berisi pair / bias / session / confluence-score —
+ * format setara dengan backend top-signals shape sehingga prompt tetap
+ * "evidence-driven from data" instead of empty / generic.
+ */
+async function fetchPairBriefsFallback(limit: number): Promise<Record<string, unknown> | null> {
+  try {
+    const briefs = await prisma.pairBrief.findMany({
+      where: { isPublished: true },
+      orderBy: { publishedAt: 'desc' },
+      take: limit,
+      select: {
+        pair: true,
+        session: true,
+        fundamentalBias: true,
+        confluenceScore: true,
+        supportLevels: true,
+        resistanceLevels: true,
+        entryZones: true,
+        stopLossLevel: true,
+        targetLevels: true,
+        publishedAt: true,
+      },
+    });
+    if (briefs.length === 0) return null;
+    return {
+      source: 'fe_prisma_fallback',
+      generated_at: new Date().toISOString(),
+      signals: briefs.map((b) => ({
+        pair: b.pair,
+        session: b.session,
+        bias: b.fundamentalBias,
+        confluence_score: b.confluenceScore,
+        support: b.supportLevels,
+        resistance: b.resistanceLevels,
+        entry_zone: b.entryZones,
+        stop_loss: b.stopLossLevel,
+        targets: b.targetLevels,
+        published_at: b.publishedAt?.toISOString(),
+      })),
+    };
+  } catch (err) {
+    log.warn(`pairBrief fallback failed: ${err instanceof Error ? err.message : 'unknown'}`);
+    return null;
+  }
+}
+
 const dayConfigs: Record<number, DayConfig> = {
   1: {
     type: 'recap',
@@ -118,9 +168,11 @@ const dayConfigs: Record<number, DayConfig> = {
     fetchData: async () => {
       try {
         const res = await proxyToMasterBackend('research', '/api/research/weekly-recap', { method: 'GET' });
-        if (!res.ok) return null;
-        return await res.json() as Record<string, unknown>;
-      } catch { return null; }
+        if (res.ok) return await res.json() as Record<string, unknown>;
+      } catch { /* fall through to fallback */ }
+      // Backend 404 / 503 → use FE Prisma PairBrief sebagai sumber data.
+      // 7 briefs untuk weekly window.
+      return await fetchPairBriefsFallback(7);
     },
     buildPrompt: async (data) => ({
       titleId: `Rangkuman Pasar Mingguan ${formatDateId(new Date())}: Sinyal Forex & Win Rate Institusional`,
@@ -142,9 +194,9 @@ const dayConfigs: Record<number, DayConfig> = {
     fetchData: async () => {
       try {
         const res = await proxyToMasterBackend('research', '/api/research/top-signals?limit=5', { method: 'GET' });
-        if (!res.ok) return null;
-        return await res.json() as Record<string, unknown>;
-      } catch { return null; }
+        if (res.ok) return await res.json() as Record<string, unknown>;
+      } catch { /* fall through to fallback */ }
+      return await fetchPairBriefsFallback(5);
     },
     buildPrompt: async (data) => ({
       titleId: `Pelajaran AI Trading: Cara Membaca Konfluensi SMC ${formatDateId(new Date())}`,
@@ -166,9 +218,9 @@ const dayConfigs: Record<number, DayConfig> = {
     fetchData: async () => {
       try {
         const res = await proxyToMasterBackend('research', '/api/research/top-signals?limit=3', { method: 'GET' });
-        if (!res.ok) return null;
-        return await res.json() as Record<string, unknown>;
-      } catch { return null; }
+        if (res.ok) return await res.json() as Record<string, unknown>;
+      } catch { /* fall through to fallback */ }
+      return await fetchPairBriefsFallback(3);
     },
     buildPrompt: async (data) => ({
       titleId: `Studi Kasus Trade ${formatDateId(new Date())}: Anatomi Entry High-Confidence SMC`,

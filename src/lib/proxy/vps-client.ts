@@ -120,12 +120,38 @@ const SCOPE_TOKEN_MAP: Record<MasterScope, string> = {
   tenant: 'VPS1_ADMIN_TOKEN', // TODO P0-3: migrate ke per-user tenant token
 };
 
+/**
+ * 2026-05-18 — backend VPS1 sudah migrate ke microservices terdistribusi.
+ * Scope-aware base URL routing: signals/trade_events ke signals-api (8211),
+ * lainnya tetap ke forex backend (8101). Tunggu backend team extend SSH
+ * permitopen untuk port 8210/8212/8213/8215/8217/8220 — sampai itu tunnel
+ * cuma reach 8101 + 8211 (saat tunnel signals nanti diperbaiki).
+ */
+const SCOPE_URL_MAP: Record<MasterScope, readonly string[]> = {
+  signals: ['VPS1_SIGNALS_URL', 'VPS1_BACKEND_URL'],
+  trade_events: ['VPS1_SIGNALS_URL', 'VPS1_BACKEND_URL'],
+  research: ['VPS1_RESEARCH_URL', 'VPS1_FOREX_URL', 'VPS1_BACKEND_URL'],
+  pamm: ['VPS1_FOREX_URL', 'VPS1_BACKEND_URL'],
+  stats: ['VPS1_FOREX_URL', 'VPS1_BACKEND_URL'],
+  scanner: ['VPS1_FOREX_URL', 'VPS1_BACKEND_URL'],
+  admin: ['VPS1_FOREX_URL', 'VPS1_BACKEND_URL'],
+  tenant: ['VPS1_FOREX_URL', 'VPS1_BACKEND_URL'],
+};
+
+function resolveBaseUrl(scope: MasterScope): string | undefined {
+  for (const envKey of SCOPE_URL_MAP[scope]) {
+    const url = process.env[envKey];
+    if (url) return url;
+  }
+  return undefined;
+}
+
 export async function proxyToMasterBackend(
   scope: MasterScope,
   path: string,
   init: RequestInit = {}
 ): Promise<Response> {
-  const baseUrl = process.env.VPS1_BACKEND_URL;
+  const baseUrl = resolveBaseUrl(scope);
   const scopedToken = process.env[SCOPE_TOKEN_MAP[scope]];
   const token = scopedToken || process.env.VPS1_ADMIN_TOKEN;
 

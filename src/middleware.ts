@@ -13,7 +13,17 @@ const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 const publicPaths = ['/login', '/admin/login', '/forgot-password', '/reset-password', '/api/auth/login', '/api/auth/register', '/api/auth/refresh', '/api/auth/forgot-password', '/api/auth/reset-password', '/api/auth/ws-token', '/api/health', '/api/public/', '/api/client/inquiries', '/api/chat', '/api/cron/', '/api/billing/webhook/', '/api/license/check', '/manifest.json',
   // Admin smoke test endpoints — pakai own Bearer CRON_SECRET auth di route handler,
   // tidak butuh JWT admin session. Bypass middleware JWT check.
-  '/api/admin/sentry-test', '/api/admin/fonnte-test', '/api/admin/brevo-test'];
+  '/api/admin/sentry-test', '/api/admin/fonnte-test', '/api/admin/brevo-test',
+  // Phase 14V forex backend bridge (2026-05-18) — these endpoints handle
+  // their OWN auth via forex_*_token cookies in the route handler. The
+  // FE-internal JWT middleware would otherwise reject the unauthenticated
+  // login + refresh paths before they reach the proxy.
+  // - /login   : the bridge entrypoint itself (auth is the body payload)
+  // - /refresh : rotates the HttpOnly refresh_token cookie (no FE JWT)
+  // - /logout  : intentionally NOT whitelisted — clearing a backend
+  //              session implies the FE session also exists; the route
+  //              still gracefully handles missing cookies anyway.
+  '/api/forex/auth/login', '/api/forex/auth/refresh'];
 
 // In-memory rate limit store (per-process, resets on restart)
 const rateLimitStore = new Map<string, { count: number; resetAt: number }>();

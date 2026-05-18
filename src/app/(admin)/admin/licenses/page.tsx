@@ -243,8 +243,8 @@ export default function LicensesPage() {
 
       <Card>
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <div className="md:overflow-x-auto">
+            <table className="w-full text-sm table-responsive">
               <thead>
                 <tr className="border-b">
                   <th className="text-left p-4 font-medium text-muted-foreground">License Key</th>
@@ -257,24 +257,24 @@ export default function LicensesPage() {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={6} className="p-4 text-center text-muted-foreground">Loading...</td></tr>
+                  <tr><td colSpan={6} className="p-4 text-center text-muted-foreground no-label">Loading...</td></tr>
                 ) : filtered.length === 0 ? (
-                  <tr><td colSpan={6} className="p-4 text-center text-muted-foreground">
+                  <tr><td colSpan={6} className="p-4 text-center text-muted-foreground no-label">
                     {filter === 'ALL' ? 'No licenses yet. Generate your first license.' : `No ${filter.toLowerCase()} licenses.`}
                   </td></tr>
                 ) : (
                   filtered.map((lic) => (
                     <tr key={lic.id} className="border-b hover:bg-accent/50 transition-colors">
-                      <td className="p-4 font-mono text-xs">{lic.licenseKey}</td>
-                      <td className="p-4">{lic.type.replace(/_/g, ' ')}</td>
-                      <td className="p-4">{lic.user.name || lic.user.email}</td>
-                      <td className="p-4">
+                      <td className="p-4 font-mono text-xs" data-label="License Key">{lic.licenseKey}</td>
+                      <td className="p-4" data-label="Type">{lic.type.replace(/_/g, ' ')}</td>
+                      <td className="p-4" data-label="Client">{lic.user.name || lic.user.email}</td>
+                      <td className="p-4" data-label="Status">
                         <span className={cn('px-2 py-1 rounded-full text-xs font-medium', statusColor[lic.status] || '')}>
                           {lic.status}
                         </span>
                       </td>
-                      <td className="p-4 text-muted-foreground">{new Date(lic.expiresAt).toLocaleDateString()}</td>
-                      <td className="p-4">{lic.vpsInstance?.name || '-'}</td>
+                      <td className="p-4 text-muted-foreground" data-label="Expires">{new Date(lic.expiresAt).toLocaleDateString()}</td>
+                      <td className="p-4" data-label="VPS">{lic.vpsInstance?.name || '-'}</td>
                     </tr>
                   ))
                 )}

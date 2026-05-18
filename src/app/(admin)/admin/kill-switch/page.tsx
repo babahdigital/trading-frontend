@@ -262,8 +262,8 @@ export default function KillSwitchPage() {
           <CardTitle>Kill Switch Events</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <div className="md:overflow-x-auto">
+            <table className="w-full text-sm table-responsive">
               <thead>
                 <tr className="border-b">
                   <th className="text-left p-4 font-medium text-muted-foreground">Time</th>
@@ -275,10 +275,10 @@ export default function KillSwitchPage() {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={5} className="p-4 text-center text-muted-foreground">Loading...</td></tr>
+                  <tr><td colSpan={5} className="p-4 text-center text-muted-foreground no-label">Loading...</td></tr>
                 ) : events.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="p-8 text-center">
+                    <td colSpan={5} className="p-8 text-center no-label">
                       <Zap className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
                       <p className="text-muted-foreground">No kill switch events recorded.</p>
                     </td>
@@ -286,12 +286,12 @@ export default function KillSwitchPage() {
                 ) : (
                   events.map((evt) => (
                     <tr key={evt.id} className="border-b hover:bg-accent/50 transition-colors">
-                      <td className="p-4 text-muted-foreground whitespace-nowrap">
+                      <td className="p-4 text-muted-foreground whitespace-nowrap" data-label="Time">
                         {new Date(evt.createdAt).toLocaleString()}
                       </td>
-                      <td className="p-4 font-mono text-xs">{evt.licenseKey || evt.licenseId || '-'}</td>
-                      <td className="p-4">{evt.triggeredBy || '-'}</td>
-                      <td className="p-4">
+                      <td className="p-4 font-mono text-xs" data-label="License Key">{evt.licenseKey || evt.licenseId || '-'}</td>
+                      <td className="p-4" data-label="Triggered By">{evt.triggeredBy || '-'}</td>
+                      <td className="p-4" data-label="Success">
                         <span className={cn(
                           'px-2 py-1 rounded-full text-xs font-medium',
                           evt.success ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
@@ -299,7 +299,7 @@ export default function KillSwitchPage() {
                           {evt.success ? 'YES' : 'NO'}
                         </span>
                       </td>
-                      <td className="p-4 text-xs text-red-400">{evt.error || '-'}</td>
+                      <td className="p-4 text-xs text-red-400" data-label="Error">{evt.error || '-'}</td>
                     </tr>
                   ))
                 )}

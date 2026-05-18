@@ -173,8 +173,8 @@ export default function VpsPage() {
 
       <Card>
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <div className="md:overflow-x-auto">
+            <table className="w-full text-sm table-responsive">
               <thead>
                 <tr className="border-b">
                   <th className="text-left p-4 font-medium text-muted-foreground">Name</th>
@@ -187,10 +187,10 @@ export default function VpsPage() {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={6} className="p-4 text-center text-muted-foreground">Loading...</td></tr>
+                  <tr><td colSpan={6} className="p-4 text-center text-muted-foreground no-label">Loading...</td></tr>
                 ) : instances.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="p-8 text-center">
+                    <td colSpan={6} className="p-8 text-center no-label">
                       <Server className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
                       <p className="text-muted-foreground">No VPS instances registered. Click &quot;Register VPS&quot; to add one.</p>
                     </td>
@@ -198,20 +198,20 @@ export default function VpsPage() {
                 ) : (
                   instances.map((vps) => (
                     <tr key={vps.id} className="border-b hover:bg-accent/50 transition-colors">
-                      <td className="p-4 font-medium">{vps.name}</td>
-                      <td className="p-4 font-mono text-xs">{vps.host}:{vps.port}</td>
-                      <td className="p-4">
+                      <td className="p-4 font-medium" data-label="Name">{vps.name}</td>
+                      <td className="p-4 font-mono text-xs" data-label="Host">{vps.host}:{vps.port}</td>
+                      <td className="p-4" data-label="Status">
                         <span className={cn('px-2 py-1 rounded-full text-xs font-medium', statusBadge[vps.status] || 'bg-gray-500/20 text-gray-400')}>
                           {vps.status}
                         </span>
                       </td>
-                      <td className="p-4 text-muted-foreground">
+                      <td className="p-4 text-muted-foreground" data-label="Last Health">
                         {vps.lastHealthCheck ? new Date(vps.lastHealthCheck).toLocaleString() : 'Never'}
                       </td>
-                      <td className="p-4 text-muted-foreground">
+                      <td className="p-4 text-muted-foreground" data-label="Response Time">
                         {vps.lastResponseTime != null ? `${vps.lastResponseTime}ms` : '-'}
                       </td>
-                      <td className="p-4">
+                      <td className="p-4" data-label="Actions">
                         <Button variant="ghost" size="sm">Details</Button>
                       </td>
                     </tr>

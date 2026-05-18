@@ -119,8 +119,8 @@ export default function AdminTeamPage() {
         </div>
       )}
 
-      <div className="rounded-lg border border-border overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="rounded-lg border border-border overflow-hidden md:overflow-x-auto">
+        <table className="w-full text-sm table-responsive">
           <thead className="text-[11px] uppercase text-muted-foreground bg-muted/40">
             <tr>
               <th className="text-left py-2 px-4 font-medium">Pengguna</th>
@@ -133,29 +133,29 @@ export default function AdminTeamPage() {
           </thead>
           <tbody className="divide-y divide-border">
             {loading ? (
-              <tr><td colSpan={6} className="py-8 text-center text-muted-foreground">Memuat tim…</td></tr>
+              <tr><td colSpan={6} className="py-8 text-center text-muted-foreground no-label">Memuat tim…</td></tr>
             ) : users.length === 0 ? (
-              <tr><td colSpan={6} className="py-8 text-center text-muted-foreground">Belum ada admin/operator.</td></tr>
+              <tr><td colSpan={6} className="py-8 text-center text-muted-foreground no-label">Belum ada admin/operator.</td></tr>
             ) : users.map((u) => {
               const roleMeta = ROLE_META[u.role];
               const Icon = roleMeta.icon;
               const permsCount = Array.isArray(u.permissions) ? u.permissions.length : 0;
               return (
                 <tr key={u.id} className={cn('hover:bg-muted/30 transition-colors', !u.isActive && 'opacity-60')}>
-                  <td className="py-3 px-4">
+                  <td className="py-3 px-4" data-label="Pengguna">
                     <div className="flex flex-col">
                       <span className="font-medium text-foreground">{u.name || u.email}</span>
                       {u.name && <span className="text-xs text-muted-foreground">{u.email}</span>}
                       {!u.isActive && <span className="text-[10px] uppercase tracking-wider text-destructive mt-0.5">Nonaktif</span>}
                     </div>
                   </td>
-                  <td className="py-3 px-4">
+                  <td className="py-3 px-4" data-label="Peran">
                     <span className={cn('inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[11px] font-medium', roleMeta.tone)}>
                       <Icon className="h-3 w-3" strokeWidth={2.5} />
                       {roleMeta.label}
                     </span>
                   </td>
-                  <td className="py-3 px-4 text-muted-foreground">
+                  <td className="py-3 px-4 text-muted-foreground" data-label="Permissions">
                     {u.role === 'SUPER_ADMIN'
                       ? 'Semua (bypass)'
                       : u.role === 'ADMIN' && permsCount === 0
@@ -164,11 +164,11 @@ export default function AdminTeamPage() {
                           ? <span className="text-destructive">Tidak ada</span>
                           : `${permsCount} permission`}
                   </td>
-                  <td className="py-3 px-4 text-muted-foreground">{formatRelative(u.lastLoginAt)}</td>
-                  <td className="py-3 px-4 text-muted-foreground text-xs">
+                  <td className="py-3 px-4 text-muted-foreground" data-label="Login Terakhir">{formatRelative(u.lastLoginAt)}</td>
+                  <td className="py-3 px-4 text-muted-foreground text-xs" data-label="Dibuat oleh">
                     {u.createdBy ? (u.createdBy.name || u.createdBy.email) : '— bootstrap'}
                   </td>
-                  <td className="py-3 px-4 text-right">
+                  <td className="py-3 px-4 text-right" data-label="Aksi">
                     <div className="inline-flex items-center gap-1">
                       <Button variant="ghost" size="sm" disabled={u.role === 'SUPER_ADMIN'} title="Edit permissions (Wave-30)">
                         <Settings className="h-3.5 w-3.5" strokeWidth={2.25} />

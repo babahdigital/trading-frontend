@@ -88,8 +88,8 @@ export default function AuditPage() {
 
       <Card>
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <div className="md:overflow-x-auto">
+            <table className="w-full text-sm table-responsive">
               <thead>
                 <tr className="border-b">
                   <th className="text-left p-4 font-medium text-muted-foreground">Timestamp</th>
@@ -101,19 +101,19 @@ export default function AuditPage() {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={5} className="p-4 text-center text-muted-foreground">Loading...</td></tr>
+                  <tr><td colSpan={5} className="p-4 text-center text-muted-foreground no-label">Loading...</td></tr>
                 ) : entries.length === 0 ? (
-                  <tr><td colSpan={5} className="p-4 text-center text-muted-foreground">No audit entries found.</td></tr>
+                  <tr><td colSpan={5} className="p-4 text-center text-muted-foreground no-label">No audit entries found.</td></tr>
                 ) : (
                   entries.map((entry) => (
                     <tr key={entry.id} className="border-b hover:bg-accent/50 transition-colors">
-                      <td className="p-4 text-muted-foreground whitespace-nowrap">
+                      <td className="p-4 text-muted-foreground whitespace-nowrap" data-label="Timestamp">
                         {new Date(entry.createdAt).toLocaleString()}
                       </td>
-                      <td className="p-4 font-mono text-xs">{entry.userId || '-'}</td>
-                      <td className="p-4 font-mono text-xs">{entry.action}</td>
-                      <td className="p-4 font-mono text-xs">{entry.licenseId || '-'}</td>
-                      <td className="p-4 text-muted-foreground">{entry.ipAddress || '-'}</td>
+                      <td className="p-4 font-mono text-xs" data-label="User ID">{entry.userId || '-'}</td>
+                      <td className="p-4 font-mono text-xs" data-label="Action">{entry.action}</td>
+                      <td className="p-4 font-mono text-xs" data-label="License ID">{entry.licenseId || '-'}</td>
+                      <td className="p-4 text-muted-foreground" data-label="IP Address">{entry.ipAddress || '-'}</td>
                     </tr>
                   ))
                 )}

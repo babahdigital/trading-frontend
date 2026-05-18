@@ -1,6 +1,30 @@
+import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
+import { AUTH_COOKIE_NAMES } from '@/lib/auth/cookies';
+import { verifyJwt } from '@/lib/auth/jwt';
 import { prisma } from '@/lib/db/prisma';
+
+// Reads cookies + DB. Force-dynamic so Next.js does not try to
+// statically prerender this route at build time (DATABASE_URL is not
+// available in the build container).
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+/**
+ * Bridge status for the upgrade UI:
+ *   - `linked`           customer is FE-logged-in AND has a valid forex
+ *                        backend session (cookies set, /me returns 200).
+ *   - `unlinked`         customer is FE-logged-in but has NO forex api_token
+ *                        on their User row. Self-upgrade is impossible —
+ *                        UI should show a "contact support to link account"
+ *                        affordance.
+ *   - `expired`          customer is FE-logged-in, HAS an api_token, but
+ *                        the backend session expired and the bridge needs
+ *                        a fresh login.
+ *   - `not_authenticated` no FE session at all.
+ */
+type BridgeStatus = 'linked' | 'unlinked' | 'expired' | 'not_authenticated';
 import { ensureForexAccessToken } from '@/lib/forex/session';
 import { forexMe } from '@/lib/forex/me';
 import { ForexApiError } from '@/lib/forex/types';
@@ -64,17 +88,39 @@ function deriveIconKey(forexTier: BackendTier): string {
 
 export async function GET() {
   let currentTier: string | null = null;
-  try {
-    const session = await ensureForexAccessToken();
-    if (session) {
-      const me = await forexMe({ accessToken: session.accessToken });
-      currentTier = me.tier;
-    }
-  } catch (err) {
-    if (err instanceof ForexApiError) {
-      log.info(`me lookup failed during tiers fetch: ${err.code}`);
-    } else {
-      log.error('unexpected me lookup error', err);
+  let bridgeStatus: BridgeStatus = 'not_authenticated';
+
+  // Resolve FE session first so we can distinguish "no FE login" from
+  // "FE login but no forex bridge linked".
+  const jar = cookies();
+  const accessJwt = jar.get(AUTH_COOKIE_NAMES.ACCESS_TOKEN)?.value;
+  let feUserId: string | null = null;
+  if (accessJwt) {
+    const claims = await verifyJwt(accessJwt);
+    feUserId = claims?.sub ?? null;
+  }
+
+  if (feUserId) {
+    bridgeStatus = 'expired';
+    try {
+      const session = await ensureForexAccessToken();
+      if (session) {
+        const me = await forexMe({ accessToken: session.accessToken });
+        currentTier = me.tier;
+        bridgeStatus = 'linked';
+      } else {
+        const user = await prisma.user.findUnique({
+          where: { id: feUserId },
+          select: { forexApiToken: true },
+        });
+        bridgeStatus = user?.forexApiToken ? 'expired' : 'unlinked';
+      }
+    } catch (err) {
+      if (err instanceof ForexApiError) {
+        log.info(`me lookup failed during tiers fetch: ${err.code}`);
+      } else {
+        log.error('unexpected me lookup error', err);
+      }
     }
   }
 
@@ -110,6 +156,7 @@ export async function GET() {
 
   return NextResponse.json({
     ok: true,
+    bridgeStatus,
     currentTier,
     currentTierRank: currentTier ? TIER_RANK[currentTier.toLowerCase()] ?? 0 : null,
     tiers,

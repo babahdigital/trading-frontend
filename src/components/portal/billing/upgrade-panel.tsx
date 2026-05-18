@@ -48,8 +48,11 @@ interface BilledTier {
   cta: { label: { id: string; en: string }; link: string };
 }
 
+type BridgeStatus = 'linked' | 'unlinked' | 'expired' | 'not_authenticated';
+
 interface TiersResponse {
   ok: boolean;
+  bridgeStatus: BridgeStatus;
   currentTier: string | null;
   currentTierRank: number | null;
   tiers: BilledTier[];
@@ -87,7 +90,6 @@ export function UpgradePanel() {
   const toast = useToast();
 
   const [data, setData] = useState<TiersResponse | null>(null);
-  const [sessionMissing, setSessionMissing] = useState(false);
   const [loading, setLoading] = useState<string | null>(null);
   const [initializing, setInitializing] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -107,7 +109,6 @@ export function UpgradePanel() {
           return;
         }
         setData(body);
-        if (!body.currentTier) setSessionMissing(true);
       } catch {
         if (!cancelled) setLoadError(t('me_load_failed'));
       } finally {
@@ -174,22 +175,38 @@ export function UpgradePanel() {
     );
   }
 
-  if (sessionMissing) {
+  const bridgeStatus = data?.bridgeStatus ?? 'not_authenticated';
+
+  if (bridgeStatus === 'not_authenticated') {
     return (
-      <div className="rounded-2xl border border-amber-300/40 bg-amber-50/60 p-6 text-sm text-amber-900 dark:border-amber-400/30 dark:bg-amber-950/40 dark:text-amber-100">
-        <div className="flex items-start gap-3">
-          <Lock className="mt-0.5 h-5 w-5 flex-shrink-0" aria-hidden />
-          <div>
-            <h3 className="font-semibold">{t('session_missing_title')}</h3>
-            <p className="mt-1 text-amber-800/90 dark:text-amber-100/85">
-              {t('session_missing_body')}
-            </p>
-            <Button asChild className="mt-4" variant="default" size="sm">
-              <a href="/login">{t('session_missing_cta')}</a>
-            </Button>
-          </div>
-        </div>
-      </div>
+      <BridgeBanner
+        tone="amber"
+        title={t('not_authenticated_title')}
+        body={t('not_authenticated_body')}
+        cta={{ label: t('not_authenticated_cta'), href: '/login' }}
+      />
+    );
+  }
+
+  if (bridgeStatus === 'unlinked') {
+    return (
+      <BridgeBanner
+        tone="amber"
+        title={t('unlinked_title')}
+        body={t('unlinked_body')}
+        cta={{ label: t('unlinked_cta'), href: '/contact?subject=link-forex-account' }}
+      />
+    );
+  }
+
+  if (bridgeStatus === 'expired') {
+    return (
+      <BridgeBanner
+        tone="amber"
+        title={t('session_missing_title')}
+        body={t('session_missing_body')}
+        cta={{ label: t('session_missing_cta'), href: '/login' }}
+      />
     );
   }
 
@@ -300,4 +317,36 @@ function resolveErrorMessage(
     }
   }
   return fallback ?? null;
+}
+
+interface BridgeBannerProps {
+  tone: 'amber' | 'red';
+  title: string;
+  body: string;
+  cta: { label: string; href: string };
+}
+
+function BridgeBanner({ tone, title, body, cta }: BridgeBannerProps) {
+  const palette =
+    tone === 'amber'
+      ? 'border-amber-300/40 bg-amber-50/60 text-amber-900 dark:border-amber-400/30 dark:bg-amber-950/40 dark:text-amber-100'
+      : 'border-destructive/40 bg-destructive/5 text-destructive';
+  const subtle =
+    tone === 'amber'
+      ? 'text-amber-800/90 dark:text-amber-100/85'
+      : 'text-destructive/80';
+  return (
+    <div className={cn('rounded-2xl border p-6 text-sm', palette)}>
+      <div className="flex items-start gap-3">
+        <Lock className="mt-0.5 h-5 w-5 flex-shrink-0" aria-hidden />
+        <div>
+          <h3 className="font-semibold">{title}</h3>
+          <p className={cn('mt-1', subtle)}>{body}</p>
+          <Button asChild className="mt-4" variant="default" size="sm">
+            <a href={cta.href}>{cta.label}</a>
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
 }

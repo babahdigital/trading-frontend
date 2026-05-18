@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 
 import { setForexCookies } from '@/lib/forex/cookies';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 import { forexMe } from '@/lib/forex/me';
 import { ensureForexAccessToken } from '@/lib/forex/session';
 import { ForexApiError } from '@/lib/forex/types';

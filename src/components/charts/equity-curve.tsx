@@ -82,8 +82,17 @@ export function EquityCurve({
     };
     window.addEventListener('resize', handleResize);
 
+    // ResizeObserver tracks parent-container width changes (sidebar toggle, grid resize)
+    // — supplements window.resize which only fires on viewport changes.
+    let ro: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== 'undefined' && chartContainerRef.current) {
+      ro = new ResizeObserver(() => handleResize());
+      ro.observe(chartContainerRef.current);
+    }
+
     return () => {
       window.removeEventListener('resize', handleResize);
+      ro?.disconnect();
       chart.remove();
     };
   }, [data, height, isEmpty]);

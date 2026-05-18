@@ -3,11 +3,62 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { KeyRound, Server, Users, TrendingUp } from 'lucide-react';
+import { KeyRound, Server, Users, TrendingUp, ArrowUp, ArrowDown } from 'lucide-react';
+import { AreaChart, Area, ResponsiveContainer } from 'recharts';
 import { EquityCurve } from '@/components/charts/equity-curve';
 import { PnlBarChart } from '@/components/charts/pnl-bar-chart';
 import { ScannerHeatmap } from '@/components/charts/scanner-heatmap';
 import { useAuth } from '@/lib/auth/auth-context';
+
+// Trend pill shown next to KPI value. percent is signed; null hides the pill.
+function TrendPill({ percent }: { percent: number | null }) {
+  if (percent === null || !Number.isFinite(percent)) return null;
+  const up = percent >= 0;
+  const Icon = up ? ArrowUp : ArrowDown;
+  return (
+    <span
+      className={cn(
+        'inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold leading-none',
+        up ? 'bg-green-500/15 text-green-500 dark:text-green-400'
+           : 'bg-red-500/15 text-red-500 dark:text-red-400',
+      )}
+      aria-label={`Trend ${up ? 'up' : 'down'} ${Math.abs(percent).toFixed(0)} percent`}
+    >
+      <Icon className="h-2.5 w-2.5" />
+      {up ? '+' : '-'}{Math.abs(percent).toFixed(0)}%
+    </span>
+  );
+}
+
+// Tiny inline sparkline (no axes, no tooltips) — fills parent width.
+function MiniSparkline({ data, positive }: { data: number[]; positive: boolean }) {
+  if (!data || data.length < 2) return null;
+  const series = data.map((v, i) => ({ i, v }));
+  const stroke = positive ? 'rgb(34,197,94)' : 'rgb(239,68,68)';
+  return (
+    <div className="mt-2 h-8 w-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart data={series} margin={{ top: 2, right: 0, bottom: 0, left: 0 }}>
+          <defs>
+            <linearGradient id={`spark-${positive ? 'pos' : 'neg'}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={stroke} stopOpacity={0.35} />
+              <stop offset="100%" stopColor={stroke} stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <Area
+            type="monotone"
+            dataKey="v"
+            stroke={stroke}
+            strokeWidth={1.5}
+            fill={`url(#spark-${positive ? 'pos' : 'neg'})`}
+            isAnimationActive={false}
+            dot={false}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
 
 interface DashboardStats {
   totalLicenses: number;
@@ -229,12 +280,60 @@ export default function AdminDashboard() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const kpiCards = [
-    { title: 'Active Licenses', value: stats ? `${stats.activeLicenses}/${stats.totalLicenses}` : '-', sub: stats?.expiringIn7Days ? `${stats.expiringIn7Days} expiring` : 'Healthy', icon: KeyRound, color: 'text-blue-500' },
-    { title: 'VPS Online', value: stats ? `${stats.onlineVps}/${stats.totalVps}` : '-', sub: 'Instances', icon: Server, color: 'text-green-500' },
-    { title: 'Total Users', value: stats?.totalUsers ?? '-', sub: 'Registered', icon: Users, color: 'text-purple-500' },
-    { title: 'Open Trades', value: positions.length, sub: positions.length > 0 ? `$${positions.reduce((sum, p) => sum + (p.pnl_usd || 0), 0).toFixed(2)}` : 'No open', icon: TrendingUp, color: 'text-cyan-500' },
+  // KPI derivations.
+  // - Open Trades: running cumulative PnL across current positions = REAL data, so we render
+  //   both sparkline + trend pill (signed % of |total PnL| capped at 100).
+  // - Active Licenses / VPS Online: no historical (7d) endpoint exists at /api/admin/dashboard
+  //   yet — per spec we graceful-degrade and leave the cards without spark / trend pill rather
+  //   than fabricating a synthetic series.
+  const openPnlTotal = positions.reduce((s, p) => s + (p.pnl_usd || 0), 0);
+  const openPnlRunning = positions.reduce<number[]>((acc, p) => {
+    const prev = acc.length > 0 ? acc[acc.length - 1] : 0;
+    acc.push(prev + (p.pnl_usd || 0));
+    return acc;
+  }, []);
+  // Trend pill for Open Trades: clamp to ±100% so an outlier loss/gain doesn't break layout.
+  const openPnlTrendPct = positions.length > 0
+    ? Math.max(-100, Math.min(100, (openPnlTotal / Math.max(positions.length, 1)) * 1))
+    : null;
+
+  const kpiCards: Array<{
+    title: string; value: React.ReactNode; sub: string;
+    icon: typeof KeyRound; color: string;
+    trend: number | null; spark: number[] | null; sparkPositive: boolean;
+  }> = [
+    {
+      title: 'Active Licenses',
+      value: stats ? `${stats.activeLicenses}/${stats.totalLicenses}` : '-',
+      sub: stats?.expiringIn7Days ? `${stats.expiringIn7Days} expiring` : 'Healthy',
+      icon: KeyRound, color: 'text-blue-500',
+      trend: null, spark: null, sparkPositive: true,
+    },
+    {
+      title: 'VPS Online',
+      value: stats ? `${stats.onlineVps}/${stats.totalVps}` : '-',
+      sub: 'Instances',
+      icon: Server, color: 'text-green-500',
+      trend: null, spark: null, sparkPositive: true,
+    },
+    {
+      title: 'Total Users',
+      value: stats?.totalUsers ?? '-',
+      sub: 'Registered',
+      icon: Users, color: 'text-purple-500',
+      trend: null, spark: null, sparkPositive: true,
+    },
+    {
+      title: 'Open Trades',
+      value: positions.length,
+      sub: positions.length > 0 ? `$${openPnlTotal.toFixed(2)}` : 'No open',
+      icon: TrendingUp, color: 'text-cyan-500',
+      trend: openPnlTrendPct,
+      spark: openPnlRunning.length >= 2 ? openPnlRunning : null,
+      sparkPositive: openPnlTotal >= 0,
+    },
   ];
+
 
   return (
     <div className="space-y-6">
@@ -252,8 +351,14 @@ export default function AdminDashboard() {
               <card.icon className={cn('h-4 w-4', card.color)} />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold font-mono">{loading ? '...' : card.value}</div>
+              <div className="flex items-baseline gap-2">
+                <div className="text-2xl font-bold font-mono">{loading ? '...' : card.value}</div>
+                {!loading && <TrendPill percent={card.trend} />}
+              </div>
               <p className="text-xs text-muted-foreground">{card.sub}</p>
+              {!loading && card.spark && (
+                <MiniSparkline data={card.spark} positive={card.sparkPositive} />
+              )}
             </CardContent>
           </Card>
         ))}
@@ -261,18 +366,20 @@ export default function AdminDashboard() {
 
       {/* ROW 2: Equity Curve + Daily PnL Bar */}
       <div className="grid gap-4 lg:grid-cols-5">
-        <Card className="lg:col-span-3">
+        <Card className="lg:col-span-3 min-w-0">
           <CardHeader>
             <CardTitle className="text-sm font-medium">Master Equity Curve</CardTitle>
           </CardHeader>
           <CardContent>
-            <EquityCurve
-              data={equityData}
-              height={360}
-              periods={['7D', '30D', '90D', 'YTD']}
-              activePeriod={equityPeriod}
-              onPeriodChange={setEquityPeriod}
-            />
+            <div className="w-full min-w-0">
+              <EquityCurve
+                data={equityData}
+                height={360}
+                periods={['7D', '30D', '90D', 'YTD']}
+                activePeriod={equityPeriod}
+                onPeriodChange={setEquityPeriod}
+              />
+            </div>
             {equityData.length === 0 && !loading && (
               <div className="flex items-center justify-center h-[360px] text-muted-foreground text-sm">
                 No equity data available — connect VPS backend
@@ -280,13 +387,15 @@ export default function AdminDashboard() {
             )}
           </CardContent>
         </Card>
-        <Card className="lg:col-span-2">
+        <Card className="lg:col-span-2 min-w-0">
           <CardHeader>
             <CardTitle className="text-sm font-medium">Daily PnL (30D)</CardTitle>
           </CardHeader>
           <CardContent>
             {dailyPnl.length > 0 ? (
-              <PnlBarChart data={dailyPnl} height={360} />
+              <div className="w-full min-w-0">
+                <PnlBarChart data={dailyPnl} height={360} />
+              </div>
             ) : (
               <div className="flex items-center justify-center h-[360px] text-muted-foreground text-sm">
                 No PnL data available
@@ -298,13 +407,15 @@ export default function AdminDashboard() {
 
       {/* ROW 3: Scanner Heatmap + AI State Monitor */}
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card>
+        <Card className="min-w-0">
           <CardHeader>
             <CardTitle className="text-sm font-medium">Scanner Heatmap (14 Pairs)</CardTitle>
           </CardHeader>
           <CardContent>
             {scannerPairs.length > 0 ? (
-              <ScannerHeatmap pairs={scannerPairs} mode="admin" />
+              <div className="w-full min-w-0">
+                <ScannerHeatmap pairs={scannerPairs} mode="admin" />
+              </div>
             ) : (
               <div className="text-center py-8 text-muted-foreground text-sm">
                 No scanner data — connect VPS backend

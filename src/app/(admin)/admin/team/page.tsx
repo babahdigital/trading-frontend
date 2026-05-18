@@ -170,7 +170,13 @@ export default function AdminTeamPage() {
                   </td>
                   <td className="py-3 px-4 text-right" data-label="Aksi">
                     <div className="inline-flex items-center gap-1">
-                      <Button variant="ghost" size="sm" disabled={u.role === 'SUPER_ADMIN'} title="Edit permissions (Wave-30)">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={u.role === 'SUPER_ADMIN'}
+                        title="Edit permissions (Wave-30)"
+                        aria-label="Edit permissions (Wave-30)"
+                      >
                         <Settings className="h-3.5 w-3.5" strokeWidth={2.25} />
                       </Button>
                       <Button
@@ -178,7 +184,8 @@ export default function AdminTeamPage() {
                         size="sm"
                         disabled={u.role === 'SUPER_ADMIN' || busy === u.id}
                         onClick={() => toggleActive(u)}
-                        title={u.role === 'SUPER_ADMIN' ? 'SUPER_ADMIN immutable' : (u.isActive ? 'Nonaktifkan' : 'Aktifkan')}
+                        title={u.role === 'SUPER_ADMIN' ? 'SUPER_ADMIN immutable' : (u.isActive ? 'Nonaktifkan akun' : 'Aktifkan akun')}
+                        aria-label={u.role === 'SUPER_ADMIN' ? 'SUPER_ADMIN immutable' : (u.isActive ? 'Nonaktifkan akun' : 'Aktifkan akun')}
                       >
                         <Power className={cn('h-3.5 w-3.5', !u.isActive && 'text-destructive')} strokeWidth={2.25} />
                       </Button>

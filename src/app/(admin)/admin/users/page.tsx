@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, X, Trash2, ShieldCheck, UserCog, Power } from 'lucide-react';
+import { Plus, X, Trash2, Power } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
 
 interface User {
@@ -290,6 +290,7 @@ export default function UsersPage() {
                               onClick={() => handleToggleActive(user)}
                               disabled={isSuperAdmin}
                               title={isActive ? 'Nonaktifkan user' : 'Aktifkan kembali user'}
+                              aria-label={isActive ? 'Nonaktifkan user' : 'Aktifkan kembali user'}
                               className="p-1.5 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                             >
                               <Power className={`h-4 w-4 ${isActive ? 'text-emerald-400' : 'text-zinc-400'}`} />
@@ -299,6 +300,7 @@ export default function UsersPage() {
                               onClick={() => handleDelete(user)}
                               disabled={user.role !== 'CLIENT'}
                               title={user.role === 'CLIENT' ? 'Hapus user' : 'Hanya CLIENT yang bisa di-delete'}
+                              aria-label={user.role === 'CLIENT' ? 'Hapus user' : 'Hanya CLIENT yang bisa di-delete'}
                               className="p-1.5 rounded hover:bg-rose-500/20 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                             >
                               <Trash2 className="h-4 w-4 text-rose-400" />
@@ -371,8 +373,9 @@ export default function UsersPage() {
                         type="button"
                         onClick={() => handleToggleActive(user)}
                         disabled={isSuperAdmin}
+                        title={isActive ? 'Nonaktifkan user' : 'Aktifkan kembali user'}
+                        aria-label={isActive ? 'Nonaktifkan user' : 'Aktifkan kembali user'}
                         className="p-1.5 rounded hover:bg-accent transition-colors disabled:opacity-30"
-                        aria-label="Toggle active"
                       >
                         <Power className={`h-4 w-4 ${isActive ? 'text-emerald-400' : 'text-zinc-400'}`} />
                       </button>
@@ -380,8 +383,9 @@ export default function UsersPage() {
                         type="button"
                         onClick={() => handleDelete(user)}
                         disabled={user.role !== 'CLIENT'}
+                        title={user.role === 'CLIENT' ? 'Hapus user' : 'Hanya CLIENT yang bisa di-delete'}
+                        aria-label={user.role === 'CLIENT' ? 'Hapus user' : 'Hanya CLIENT yang bisa di-delete'}
                         className="p-1.5 rounded hover:bg-rose-500/20 transition-colors disabled:opacity-30"
-                        aria-label="Delete user"
                       >
                         <Trash2 className="h-4 w-4 text-rose-400" />
                       </button>

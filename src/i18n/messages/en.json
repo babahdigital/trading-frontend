@@ -1702,6 +1702,25 @@
       "ENGINE_UNKNOWN": "Engine not recognized.",
       "TIER_FORBIDDEN": "This engine is not available on your plan."
     },
+    "forex_auth": {
+      "AUTH_TOKEN_REQUIRED": "Forex backend session not found. Please log in again.",
+      "AUTH_TOKEN_INVALID": "Your backend session is no longer valid. Please log in again.",
+      "AUTH_LOGIN_FAILED": "Invalid email or backend credentials.",
+      "AUTH_REFRESH_INVALID": "Refresh token is invalid or expired.",
+      "AUTH_REFRESH_REPLAYED": "Refresh token has already been used. All sessions revoked for security.",
+      "AUTH_TENANT_SUSPENDED": "Your account is temporarily suspended. Please contact support."
+    },
+    "forex_billing": {
+      "BILLING_CHECKOUT_INVALID_TIER": "This tier cannot be checked out. Choose starter / pro / vip / dedicated.",
+      "BILLING_CHECKOUT_PROVIDER_ERROR": "Payment gateway is not responding. Please retry in a moment.",
+      "BILLING_CHECKOUT_RATE_LIMITED": "Too many checkout attempts. Try again in {retry_after_seconds} seconds.",
+      "BILLING_CHECKOUT_DUPLICATE_PENDING": "A checkout for this tier already exists. We routed you to the active link.",
+      "BILLING_PROVIDER_REJECTED": "The payment provider rejected the transaction. Please retry or contact support.",
+      "TIER_UPGRADE_INVALID_TARGET": "Target tier is not a valid upgrade option.",
+      "TIER_UPGRADE_NO_DOWNGRADE": "Downgrades are not self-service. Please contact support.",
+      "TIER_UPGRADE_ALREADY_AT_TIER": "You are already on this tier.",
+      "TIER_UPGRADE_DUPLICATE_PENDING": "An upgrade for this tier is already pending payment."
+    },
     "not_found": "Resource not found.",
     "unknown": "An unknown error occurred."
   },
@@ -2504,6 +2523,34 @@
     "newsletter_email_placeholder": "you@example.com",
     "newsletter_submit": "Subscribe",
     "newsletter_disclaimer": "By subscribing you agree to our privacy policy. We will never share your email."
+  },
+  "portal_upgrade": {
+    "heading": "Upgrade your plan",
+    "subheading": "Pick the tier that matches your trading needs. Payments are processed by Midtrans (Snap) with audit-stamped invoices. QRIS, cards, virtual accounts and e-wallets supported.",
+    "current_tier": "Current tier · {tier}",
+    "loading": "Loading current tier…",
+    "me_load_failed": "Failed to load tier data. Try refreshing.",
+    "upgrade_failed": "Failed to start the upgrade. Try again.",
+    "network_error": "Network error. Check your connection.",
+    "duplicate_pending": "You already have an active checkout for this tier — we routed you to it.",
+    "session_missing_title": "Backend session not active",
+    "session_missing_body": "Sign in again from the main login so your forex backend session is synced — then start the upgrade from here.",
+    "session_missing_cta": "Re-login",
+    "badge_popular": "Most Popular",
+    "per_month": "month",
+    "cta_upgrade": "Upgrade now",
+    "cta_loading": "Processing…",
+    "cta_current": "Current tier",
+    "cta_downgrade_locked": "Downgrade via support",
+    "payment_disclaimer": "Your new tier activates automatically once payment confirms (typically <60s for QRIS / VA). No profit share — flat monthly subscription.",
+    "tier_starter_name": "Starter",
+    "tier_starter_blurb": "Scalper engine on, daily signals, email support.",
+    "tier_pro_name": "Pro",
+    "tier_pro_blurb": "Scalper + swing, AI advisor, advanced kill-switch.",
+    "tier_vip_name": "VIP",
+    "tier_vip_blurb": "All engines, priority signals, 24/7 support.",
+    "tier_dedicated_name": "Dedicated",
+    "tier_dedicated_blurb": "Dedicated infrastructure with institutional onboarding."
   },
   "portal": {
     "shared": {

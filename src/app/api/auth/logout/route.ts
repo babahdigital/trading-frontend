@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { AUTH_COOKIE_NAMES, clearAuthCookies } from '@/lib/auth/cookies';
+import { forexLogoutSafe } from '@/lib/forex/auth';
+import { FOREX_COOKIE_NAMES, clearForexCookies } from '@/lib/forex/cookies';
 
 export async function POST(request: NextRequest) {
+  const finalize = (response: NextResponse) =>
+    clearForexCookies(clearAuthCookies(response));
+
   try {
     // Refresh token from cookie (preferred) or legacy body
     let refreshToken = request.cookies.get(AUTH_COOKIE_NAMES.REFRESH_TOKEN)?.value ?? '';
@@ -18,6 +23,14 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // Best-effort backend forex revoke — runs even if FE session already
+    // expired so the backend refresh chain gets cleaned up.
+    const forexAccess = request.cookies.get(FOREX_COOKIE_NAMES.ACCESS)?.value;
+    const forexRefresh = request.cookies.get(FOREX_COOKIE_NAMES.REFRESH)?.value;
+    if (forexAccess && forexRefresh) {
+      await forexLogoutSafe({ accessToken: forexAccess, refreshToken: forexRefresh });
+    }
+
     const userId = request.headers.get('x-user-id');
     if (userId) {
       await prisma.auditLog.create({
@@ -30,8 +43,8 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    return clearAuthCookies(NextResponse.json({ ok: true }));
+    return finalize(NextResponse.json({ ok: true }));
   } catch {
-    return clearAuthCookies(NextResponse.json({ ok: true }));
+    return finalize(NextResponse.json({ ok: true }));
   }
 }

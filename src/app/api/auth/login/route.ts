@@ -3,6 +3,9 @@ import { prisma } from '@/lib/db/prisma';
 import { verifyPassword } from '@/lib/auth/password';
 import { signJwt, signRefreshToken, type JwtPayload } from '@/lib/auth/jwt';
 import { setAuthCookies } from '@/lib/auth/cookies';
+import { forexLogin } from '@/lib/forex/auth';
+import { setForexCookies } from '@/lib/forex/cookies';
+import { ForexApiError } from '@/lib/forex/types';
 import { randomUUID } from 'crypto';
 import { createLogger } from '@/lib/logger';
 
@@ -150,12 +153,44 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return setAuthCookies(
+    const response = setAuthCookies(
       NextResponse.json({
         user: { id: user.id, email: user.email, role: user.role, name: user.name },
       }),
       { accessToken, refreshToken },
     );
+
+    // Best-effort bridge to backend forex auth. Customers with a stored
+    // api_token (issued at backend signup) get a JWT pair stamped on the
+    // browser as `forex_*_token` cookies so the portal can transact
+    // against `/api/forex/*` without the browser ever holding the raw
+    // api_token. Failure here NEVER blocks FE-side login.
+    if (user.forexApiToken && user.role !== 'ADMIN') {
+      try {
+        const forexTokens = await forexLogin({
+          email: user.email,
+          apiToken: user.forexApiToken,
+        });
+        setForexCookies(response, {
+          accessToken: forexTokens.access_token,
+          refreshToken: forexTokens.refresh_token,
+          expiresIn: forexTokens.expires_in,
+          refreshExpiresIn: forexTokens.refresh_expires_in,
+        });
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { forexLinkedAt: new Date() },
+        });
+      } catch (bridgeErr) {
+        if (bridgeErr instanceof ForexApiError) {
+          log.warn(`forex bridge failed for ${user.email}: ${bridgeErr.code}`);
+        } else {
+          log.error('forex bridge unexpected:', bridgeErr);
+        }
+      }
+    }
+
+    return response;
   } catch (error) {
     log.error('Login error:', error);
     return errorResponse('internal_error', 'Internal server error', 500);

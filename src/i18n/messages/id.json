@@ -1702,6 +1702,25 @@
       "ENGINE_UNKNOWN": "Engine tidak dikenali.",
       "TIER_FORBIDDEN": "Engine ini tidak tersedia di paket Anda."
     },
+    "forex_auth": {
+      "AUTH_TOKEN_REQUIRED": "Sesi backend forex tidak ditemukan. Silakan login ulang.",
+      "AUTH_TOKEN_INVALID": "Sesi backend Anda sudah tidak valid. Silakan login ulang.",
+      "AUTH_LOGIN_FAILED": "Email atau kredensial backend tidak sesuai.",
+      "AUTH_REFRESH_INVALID": "Token refresh tidak valid atau sudah kadaluarsa.",
+      "AUTH_REFRESH_REPLAYED": "Token refresh sudah pernah digunakan. Semua sesi telah dicabut untuk keamanan.",
+      "AUTH_TENANT_SUSPENDED": "Akun Anda saat ini diberhentikan sementara. Hubungi support."
+    },
+    "forex_billing": {
+      "BILLING_CHECKOUT_INVALID_TIER": "Tier tujuan tidak dapat di-checkout. Pilih starter/pro/vip/dedicated.",
+      "BILLING_CHECKOUT_PROVIDER_ERROR": "Payment gateway tidak merespons. Coba lagi dalam beberapa saat.",
+      "BILLING_CHECKOUT_RATE_LIMITED": "Terlalu banyak percobaan checkout. Coba lagi dalam {retry_after_seconds} detik.",
+      "BILLING_CHECKOUT_DUPLICATE_PENDING": "Checkout untuk tier ini sudah dibuat. Kami arahkan ke link aktif Anda.",
+      "BILLING_PROVIDER_REJECTED": "Penyedia pembayaran menolak transaksi. Coba lagi atau hubungi support.",
+      "TIER_UPGRADE_INVALID_TARGET": "Tier tujuan tidak valid untuk upgrade.",
+      "TIER_UPGRADE_NO_DOWNGRADE": "Downgrade tidak dapat dilakukan sendiri. Hubungi support.",
+      "TIER_UPGRADE_ALREADY_AT_TIER": "Anda sudah berada di tier ini.",
+      "TIER_UPGRADE_DUPLICATE_PENDING": "Permintaan upgrade tier ini masih menunggu pembayaran."
+    },
     "not_found": "Data tidak ditemukan.",
     "unknown": "Terjadi kesalahan yang tidak diketahui."
   },
@@ -2504,6 +2523,34 @@
     "newsletter_email_placeholder": "anda@contoh.com",
     "newsletter_submit": "Berlangganan",
     "newsletter_disclaimer": "Dengan berlangganan Anda menyetujui kebijakan privasi kami. Kami tidak akan pernah membagikan email Anda."
+  },
+  "portal_upgrade": {
+    "heading": "Upgrade paket Anda",
+    "subheading": "Pilih tier yang sesuai dengan kebutuhan trading Anda. Pembayaran aman via Midtrans (Snap) dengan invoice tertanda audit. Anda dapat menggunakan QRIS, kartu kredit/debit, virtual account, atau e-wallet.",
+    "current_tier": "Tier saat ini · {tier}",
+    "loading": "Memuat tier saat ini…",
+    "me_load_failed": "Gagal memuat data tier. Coba refresh halaman.",
+    "upgrade_failed": "Gagal memulai upgrade. Coba lagi.",
+    "network_error": "Koneksi gagal. Periksa internet Anda.",
+    "duplicate_pending": "Anda sudah punya checkout aktif untuk tier ini — kami arahkan ke link aktif.",
+    "session_missing_title": "Sesi backend belum aktif",
+    "session_missing_body": "Login ulang dari halaman utama supaya sesi backend forex tersinkron — setelah itu Anda dapat mulai upgrade dari sini.",
+    "session_missing_cta": "Login ulang",
+    "badge_popular": "Paling Populer",
+    "per_month": "bulan",
+    "cta_upgrade": "Upgrade sekarang",
+    "cta_loading": "Memproses…",
+    "cta_current": "Tier aktif",
+    "cta_downgrade_locked": "Downgrade via support",
+    "payment_disclaimer": "Tier baru aktif otomatis setelah pembayaran terkonfirmasi (umumnya <60 detik untuk QRIS / VA). Tidak ada profit share — flat monthly subscription.",
+    "tier_starter_name": "Starter",
+    "tier_starter_blurb": "Engine scalper aktif, signal harian, support email.",
+    "tier_pro_name": "Pro",
+    "tier_pro_blurb": "Scalper + swing, AI advisor, kill-switch advanced.",
+    "tier_vip_name": "VIP",
+    "tier_vip_blurb": "Seluruh engine, prioritas signal, dukungan 24/7.",
+    "tier_dedicated_name": "Dedicated",
+    "tier_dedicated_blurb": "Infrastruktur dedicated + onboarding khusus institusi."
   },
   "portal": {
     "shared": {

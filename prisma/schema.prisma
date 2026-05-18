@@ -34,6 +34,20 @@ model User {
   recoveryCodes      Json                   @default("[]")
   telegramChatId     String?
   whatsappNumber     String?
+  /// Forex backend (`trading-forex`) tenant identifier — stamped on the
+  /// first successful bridge to backend `/signup` or `/api/forex/me`.
+  /// Used to call backend `/api/forex/auth/login` (email + api_token) on
+  /// FE login so the browser session can transact against the backend
+  /// JWT pair without re-asking for credentials.
+  forexTenantId      String?                @unique
+  /// Plaintext API token returned by backend `/signup`. STORED for the
+  /// machine-to-machine bridge only — never returned to the browser. The
+  /// browser uses the HttpOnly `forex_access_token` cookie set by the FE
+  /// proxy after successful bridge login.
+  forexApiToken      String?
+  /// Last time the bridge to backend `/api/forex/auth/login` succeeded.
+  /// Used to debounce stale bridge attempts.
+  forexLinkedAt      DateTime?
   createdAt          DateTime               @default(now())
   lastLoginAt        DateTime?
   licenses           License[]

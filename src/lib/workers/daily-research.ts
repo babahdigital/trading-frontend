@@ -28,6 +28,19 @@ import { generateArticleImage } from '@/lib/ai/image-generator';
 import { generateSeoMeta } from '@/lib/ai/seo-meta';
 import { injectInternalLinks, invalidateInternalLinkCache } from '@/lib/blog/internal-links';
 import { proxyToMasterBackend } from '@/lib/proxy/vps-client';
+import {
+  getLatestSignals,
+  getNewsArticles,
+  getCalendarEvents,
+  getAiExplainObservations,
+  getAiExplainAdvice,
+  getKeyLevels,
+  type Vps1NewsArticle,
+  type Vps1CalendarEventV1,
+  type Vps1AiObservation,
+  type Vps1AiAdvice,
+  type Vps1Signal,
+} from '@/lib/vps1/client';
 import { createLogger } from '@/lib/logger';
 import { generateText } from 'ai';
 import type { ArticleCategory, Prisma } from '@prisma/client';
@@ -250,13 +263,38 @@ const dayConfigs: Record<number, DayConfig> = {
     category: 'MARKET_ANALYSIS',
     imageSlugHint: 'weekly-market-recap-candlestick-chart-multi-pair',
     fetchData: async () => {
-      try {
-        const res = await proxyToMasterBackend('research', '/api/research/weekly-recap', { method: 'GET' });
-        if (res.ok) return await res.json() as Record<string, unknown>;
-      } catch { /* fall through to fallback */ }
-      // Backend 404 / 503 → use FE Prisma PairBrief sebagai sumber data.
-      // 7 briefs untuk weekly window.
-      return await fetchPairBriefsFallback(7);
+      // 2026-05-19 — REAL data: signals/latest + news/articles via microservices
+      const [signals, newsRaw] = await Promise.all([
+        getLatestSignals({ limit: 30 }).catch((): Vps1Signal[] => []),
+        getNewsArticles({ limit: 20 }).catch(() => ({ items: [] as Vps1NewsArticle[] })),
+      ]);
+      const newsItems = Array.isArray(newsRaw) ? newsRaw : newsRaw.items ?? [];
+      if (signals.length === 0 && newsItems.length === 0) {
+        // Microservices unreachable → fall back to PairBrief DB.
+        return await fetchPairBriefsFallback(7);
+      }
+      return {
+        source: 'microservice_live',
+        generated_at: new Date().toISOString(),
+        signals_count: signals.length,
+        top_signals: signals.slice(0, 10).map((s) => ({
+          pair: s.pair,
+          direction: s.direction,
+          entry_type: s.entry_type,
+          entry: s.entry_price ?? s.entry_price_hint,
+          sl: s.stop_loss,
+          tp: s.take_profit,
+          confidence: s.confidence,
+          reasoning: s.reasoning?.slice(0, 200),
+          emitted_at: s.emitted_at,
+        })),
+        market_news: newsItems.slice(0, 8).map((n) => ({
+          title: n.title,
+          source: n.source,
+          sentiment: n.sentiment,
+          published_at: n.published_at,
+        })),
+      } as Record<string, unknown>;
     },
     buildPrompt: async (data) => ({
       titleId: `Rangkuman Pasar Mingguan ${formatDateId(new Date())}: Sinyal Forex & Win Rate Institusional`,
@@ -276,11 +314,25 @@ const dayConfigs: Record<number, DayConfig> = {
     category: 'EDUCATION',
     imageSlugHint: 'ai-lesson-of-the-day-trading-algorithm-learning',
     fetchData: async () => {
-      try {
-        const res = await proxyToMasterBackend('research', '/api/research/top-signals?limit=5', { method: 'GET' });
-        if (res.ok) return await res.json() as Record<string, unknown>;
-      } catch { /* fall through to fallback */ }
-      return await fetchPairBriefsFallback(5);
+      // 2026-05-19 — REAL data: AI Explainability observations + recent signals
+      const [obsRaw, signals] = await Promise.all([
+        getAiExplainObservations({ limit: 10 }).catch(() => ({ items: [] as Vps1AiObservation[] })),
+        getLatestSignals({ limit: 5 }).catch((): Vps1Signal[] => []),
+      ]);
+      const obsItems = Array.isArray(obsRaw) ? obsRaw : obsRaw.items ?? [];
+      if (obsItems.length === 0 && signals.length === 0) {
+        return await fetchPairBriefsFallback(5);
+      }
+      return {
+        source: 'microservice_live',
+        ai_observations: obsItems.slice(0, 5),
+        recent_signals: signals.slice(0, 5).map((s) => ({
+          pair: s.pair,
+          direction: s.direction,
+          confidence: s.confidence,
+          reasoning: s.reasoning?.slice(0, 200),
+        })),
+      } as Record<string, unknown>;
     },
     buildPrompt: async (data) => ({
       titleId: `Pelajaran AI Trading: Cara Membaca Konfluensi SMC ${formatDateId(new Date())}`,
@@ -300,11 +352,41 @@ const dayConfigs: Record<number, DayConfig> = {
     category: 'CASE_STUDY',
     imageSlugHint: 'trade-case-study-candlestick-entry-exit-markers',
     fetchData: async () => {
-      try {
-        const res = await proxyToMasterBackend('research', '/api/research/top-signals?limit=3', { method: 'GET' });
-        if (res.ok) return await res.json() as Record<string, unknown>;
-      } catch { /* fall through to fallback */ }
-      return await fetchPairBriefsFallback(3);
+      // 2026-05-19 — REAL data: high-confidence recent signals + AI advice for context
+      const [signals, adviceRaw] = await Promise.all([
+        getLatestSignals({ limit: 20, min_confidence: 0.65 }).catch((): Vps1Signal[] => []),
+        getAiExplainAdvice({ limit: 5 }).catch(() => ({ items: [] as Vps1AiAdvice[] })),
+      ]);
+      if (signals.length === 0) {
+        return await fetchPairBriefsFallback(3);
+      }
+      const adviceItems = Array.isArray(adviceRaw) ? adviceRaw : adviceRaw.items ?? [];
+      const sortedByConfidence = [...signals].sort((a, b) => (b.confidence ?? 0) - (a.confidence ?? 0));
+      const topPair = sortedByConfidence[0]?.pair;
+      // Enrich top signal with key-levels context (substrate microservice).
+      const keyLevels = topPair ? await getKeyLevels(topPair).catch(() => null) : null;
+      return {
+        source: 'microservice_live',
+        candidates: sortedByConfidence.slice(0, 3).map((s) => ({
+          pair: s.pair,
+          direction: s.direction,
+          entry_type: s.entry_type,
+          entry: s.entry_price ?? s.entry_price_hint,
+          sl: s.stop_loss,
+          tp: s.take_profit,
+          confidence: s.confidence,
+          reasoning: s.reasoning?.slice(0, 250),
+          lot: s.lot,
+          emitted_at: s.emitted_at,
+        })),
+        ai_rationale: adviceItems.slice(0, 3),
+        substrate_context: keyLevels ? {
+          symbol: keyLevels.symbol,
+          daily_pivot: keyLevels.daily_pivot,
+          weekly_pivot: keyLevels.weekly_pivot,
+          levels: keyLevels.levels?.slice(0, 5),
+        } : null,
+      } as Record<string, unknown>;
     },
     buildPrompt: async (data) => ({
       titleId: `Studi Kasus Trade ${formatDateId(new Date())}: Anatomi Entry High-Confidence SMC`,
@@ -418,12 +500,36 @@ WAJIB tabel pair-bias di tengah artikel:
     category: 'MARKET_ANALYSIS',
     imageSlugHint: 'weekend-preview-economic-calendar-events',
     fetchData: async () => {
-      try {
-        const res = await proxyToMasterBackend('research', '/api/research/calendar/EURUSD', { method: 'GET' });
-        if (res.status === 404) return { note: 'No calendar data for EURUSD this week' };
-        if (!res.ok) return null;
-        return await res.json() as Record<string, unknown>;
-      } catch { return null; }
+      // 2026-05-19 — REAL data: economic calendar events via microservice
+      const calRaw = await getCalendarEvents({ limit: 30 }).catch(() => ({ items: [] as Vps1CalendarEventV1[] }));
+      const events = Array.isArray(calRaw) ? calRaw : calRaw.items ?? [];
+      if (events.length === 0) {
+        return { note: 'Calendar microservice returned no upcoming events this week.' };
+      }
+      // Filter HIGH impact + next 7 days
+      const sevenDaysAhead = Date.now() + 7 * 24 * 60 * 60 * 1000;
+      const highImpact = events.filter((e) => {
+        if (e.impact !== 'HIGH') return false;
+        const t = e.time ? Date.parse(e.time) : NaN;
+        return Number.isFinite(t) && t <= sevenDaysAhead;
+      });
+      return {
+        source: 'microservice_live',
+        week_window: {
+          start: new Date().toISOString(),
+          end: new Date(sevenDaysAhead).toISOString(),
+        },
+        total_events: events.length,
+        high_impact_count: highImpact.length,
+        high_impact_events: highImpact.slice(0, 15).map((e) => ({
+          time: e.time,
+          currency: e.currency,
+          event: e.event,
+          impact: e.impact,
+          forecast: e.forecast,
+          previous: e.previous,
+        })),
+      } as Record<string, unknown>;
     },
     buildPrompt: async (data) => ({
       titleId: `Forex Week Ahead ${formatDateId(new Date())}: Event Kalender Ekonomi & Positioning`,

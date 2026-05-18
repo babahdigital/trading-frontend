@@ -25,6 +25,7 @@ import {
   KeyRound,
   Bell,
   Sparkles,
+  CreditCard,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ResponsiveSidebar } from '@/components/layout/responsive-sidebar';
@@ -81,6 +82,7 @@ const NAV_SECTIONS: NavSection[] = [
   {
     labelKey: 'nav_section_account',
     items: [
+      { href: '/portal/billing/upgrade', labelKey: 'nav_upgrade', icon: CreditCard },
       { href: '/portal/kyc', labelKey: 'nav_kyc', icon: IdCard },
       { href: '/portal/account', labelKey: 'nav_account', icon: User },
     ],

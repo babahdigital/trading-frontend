@@ -1,7 +1,10 @@
 'use client';
 
 import Image from 'next/image';
-import { LineChart, BookOpen, Brain, Globe, BarChart3, Calendar, Sparkles } from 'lucide-react';
+import {
+  LineChart, BookOpen, Brain, Globe, BarChart3, Calendar, Sparkles,
+  Shield, GraduationCap, Layers, Newspaper, TrendingUp, Microscope,
+} from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 /**
@@ -23,25 +26,56 @@ interface ArticleCardImageProps {
   aspectClass?: string;
 }
 
-// Category icon mapping — institutional categories (per backend daily-research)
-const CATEGORY_ICONS: Record<string, LucideIcon> = {
-  market_recap: BarChart3,
-  ai_lesson: Brain,
-  case_study: LineChart,
-  correlation: Globe,
-  risk: BookOpen,
-  strategy: Sparkles,
-  preview: Calendar,
-  default: BookOpen,
+// Category → icon + accent color. Mapping covers the canonical Prisma
+// ArticleCategory enum values (MARKET_ANALYSIS / CASE_STUDY / EDUCATION /
+// RESEARCH / RISK / STRATEGY) as well as their humanised + lowercased
+// variants so the renderer works regardless of which form the parent
+// passes in (raw enum from DB OR `humanizeCategory()` output).
+type CategoryMeta = { icon: LucideIcon; accent: string };
+
+const DEFAULT_META: CategoryMeta = {
+  icon: BookOpen,
+  accent: 'text-muted-foreground',
 };
 
-function pickCategoryIcon(category: string | undefined): LucideIcon {
-  if (!category) return CATEGORY_ICONS.default;
-  const key = category.toLowerCase();
-  for (const [pattern, icon] of Object.entries(CATEGORY_ICONS)) {
-    if (key.includes(pattern)) return icon;
+const CATEGORY_META: Record<string, CategoryMeta> = {
+  market_analysis: { icon: BarChart3, accent: 'text-sky-500 dark:text-sky-400' },
+  market_recap: { icon: BarChart3, accent: 'text-sky-500 dark:text-sky-400' },
+  case_study: { icon: LineChart, accent: 'text-amber-500 dark:text-amber-400' },
+  ai_lesson: { icon: Brain, accent: 'text-violet-500 dark:text-violet-400' },
+  education: { icon: GraduationCap, accent: 'text-violet-500 dark:text-violet-400' },
+  research: { icon: Microscope, accent: 'text-emerald-500 dark:text-emerald-400' },
+  correlation: { icon: Globe, accent: 'text-emerald-500 dark:text-emerald-400' },
+  risk: { icon: Shield, accent: 'text-rose-500 dark:text-rose-400' },
+  strategy: { icon: Layers, accent: 'text-cyan-500 dark:text-cyan-400' },
+  preview: { icon: Calendar, accent: 'text-indigo-500 dark:text-indigo-400' },
+  news: { icon: Newspaper, accent: 'text-blue-500 dark:text-blue-400' },
+  trending: { icon: TrendingUp, accent: 'text-amber-500 dark:text-amber-400' },
+};
+
+function normaliseKey(category: string | undefined): string {
+  if (!category) return '';
+  // Accept both "MARKET_ANALYSIS" and humanised "MARKET ANALYSIS" + any
+  // mixed-case variant.
+  return category.toLowerCase().replace(/\s+/g, '_');
+}
+
+function pickCategoryMeta(category: string | undefined): CategoryMeta {
+  const key = normaliseKey(category);
+  if (!key) return DEFAULT_META;
+  if (CATEGORY_META[key]) return CATEGORY_META[key];
+  for (const [pattern, meta] of Object.entries(CATEGORY_META)) {
+    if (key.includes(pattern)) return meta;
   }
-  return CATEGORY_ICONS.default;
+  return DEFAULT_META;
+}
+
+function pickCategoryIcon(category: string | undefined): LucideIcon {
+  return pickCategoryMeta(category).icon;
+}
+
+function pickCategoryAccent(category: string | undefined): string {
+  return pickCategoryMeta(category).accent;
 }
 
 export function ArticleCardImage({
@@ -52,6 +86,7 @@ export function ArticleCardImage({
   aspectClass = 'aspect-[16/9]',
 }: ArticleCardImageProps) {
   const Icon = pickCategoryIcon(category);
+  const accentClass = pickCategoryAccent(category);
 
   if (imageUrl) {
     return (
@@ -80,14 +115,15 @@ export function ArticleCardImage({
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="inline-flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full bg-amber-500/[0.06] dark:bg-amber-500/[0.10] ring-1 ring-amber-500/30 backdrop-blur-sm">
           <Icon
-            className="h-7 w-7 sm:h-8 sm:w-8 text-amber-600 dark:text-amber-300"
+            className={`h-7 w-7 sm:h-8 sm:w-8 ${accentClass}`}
             strokeWidth={1.5}
             aria-hidden
           />
         </div>
       </div>
       {category ? (
-        <span className="absolute bottom-2.5 left-2.5 inline-flex items-center px-2 py-0.5 rounded-full bg-background/80 backdrop-blur text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
+        <span className="absolute bottom-2.5 left-2.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-background/80 backdrop-blur text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
+          <Icon className={`h-3 w-3 ${accentClass}`} strokeWidth={2} aria-hidden />
           {category}
         </span>
       ) : null}

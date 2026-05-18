@@ -15,29 +15,65 @@
  * Scope tokens dibaca per-call sehingga env change di server tidak butuh redeploy.
  */
 
-type Scope = 'signals' | 'trade_events' | 'research' | 'pamm' | 'stats' | 'admin' | 'tenant';
+/**
+ * 2026-05-19 — scope catalog covers two distinct backend stacks:
+ *
+ * 1. Forex backend (port 8101) — tenant-scoped trading state. Uses the
+ *    `X-API-Token` header dengan tenant API token issued by signup flow.
+ *    Scopes: research / pamm / stats / admin / tenant.
+ *
+ * 2. Public API Marketplace microservices (ports 8210-8220) — provider
+ *    of news / signals / indicators / market-data / calendar / ai-explain
+ *    / substrate primitives. Auth via `X-Api-Key: babasvc_<scoped-key>`
+ *    issued per-service oleh backend admin endpoint.
+ *    Scopes: news / signals / trade_events / indicators / market_data /
+ *    calendar / ai_explain / substrate.
+ *
+ * Each scope routes to a dedicated env var + tunnel port; fallback ke
+ * VPS1_BACKEND_URL untuk legacy compatibility.
+ */
+type Scope =
+  | 'signals'
+  | 'trade_events'
+  | 'news'
+  | 'indicators'
+  | 'market_data'
+  | 'calendar'
+  | 'ai_explain'
+  | 'substrate'
+  | 'research'
+  | 'pamm' // deprecated
+  | 'stats'
+  | 'admin'
+  | 'tenant';
 
 const SCOPE_ENV: Record<Scope, string> = {
-  signals: 'VPS1_TOKEN_SIGNALS',
-  trade_events: 'VPS1_TOKEN_TRADE_EVENTS',
+  // Public API Marketplace (X-Api-Key)
+  signals: 'VPS1_PUBAPI_SIGNALS_KEY',
+  trade_events: 'VPS1_PUBAPI_SIGNALS_KEY', // shares signals key (same upstream)
+  news: 'VPS1_PUBAPI_NEWS_KEY',
+  indicators: 'VPS1_PUBAPI_INDICATORS_KEY',
+  market_data: 'VPS1_PUBAPI_MARKET_DATA_KEY',
+  calendar: 'VPS1_PUBAPI_CALENDAR_KEY',
+  ai_explain: 'VPS1_PUBAPI_AI_EXPLAIN_KEY',
+  substrate: 'VPS1_PUBAPI_SUBSTRATE_KEY',
+  // Forex backend (X-API-Token)
   research: 'VPS1_TOKEN_RESEARCH',
-  // pamm scope deprecated 2026-04-26 — fallback ke admin token untuk back-compat
-  pamm: 'VPS1_ADMIN_TOKEN',
+  pamm: 'VPS1_ADMIN_TOKEN', // deprecated 2026-04-26
   stats: 'VPS1_TOKEN_STATS',
   admin: 'VPS1_ADMIN_TOKEN',
-  // tenant scope (Wave-29S-D): /api/forex/positions* + /api/forex/me/* — pakai
-  // admin token sampai per-user tenant token issuance siap (P0-3 audit)
   tenant: 'VPS1_ADMIN_TOKEN',
 };
 
-/**
- * Auth header per scope. Signals API microservice expects `X-Api-Key`;
- * forex backend + research/stats endpoints (yang dulu via gateway) expect
- * `X-API-Token`. Beda backend, beda standard.
- */
 const SCOPE_AUTH_HEADER: Record<Scope, 'X-Api-Key' | 'X-API-Token'> = {
   signals: 'X-Api-Key',
   trade_events: 'X-Api-Key',
+  news: 'X-Api-Key',
+  indicators: 'X-Api-Key',
+  market_data: 'X-Api-Key',
+  calendar: 'X-Api-Key',
+  ai_explain: 'X-Api-Key',
+  substrate: 'X-Api-Key',
   research: 'X-API-Token',
   pamm: 'X-API-Token',
   stats: 'X-API-Token',
@@ -46,27 +82,40 @@ const SCOPE_AUTH_HEADER: Record<Scope, 'X-Api-Key' | 'X-API-Token'> = {
 };
 
 function tokenFor(scope: Scope): string | undefined {
+  // Public API Marketplace scopes MUST NOT fall back to VPS1_ADMIN_TOKEN
+  // (which is a forex backend token rejected with 401 oleh microservices).
+  const isPubApi = SCOPE_AUTH_HEADER[scope] === 'X-Api-Key';
+  if (isPubApi) {
+    return process.env[SCOPE_ENV[scope]] || undefined;
+  }
   return process.env[SCOPE_ENV[scope]] || process.env.VPS1_ADMIN_TOKEN || undefined;
 }
 
-/**
- * Resolve base URL per scope. Signals/trade_events hit signals-api microservice;
- * lainnya hit forex backend (yang dulu dianggap gateway).
- */
+const SCOPE_URL_ENV: Record<Scope, readonly string[]> = {
+  signals: ['VPS1_SIGNALS_URL', 'VPS1_BACKEND_URL'],
+  trade_events: ['VPS1_SIGNALS_URL', 'VPS1_BACKEND_URL'],
+  news: ['VPS1_NEWS_URL', 'VPS1_BACKEND_URL'],
+  indicators: ['VPS1_INDICATORS_URL', 'VPS1_BACKEND_URL'],
+  market_data: ['VPS1_MARKET_DATA_URL', 'VPS1_BACKEND_URL'],
+  calendar: ['VPS1_CALENDAR_URL', 'VPS1_BACKEND_URL'],
+  ai_explain: ['VPS1_AI_EXPLAIN_URL', 'VPS1_BACKEND_URL'],
+  substrate: ['VPS1_SUBSTRATE_URL', 'VPS1_BACKEND_URL'],
+  research: ['VPS1_FOREX_URL', 'VPS1_BACKEND_URL'],
+  pamm: ['VPS1_FOREX_URL', 'VPS1_BACKEND_URL'],
+  stats: ['VPS1_FOREX_URL', 'VPS1_BACKEND_URL'],
+  admin: ['VPS1_FOREX_URL', 'VPS1_BACKEND_URL'],
+  tenant: ['VPS1_FOREX_URL', 'VPS1_BACKEND_URL'],
+};
+
 function baseUrlFor(scope: Scope): string {
-  const fallback = process.env.VPS1_BACKEND_URL;
-  if (scope === 'signals' || scope === 'trade_events') {
-    const url = process.env.VPS1_SIGNALS_URL || fallback;
-    if (!url) {
-      throw new Vps1Error(503, 'VPS1_SIGNALS_URL / VPS1_BACKEND_URL not configured — signals API tidak dapat dijangkau.');
-    }
-    return url;
+  for (const envKey of SCOPE_URL_ENV[scope]) {
+    const url = process.env[envKey];
+    if (url) return url;
   }
-  const url = process.env.VPS1_FOREX_URL || fallback;
-  if (!url) {
-    throw new Vps1Error(503, 'VPS1_FOREX_URL / VPS1_BACKEND_URL not configured — backend forex tidak dapat dijangkau.');
-  }
-  return url;
+  throw new Vps1Error(
+    503,
+    `VPS1 base URL untuk scope "${scope}" tidak terkonfigurasi (cek ${SCOPE_URL_ENV[scope].join(' / ')}).`,
+  );
 }
 
 /** Forex backend URL khusus untuk /health probe — public, no scope dispatch needed. */
@@ -411,11 +460,33 @@ export interface Vps1MarketSnapshot {
   [key: string]: unknown;
 }
 
-export function getMarketSnapshot(pair: string): Promise<Vps1MarketSnapshot> {
-  return tolerate404(
-    request<Vps1MarketSnapshot>('research', `/api/research/market-snapshot/${pair}`),
-    { pair, timestamp_utc: new Date().toISOString() },
-  );
+/**
+ * 2026-05-19 — migrated dari /api/research/market-snapshot (deprecated)
+ * ke composite call ke 8220 substrate microservice. Backward-compatible
+ * shape (Vps1MarketSnapshot) preserved — fields kosong jika substrate
+ * microservice unreachable.
+ */
+export async function getMarketSnapshot(pair: string): Promise<Vps1MarketSnapshot> {
+  const keyLevelsFallback: Vps1KeyLevels = { symbol: pair };
+  const sessionFallback: Vps1SessionStatus = { symbol: pair };
+  const [keyLevels, session] = await Promise.all([
+    getKeyLevels(pair).catch((): Vps1KeyLevels => keyLevelsFallback),
+    getActiveSession(pair).catch((): Vps1SessionStatus => sessionFallback),
+  ]);
+  return {
+    pair,
+    timestamp_utc: new Date().toISOString(),
+    session: {
+      profile: session.active_session,
+      next_window: session.next_session,
+      utc_hour: typeof session.utc_hour === 'number' ? session.utc_hour : undefined,
+    },
+    // Carry the raw substrate payload so consumers that want to render
+    // levels / zones bisa pull dari `(snapshot as any).key_levels`.
+    key_levels: keyLevels.levels ?? [],
+    daily_pivot: keyLevels.daily_pivot,
+    weekly_pivot: keyLevels.weekly_pivot,
+  };
 }
 
 export interface Vps1CalendarEvent {
@@ -435,11 +506,26 @@ export interface Vps1Calendar {
   [key: string]: unknown;
 }
 
-export function getCalendar(pair: string): Promise<Vps1Calendar> {
-  return tolerate404(
-    request<Vps1Calendar>('research', `/api/research/calendar/${pair}`),
-    { pair, events: [] },
-  );
+/**
+ * 2026-05-19 — migrated dari /api/research/calendar/{pair} (deprecated)
+ * ke /v1/calendar/events?symbol=X di port 8215. Normalises new envelope
+ * shape ({items: [...]} or [...]) to legacy `{pair, events}` shape.
+ */
+export async function getCalendar(pair: string): Promise<Vps1Calendar> {
+  const raw = await getCalendarEvents({ symbol: pair, limit: 20 });
+  const items = Array.isArray(raw) ? raw : (raw as { items: Vps1CalendarEventV1[] }).items ?? [];
+  return {
+    pair,
+    events: items.map((ev) => ({
+      time: ev.time ?? '',
+      currency: ev.currency ?? pair.slice(0, 3),
+      event: ev.event ?? '',
+      impact: (ev.impact ?? 'LOW') as 'HIGH' | 'MEDIUM' | 'LOW',
+      forecast: ev.forecast,
+      previous: ev.previous,
+      actual: ev.actual,
+    })),
+  };
 }
 
 /**
@@ -535,6 +621,151 @@ export function getTechnicalExtras(pair: string): Promise<Vps1TechnicalExtras> {
   return tolerate404(
     request<Vps1TechnicalExtras>('research', `/api/research/technical-extras/${pair}`),
     { pair, timestamp_utc: new Date().toISOString() },
+  );
+}
+
+// ─── Public API Marketplace microservices (2026-05-19) ─────────────────────
+// Direct calls ke /v1/* di port 821x. Setiap scope punya dedicated
+// X-Api-Key + URL via env. Backend confirmed 600/min + 1M/day rate.
+
+export interface Vps1KeyLevel {
+  level: number;
+  kind?: string;
+  strength?: number;
+  timeframe?: string;
+  source?: string;
+  [key: string]: unknown;
+}
+
+export interface Vps1KeyLevels {
+  symbol: string;
+  generated_at?: string;
+  levels?: Vps1KeyLevel[];
+  daily_pivot?: number;
+  weekly_pivot?: number;
+  [key: string]: unknown;
+}
+
+export function getKeyLevels(symbol: string): Promise<Vps1KeyLevels> {
+  return tolerate404(
+    request<Vps1KeyLevels>('substrate', `/v1/key-levels/${encodeURIComponent(symbol)}`),
+    { symbol },
+  );
+}
+
+export interface Vps1SubstrateZone {
+  type?: string;
+  high?: number;
+  low?: number;
+  timeframe?: string;
+  strength?: number;
+  [key: string]: unknown;
+}
+
+export interface Vps1SubstrateZones {
+  symbol: string;
+  zones?: Vps1SubstrateZone[];
+  [key: string]: unknown;
+}
+
+export function getSubstrateZones(symbol: string): Promise<Vps1SubstrateZones> {
+  return tolerate404(
+    request<Vps1SubstrateZones>('substrate', `/v1/substrate/zones/${encodeURIComponent(symbol)}`),
+    { symbol, zones: [] },
+  );
+}
+
+export interface Vps1SessionStatus {
+  symbol: string;
+  active_session?: string;
+  next_session?: string;
+  utc_hour?: number;
+  [key: string]: unknown;
+}
+
+export function getActiveSession(symbol: string): Promise<Vps1SessionStatus> {
+  return tolerate404(
+    request<Vps1SessionStatus>('substrate', `/v1/sessions/${encodeURIComponent(symbol)}/active`),
+    { symbol },
+  );
+}
+
+export interface Vps1NewsArticle {
+  id?: string;
+  title?: string;
+  source?: string;
+  url?: string;
+  sentiment?: number;
+  published_at?: string;
+  [key: string]: unknown;
+}
+
+export function getNewsArticles(params: { limit?: number; symbol?: string } = {}): Promise<{ items: Vps1NewsArticle[] } | Vps1NewsArticle[]> {
+  const q = new URLSearchParams();
+  if (params.limit !== undefined) q.set('limit', String(params.limit));
+  if (params.symbol) q.set('symbol', params.symbol);
+  const qs = q.toString();
+  return tolerate404(
+    request<{ items: Vps1NewsArticle[] } | Vps1NewsArticle[]>('news', `/v1/news/articles${qs ? `?${qs}` : ''}`),
+    { items: [] },
+  );
+}
+
+export interface Vps1CalendarEventV1 {
+  time?: string;
+  symbol?: string;
+  currency?: string;
+  event?: string;
+  impact?: 'HIGH' | 'MEDIUM' | 'LOW';
+  forecast?: string;
+  previous?: string;
+  actual?: string;
+  [key: string]: unknown;
+}
+
+export function getCalendarEvents(params: { symbol?: string; limit?: number } = {}): Promise<{ items: Vps1CalendarEventV1[] } | Vps1CalendarEventV1[]> {
+  const q = new URLSearchParams();
+  if (params.symbol) q.set('symbol', params.symbol);
+  if (params.limit !== undefined) q.set('limit', String(params.limit));
+  const qs = q.toString();
+  return tolerate404(
+    request<{ items: Vps1CalendarEventV1[] } | Vps1CalendarEventV1[]>('calendar', `/v1/calendar/events${qs ? `?${qs}` : ''}`),
+    { items: [] },
+  );
+}
+
+export interface Vps1MarketBar {
+  time?: string;
+  open?: number;
+  high?: number;
+  low?: number;
+  close?: number;
+  volume?: number;
+  [key: string]: unknown;
+}
+
+export function getMarketBars(symbol: string, params: { timeframe?: string; limit?: number } = {}): Promise<{ bars: Vps1MarketBar[] } | Vps1MarketBar[]> {
+  const q = new URLSearchParams();
+  if (params.timeframe) q.set('timeframe', params.timeframe);
+  if (params.limit !== undefined) q.set('limit', String(params.limit));
+  const qs = q.toString();
+  return tolerate404(
+    request<{ bars: Vps1MarketBar[] } | Vps1MarketBar[]>('market_data', `/v1/market-data/bars/${encodeURIComponent(symbol)}${qs ? `?${qs}` : ''}`),
+    { bars: [] },
+  );
+}
+
+export interface Vps1IndicatorDef {
+  name: string;
+  params?: string[];
+  description?: string;
+  [key: string]: unknown;
+}
+
+export function getIndicators(): Promise<{ items: Vps1IndicatorDef[] } | Vps1IndicatorDef[]> {
+  return tolerate404(
+    request<{ items: Vps1IndicatorDef[] } | Vps1IndicatorDef[]>('indicators', `/v1/indicators`),
+    { items: [] },
   );
 }
 

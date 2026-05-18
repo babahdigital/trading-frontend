@@ -89,9 +89,15 @@ const PRICING_TIERS: Record<string, TierMeta[]> = {
     { id: 'api_broker', tier: 'BROKER', price: 'tier_price_free', periodKey: 'period_api_to_49', featureCount: 3, href: '/pricing/apis#broker' },
     { id: 'api_ai', tier: 'AI', price: '$99', periodKey: 'period_api_ai_nda', featureCount: 4, href: '/contact?subject=ai-explainability' },
   ],
+  // 2026-05-19 — institutional cards realigned ke solutions/institutional
+  // canonical product: institutional license berbasis AUM minimum $200K +
+  // setup/support B2B Service Agreement. Previously landing showed
+  // "API Access" + "Backtest-as-a-Service" yang merupakan PRODUK BERBEDA
+  // dari institutional license — confusing customer compare landing vs
+  // solutions/institutional. Sekarang konsisten.
   institutional: [
-    { id: 'inst_api', tier: 'API', price: 'tier_price_custom', periodKey: 'period_usage_based', featureCount: 5, href: '/register/institutional', popular: true },
-    { id: 'inst_b2b', tier: 'B2B', price: '$99', periodKey: 'period_b2b_to_999', featureCount: 5, href: '/contact?subject=backtest-service' },
+    { id: 'inst_api', tier: 'INSTITUTIONAL LICENSE', price: 'tier_price_inst_license', periodKey: 'period_inst_aum', featureCount: 5, href: '/register/institutional', popular: true },
+    { id: 'inst_b2b', tier: 'SETUP & SUPPORT', price: 'tier_price_inst_setup', periodKey: 'period_inst_setup', featureCount: 5, href: '/contact?subject=institutional' },
   ],
 };
 

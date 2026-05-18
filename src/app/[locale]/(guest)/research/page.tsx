@@ -87,7 +87,7 @@ export default function ResearchPage() {
       <main id="main-content">
         {/* Hero */}
         <section className="section-padding border-b border-white/8">
-          <div className="container-default px-4 sm:px-6">
+          <div className="container-wide px-4 sm:px-6 lg:px-8">
             <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
             <h1 className="t-display-page mb-6">
               {t('hero_title')}
@@ -100,7 +100,7 @@ export default function ResearchPage() {
 
         {/* Pair Intelligence Briefs CTA */}
         <section className="section-padding border-b border-white/8">
-          <div className="container-default px-4 sm:px-6">
+          <div className="container-wide px-4 sm:px-6 lg:px-8">
             <Link
               href={`/${locale}/research/briefs`}
               className="block card-enterprise group hover:border-amber-500/20 transition-colors"
@@ -125,7 +125,7 @@ export default function ResearchPage() {
 
         {/* Articles Grid */}
         <section className="section-padding border-b border-white/8">
-          <div className="container-default px-4 sm:px-6">
+          <div className="container-wide px-4 sm:px-6 lg:px-8">
             {loading ? (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[1, 2, 3].map((i) => (
@@ -146,7 +146,7 @@ export default function ResearchPage() {
               </div>
             ) : (
               <>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
                   {visibleArticles.map((article) => {
                     const title = (isEn && article.title_en) ? article.title_en : article.title;
                     const excerpt = (isEn && article.excerpt_en) ? article.excerpt_en : article.excerpt;

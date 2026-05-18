@@ -102,7 +102,7 @@ export default function PairBriefsPage() {
       <main id="main-content">
         {/* Hero */}
         <section className="section-padding border-b border-white/8">
-          <div className="container-default px-4 sm:px-6">
+          <div className="container-wide px-4 sm:px-6 lg:px-8">
             <p className="t-eyebrow mb-4">Pair Intelligence</p>
             <h1 className="t-display-page mb-6">
               {isEn ? 'Pair Intelligence Briefs' : 'Laporan Intelijen Per Pair'}
@@ -127,9 +127,9 @@ export default function PairBriefsPage() {
 
         {/* Briefs Grid */}
         <section className="section-padding border-b border-white/8">
-          <div className="container-default px-4 sm:px-6">
+          <div className="container-wide px-4 sm:px-6 lg:px-8">
             {loading ? (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
                 {[1, 2, 3].map((i) => (
                   <div key={i} className="card-enterprise animate-pulse">
                     <div className="h-4 w-24 bg-white/10 rounded mb-3" />
@@ -150,7 +150,7 @@ export default function PairBriefsPage() {
               </div>
             ) : (
               <>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
                 {visibleBriefs.map((brief) => (
                   <Link
                     key={brief.slug}

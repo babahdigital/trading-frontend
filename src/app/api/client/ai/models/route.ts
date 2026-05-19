@@ -22,23 +22,32 @@ interface ModelDescriptor {
   min_tier: 'STARTER' | 'PRO' | 'VIP' | 'DEDICATED';
 }
 
-// 2026-05-19 — Migrasi HYBRID Claude → Moonshot Kimi K2.6.
-// Pricing comparison per 1M tokens:
-//   Claude Haiku 4.5  $1.00 in / $5.00 out  → REPLACED by Kimi K2.6
-//   Claude Sonnet 4-6 $3.00 in / $15.00 out → REPLACED by Kimi K2.6
-//   Claude Opus 4.7   $15.00 in / $75.00 out → KEEP untuk high-impact only
-//   Kimi K2.6         $0.73 in / $3.49 out  ← 27-95% cheaper, 262K context
+// 2026-05-19 — Migrasi HYBRID Claude → Gemini 2.5 Flash (BUKAN Kimi).
+// Comparative pricing per 1M tokens:
+//   Claude Haiku 4.5    $1.00  / $5.00   → REPLACED
+//   Claude Sonnet 4-6   $3.00  / $15.00  → REPLACED
+//   Claude Opus 4.7     $15.00 / $75.00  → KEEP untuk high-impact only
+//   Kimi K2.6           $0.73  / $3.49   (262K context)
+//   Gemini 2.5 Flash    $0.30  / $2.50   (1M context, configurable thinking)
+//
+// Decision: Gemini 2.5 Flash > Kimi K2.6 untuk replacement:
+//   - 2.5× lebih murah input ($0.30 vs $0.73)
+//   - 28% lebih murah output ($2.50 vs $3.49)
+//   - 4× context window (1M vs 262K) — ample untuk weekly retrospect
+//   - Configurable thinking budget — reasoning depth scalable per call
+//   - Provider consistency: kita sudah pakai Gemini Flash Lite untuk
+//     routine; Gemini Flash untuk reasoning = 1 provider, simpler ops.
+//
 // Quality strategy:
 //   - Routine bulk (chat, content, i18n, SEO meta) → Gemini Flash Lite
-//     ($0.075/$0.30, 10× lebih murah dari Kimi — keep status quo).
-//   - Customer-facing narrative AI advisor → Kimi K2.6 (PRO+ tier).
-//   - Backend FUNDAMENTAL signal AI (entry/exit advisor) → Kimi K2.6.
+//     ($0.075/$0.30) — keep status quo, paling murah untuk volume tinggi.
+//   - Customer-facing narrative AI advisor → Gemini 2.5 Flash (PRO+).
+//   - Backend FUNDAMENTAL signal AI (entry/exit advisor) → Gemini 2.5 Flash.
 //   - Backend RETROSPECT (weekly + tuning reviewer + L3 narrative)
-//     → Kimi K2.6 (77% cheaper, kualitas reasoning cukup).
-//   - Backend HIGH_IMPACT (FOMC/NFP escalation + kill-switch postmortem)
-//     → TETAP Claude Opus 4.7. Sporadic (~5-10 calls/bulan), kualitas
-//     edge-case reasoning critical untuk events tail-risk besar.
-//     Opus exposure dibatasi by design via gating di router.py.
+//     → Gemini 2.5 Flash.
+//   - Backend HIGH_IMPACT (FOMC/NFP + kill-switch postmortem)
+//     → TETAP Claude Opus 4.7 (sporadic, edge-case reasoning critical
+//     untuk tail-risk events).
 const CATALOG: readonly ModelDescriptor[] = [
   {
     id: 'google/gemini-2.5-flash-lite',
@@ -51,20 +60,11 @@ const CATALOG: readonly ModelDescriptor[] = [
   },
   {
     id: 'google/gemini-2.5-flash',
-    label: 'Gemini 2.5 Flash',
+    label: 'Gemini 2.5 Flash · Reasoning',
     provider: 'Google',
     context_window: 1_000_000,
     cost_tier: 'low',
-    capabilities: ['narrative', 'translation', 'reasoning'],
-    min_tier: 'STARTER',
-  },
-  {
-    id: 'moonshotai/kimi-k2.6',
-    label: 'Kimi K2.6',
-    provider: 'Moonshot AI',
-    context_window: 262_144,
-    cost_tier: 'low',
-    capabilities: ['narrative', 'reasoning', 'edge-case-detection', 'long-context', 'multi-step'],
+    capabilities: ['narrative', 'reasoning', 'edge-case-detection', 'long-context', 'multi-step', 'thinking'],
     min_tier: 'PRO',
   },
 ];

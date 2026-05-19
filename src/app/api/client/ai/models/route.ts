@@ -22,6 +22,16 @@ interface ModelDescriptor {
   min_tier: 'STARTER' | 'PRO' | 'VIP' | 'DEDICATED';
 }
 
+// 2026-05-19 — Migrasi Claude Haiku/Sonnet/Opus → Moonshot Kimi K2.6.
+// Pricing comparison per 1M tokens:
+//   Claude Haiku 4.5  $1.00 in / $5.00 out
+//   Claude Sonnet 4-6 $3.00 in / $15.00 out
+//   Claude Opus 4.7   $15.00 in / $75.00 out
+//   Kimi K2.6         $0.73 in / $3.49 out  ← 27-95% cheaper, 262K context
+// Quality: Kimi K2.6 strong di reasoning + agentic orchestration, layak
+// untuk narrative/edge-case-detection/multi-step. Untuk routine bulk
+// (chat, content, i18n, SEO meta), tetap pakai Gemini Flash Lite yang
+// 10× lebih murah ($0.075 in / $0.30 out).
 const CATALOG: readonly ModelDescriptor[] = [
   {
     id: 'google/gemini-2.5-flash-lite',
@@ -42,30 +52,12 @@ const CATALOG: readonly ModelDescriptor[] = [
     min_tier: 'STARTER',
   },
   {
-    id: 'anthropic/claude-haiku-4-5',
-    label: 'Claude Haiku 4.5',
-    provider: 'Anthropic',
-    context_window: 200_000,
-    cost_tier: 'medium',
-    capabilities: ['narrative', 'reasoning', 'edge-case-detection'],
-    min_tier: 'PRO',
-  },
-  {
-    id: 'anthropic/claude-sonnet-4-6',
-    label: 'Claude Sonnet 4.6',
-    provider: 'Anthropic',
-    context_window: 200_000,
-    cost_tier: 'high',
-    capabilities: ['deep-reasoning', 'risk-overlay', 'multi-step'],
-    min_tier: 'VIP',
-  },
-  {
-    id: 'openai/gpt-4.1-mini',
-    label: 'GPT-4.1 Mini',
-    provider: 'OpenAI',
-    context_window: 128_000,
-    cost_tier: 'medium',
-    capabilities: ['narrative', 'translation', 'fast-explainer'],
+    id: 'moonshotai/kimi-k2.6',
+    label: 'Kimi K2.6',
+    provider: 'Moonshot AI',
+    context_window: 262_144,
+    cost_tier: 'low',
+    capabilities: ['narrative', 'reasoning', 'edge-case-detection', 'long-context', 'multi-step'],
     min_tier: 'PRO',
   },
 ];

@@ -16,7 +16,7 @@ export const dynamic = 'force-dynamic';
 const log = createLogger('api/forex/billing/checkout');
 
 async function resolveFeUserId(): Promise<string | null> {
-  const jar = cookies();
+  const jar = await cookies();
   const accessJwt = jar.get(AUTH_COOKIE_NAMES.ACCESS_TOKEN)?.value;
   if (!accessJwt) return null;
   const claims = await verifyJwt(accessJwt);

@@ -34,7 +34,7 @@ export interface ForexSession {
  * The `rotated` flag indicates whether persistence is needed.
  */
 export async function ensureForexAccessToken(): Promise<ForexSession | null> {
-  const jar = cookies();
+  const jar = await cookies();
   const access = jar.get(FOREX_COOKIE_NAMES.ACCESS)?.value;
   const refresh = jar.get(FOREX_COOKIE_NAMES.REFRESH)?.value;
 
@@ -56,6 +56,7 @@ export async function ensureForexAccessToken(): Promise<ForexSession | null> {
   }
 }
 
-export function hasForexSessionCookies(): boolean {
-  return Boolean(cookies().get(FOREX_COOKIE_NAMES.ACCESS)?.value);
+export async function hasForexSessionCookies(): Promise<boolean> {
+  const jar = await cookies();
+  return Boolean(jar.get(FOREX_COOKIE_NAMES.ACCESS)?.value);
 }

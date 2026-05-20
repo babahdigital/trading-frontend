@@ -92,7 +92,7 @@ export async function GET() {
 
   // Resolve FE session first so we can distinguish "no FE login" from
   // "FE login but no forex bridge linked".
-  const jar = cookies();
+  const jar = await cookies();
   const accessJwt = jar.get(AUTH_COOKIE_NAMES.ACCESS_TOKEN)?.value;
   let feUserId: string | null = null;
   if (accessJwt) {

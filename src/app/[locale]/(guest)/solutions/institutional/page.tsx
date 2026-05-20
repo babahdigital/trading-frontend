@@ -37,9 +37,10 @@ const FAQ_META = [
 
 const ELIG_KEYS = ['elig_b1', 'elig_b2', 'elig_b3'] as const;
 
-export default async function InstitutionalPage({ params }: { params: { locale: string } }) {
+export default async function InstitutionalPage({ params }: { params: Promise<{ locale: string }> }) {
   const t = await getTranslations('solutions_institutional');
-  const locale: Locale = params.locale === 'en' ? 'en' : 'id';
+  const { locale: localeParam } = await params;
+  const locale: Locale = localeParam === 'en' ? 'en' : 'id';
   const breadcrumb = breadcrumbSchema([
     { name: 'Home', url: '/' },
     { name: 'Solutions', url: '/solutions' },

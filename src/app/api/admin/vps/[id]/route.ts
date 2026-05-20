@@ -13,13 +13,14 @@ const log = createLogger('api/admin/vps/[id]');
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const guard = requireAdmin(request);
   if (guard) return guard;
   try {
+    const { id } = await params;
     const vps = await prisma.vpsInstance.findUnique({
-      where: { id: params.id },
+      where: { id },
       select: {
         id: true,
         name: true,

@@ -33,10 +33,11 @@ const SUBSCRIBER_TIERS = ['SIGNAL_BASIC', 'SIGNAL_VIP', 'PAMM_BASIC', 'PAMM_PRO'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } },
+  { params }: { params: Promise<{ slug: string }> },
 ) {
+  const { slug } = await params;
   const brief = await prisma.pairBrief.findUnique({
-    where: { slug: params.slug, isPublished: true },
+    where: { slug, isPublished: true },
   });
 
   if (!brief) {

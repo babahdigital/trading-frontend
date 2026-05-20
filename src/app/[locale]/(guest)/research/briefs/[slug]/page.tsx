@@ -62,8 +62,11 @@ function biasColor(bias: string | null): string {
 
 /** Simple Markdown to HTML */
 function renderMarkdown(md: string): string {
+  // RegExp constructor (instead of literal) prevents Tailwind/Turbopack
+  // scanner from misinterpreting markdown table separator character class.
+  const tableRe = new RegExp('^(\\|.+\\|)\\n(\\|[\\-:| ]+\\|)\\n((?:\\|.+\\|\\n?)*)', 'gm');
   return md
-    .replace(/^(\|.+\|)\n(\|[-:| ]+\|)\n((?:\|.+\|\n?)*)/gm, (_match, header: string, _sep: string, body: string) => {
+    .replace(tableRe, (_match, header: string, _sep: string, body: string) => {
       const ths = header.split('|').filter(Boolean).map((c: string) => `<th class="px-3 py-2 text-left text-xs font-medium text-foreground/60 border-b border-white/10">${c.trim()}</th>`).join('');
       const rows = body.trim().split('\n').map((row: string) => {
         const tds = row.split('|').filter(Boolean).map((c: string) => `<td class="px-3 py-2 text-sm border-b border-white/[0.04]">${c.trim()}</td>`).join('');

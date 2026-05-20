@@ -178,7 +178,10 @@ function renderMarkdown(md: string): string {
     if (/^\|.+\|\s*$/.test(line)) {
       const cells = line.replace(/^\||\|$/g, '').split('|');
       const next = lines[i + 1] ?? '';
-      if (!tableHeader && /^\|[-:|\s]+\|\s*$/.test(next)) {
+      // RegExp constructor (instead of literal) prevents Tailwind/Turbopack
+      // scanner from misinterpreting the markdown table separator character
+      // class as an arbitrary class candidate.
+      if (!tableHeader && new RegExp('^\\|[\\-:|\\s]+\\|\\s*$').test(next)) {
         flushList();
         tableHeader = cells;
         i += 1; // skip separator

@@ -5,9 +5,6 @@ const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
-  experimental: {
-    instrumentationHook: true,
-  },
   images: {
     remotePatterns: [
       // Article cover images yang di-upload via admin CMS atau dari external host

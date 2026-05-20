@@ -13,11 +13,13 @@ export default getRequestConfig(async ({ requestLocale }) => {
   // requestLocale is undefined. Fall back to NEXT_LOCALE cookie, then
   // Accept-Language, then defaultLocale.
   if (!isSupported(locale)) {
-    const cookieLocale = cookies().get('NEXT_LOCALE')?.value;
+    const cookieStore = await cookies();
+    const cookieLocale = cookieStore.get('NEXT_LOCALE')?.value;
     if (isSupported(cookieLocale)) {
       locale = cookieLocale;
     } else {
-      const accept = headers().get('accept-language') ?? '';
+      const hdrs = await headers();
+      const accept = hdrs.get('accept-language') ?? '';
       const primary = accept.split(',')[0]?.split(';')[0]?.trim().toLowerCase() ?? '';
       if (primary.startsWith('en')) locale = 'en';
       else if (primary.startsWith('id')) locale = 'id';

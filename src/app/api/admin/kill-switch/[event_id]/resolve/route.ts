@@ -19,12 +19,12 @@ const log = createLogger('api/admin/kill-switch/resolve');
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { event_id: string } },
+  { params }: { params: Promise<{ event_id: string }> },
 ) {
   const guard = requireAdmin(request);
   if (guard) return guard;
 
-  const eventId = params.event_id;
+  const { event_id: eventId } = await params;
   if (!eventId || eventId.length === 0) {
     return NextResponse.json(
       { code: 'INVALID_INPUT', error: 'event_id is required' },

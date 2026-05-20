@@ -1,5 +1,7 @@
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
+import { TrustStrip } from '@/components/shared/trust-strip';
+import { StickyCtaBar } from '@/components/shared/sticky-cta-bar';
 import { ArchitectureDiagram } from '@/components/diagrams/architecture-diagram';
 import { Link } from '@/i18n/navigation';
 import { ArrowLeft } from 'lucide-react';
@@ -46,6 +48,9 @@ export default async function TechnologyPage() {
             <p className="text-foreground/60 leading-relaxed mb-8 max-w-2xl">
               {t('hero_lead')}
             </p>
+            <div className="mb-8">
+              <TrustStrip />
+            </div>
             {/* Architecture Diagram */}
             <div className="card-enterprise">
               <ArchitectureDiagram />
@@ -220,8 +225,20 @@ export default async function TechnologyPage() {
           </div>
         </section>
 
+        <TechStickyCta />
       </main>
       <EnterpriseFooter />
     </div>
+  );
+}
+
+async function TechStickyCta() {
+  const ts = await getTranslations('shared');
+  return (
+    <StickyCtaBar
+      message={ts('sticky_demo_text')}
+      ctaLabel={ts('sticky_demo_cta')}
+      href="/register?service=free"
+    />
   );
 }

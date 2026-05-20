@@ -5,6 +5,8 @@ import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
+import { TrustStrip } from '@/components/shared/trust-strip';
+import { StickyCtaBar } from '@/components/shared/sticky-cta-bar';
 import { ArrowRight } from 'lucide-react';
 
 interface TeamMember {
@@ -74,6 +76,9 @@ export default function TeamPage() {
             <p className="t-lead text-foreground/60 max-w-2xl">
               {t('hero_subtitle')}
             </p>
+            <div className="mt-10">
+              <TrustStrip />
+            </div>
           </div>
         </section>
 
@@ -117,8 +122,21 @@ export default function TeamPage() {
             </div>
           </div>
         </section>
+        <TeamStickyCta />
       </main>
       <EnterpriseFooter />
     </div>
+  );
+}
+
+function TeamStickyCta() {
+  const ts = useTranslations('shared');
+  return (
+    <StickyCtaBar
+      message={ts('sticky_contact_text')}
+      ctaLabel={ts('sticky_contact_cta')}
+      href="/contact"
+      tone="emerald"
+    />
   );
 }

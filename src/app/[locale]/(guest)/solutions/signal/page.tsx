@@ -11,6 +11,8 @@ import {
 } from 'lucide-react';
 import { financialProductSchema, ldJson, breadcrumbSchema, faqPageSchema } from '@/lib/seo-jsonld';
 import { formatPrice, type Locale, type PriceKey } from '@/lib/pricing-format';
+import { TrustStrip } from '@/components/shared/trust-strip';
+import { StickyCtaBar } from '@/components/shared/sticky-cta-bar';
 
 const FEATURE_META = [
   { titleKey: 'feat1_title', descKey: 'feat1_desc', icon: 'cpu' },
@@ -82,6 +84,7 @@ interface FaqItem {
 
 export default function SignalPage() {
   const t = useTranslations('solutions_signal');
+  const ts = useTranslations('shared');
   const locale = useLocale();
   const fallbackFaq = useMemo<FaqItem[]>(
     () => FAQ_KEYS.map((k) => ({ q: t(k.qKey), a: t(k.aKey) })),
@@ -170,6 +173,9 @@ export default function SignalPage() {
             <p className="text-xs text-foreground/50 mt-6 max-w-xl sm:max-w-2xl">
               {t('hero_beta_note')}
             </p>
+            <div className="mt-10">
+              <TrustStrip />
+            </div>
           </div>
         </section>
 
@@ -324,6 +330,12 @@ export default function SignalPage() {
             </div>
           </div>
         </section>
+
+        <StickyCtaBar
+          message={ts('sticky_compare_text')}
+          ctaLabel={ts('sticky_compare_cta')}
+          href="/pricing"
+        />
       </main>
       <EnterpriseFooter />
     </div>

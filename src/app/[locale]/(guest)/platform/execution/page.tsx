@@ -1,5 +1,7 @@
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
+import { TrustStrip } from '@/components/shared/trust-strip';
+import { StickyCtaBar } from '@/components/shared/sticky-cta-bar';
 import { Link } from '@/i18n/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
@@ -45,6 +47,9 @@ export default async function ExecutionPage() {
             <p className="text-foreground/60 leading-relaxed mb-8 max-w-2xl">
               {t('hero_lead')}
             </p>
+            <div className="mb-2">
+              <TrustStrip />
+            </div>
           </div>
         </section>
 
@@ -172,8 +177,20 @@ export default async function ExecutionPage() {
           </div>
         </section>
 
+        <ExecStickyCta />
       </main>
       <EnterpriseFooter />
     </div>
+  );
+}
+
+async function ExecStickyCta() {
+  const ts = await getTranslations('shared');
+  return (
+    <StickyCtaBar
+      message={ts('sticky_demo_text')}
+      ctaLabel={ts('sticky_demo_cta')}
+      href="/register?service=free"
+    />
   );
 }

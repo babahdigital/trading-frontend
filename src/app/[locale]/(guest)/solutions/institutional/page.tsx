@@ -5,6 +5,8 @@ import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { ArrowRight, FileCheck, Wrench, LifeBuoy, Wallet, AlertCircle, Building2, Server } from 'lucide-react';
 import { breadcrumbSchema, ldJson, organizationSchema, professionalServiceSchema } from '@/lib/seo-jsonld';
 import { formatPriceRange, formatPrice, type Locale } from '@/lib/pricing-format';
+import { TrustStrip } from '@/components/shared/trust-strip';
+import { StickyCtaBar } from '@/components/shared/sticky-cta-bar';
 
 export const dynamic = 'force-dynamic';
 
@@ -107,6 +109,9 @@ export default async function InstitutionalPage({ params }: { params: { locale: 
             <p className="t-lead text-foreground/60 max-w-3xl">
               {t('hero_subtitle')}
             </p>
+            <div className="mt-10">
+              <TrustStrip />
+            </div>
           </div>
         </section>
 
@@ -376,8 +381,22 @@ export default async function InstitutionalPage({ params }: { params: { locale: 
             </Link>
           </div>
         </section>
+
+        <InstStickyCta />
       </main>
       <EnterpriseFooter />
     </div>
+  );
+}
+
+async function InstStickyCta() {
+  const ts = await getTranslations('shared');
+  return (
+    <StickyCtaBar
+      message={ts('sticky_contact_text')}
+      ctaLabel={ts('sticky_contact_cta')}
+      href="/contact?subject=institutional-engagement"
+      tone="emerald"
+    />
   );
 }

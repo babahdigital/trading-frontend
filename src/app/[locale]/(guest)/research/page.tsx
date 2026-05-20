@@ -5,6 +5,8 @@ import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
+import { TrustStrip } from '@/components/shared/trust-strip';
+import { StickyCtaBar } from '@/components/shared/sticky-cta-bar';
 import { Pagination } from '@/components/ui/pagination';
 import { ArticleCardImage } from '@/components/research/article-card-image';
 
@@ -103,6 +105,9 @@ export default function ResearchPage() {
             <p className="t-lead text-foreground/60 max-w-2xl">
               {t('hero_lead')}
             </p>
+            <div className="mt-10">
+              <TrustStrip />
+            </div>
           </div>
         </section>
 
@@ -217,8 +222,21 @@ export default function ResearchPage() {
             EnterpriseFooter subscribe band (full-width banner di setiap halaman).
             Mendekati standar institusional: 1 newsletter prompt per halaman,
             tidak repetitive. */}
+
+        <ResearchStickyCta />
       </main>
       <EnterpriseFooter />
     </div>
+  );
+}
+
+function ResearchStickyCta() {
+  const ts = useTranslations('shared');
+  return (
+    <StickyCtaBar
+      message={ts('sticky_demo_text')}
+      ctaLabel={ts('sticky_demo_cta')}
+      href="/register?service=free"
+    />
   );
 }

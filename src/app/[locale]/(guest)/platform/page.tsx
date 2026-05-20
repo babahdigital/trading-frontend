@@ -6,6 +6,8 @@ import { breadcrumbSchema, ldJson, organizationSchema, professionalServiceSchema
 import { getTranslations } from 'next-intl/server';
 import { ArrowRight, Brain, Cpu, ShieldCheck } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { TrustStrip } from '@/components/shared/trust-strip';
+import { StickyCtaBar } from '@/components/shared/sticky-cta-bar';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -104,6 +106,9 @@ export default async function PlatformPage() {
             <p className="t-lead text-muted-foreground max-w-3xl">
               {t('hero_lead')}
             </p>
+            <div className="mt-10">
+              <TrustStrip />
+            </div>
           </div>
         </section>
 
@@ -233,8 +238,21 @@ export default async function PlatformPage() {
             </div>
           </div>
         </section>
+
+        <PlatformStickyCta />
       </main>
       <EnterpriseFooter />
     </div>
+  );
+}
+
+async function PlatformStickyCta() {
+  const ts = await getTranslations('shared');
+  return (
+    <StickyCtaBar
+      message={ts('sticky_demo_text')}
+      ctaLabel={ts('sticky_demo_cta')}
+      href="/register?service=free"
+    />
   );
 }

@@ -7,6 +7,8 @@ import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { EquityCurve } from '@/components/charts/equity-curve';
 import { ArrowRight, Activity, Calendar, FileCheck, ScanLine } from 'lucide-react';
+import { TrustStrip } from '@/components/shared/trust-strip';
+import { StickyCtaBar } from '@/components/shared/sticky-cta-bar';
 
 interface KpiData {
   totalReturn: string;
@@ -42,6 +44,7 @@ const TRACKING_PILLAR_META = [
 
 export default function PerformancePage() {
   const t = useTranslations('performance_page');
+  const ts = useTranslations('shared');
   const [equityData, setEquityData] = useState<{ time: string; value: number }[]>([]);
   const [kpi, setKpi] = useState<KpiData | null>(null);
   const [source, setSource] = useState<string>('');
@@ -137,6 +140,9 @@ export default function PerformancePage() {
               <Link href="/demo" className="btn-secondary">
                 {t('hero_cta_demo')}
               </Link>
+            </div>
+            <div className="mt-10">
+              <TrustStrip />
             </div>
           </div>
         </section>
@@ -327,6 +333,12 @@ export default function PerformancePage() {
             </Link>
           </div>
         </section>
+
+        <StickyCtaBar
+          message={ts('sticky_demo_text')}
+          ctaLabel={ts('sticky_demo_cta')}
+          href="/register?service=free"
+        />
       </main>
       <EnterpriseFooter />
     </div>

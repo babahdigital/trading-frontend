@@ -2,6 +2,8 @@ import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
+import { TrustStrip } from '@/components/shared/trust-strip';
+import { StickyCtaBar } from '@/components/shared/sticky-cta-bar';
 import { ArrowRight } from 'lucide-react';
 import { getPageMetadata } from '@/lib/seo';
 import { breadcrumbSchema, ldJson, organizationSchema } from '@/lib/seo-jsonld';
@@ -60,6 +62,9 @@ export default async function AboutPage() {
             <p className="t-lead text-muted-foreground max-w-2xl">
               {t('hero_subtitle')}
             </p>
+            <div className="mt-10">
+              <TrustStrip />
+            </div>
           </div>
         </section>
 
@@ -155,8 +160,22 @@ export default async function AboutPage() {
             </div>
           </div>
         </section>
+
+        <AboutStickyCta />
       </main>
       <EnterpriseFooter />
     </div>
+  );
+}
+
+async function AboutStickyCta() {
+  const ts = await getTranslations('shared');
+  return (
+    <StickyCtaBar
+      message={ts('sticky_contact_text')}
+      ctaLabel={ts('sticky_contact_cta')}
+      href="/contact"
+      tone="emerald"
+    />
   );
 }

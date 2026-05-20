@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
+import { TrustStrip } from '@/components/shared/trust-strip';
+import { StickyCtaBar } from '@/components/shared/sticky-cta-bar';
 import { Link } from '@/i18n/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -83,6 +85,9 @@ export default function InstrumentsPage() {
             <p className="text-foreground/60 leading-relaxed mb-8 max-w-2xl">
               {t('hero_lead')}
             </p>
+            <div className="mb-8">
+              <TrustStrip />
+            </div>
 
             {/* Summary stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -187,8 +192,20 @@ export default function InstrumentsPage() {
           </div>
         </section>
 
+        <InstrumentsStickyCta />
       </main>
       <EnterpriseFooter />
     </div>
+  );
+}
+
+function InstrumentsStickyCta() {
+  const ts = useTranslations('shared');
+  return (
+    <StickyCtaBar
+      message={ts('sticky_demo_text')}
+      ctaLabel={ts('sticky_demo_cta')}
+      href="/register?service=free"
+    />
   );
 }

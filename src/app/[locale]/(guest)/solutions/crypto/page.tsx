@@ -5,6 +5,8 @@ import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { getPageMetadata } from '@/lib/seo';
 import { breadcrumbSchema, faqPageSchema, ldJson, organizationSchema } from '@/lib/seo-jsonld';
 import { formatPrice, type Locale, type PriceKey } from '@/lib/pricing-format';
+import { TrustStrip } from '@/components/shared/trust-strip';
+import { StickyCtaBar } from '@/components/shared/sticky-cta-bar';
 import {
   ArrowRight,
   Bitcoin,
@@ -138,6 +140,9 @@ export default async function CryptoBotSolutionPage({ params }: { params: Promis
                 <Stat label={t('stat2_label')} value={t('stat2_value')} sub={t('stat2_sub')} />
                 <Stat label={t('stat3_label')} value={t('stat3_value')} sub={t('stat3_sub')} />
                 <Stat label={t('stat4_label')} value={t('stat4_value')} sub={t('stat4_sub')} />
+              </div>
+              <div className="mt-10">
+                <TrustStrip />
               </div>
             </div>
           </div>
@@ -300,9 +305,22 @@ export default async function CryptoBotSolutionPage({ params }: { params: Promis
             </p>
           </div>
         </section>
+
+        <CryptoStickyCompare />
       </main>
       <EnterpriseFooter />
     </div>
+  );
+}
+
+async function CryptoStickyCompare() {
+  const ts = await getTranslations('shared');
+  return (
+    <StickyCtaBar
+      message={ts('sticky_compare_text')}
+      ctaLabel={ts('sticky_compare_cta')}
+      href="/pricing"
+    />
   );
 }
 

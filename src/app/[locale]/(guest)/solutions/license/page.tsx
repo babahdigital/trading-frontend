@@ -5,6 +5,8 @@ import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { ArrowRight, Server, Building2, TrendingUp, Info, Cpu, ShieldCheck, Activity, FileCheck, Zap, Wrench, Check } from 'lucide-react';
 import { breadcrumbSchema, financialProductSchema, ldJson, organizationSchema } from '@/lib/seo-jsonld';
 import { formatPrice, type Locale } from '@/lib/pricing-format';
+import { TrustStrip } from '@/components/shared/trust-strip';
+import { StickyCtaBar } from '@/components/shared/sticky-cta-bar';
 
 export const dynamic = 'force-dynamic';
 
@@ -186,6 +188,9 @@ export default async function LicensePage() {
                 <p className="text-sm font-semibold mb-1">{t('hero_diff_label')}</p>
                 <p className="text-xs text-foreground/60 leading-relaxed">{t('hero_diff_body')}</p>
               </div>
+            </div>
+            <div className="mt-10">
+              <TrustStrip />
             </div>
           </div>
         </section>
@@ -586,9 +591,22 @@ export default async function LicensePage() {
             </div>
           </div>
         </section>
+
+        <LicenseStickyCompare />
       </main>
       <EnterpriseFooter />
     </div>
     </>
+  );
+}
+
+async function LicenseStickyCompare() {
+  const ts = await getTranslations('shared');
+  return (
+    <StickyCtaBar
+      message={ts('sticky_compare_text')}
+      ctaLabel={ts('sticky_compare_cta')}
+      href="/pricing"
+    />
   );
 }

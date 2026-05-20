@@ -1,5 +1,7 @@
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
+import { TrustStrip } from '@/components/shared/trust-strip';
+import { StickyCtaBar } from '@/components/shared/sticky-cta-bar';
 import { Link } from '@/i18n/navigation';
 import { ArrowRight } from 'lucide-react';
 import { STRATEGY_ICONS } from '@/components/icons/strategy-icons';
@@ -75,6 +77,9 @@ export default async function StrategiesPage() {
             <p className="text-xs text-foreground/50 italic max-w-2xl mb-8">
               {t('hero_disclaimer')}
             </p>
+            <div className="mb-2">
+              <TrustStrip />
+            </div>
           </div>
         </section>
 
@@ -131,8 +136,20 @@ export default async function StrategiesPage() {
           </div>
         </section>
 
+        <StrategiesStickyCta />
       </main>
       <EnterpriseFooter />
     </div>
+  );
+}
+
+async function StrategiesStickyCta() {
+  const ts = await getTranslations('shared');
+  return (
+    <StickyCtaBar
+      message={ts('sticky_demo_text')}
+      ctaLabel={ts('sticky_demo_cta')}
+      href="/register?service=free"
+    />
   );
 }

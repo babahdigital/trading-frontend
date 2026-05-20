@@ -217,8 +217,15 @@ export function EnterpriseNav() {
               {t('login')}
             </Link>
             <Link
-              href="/contact"
+              href="/register"
               className="btn-primary px-5 py-2.5 rounded-md text-sm font-medium"
+            >
+              {t('register')}
+            </Link>
+            <Link
+              href="/contact"
+              className="nav-link"
+              title={t('schedule_briefing')}
             >
               {t('schedule_briefing')}
             </Link>
@@ -537,13 +544,20 @@ function MobileMenu({
             {t('login')}
           </Link>
           <Link
-            href="/contact"
+            href="/register"
             className="btn-primary justify-center py-3 text-sm font-medium rounded-md"
             onClick={onClose}
           >
-            {t('schedule_briefing')}
+            {t('register')}
           </Link>
         </div>
+        <Link
+          href="/contact"
+          className="block w-full text-center py-2.5 text-xs font-medium border border-border/60 rounded-md text-foreground/70 hover:text-foreground hover:bg-muted/40 transition-colors"
+          onClick={onClose}
+        >
+          {t('schedule_briefing')}
+        </Link>
       </div>
     </div>
   );

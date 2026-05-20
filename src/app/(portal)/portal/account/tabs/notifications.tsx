@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -36,6 +37,10 @@ interface LogEntry {
 
 export function NotificationsTab() {
   const { getAuthHeaders } = useAuth();
+  const t = useTranslations('portal.account.notifications');
+  const tParent = useTranslations('portal.account');
+  const locale = useLocale();
+  const dateLocale = locale === 'en' ? 'en-US' : 'id-ID';
   const [pref, setPref] = useState<Preference | null>(null);
   const [recent, setRecent] = useState<LogEntry[]>([]);
   const [saving, setSaving] = useState(false);
@@ -71,24 +76,24 @@ export function NotificationsTab() {
         headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify(pref),
       });
-      if (!res.ok) throw new Error(`Failed (${res.status})`);
-      setMessage('Preferensi tersimpan.');
+      if (!res.ok) throw new Error(t('save_failed'));
+      setMessage(t('saved'));
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : 'Unknown error');
+      setMessage(err instanceof Error ? err.message : t('save_failed'));
     } finally {
       setSaving(false);
     }
   }
 
-  if (!pref) return <p className="text-muted-foreground">Memuat…</p>;
+  if (!pref) return <p className="text-muted-foreground">{tParent('loading')}</p>;
 
   return (
     <div className="space-y-6">
       <Card className="bg-card border-border">
-        <CardHeader><CardTitle className="text-lg font-semibold">Preferensi Notifikasi</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-lg font-semibold">{t('prefs_title')}</CardTitle></CardHeader>
         <CardContent className="space-y-5">
           <div>
-            <p className="text-sm mb-2">Channel yang aktif</p>
+            <p className="text-sm mb-2">{t('channels_label')}</p>
             <div className="flex flex-wrap gap-2">
               {CHANNELS.map((c) => {
                 const active = pref.channels.includes(c.id);
@@ -114,42 +119,42 @@ export function NotificationsTab() {
 
           <div className="grid gap-4 md:grid-cols-3">
             <div>
-              <label htmlFor="conf" className="text-xs text-muted-foreground mb-1 block">Minimum confidence</label>
+              <label htmlFor="conf" className="text-xs text-muted-foreground mb-1 block">{t('min_confidence_label')}</label>
               <Input id="conf" type="number" step="0.01" min="0" max="1"
                 value={pref.minConfidence ?? ''}
-                onChange={(e) => setPref({ ...pref, minConfidence: e.target.value })} placeholder="0.70" />
+                onChange={(e) => setPref({ ...pref, minConfidence: e.target.value })} placeholder={t('min_confidence_placeholder')} />
             </div>
             <div>
-              <label htmlFor="lang" className="text-xs text-muted-foreground mb-1 block">Bahasa</label>
+              <label htmlFor="lang" className="text-xs text-muted-foreground mb-1 block">{t('language_label')}</label>
               <select id="lang" className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
                 value={pref.language}
                 onChange={(e) => setPref({ ...pref, language: e.target.value })}>
-                <option value="id">Indonesia</option>
-                <option value="en">English</option>
+                <option value="id">{t('lang_id')}</option>
+                <option value="en">{t('lang_en')}</option>
               </select>
             </div>
             <div>
-              <label htmlFor="tz" className="text-xs text-muted-foreground mb-1 block">Timezone</label>
+              <label htmlFor="tz" className="text-xs text-muted-foreground mb-1 block">{t('timezone_label')}</label>
               <Input id="tz" value={pref.timezone}
-                onChange={(e) => setPref({ ...pref, timezone: e.target.value })} placeholder="Asia/Jakarta" />
+                onChange={(e) => setPref({ ...pref, timezone: e.target.value })} placeholder={t('timezone_placeholder')} />
             </div>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label htmlFor="qhs" className="text-xs text-muted-foreground mb-1 block">Quiet hours start</label>
+              <label htmlFor="qhs" className="text-xs text-muted-foreground mb-1 block">{t('quiet_start_label')}</label>
               <Input id="qhs" type="time" value={pref.quietHoursStart ?? ''}
                 onChange={(e) => setPref({ ...pref, quietHoursStart: e.target.value || null })} />
             </div>
             <div>
-              <label htmlFor="qhe" className="text-xs text-muted-foreground mb-1 block">Quiet hours end</label>
+              <label htmlFor="qhe" className="text-xs text-muted-foreground mb-1 block">{t('quiet_end_label')}</label>
               <Input id="qhe" type="time" value={pref.quietHoursEnd ?? ''}
                 onChange={(e) => setPref({ ...pref, quietHoursEnd: e.target.value || null })} />
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <Button onClick={save} disabled={saving}>{saving ? 'Menyimpan…' : 'Simpan'}</Button>
+            <Button onClick={save} disabled={saving}>{saving ? t('saving') : t('save')}</Button>
             {message && <span className="text-sm text-muted-foreground">{message}</span>}
           </div>
         </CardContent>
@@ -158,26 +163,26 @@ export function NotificationsTab() {
       <WhatsappSection />
 
       <Card className="bg-card border-border">
-        <CardHeader><CardTitle className="text-lg font-semibold">Riwayat Pengiriman</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-lg font-semibold">{t('history_title')}</CardTitle></CardHeader>
         <CardContent>
           {recent.length === 0 ? (
-            <p className="text-muted-foreground text-sm">Belum ada notifikasi terkirim.</p>
+            <p className="text-muted-foreground text-sm">{t('history_empty')}</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="text-xs uppercase text-muted-foreground border-b border-border/50">
                   <tr>
-                    <th className="text-left py-2 px-2">Waktu</th>
-                    <th className="text-left py-2 px-2">Channel</th>
-                    <th className="text-left py-2 px-2">Kategori</th>
-                    <th className="text-left py-2 px-2">Status</th>
+                    <th className="text-left py-2 px-2">{t('col_time')}</th>
+                    <th className="text-left py-2 px-2">{t('col_channel')}</th>
+                    <th className="text-left py-2 px-2">{t('col_category')}</th>
+                    <th className="text-left py-2 px-2">{t('col_status')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {recent.map((l) => (
                     <tr key={l.id} className="border-b border-border/30">
                       <td className="py-2 px-2 text-muted-foreground">
-                        {new Date(l.createdAt).toLocaleString('id-ID')}
+                        {new Date(l.createdAt).toLocaleString(dateLocale)}
                       </td>
                       <td className="py-2 px-2">{l.channel}</td>
                       <td className="py-2 px-2">{l.category}</td>

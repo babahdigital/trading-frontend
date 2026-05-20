@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth/auth-context';
@@ -51,6 +52,10 @@ const STATUS_COLOR: Record<Invoice['status'], string> = {
 
 export function BillingTab() {
   const { getAuthHeaders } = useAuth();
+  const t = useTranslations('portal.account.billing');
+  const tParent = useTranslations('portal.account');
+  const locale = useLocale();
+  const dateLocale = locale === 'en' ? 'en-US' : 'id-ID';
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [subs, setSubs] = useState<Subscription[]>([]);
   const [licenses, setLicenses] = useState<License[]>([]);
@@ -58,27 +63,25 @@ export function BillingTab() {
 
   useEffect(() => {
     fetch('/api/client/invoices', { headers: getAuthHeaders() })
-      .then((r) => r.ok ? r.json() : null)
+      .then((r) => r.ok ? r.json() : { invoices: [], subscriptions: [], licenses: [] })
       .then((data) => {
-        if (data) {
-          setInvoices(data.invoices ?? []);
-          setSubs(data.subscriptions ?? []);
-          setLicenses(data.licenses ?? []);
-        }
+        setInvoices(data.invoices ?? []);
+        setSubs(data.subscriptions ?? []);
+        setLicenses(data.licenses ?? []);
       })
       .finally(() => setLoading(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (loading) return <p className="text-muted-foreground">Memuat…</p>;
+  if (loading) return <p className="text-muted-foreground">{tParent('loading')}</p>;
 
   return (
     <div className="space-y-6">
       <Card className="bg-card border-border">
-        <CardHeader><CardTitle className="text-lg font-semibold">Lisensi & Langganan Aktif</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-lg font-semibold">{t('active_title')}</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           {licenses.length === 0 && subs.length === 0 && (
-            <p className="text-muted-foreground text-sm">Belum ada lisensi atau langganan aktif.</p>
+            <p className="text-muted-foreground text-sm">{t('active_empty')}</p>
           )}
           {licenses.map((l) => (
             <div key={l.id} className="flex items-center justify-between p-3 border border-border rounded-md">
@@ -92,10 +95,10 @@ export function BillingTab() {
                   {l.status}
                 </span>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Berakhir: {new Date(l.expiresAt).toLocaleDateString('id-ID')}
+                  {t('ends_at')}: {new Date(l.expiresAt).toLocaleDateString(dateLocale)}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Auto-renew: {l.autoRenew ? 'On' : 'Off'}
+                  {t('auto_renew_label')}: {l.autoRenew ? t('auto_renew_on') : t('auto_renew_off')}
                 </p>
               </div>
             </div>
@@ -105,7 +108,11 @@ export function BillingTab() {
               <div>
                 <p className="font-medium text-sm">{s.tier}</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {s.monthlyFeeUsd ? `$${s.monthlyFeeUsd}/bulan flat` : s.profitSharePct ? `Legacy ${s.profitSharePct}% (deprecated — contact support untuk migrate ke flat)` : '—'}
+                  {s.monthlyFeeUsd
+                    ? t('flat_per_month', { fee: s.monthlyFeeUsd })
+                    : s.profitSharePct
+                      ? t('legacy_pct', { pct: s.profitSharePct })
+                      : '—'}
                 </p>
               </div>
               <div className="text-right">
@@ -114,7 +121,7 @@ export function BillingTab() {
                   {s.status}
                 </span>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Berakhir: {new Date(s.expiresAt).toLocaleDateString('id-ID')}
+                  {t('ends_at')}: {new Date(s.expiresAt).toLocaleDateString(dateLocale)}
                 </p>
               </div>
             </div>
@@ -123,20 +130,20 @@ export function BillingTab() {
       </Card>
 
       <Card className="bg-card border-border">
-        <CardHeader><CardTitle className="text-lg font-semibold">Riwayat Invoice</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-lg font-semibold">{t('history_title')}</CardTitle></CardHeader>
         <CardContent>
           {invoices.length === 0 ? (
-            <p className="text-muted-foreground text-sm">Belum ada invoice.</p>
+            <p className="text-muted-foreground text-sm">{t('history_empty')}</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="text-xs uppercase text-muted-foreground border-b border-border/50">
                   <tr>
-                    <th className="text-left py-2 px-2">Nomor</th>
-                    <th className="text-left py-2 px-2">Terbit</th>
-                    <th className="text-right py-2 px-2">Jumlah</th>
-                    <th className="text-center py-2 px-2">Status</th>
-                    <th className="text-right py-2 px-2">Jatuh tempo</th>
+                    <th className="text-left py-2 px-2">{t('col_number')}</th>
+                    <th className="text-left py-2 px-2">{t('col_issued')}</th>
+                    <th className="text-right py-2 px-2">{t('col_amount')}</th>
+                    <th className="text-center py-2 px-2">{t('col_status')}</th>
+                    <th className="text-right py-2 px-2">{t('col_due')}</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -144,16 +151,16 @@ export function BillingTab() {
                   {invoices.map((i) => (
                     <tr key={i.id} className="border-b border-border/30">
                       <td className="py-2 px-2 font-mono text-xs">{i.number}</td>
-                      <td className="py-2 px-2 text-muted-foreground">{new Date(i.issuedAt).toLocaleDateString('id-ID')}</td>
+                      <td className="py-2 px-2 text-muted-foreground">{new Date(i.issuedAt).toLocaleDateString(dateLocale)}</td>
                       <td className="py-2 px-2 text-right tabular-nums">{i.currency} {Number(i.amountUsd).toFixed(2)}</td>
                       <td className="py-2 px-2 text-center">
                         <span className={cn('inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border', STATUS_COLOR[i.status])}>
                           {i.status}
                         </span>
                       </td>
-                      <td className="py-2 px-2 text-right text-muted-foreground">{new Date(i.dueAt).toLocaleDateString('id-ID')}</td>
+                      <td className="py-2 px-2 text-right text-muted-foreground">{new Date(i.dueAt).toLocaleDateString(dateLocale)}</td>
                       <td className="py-2 px-2 text-right">
-                        {i.pdfUrl && <a href={i.pdfUrl} className="text-amber-400 hover:underline text-xs">PDF</a>}
+                        {i.pdfUrl && <a href={i.pdfUrl} className="text-amber-400 hover:underline text-xs">{t('pdf_label')}</a>}
                       </td>
                     </tr>
                   ))}

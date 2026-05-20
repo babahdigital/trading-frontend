@@ -10,8 +10,12 @@
 import { generateText } from 'ai';
 import { getOpenRouter, DEFAULT_MODEL } from './openrouter';
 import { createLogger } from '@/lib/logger';
+import { prisma } from '@/lib/db/prisma';
+import type { Prisma } from '@prisma/client';
 
 const log = createLogger('seo-meta');
+
+const MODEL_LABEL = `openrouter/${DEFAULT_MODEL.split('/').pop()}`;
 
 const META_PROMPT_ID = `Berikan metadata SEO untuk artikel berikut. Output WAJIB format JSON dengan 2 key:
   "metaTitle": maksimal 60 karakter, keyword di awal, profesional, tanpa clickbait
@@ -68,8 +72,9 @@ export async function generateSeoMeta(input: GenerateSeoMetaInput): Promise<SeoM
     .replace('{{EXCERPT}}', input.excerpt.slice(0, 500))
     .replace('{{KEYWORDS}}', input.keywords.slice(0, 6).join(', '));
 
+  const start = Date.now();
   try {
-    const { text } = await generateText({
+    const { text, usage } = await generateText({
       model: or.chat(DEFAULT_MODEL),
       prompt,
       temperature: 0.3,
@@ -84,16 +89,45 @@ export async function generateSeoMeta(input: GenerateSeoMetaInput): Promise<SeoM
       .trim();
 
     const parsed = JSON.parse(cleaned) as Partial<SeoMeta>;
-    if (!parsed.metaTitle || !parsed.metaDescription) {
+    const success = !!(parsed.metaTitle && parsed.metaDescription);
+    await prisma.aiCallLog
+      .create({
+        data: {
+          purpose: 'seo_meta',
+          model: MODEL_LABEL,
+          inputTokens: usage?.inputTokens ?? 0,
+          outputTokens: usage?.outputTokens ?? 0,
+          latencyMs: Date.now() - start,
+          success,
+          metadata: { language: input.language, category: input.category } as Prisma.InputJsonValue,
+        },
+      })
+      .catch((err) => log.warn(`AiCallLog write failed: ${err instanceof Error ? err.message : 'unknown'}`));
+
+    if (!success) {
       log.warn(`SEO meta missing keys for "${input.title.slice(0, 40)}"`);
       return null;
     }
 
     return {
-      metaTitle: parsed.metaTitle.slice(0, 70),
-      metaDescription: parsed.metaDescription.slice(0, 200),
+      metaTitle: parsed.metaTitle!.slice(0, 70),
+      metaDescription: parsed.metaDescription!.slice(0, 200),
     };
   } catch (err) {
+    await prisma.aiCallLog
+      .create({
+        data: {
+          purpose: 'seo_meta',
+          model: MODEL_LABEL,
+          inputTokens: 0,
+          outputTokens: 0,
+          latencyMs: Date.now() - start,
+          success: false,
+          errorMessage: err instanceof Error ? err.message : 'unknown',
+          metadata: { language: input.language } as Prisma.InputJsonValue,
+        },
+      })
+      .catch(() => {});
     log.warn(`SEO meta gen failed for "${input.title.slice(0, 40)}": ${err instanceof Error ? err.message : 'unknown'}`);
     return null;
   }

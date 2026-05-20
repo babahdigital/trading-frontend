@@ -596,12 +596,26 @@ export async function runDailyResearch(): Promise<DailyResearchResult> {
     const data = (await config.fetchData()) ?? {};
     const built = await config.buildPrompt(data);
 
-    const { text: rawBody } = await generateText({
+    const aiStart = Date.now();
+    const { text: rawBody, usage } = await generateText({
       model: or.chat(DEFAULT_MODEL),
       prompt: built.prompt,
       temperature: 0.45,
       maxOutputTokens: 4500,
     });
+    await prisma.aiCallLog
+      .create({
+        data: {
+          purpose: 'daily_research_body',
+          model: `openrouter/${DEFAULT_MODEL.split('/').pop()}`,
+          inputTokens: usage?.inputTokens ?? 0,
+          outputTokens: usage?.outputTokens ?? 0,
+          latencyMs: Date.now() - aiStart,
+          success: true,
+          metadata: { category: config.category, slug } as Prisma.InputJsonValue,
+        },
+      })
+      .catch((err) => log.warn(`AiCallLog write failed: ${err instanceof Error ? err.message : 'unknown'}`));
 
     const DISCLAIMER = 'Konten edukasi — bukan saran investasi. Trading forex melibatkan risiko kehilangan modal.';
     let body = scrubRawJsonLeak(rawBody.trim());

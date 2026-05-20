@@ -47,36 +47,71 @@ Rules:
 6. Keep formatting: paragraph breaks, bullet markers (- or •), code spans (\`text\`).
 7. Output ONLY the translated text — no explanations, no quotes, no JSON wrapping unless input was JSON.`;
 
+const MODEL_LABEL = `openrouter/${DEFAULT_MODEL.split('/').pop()}`;
+
+async function logCmsAiCall(purpose: string, usage: { inputTokens?: number; outputTokens?: number } | undefined, latencyMs: number, success: boolean, errorMessage?: string): Promise<void> {
+  try {
+    await prisma.aiCallLog.create({
+      data: {
+        purpose,
+        model: MODEL_LABEL,
+        inputTokens: usage?.inputTokens ?? 0,
+        outputTokens: usage?.outputTokens ?? 0,
+        latencyMs,
+        success,
+        errorMessage,
+        metadata: {},
+      },
+    });
+  } catch {
+    // swallow — AI logging must not block translation pipeline
+  }
+}
+
 async function translateText(text: string): Promise<string> {
   const or = getOpenRouter();
   if (!or) throw new Error('OPENROUTER_API_KEY not configured');
-  const { text: result } = await generateText({
-    model: or.chat(DEFAULT_MODEL),
-    system: SYSTEM_PROMPT,
-    prompt: `Translate this Indonesian text to English. Output ONLY the translation.\n\nInput: ${text}`,
-    temperature: 0.2,
-  });
-  let en = result.trim();
-  if ((en.startsWith('"') && en.endsWith('"')) || (en.startsWith("'") && en.endsWith("'"))) {
-    en = en.slice(1, -1);
+  const start = Date.now();
+  try {
+    const { text: result, usage } = await generateText({
+      model: or.chat(DEFAULT_MODEL),
+      system: SYSTEM_PROMPT,
+      prompt: `Translate this Indonesian text to English. Output ONLY the translation.\n\nInput: ${text}`,
+      temperature: 0.2,
+    });
+    await logCmsAiCall('cms_i18n_translate_text', usage, Date.now() - start, true);
+    let en = result.trim();
+    if ((en.startsWith('"') && en.endsWith('"')) || (en.startsWith("'") && en.endsWith("'"))) {
+      en = en.slice(1, -1);
+    }
+    return en;
+  } catch (err) {
+    await logCmsAiCall('cms_i18n_translate_text', undefined, Date.now() - start, false, err instanceof Error ? err.message : 'unknown');
+    throw err;
   }
-  return en;
 }
 
 async function translateJson(value: unknown): Promise<unknown> {
   const or = getOpenRouter();
   if (!or) throw new Error('OPENROUTER_API_KEY not configured');
-  const { text: result } = await generateText({
-    model: or.chat(DEFAULT_MODEL),
-    system: SYSTEM_PROMPT,
-    prompt: `Translate the values in this JSON from Indonesian to English. Keep keys unchanged. Only return valid JSON, no markdown fence.\n\n${JSON.stringify(value, null, 2)}`,
-    temperature: 0.2,
-  });
+  const start = Date.now();
   try {
-    const cleaned = result.replace(/^```json?\n?/g, '').replace(/\n?```$/g, '').trim();
-    return JSON.parse(cleaned);
-  } catch {
-    return value; // fail-safe: return original on parse error
+    const { text: result, usage } = await generateText({
+      model: or.chat(DEFAULT_MODEL),
+      system: SYSTEM_PROMPT,
+      prompt: `Translate the values in this JSON from Indonesian to English. Keep keys unchanged. Only return valid JSON, no markdown fence.\n\n${JSON.stringify(value, null, 2)}`,
+      temperature: 0.2,
+    });
+    await logCmsAiCall('cms_i18n_translate_json', usage, Date.now() - start, true);
+    try {
+      const cleaned = result.replace(/^```json?\n?/g, '').replace(/\n?```$/g, '').trim();
+      return JSON.parse(cleaned);
+    } catch {
+      return value; // fail-safe: return original on parse error
+    }
+  } catch (err) {
+    await logCmsAiCall('cms_i18n_translate_json', undefined, Date.now() - start, false, err instanceof Error ? err.message : 'unknown');
+    throw err;
   }
 }
 

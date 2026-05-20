@@ -8,7 +8,7 @@
  */
 
 import { generateText } from 'ai';
-import { translateText } from './content';
+import { translateTextWithUsage } from './content';
 import { getOpenRouter, DEFAULT_MODEL } from './openrouter';
 import { createLogger } from '@/lib/logger';
 import { prisma } from '@/lib/db/prisma';
@@ -351,13 +351,15 @@ export async function generatePairBriefNarrative(
       temperature: 0.2,
     });
     narrative = result.text.trim();
-    totalTokens = result.usage?.totalTokens ?? 0;
+    const inputTokens = result.usage?.inputTokens ?? 0;
+    const outputTokens = result.usage?.outputTokens ?? 0;
+    totalTokens = result.usage?.totalTokens ?? inputTokens + outputTokens;
 
     await logAiCall({
       purpose: 'pair_brief_narrative',
       model: modelName,
-      inputTokens: 0,
-      outputTokens: 0,
+      inputTokens,
+      outputTokens,
       latencyMs: Date.now() - start,
       success: true,
       metadata: { pair: data.pair, session, totalTokens } as Prisma.InputJsonValue,
@@ -382,13 +384,13 @@ export async function generatePairBriefNarrative(
   let narrative_en: string | null = null;
   const translateStart = Date.now();
   try {
-    narrative_en = await translateText(narrative);
-    if (!narrative_en) narrative_en = null;
+    const translateResult = await translateTextWithUsage(narrative);
+    narrative_en = translateResult.text || null;
     await logAiCall({
       purpose: 'pair_brief_translate',
       model: modelName,
-      inputTokens: 0,
-      outputTokens: 0,
+      inputTokens: translateResult.inputTokens,
+      outputTokens: translateResult.outputTokens,
       latencyMs: Date.now() - translateStart,
       success: true,
       metadata: { pair: data.pair, session } as Prisma.InputJsonValue,

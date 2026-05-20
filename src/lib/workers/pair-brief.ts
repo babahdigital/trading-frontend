@@ -19,8 +19,25 @@ import type { TradingSession } from '@prisma/client';
 const log = createLogger('pair-brief-worker');
 const WORKER = 'pair_brief';
 
-// MVP: single pair. Expand later.
-const CONFIGURED_PAIRS = ['BTCUSD'];
+// Per-session pair coverage. Each worker tick (4h) generates 1 brief per
+// configured pair for the current session. Pairs chosen to span the FX +
+// metals + crypto majors so /research surfaces multi-market context. To
+// expand, append to this list — worker will pick them up next tick.
+//
+// 2026-05-20 audit: previously hardcoded ['BTCUSD'] only. Lifted to 6 pairs
+// covering forex (EUR/USD, GBP/USD, USD/JPY) + metals (XAU/USD, XAG/USD) +
+// crypto major (BTC/USD). Backend `getKeyLevels`/`fetchPairData` cope dengan
+// graceful empty fallback per pair, so a missing-data pair doesn't break the
+// run — `runPairBriefWorkerInner` already catches per-pair errors via the
+// `errors` array.
+const CONFIGURED_PAIRS = [
+  'BTCUSD',
+  'XAUUSD',
+  'EURUSD',
+  'GBPUSD',
+  'USDJPY',
+  'XAGUSD',
+];
 
 // In-process guard: prevents two worker runs from starting in parallel on
 // this Node process (e.g. cron kickoff + manual POST + 4h interval all

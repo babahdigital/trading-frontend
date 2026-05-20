@@ -35,6 +35,7 @@ import { LanguageSwitcher } from '@/components/ui/language-switcher';
 import { AuthProvider, useAuth } from '@/lib/auth/auth-context';
 import { KillSwitchBanner } from '@/components/portal/kill-switch-banner';
 import { NotificationBellCount } from '@/components/portal/notification-bell-count';
+import { KycAdvisoryBanner } from '@/components/portal/kyc-advisory-banner';
 
 interface NavItem {
   href: string;
@@ -167,8 +168,9 @@ function PortalLayoutInner({ children }: { children: React.ReactNode }) {
       </ResponsiveSidebar>
 
       <main className="flex-1 overflow-auto">
-        <div className="p-4 sm:p-6 lg:p-8 max-w-[1400px] mx-auto">
+        <div className="p-4 sm:p-6 lg:p-8 max-w-[1400px] mx-auto space-y-4">
           <KillSwitchBanner />
+          <KycAdvisoryBanner />
           {children}
         </div>
       </main>

@@ -45,6 +45,7 @@ export default function PerformancePage() {
   const [equityData, setEquityData] = useState<{ time: string; value: number }[]>([]);
   const [kpi, setKpi] = useState<KpiData | null>(null);
   const [source, setSource] = useState<string>('');
+  const [currentEquity, setCurrentEquity] = useState<number | null>(null);
   const [sessionData, setSessionData] = useState<SessionRow[]>([]);
   const [dowData, setDowData] = useState<DowRow[]>([]);
   const [period, setPeriod] = useState('90D');
@@ -57,6 +58,7 @@ export default function PerformancePage() {
         setEquityData(data.equity || []);
         setKpi(data.kpi || null);
         setSource(data.source || '');
+        setCurrentEquity(typeof data.currentEquity === 'number' && data.currentEquity > 0 ? data.currentEquity : null);
         setSessionData(Array.isArray(data.session) ? data.session : []);
         setDowData(Array.isArray(data.dayOfWeek) ? data.dayOfWeek : []);
         setLoading(false);
@@ -107,6 +109,27 @@ export default function PerformancePage() {
             <p className="t-lead text-muted-foreground max-w-2xl">
               {hasLiveData ? t('hero_subtitle_live') : t('hero_subtitle_beta')}
             </p>
+
+            {/* Live equity stamp — surfaced dari master tenant Exness broker
+                via /api/forex/accounts. Real number, refresh per page load.
+                Hidden saat data tidak available (currentEquity null/0). */}
+            {currentEquity !== null && (
+              <div className="mt-8 inline-flex items-center gap-4 rounded-lg border border-border/60 bg-card/60 px-5 py-3 backdrop-blur">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" aria-hidden />
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-mono">
+                    {t('hero_equity_label')}
+                  </span>
+                </div>
+                <span className="text-xl font-mono font-semibold tabular-nums tracking-tight">
+                  ${currentEquity.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+                <span className="text-[10px] text-muted-foreground/70 hidden sm:inline">
+                  {t('hero_equity_source')}
+                </span>
+              </div>
+            )}
+
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/contact" className="btn-primary">
                 {t('hero_cta_briefing')} <ArrowRight className="w-4 h-4" />

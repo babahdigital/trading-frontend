@@ -524,6 +524,8 @@
     "hero_subtitle_beta": "Kami sedang fase beta. Daripada menampilkan angka simulasi sebagai \"track record\", kami menahan publikasi sampai punya 90 hari operasi produksi nyata. Sementara itu, transparansi metodologi di bawah.",
     "hero_cta_briefing": "Jadwalkan briefing",
     "hero_cta_demo": "Coba demo gratis",
+    "hero_equity_label": "Equity saat ini",
+    "hero_equity_source": "Sumber: broker statement live (Exness)",
     "equity_curve_title": "Kurva ekuitas",
     "equity_live_label": "Live · update 4 jam",
     "equity_source_db": "Database produksi internal · forex + crypto backend",

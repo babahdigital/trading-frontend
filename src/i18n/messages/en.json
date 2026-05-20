@@ -510,6 +510,8 @@
     "hero_subtitle_beta": "We're in beta phase. Rather than display simulated numbers as a \"track record\", we hold off publishing until we have 90 days of real production operation. In the meantime, methodology transparency below.",
     "hero_cta_briefing": "Schedule briefing",
     "hero_cta_demo": "Try demo free",
+    "hero_equity_label": "Current equity",
+    "hero_equity_source": "Source: live broker statement (Exness)",
     "equity_curve_title": "Equity curve",
     "equity_live_label": "Live · 4-hour refresh",
     "equity_source_db": "Internal production database · forex + crypto backend",

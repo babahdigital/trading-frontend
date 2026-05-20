@@ -54,7 +54,7 @@ export default async function AboutPage() {
         {/* Hero — about uses page-stamp-rule (subtle accent fade from top)
             so the editorial prose below feels like a magazine feature */}
         <section className="section-padding border-b border-border/60 page-stamp-rule">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
             <h1 className="t-display-page mb-6">{t('hero_title')}</h1>
             <p className="t-lead text-muted-foreground max-w-2xl">
@@ -65,7 +65,7 @@ export default async function AboutPage() {
 
         {/* Philosophy — Editorial prose */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <div className="grid lg:grid-cols-5 gap-16">
               <div className="lg:col-span-2">
                 <p className="t-eyebrow mb-3">{t('philosophy_eyebrow')}</p>
@@ -82,7 +82,7 @@ export default async function AboutPage() {
 
         {/* Principles */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <p className="t-eyebrow mb-3">{t('principles_eyebrow')}</p>
             <h2 className="t-display-sub mb-12">{t('principles_title')}</h2>
             <div className="grid md:grid-cols-3 gap-8">
@@ -98,7 +98,7 @@ export default async function AboutPage() {
 
         {/* Timeline */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <p className="t-eyebrow mb-3">{t('journey_eyebrow')}</p>
             <h2 className="t-display-sub mb-12">{t('journey_title')}</h2>
             <div className="hidden md:flex items-start justify-between gap-4">
@@ -136,7 +136,7 @@ export default async function AboutPage() {
 
         {/* Navigation cards */}
         <section className="section-padding">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <div className="grid md:grid-cols-2 gap-6 max-w-3xl">
               <Link href="/about/team" className="card-enterprise group">
                 <h3 className="text-lg font-medium mb-2 group-hover:text-amber-400 transition-colors">{t('nav_team_title')}</h3>

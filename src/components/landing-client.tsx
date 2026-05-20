@@ -391,7 +391,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
           ═══════════════════════════════════════════ */}
       {betaSection && (
       <section className="border-t border-border/60 bg-amber-500/[0.03]">
-        <div className="container-default px-4 sm:px-6 py-12 sm:py-16">
+        <div className="layout-container py-12 sm:py-16">
           <div className="grid lg:grid-cols-12 gap-8 items-center">
             <div className="lg:col-span-7">
               <AnimatedSection>
@@ -497,7 +497,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
           ═══════════════════════════════════════════ */}
       {productsSection && (
       <section className="section-padding border-t border-border/60">
-        <div className="container-default px-4 sm:px-6">
+        <div className="layout-container">
           <AnimatedSection>
             <div className="t-eyebrow mb-4">{t('products_eyebrow')}</div>
             <h2 className="t-display-section text-foreground mb-4">
@@ -546,7 +546,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
           SECTION 2 — TRACK RECORD (honest empty state during beta)
           ═══════════════════════════════════════════ */}
       <section className="section-padding border-t border-border/60">
-        <div className="container-default px-4 sm:px-6">
+        <div className="layout-container">
           <AnimatedSection>
             <div className="t-eyebrow mb-4">{t('track_record_eyebrow')}</div>
             <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-10">
@@ -588,9 +588,11 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
                 </div>
               </AnimatedSection>
 
-              {/* KPI Grid — live dari /api/public/performance */}
+              {/* KPI Grid — 4 metrics presisi (Sharpe Ratio dihapus 2026-05-20
+                  per Pak Abdullah: "5 ganjil di mobile, 4 lebih symmetric"
+                  — sekarang 2x2 di mobile, 4x1 di desktop). */}
               <AnimatedSection delay={0.2}>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-8">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
                   <div className="kpi-card">
                     <div className="t-eyebrow mb-3">{t('kpi_total_return')}</div>
                     <div className="t-data-kpi text-amber-400">{kpi.totalReturn}</div>
@@ -600,11 +602,6 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
                     <div className="t-eyebrow mb-3">{t('kpi_max_dd')}</div>
                     <div className="t-data-kpi text-data-negative">{kpi.maxDrawdown}</div>
                     <div className="t-body-sm text-muted-foreground mt-2">{t('kpi_max_dd_sub')}</div>
-                  </div>
-                  <div className="kpi-card">
-                    <div className="t-eyebrow mb-3">{t('kpi_sharpe')}</div>
-                    <div className="t-data-kpi text-amber-400">{kpi.sharpeRatio}</div>
-                    <div className="t-body-sm text-muted-foreground mt-2">{t('kpi_sharpe_sub')}</div>
                   </div>
                   <div className="kpi-card">
                     <div className="t-eyebrow mb-3">{t('kpi_pf')}</div>
@@ -672,7 +669,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
           SECTION 3 — THREE PILLARS
           ═══════════════════════════════════════════ */}
       <section className="section-padding border-t border-border/60">
-        <div className="container-default px-4 sm:px-6">
+        <div className="layout-container">
           <AnimatedSection>
             <div className="t-eyebrow mb-4">{t('pillars_eyebrow')}</div>
             <h2 className="t-display-section text-foreground mb-4">{t('pillars_title')}</h2>
@@ -714,7 +711,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
           SECTION 4 — RISK FRAMEWORK
           ═══════════════════════════════════════════ */}
       <section className="section-padding border-t border-border/60">
-        <div className="container-default px-4 sm:px-6">
+        <div className="layout-container">
           <AnimatedSection>
             <div className="t-eyebrow mb-4">{t('risk_eyebrow')}</div>
             <h2 className="t-display-section text-foreground mb-2">{t('risk_title')}</h2>
@@ -744,7 +741,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
           SECTION 5 — PRICING (Split layout)
           ═══════════════════════════════════════════ */}
       <section className="section-padding border-t border-border/60 overflow-hidden">
-        <div className="container-default px-4 sm:px-6">
+        <div className="layout-container">
           <div className="grid lg:grid-cols-12 gap-10 lg:gap-16 min-w-0">
             {/* Left column — heading, description, tabs. min-w-0 wajib supaya
                 grid children tidak push wider dari viewport saat ada horizontal
@@ -889,7 +886,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
           ═══════════════════════════════════════════ */}
       {displayTestimonials.length > 0 ? (
         <section className="section-padding border-t border-border/60">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <AnimatedSection>
               <div className="t-eyebrow mb-4">{t('testimonials_eyebrow')}</div>
               <h2 className="t-display-section text-foreground mb-16">{t('testimonials_title')}</h2>
@@ -914,7 +911,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
         </section>
       ) : (
         <section className="section-padding border-t border-border/60">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <AnimatedSection>
               <div className="t-eyebrow mb-4">{t('trust_eyebrow')}</div>
               <h2 className="t-display-section text-foreground mb-4">
@@ -963,7 +960,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
           SECTION 7 — FAQ
           ═══════════════════════════════════════════ */}
       <section className="section-padding border-t border-border/60">
-        <div className="container-default px-4 sm:px-6">
+        <div className="layout-container">
           {/* Header row — heading left, CTA right */}
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-12">
             <AnimatedSection>
@@ -1020,7 +1017,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] rounded-full bg-amber-500/[0.04] blur-3xl" />
         </div>
 
-        <div className="container-prose px-4 sm:px-6 text-center relative z-10">
+        <div className="layout-container layout-container--prose text-center relative z-10">
           <AnimatedSection>
             <div className="t-eyebrow mb-6">{t('cta_eyebrow')}</div>
             <h2 className="t-display-section text-foreground mb-6">

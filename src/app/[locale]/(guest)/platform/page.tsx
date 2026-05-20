@@ -96,7 +96,7 @@ export default async function PlatformPage() {
       <main id="main-content">
         {/* Hero — platform uses page-stamp-grid (technical blueprint feel) */}
         <section className="section-padding border-b border-border/60 page-stamp-grid">
-          <div className="container-default px-4 sm:px-6 relative">
+          <div className="layout-container relative">
             <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
             <h1 className="t-display-page mb-6">
               {t('hero_title_line1')}<br className="hidden sm:block" /> {t('hero_title_line2')}
@@ -109,7 +109,7 @@ export default async function PlatformPage() {
 
         {/* Three Pillars */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <p className="t-eyebrow mb-3">{t('pillars_eyebrow')}</p>
             <h2 className="t-display-sub mb-4">{t('pillars_title')}</h2>
             <p className="t-body text-foreground/60 mb-12 max-w-2xl">
@@ -141,7 +141,7 @@ export default async function PlatformPage() {
 
         {/* Execution Pipeline */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <p className="t-eyebrow mb-3">{t('pipeline_eyebrow')}</p>
             <h2 className="t-display-sub mb-4">{t('pipeline_title')}</h2>
             <p className="t-body text-foreground/60 mb-12 max-w-2xl">
@@ -166,7 +166,7 @@ export default async function PlatformPage() {
 
         {/* Instruments */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <p className="t-eyebrow mb-3">{t('instruments_eyebrow')}</p>
             <h2 className="t-display-sub mb-4">{t('instruments_title')}</h2>
             <p className="t-body text-foreground/60 mb-12 max-w-2xl">
@@ -202,7 +202,7 @@ export default async function PlatformPage() {
 
         {/* Documentation */}
         <section className="section-padding">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <p className="t-eyebrow mb-3">{t('docs_eyebrow')}</p>
             <h2 className="t-display-sub mb-8">{t('docs_title')}</h2>
             <div className="grid md:grid-cols-2 gap-6">

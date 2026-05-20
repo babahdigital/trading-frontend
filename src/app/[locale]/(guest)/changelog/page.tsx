@@ -65,7 +65,7 @@ export default function ChangelogPage() {
       <EnterpriseNav />
       <main id="main-content">
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <p className="t-eyebrow mb-4">{t.eyebrow}</p>
             <h1 className="t-display-page mb-6">{t.page_title}</h1>
             <p className="t-lead text-foreground/60 max-w-2xl">{t.intro}</p>
@@ -73,7 +73,7 @@ export default function ChangelogPage() {
         </section>
 
         <section className="section-padding">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             {loading && (
               <p className="text-foreground/50">{t.loading}</p>
             )}

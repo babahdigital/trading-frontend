@@ -148,7 +148,7 @@ export default function SignalPage() {
       <main id="main-content">
         {/* Hero */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
             <h1 className="t-display-page mb-6">
               {t('hero_title_l1')}<br className="hidden sm:block" /> {t('hero_title_l2')}
@@ -175,7 +175,7 @@ export default function SignalPage() {
 
         {/* Pricing — 3-tier card layout */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <p className="t-eyebrow mb-3">{t('pricing_eyebrow')}</p>
             <h2 className="t-display-sub mb-4">{t('pricing_title')}</h2>
             <p className="t-body text-foreground/60 mb-10 max-w-2xl">
@@ -228,7 +228,7 @@ export default function SignalPage() {
 
         {/* Who it's for */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <div className="grid lg:grid-cols-5 gap-y-8 lg:gap-y-12 lg:gap-x-16">
               <div className="lg:col-span-2">
                 <p className="t-eyebrow mb-3">{t('audience_eyebrow')}</p>
@@ -248,7 +248,7 @@ export default function SignalPage() {
 
         {/* Features grid */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <p className="t-eyebrow mb-3">{t('features_eyebrow')}</p>
             <h2 className="t-display-sub mb-8 sm:mb-12">{t('features_title')}</h2>
             <div className="grid md:grid-cols-2 gap-x-8 lg:gap-x-12 gap-y-8 sm:gap-y-10">
@@ -269,7 +269,7 @@ export default function SignalPage() {
 
         {/* Onboarding */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <p className="t-eyebrow mb-3">{t('onboard_eyebrow')}</p>
             <h2 className="t-display-sub mb-8 sm:mb-12">{t('onboard_title')}</h2>
             <div className="grid md:grid-cols-3 gap-6 sm:gap-8">
@@ -289,7 +289,7 @@ export default function SignalPage() {
 
         {/* FAQ */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <div className="grid lg:grid-cols-5 gap-y-8 lg:gap-y-12 lg:gap-x-16">
               <div className="lg:col-span-2">
                 <p className="t-eyebrow mb-3">{t('faq_eyebrow')}</p>
@@ -309,7 +309,7 @@ export default function SignalPage() {
 
         {/* CTA */}
         <section className="section-padding text-center">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <h2 className="t-display-sub mb-4">{t('cta_title')}</h2>
             <p className="t-body text-foreground/60 mb-8 max-w-lg mx-auto">
               {t('cta_body')}

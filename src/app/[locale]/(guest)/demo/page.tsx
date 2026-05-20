@@ -100,7 +100,7 @@ export default async function DemoPage() {
       <main id="main-content">
         {/* Hero */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <div className="max-w-3xl">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-xs font-mono uppercase tracking-wider text-amber-300 mb-6">
                 <Sparkles className="w-3.5 h-3.5" />
@@ -132,7 +132,7 @@ export default async function DemoPage() {
 
         {/* Demo isolation banner */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <div className="rounded-lg border-2 border-amber-500/40 bg-amber-500/5 p-5 sm:p-6 flex items-start gap-3">
               <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400 shrink-0 mt-0.5" />
               <div>
@@ -151,7 +151,7 @@ export default async function DemoPage() {
 
         {/* 3-track demo cards */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <p className="t-eyebrow mb-3">{t('tracks_eyebrow')}</p>
             <h2 className="t-display-sub mb-4">{t('tracks_title')}</h2>
             <p className="t-body text-foreground/60 max-w-xl sm:max-w-2xl mb-8 sm:mb-12">
@@ -205,7 +205,7 @@ export default async function DemoPage() {
 
         {/* Steps */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <p className="t-eyebrow mb-3">{t('steps_eyebrow')}</p>
             <h2 className="t-display-sub mb-4">{t('steps_title')}</h2>
             <p className="t-body text-foreground/60 max-w-xl sm:max-w-2xl mb-8 sm:mb-12">
@@ -225,7 +225,7 @@ export default async function DemoPage() {
 
         {/* What happens after demo */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <div className="grid lg:grid-cols-5 gap-y-8 lg:gap-y-12 lg:gap-x-12">
               <div className="lg:col-span-2">
                 <p className="t-eyebrow mb-3">{t('after_eyebrow')}</p>
@@ -260,7 +260,7 @@ export default async function DemoPage() {
 
         {/* CTA */}
         <section className="section-padding">
-          <div className="container-default px-4 sm:px-6 text-center max-w-3xl mx-auto">
+          <div className="layout-container text-center max-w-3xl mx-auto">
             <h2 className="t-display-sub mb-4">{t('cta_title')}</h2>
             <p className="t-body text-foreground/60 mb-8">
               {t('cta_body')}

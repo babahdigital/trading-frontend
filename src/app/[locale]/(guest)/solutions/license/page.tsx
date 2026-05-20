@@ -161,7 +161,7 @@ export default async function LicensePage() {
             dari /solutions/institutional. Plus info card "beda dari institutional?"
             di bawah subtitle supaya user tidak bingung antara 2 produk. */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
 
             {/* Tier identifier badge — visual cue ini retail product, bukan B2B */}
@@ -197,7 +197,7 @@ export default async function LicensePage() {
             Refactor 2026-05-15: tabel lama hanya 1 VPS spec (4 vCPU, 8GB)
             tidak akurat untuk 3-tier baru yang pakai 2 VPS. */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <div className="mb-8 sm:mb-10 max-w-3xl">
               <p className="t-eyebrow mb-3">{t('infra_eyebrow')}</p>
               <h2 className="t-display-sub mb-4">{t('infra_title')}</h2>
@@ -302,7 +302,7 @@ export default async function LicensePage() {
 
         {/* Who it's for */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <p className="t-eyebrow mb-4">{t('elig_eyebrow')}</p>
             <h2 className="t-display-sub mb-8">{t('elig_title')}</h2>
             <ul className="space-y-4 text-foreground/60 max-w-2xl">
@@ -321,7 +321,7 @@ export default async function LicensePage() {
             "terlalu besar, tidak baik di pandang". Sekarang compact card grid
             dengan icon Lucide untuk visual variety tanpa noise. */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <p className="t-eyebrow mb-4">{t('cap_eyebrow')}</p>
             <h2 className="t-display-sub mb-8 sm:mb-12 max-w-3xl">{t('cap_title')}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
@@ -349,7 +349,7 @@ export default async function LicensePage() {
             "Anda sediakan apa" vs "Kami sediakan apa" supaya klien jelas
             scope responsibility-nya. */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <div className="mb-10 sm:mb-12 max-w-3xl">
               <p className="t-eyebrow mb-4">{t('pricing_eyebrow')}</p>
               <h2 className="t-display-sub mb-4">{t('pricing_title')}</h2>
@@ -431,7 +431,7 @@ export default async function LicensePage() {
 
         {/* Onboarding */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <p className="t-eyebrow mb-4">{t('process_eyebrow')}</p>
             <h2 className="t-display-sub mb-8 sm:mb-12">{t('process_title')}</h2>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-x-4 sm:gap-x-6 gap-y-6 sm:gap-y-8">
@@ -451,7 +451,7 @@ export default async function LicensePage() {
 
         {/* FAQ */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <div className="grid lg:grid-cols-5 gap-y-8 lg:gap-y-12 lg:gap-x-12">
               <div className="lg:col-span-2">
                 <p className="t-eyebrow mb-4">{t('faq_eyebrow')}</p>
@@ -473,7 +473,7 @@ export default async function LicensePage() {
             Robot Meta retail. Membantu user pilih produk yang tepat sesuai
             modal mereka. Kalau salah pintu masuk, ini decision tree-nya. */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <div className="mb-8 sm:mb-10 max-w-3xl">
               <p className="t-eyebrow mb-4">{t('compare_eyebrow')}</p>
               <h2 className="t-display-sub">{t('compare_title')}</h2>
@@ -562,7 +562,7 @@ export default async function LicensePage() {
 
         {/* CTA */}
         <section className="section-padding">
-          <div className="container-default px-4 sm:px-6 text-center">
+          <div className="layout-container text-center">
             <p className="t-eyebrow mb-4">{t('cta_eyebrow')}</p>
             <h2 className="t-display-sub mb-4">{t('cta_title')}</h2>
             <p className="text-foreground/60 mb-8 max-w-lg mx-auto">

@@ -43,7 +43,7 @@ export default async function ContactPage() {
         {/* Hero — contact uses page-stamp-editorial (warm radial) so the page
             feels welcoming/human after the data-heavy pricing/performance pages */}
         <section className="section-padding border-b border-border/60 page-stamp-editorial">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
             <h1 className="t-display-page mb-6">
               {t('hero_title_l1')}<br className="hidden sm:block" /> {t('hero_title_l2')}
@@ -63,7 +63,7 @@ export default async function ContactPage() {
 
         {/* What to expect — agenda 4 quadrant */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <p className="t-eyebrow mb-3">{t('agenda_eyebrow')}</p>
             <h2 className="t-display-sub mb-4">{t('agenda_title')}</h2>
             <p className="t-body text-foreground/60 max-w-2xl mb-12">
@@ -85,7 +85,7 @@ export default async function ContactPage() {
 
         {/* Schedule a Call */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <p className="t-eyebrow mb-3">{t('schedule_eyebrow')}</p>
             <h2 className="t-display-sub mb-3">{t('schedule_title')}</h2>
             <p className="t-body-sm text-foreground/60 mb-8 max-w-xl">
@@ -99,7 +99,7 @@ export default async function ContactPage() {
 
         {/* Two Columns: Form + Direct Channels */}
         <section className="section-padding">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <div className="grid lg:grid-cols-5 gap-16 lg:gap-20">
               {/* Left: Contact Form (60%) */}
               <div className="lg:col-span-3">

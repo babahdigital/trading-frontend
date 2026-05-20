@@ -84,14 +84,14 @@ export default async function SolutionsPage({ params }: { params: Promise<{ loca
 
         {/* Tech provider disclaimer banner */}
         <div className="bg-amber-500/10 border-b border-amber-500/20 py-2.5">
-          <p className="container-default px-4 sm:px-6 text-center text-xs sm:text-sm font-medium text-amber-200">
+          <p className="layout-container text-center text-xs sm:text-sm font-medium text-amber-200">
             {tNav('no_pamm_banner')}
           </p>
         </div>
 
         {/* Hero */}
         <section className="section-padding border-b border-white/8">
-          <div className="container-default px-4 sm:px-6 text-center">
+          <div className="layout-container text-center">
             <p className="t-eyebrow mb-4">{t('eyebrow')}</p>
             <h1 className="t-display-page mb-6">{t('hero_title')}</h1>
             <p className="t-lead text-foreground/60 max-w-2xl mx-auto">
@@ -104,7 +104,7 @@ export default async function SolutionsPage({ params }: { params: Promise<{ loca
             Entry-point yang membantu user pilih product yang tepat tanpa
             harus baca semua sub-pages. */}
         <section className="section-padding border-b border-white/8 bg-muted/[0.02]">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <div className="text-center mb-10 sm:mb-12 max-w-2xl mx-auto">
               <p className="t-eyebrow mb-4">{t('ladder_eyebrow')}</p>
               <h2 className="t-display-sub mb-3">{t('ladder_title')}</h2>
@@ -154,7 +154,7 @@ export default async function SolutionsPage({ params }: { params: Promise<{ loca
 
         {/* Solution Cards */}
         <section className="section-padding border-b border-white/8">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <div className="grid md:grid-cols-2 gap-8">
               {SOLUTION_KEYS.map(({ keyBase, slug }) => (
                 <div
@@ -189,14 +189,14 @@ export default async function SolutionsPage({ params }: { params: Promise<{ loca
             yakin pilih tier mana. Interactive client component dengan auto-
             recommendation berdasarkan asset class + modal + technical comfort. */}
         <section className="section-padding border-b border-white/8">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <DecisionQuiz />
           </div>
         </section>
 
         {/* Bottom CTA */}
         <section className="section-padding">
-          <div className="container-default px-4 sm:px-6 text-center">
+          <div className="layout-container text-center">
             <h2 className="t-display-sub mb-4">{t('bottom_title')}</h2>
             <p className="text-foreground/60 mb-8 max-w-xl mx-auto">
               {t('bottom_subtitle')}

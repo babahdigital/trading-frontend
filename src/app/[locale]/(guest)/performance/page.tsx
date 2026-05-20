@@ -97,7 +97,7 @@ export default function PerformancePage() {
         {/* Hero — performance uses page-stamp-rule (subtle accent gradient at
             top) so the data section reads as the focal point, not the hero */}
         <section className="section-padding border-b border-border/60 page-stamp-rule">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
             <h1 className="t-display-page mb-6">
               {hasLiveData ? (
@@ -144,7 +144,7 @@ export default function PerformancePage() {
         {/* Equity Curve OR Tracking Pillars */}
         {hasLiveData ? (
           <section className="section-padding border-b border-border/60">
-            <div className="container-default px-4 sm:px-6">
+            <div className="layout-container">
               <div className="flex items-center justify-between mb-8">
                 <h2 className="t-display-sub">{t('equity_curve_title')}</h2>
                 <div className="flex items-center gap-2">
@@ -170,7 +170,7 @@ export default function PerformancePage() {
           </section>
         ) : (
           <section className="section-padding border-b border-border/60">
-            <div className="container-default px-4 sm:px-6">
+            <div className="layout-container">
               <p className="t-eyebrow mb-3">{t('method_eyebrow')}</p>
               <h2 className="t-display-sub mb-4">{t('method_title')}</h2>
               <p className="t-body text-foreground/60 max-w-2xl mb-12">
@@ -194,7 +194,7 @@ export default function PerformancePage() {
         {/* KPI Grid — only render when real data */}
         {hasKpi && (
           <section className="section-padding border-b border-border/60">
-            <div className="container-default px-4 sm:px-6">
+            <div className="layout-container">
               <p className="t-eyebrow mb-3">{t('kpi_eyebrow')}</p>
               <h2 className="t-display-sub mb-12">{t('kpi_title')}</h2>
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
@@ -213,7 +213,7 @@ export default function PerformancePage() {
         {/* Execution Stats — only when real session/dow data exist */}
         {(sessionData.length > 0 || dowData.length > 0) && (
           <section className="section-padding border-b border-border/60">
-            <div className="container-default px-4 sm:px-6">
+            <div className="layout-container">
               <p className="t-eyebrow mb-3">{t('analytics_eyebrow')}</p>
               <h2 className="t-display-sub mb-12">{t('analytics_title')}</h2>
 
@@ -280,7 +280,7 @@ export default function PerformancePage() {
 
         {/* Independent Verification — institutional trust */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <p className="t-eyebrow mb-3">{t('verify_eyebrow')}</p>
             <h2 className="t-display-sub mb-4">{t('verify_title')}</h2>
             <p className="t-body text-foreground/60 max-w-2xl mb-12">
@@ -305,7 +305,7 @@ export default function PerformancePage() {
 
         {/* Disclaimer */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <div className="rounded-xl border border-border/60 bg-card p-6 sm:p-7 max-w-3xl">
               <p className="t-eyebrow mb-3">{t('risk_eyebrow')}</p>
               <p className="text-xs text-foreground/55 leading-relaxed italic">
@@ -317,7 +317,7 @@ export default function PerformancePage() {
 
         {/* CTA */}
         <section className="section-padding text-center">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <h2 className="t-display-sub mb-4">{t('cta_title')}</h2>
             <p className="t-body text-foreground/60 mb-8 max-w-lg mx-auto">
               {t('cta_body')}

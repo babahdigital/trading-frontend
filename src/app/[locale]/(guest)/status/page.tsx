@@ -322,7 +322,7 @@ export default function StatusPage() {
       <main id="main-content" className="pb-16">
         {/* Header */}
         <section className="border-b border-border py-10 page-stamp-rule">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
               <div className="max-w-2xl">
                 <p className="t-eyebrow mb-2 inline-flex items-center gap-2">
@@ -356,7 +356,7 @@ export default function StatusPage() {
 
         {/* Overall banner */}
         <section className="py-4">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             {error ? (
               <div role="alert" className="rounded-lg border border-destructive/30 bg-destructive/10 px-5 py-3 text-sm text-destructive">
                 {t.error_load}: {error}
@@ -385,7 +385,7 @@ export default function StatusPage() {
 
         {/* Components */}
         <section className="py-4">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <h2 className="text-sm font-medium text-foreground/80 mb-3">{t.components_section}</h2>
             <div className="rounded-lg border border-border overflow-hidden divide-y divide-border">
               {(data?.components ?? []).map((c) => {
@@ -420,7 +420,7 @@ export default function StatusPage() {
 
         {/* Workers */}
         <section className="py-4">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <button
               onClick={() => setExpandWorkers(!expandWorkers)}
               className="w-full rounded-lg border border-border px-5 py-3 flex items-center justify-between hover:bg-muted/30 transition-colors text-left"
@@ -491,7 +491,7 @@ export default function StatusPage() {
         {/* Health checks */}
         {(hasHealthChecks || data === null) && (
           <section className="py-4">
-            <div className="container-default px-4 sm:px-6">
+            <div className="layout-container">
               <button
                 onClick={() => setExpandHealth(!expandHealth)}
                 className="w-full rounded-lg border border-border px-5 py-3 flex items-center justify-between hover:bg-muted/30 transition-colors text-left"
@@ -567,7 +567,7 @@ export default function StatusPage() {
         {/* Deploy info footer */}
         {data?.deploy && (
           <section className="py-4">
-            <div className="container-default px-4 sm:px-6">
+            <div className="layout-container">
               <div className="rounded-lg border border-border bg-muted/20 px-5 py-3 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-muted-foreground">
                 <span className="font-medium text-foreground/80">{t.deploy_section}:</span>
                 <span>

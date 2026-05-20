@@ -118,7 +118,7 @@ export default async function RiskFrameworkPage() {
       <main id="main-content">
         {/* Hero — page-stamp-rule for institutional editorial feel */}
         <section className="section-padding border-b border-border page-stamp-rule">
-          <div className="container-default px-4 sm:px-6 relative">
+          <div className="layout-container relative">
             <Link
               href="/platform"
               className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors mb-8"
@@ -152,7 +152,7 @@ export default async function RiskFrameworkPage() {
             id={`sec-${section.number}`}
             className={`section-padding ${idx < SECTIONS.length - 1 ? 'border-b border-border/60' : ''} scroll-mt-24`}
           >
-            <div className="container-default px-4 sm:px-6">
+            <div className="layout-container">
               {/* Section header */}
               <div className="mb-12 max-w-3xl">
                 <div className="flex items-center gap-3 mb-4">
@@ -199,7 +199,7 @@ export default async function RiskFrameworkPage() {
 
         {/* CTA */}
         <section className="section-padding border-t border-border">
-          <div className="container-default px-4 sm:px-6 text-center max-w-2xl mx-auto">
+          <div className="layout-container text-center max-w-2xl mx-auto">
             <p className="t-eyebrow mb-3">{t('cta_eyebrow')}</p>
             <h2 className="t-display-sub mb-6">{t('cta_title')}</h2>
             <p className="t-body text-muted-foreground mb-8">{t('cta_body')}</p>

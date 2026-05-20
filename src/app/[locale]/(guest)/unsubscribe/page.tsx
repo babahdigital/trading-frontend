@@ -31,7 +31,7 @@ export default async function UnsubscribePage({ params }: { params: Promise<{ lo
       <EnterpriseNav />
       <main id="main-content">
         <section className="section-padding">
-          <div className="container-default px-4 sm:px-6 max-w-xl mx-auto text-center">
+          <div className="layout-container max-w-xl mx-auto text-center">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[hsl(var(--profit))/15] border border-[hsl(var(--profit))/30] mb-6">
               <CheckCircle2 className="h-8 w-8 text-[hsl(var(--profit))]" strokeWidth={2} />
             </div>

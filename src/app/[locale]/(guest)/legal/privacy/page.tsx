@@ -40,7 +40,7 @@ export default function PrivacyPage() {
       <main id="main-content">
         {/* Hero */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <p className="t-eyebrow mb-4">{t('eyebrow')}</p>
             <h1 className="t-display-page mb-2">{t('page_privacy')}</h1>
             <p className="t-body-sm text-foreground/60">{t('last_updated')}</p>
@@ -49,15 +49,15 @@ export default function PrivacyPage() {
 
         {/* Content */}
         <section className="section-padding">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             {cmsBody ? (
               <div
-                className="container-prose space-y-10 text-foreground/60"
+                className="space-y-10 text-foreground/60"
                 style={{ lineHeight: 1.7 }}
                 dangerouslySetInnerHTML={{ __html: cmsBody }}
               />
             ) : (
-            <div className="container-prose space-y-10 text-foreground/60" style={{ lineHeight: 1.7 }}>
+            <div className="space-y-10 text-foreground/60" style={{ lineHeight: 1.7 }}>
 
               <section>
                 <p>{tb('intro')}</p>
@@ -225,7 +225,7 @@ export default function PrivacyPage() {
 
         {/* Related Documents */}
         <section className="section-padding border-t border-border/60">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <p className="t-eyebrow mb-4">{t('related_eyebrow')}</p>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {LEGAL_LINKS.map((doc) => (

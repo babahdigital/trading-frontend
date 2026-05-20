@@ -90,7 +90,7 @@ export default async function InstitutionalPage({ params }: { params: { locale: 
       <main id="main-content">
         {/* Hero — tier badge "B2B Custom" untuk differentiate dari VPS License. */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
 
             {/* Tier identifier — B2B managed engagement (vs VPS License self-host) */}
@@ -112,7 +112,7 @@ export default async function InstitutionalPage({ params }: { params: { locale: 
 
         {/* Who it's for */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <div className="grid lg:grid-cols-5 gap-y-8 lg:gap-x-12">
               <div className="lg:col-span-2">
                 <p className="t-eyebrow mb-4">{t('elig_eyebrow')}</p>
@@ -132,7 +132,7 @@ export default async function InstitutionalPage({ params }: { params: { locale: 
 
         {/* What you get */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <p className="t-eyebrow mb-4">{t('cap_eyebrow')}</p>
             <h2 className="t-display-sub mb-8 sm:mb-12 max-w-3xl">{t('cap_title')}</h2>
             <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6">
@@ -157,7 +157,7 @@ export default async function InstitutionalPage({ params }: { params: { locale: 
             Visual differentiation: amber border untuk biaya, blue accent
             untuk modal klien — supaya secara visual obvious 2 hal berbeda. */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             {/* Header section — context untuk seluruh pricing zone */}
             <div className="mb-10 sm:mb-12 max-w-3xl">
               <p className="t-eyebrow mb-4">{t('pricing_eyebrow')}</p>
@@ -246,7 +246,7 @@ export default async function InstitutionalPage({ params }: { params: { locale: 
 
         {/* Onboarding */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <p className="t-eyebrow mb-4">{t('process_eyebrow')}</p>
             <h2 className="t-display-sub mb-8 sm:mb-12">{t('process_title')}</h2>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-x-4 sm:gap-x-6 gap-y-6 sm:gap-y-8">
@@ -266,7 +266,7 @@ export default async function InstitutionalPage({ params }: { params: { locale: 
 
         {/* FAQ */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <div className="grid lg:grid-cols-5 gap-y-8 lg:gap-y-12 lg:gap-x-12">
               <div className="lg:col-span-2">
                 <p className="t-eyebrow mb-4">{t('faq_eyebrow')}</p>
@@ -288,7 +288,7 @@ export default async function InstitutionalPage({ params }: { params: { locale: 
             Klien yang landing di institutional page bisa lihat alternatif
             VPS License Full Turnkey kalau belum siap institutional commitment. */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <div className="mb-8 sm:mb-10 max-w-3xl">
               <p className="t-eyebrow mb-4">{t('compare_eyebrow')}</p>
               <h2 className="t-display-sub">{t('compare_title')}</h2>
@@ -361,7 +361,7 @@ export default async function InstitutionalPage({ params }: { params: { locale: 
 
         {/* CTA */}
         <section className="section-padding">
-          <div className="container-default px-4 sm:px-6 text-center">
+          <div className="layout-container text-center">
             <p className="t-eyebrow mb-4">{t('cta_eyebrow')}</p>
             <h2 className="t-display-sub mb-4">{t('cta_title')}</h2>
             <p className="text-foreground/60 mb-8 max-w-lg mx-auto">

@@ -144,8 +144,46 @@ body.menu-open {
     --layout-container-prose-max:  720px;   /* long-form prose / legal */
     --layout-container-full-max:   1680px;  /* media-rich / hero bleed */
     /* Horizontal padding token — clamp(mobile, viewport, desktop) untuk
-       konsistensi gutter di seluruh halaman tanpa per-page tweak. */
+       konsistensi gutter di seluruh halaman tanpa per-page tweak.
+       4K-aware: at >=1920px viewport, gutter caps di 1.5rem supaya content
+       tetap dekat dengan center column dan tidak melayang sepi di sisi. */
     --layout-px: clamp(1rem, 2.5vw, 1.5rem);
+
+    /* === Z-INDEX SCALE — predictable layering ===
+       Naik 10 per layer supaya gampang sisipkan baru tanpa renumber semua.
+       Sebelumnya ad-hoc z-30/z-50/z-80/z-90/z-100 tersebar — sekarang
+       canonical 6-tier system. Pakai via Tailwind arbitrary `z-[var(--z-nav)]`
+       atau langsung di CSS file. */
+    --z-base:     1;     /* default content */
+    --z-sticky:   30;    /* sticky bars di dalam page (compare CTA, sticky header) */
+    --z-fixed:    40;    /* fixed widgets (chat bubble, scroll-to-top) */
+    --z-nav:      80;    /* primary nav */
+    --z-mobile-menu: 90; /* mobile menu portal */
+    --z-toast:    95;    /* toast notifications atas mobile menu */
+    --z-overlay:  100;   /* modals, dialogs, dropdowns above everything */
+    --z-tooltip:  110;   /* tooltip terakhir layer */
+
+    /* === GAP SCALE — grid + flex gap tokens ===
+       Map ke Tailwind theme.extend.gap supaya `gap-token-md` etc. */
+    --gap-xs:  0.5rem;   /* 8px  — tight clusters (badge groups, inline icons) */
+    --gap-sm:  0.75rem;  /* 12px — list items, small grid */
+    --gap-md:  1rem;     /* 16px — default grid gap */
+    --gap-lg:  1.25rem;  /* 20px — feature grid, card grid */
+    --gap-xl:  1.5rem;   /* 24px — large card grid */
+    --gap-2xl: 2rem;     /* 32px — section grid */
+
+    /* === TOUCH TARGETS — Apple HIG + Material Design min 44px ===
+       Semua interactive surface (button, link button, icon button) WAJIB
+       satisfy min size untuk thumb usability di mobile. */
+    --touch-min: 44px;
+    --touch-comfortable: 48px;
+
+    /* === FOCUS RING — accessibility canonical ===
+       Konsisten di semua interactive surfaces — buttons, inputs, links,
+       custom focus styles. */
+    --focus-ring-width: 2px;
+    --focus-ring-offset: 2px;
+    --focus-ring-color: hsl(38 60% 50% / 0.6);  /* amber 60% alpha */
 
     /* === BORDER RADIUS === */
     --radius-sm: 4px;
@@ -453,6 +491,56 @@ body.menu-open {
   .container-default { width: 100%; max-width: var(--layout-container-max); margin-inline: auto; padding-inline: var(--layout-px); }
   .container-wide    { width: 100%; max-width: var(--layout-container-wide-max); margin-inline: auto; padding-inline: var(--layout-px); }
   .container-full    { width: 100%; max-width: var(--layout-container-full-max); margin-inline: auto; }
+
+  /* ─── Gap utilities — token-driven grid + flex gap ───
+     Pakai `.gap-token-{xs|sm|md|lg|xl|2xl}` alih-alih Tailwind `gap-N`
+     supaya 1 edit di --gap-* token = global update. */
+  .gap-token-xs  { gap: var(--gap-xs); }
+  .gap-token-sm  { gap: var(--gap-sm); }
+  .gap-token-md  { gap: var(--gap-md); }
+  .gap-token-lg  { gap: var(--gap-lg); }
+  .gap-token-xl  { gap: var(--gap-xl); }
+  .gap-token-2xl { gap: var(--gap-2xl); }
+
+  /* ─── Touch target utilities — Apple HIG / Material Design 44px ───
+     Setiap interactive surface (icon button, dismiss button) wrap dengan
+     `.touch-target` (44px) atau `.touch-target-comfortable` (48px) supaya
+     thumb-friendly di mobile. Centered content via flex auto. */
+  .touch-target {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--touch-min);
+    min-height: var(--touch-min);
+  }
+  .touch-target-comfortable {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--touch-comfortable);
+    min-height: var(--touch-comfortable);
+  }
+
+  /* ─── Focus ring utility — canonical a11y outline ───
+     Apply ke custom interactive surfaces yang tidak via <Button>. */
+  .focus-ring {
+    outline: none;
+  }
+  .focus-ring:focus-visible {
+    outline: var(--focus-ring-width) solid var(--focus-ring-color);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  /* ─── Semantic accent utilities — kurangi amber hardcode di komponen ───
+     Sebelumnya banyak komponen pakai `text-amber-400 bg-amber-500/10`
+     literal. Sekarang `.accent-fg`, `.accent-bg-soft`, `.accent-ring`
+     terpusat — ubah brand accent di --brand-amber = global update. */
+  .accent-fg       { color: var(--brand-amber); }
+  .accent-fg-deep  { color: var(--brand-amber-deep); }
+  .accent-bg-soft  { background-color: rgba(245, 181, 71, 0.10); }
+  .accent-bg-med   { background-color: rgba(245, 181, 71, 0.18); }
+  .accent-border   { border-color: rgba(245, 181, 71, 0.40); }
+  .accent-ring     { box-shadow: 0 0 0 1px rgba(245, 181, 71, 0.30); }
 
   /* ─── Card enterprise — mobile-first padding ───
      On portrait phones the card fills the viewport with tighter inner

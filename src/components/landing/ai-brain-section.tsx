@@ -40,7 +40,7 @@ export function AiBrainSection() {
     <section className="section-padding border-b border-border/60 relative overflow-hidden">
       <div className="absolute inset-0 page-stamp-rule opacity-50 pointer-events-none" />
 
-      <div className="container-default px-4 sm:px-6 relative">
+      <div className="layout-container relative">
         <div className="max-w-3xl mb-10 sm:mb-12">
           <p className="t-eyebrow mb-3 inline-flex items-center gap-2 text-amber-600 dark:text-amber-400">
             <Brain className="h-3.5 w-3.5" strokeWidth={2.25} aria-hidden />

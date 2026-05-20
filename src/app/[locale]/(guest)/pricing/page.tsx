@@ -118,7 +118,7 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
         {/* Hero — pricing uses page-stamp-grid (subtle dotted grid) for the
             "matrix / spreadsheet" feel that fits a multi-tier comparison page */}
         <section className="section-padding border-b border-border/60 page-stamp-grid">
-          <div className="container-default px-4 sm:px-6 text-center relative">
+          <div className="layout-container text-center relative">
             <p className="t-eyebrow mb-4">{tp('hero_eyebrow')}</p>
             <h1 className="t-display-page mb-4">{t('title')}</h1>
             <p className="t-lead text-muted-foreground max-w-xl sm:max-w-2xl mx-auto">{t('subtitle')}</p>
@@ -132,7 +132,7 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
             sebelum tier card list. Single-screen comparison untuk visitor yang mau
             cepat lihat fitur antar tier tanpa scroll panjang. */}
         <section className="border-b border-border/60">
-          <div className="container-default px-4 sm:px-6 py-12 sm:py-16">
+          <div className="layout-container py-12 sm:py-16">
             <TierComparisonMatrix locale={locale === 'en' ? 'en' : 'id'} />
           </div>
         </section>
@@ -181,7 +181,7 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
 
         {/* Institutional / B2B */}
         <section className="section-padding border-b border-border/60">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <p className="t-eyebrow mb-3">{tp('inst_eyebrow')}</p>
             <h2 className="t-display-section mb-3 max-w-xl sm:max-w-2xl">{tp('inst_title')}</h2>
             <p className="t-body text-foreground/60 max-w-xl sm:max-w-2xl mb-8 sm:mb-12">
@@ -225,7 +225,7 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
 
         {/* Free Demo CTA */}
         <section className="section-padding">
-          <div className="container-default px-4 sm:px-6 text-center max-w-3xl mx-auto">
+          <div className="layout-container text-center max-w-3xl mx-auto">
             <h2 className="t-display-section mb-4">{tp('demo_title')}</h2>
             <p className="t-body text-foreground/60 mb-8">
               {tp('demo_body')}
@@ -275,7 +275,7 @@ function ProductSection({
 }) {
   return (
     <section className="section-padding border-b border-border/60">
-      <div className="container-default px-4 sm:px-6">
+      <div className="layout-container">
         <div className="flex items-center gap-2.5 mb-3">
           <Icon className="h-4 w-4 text-amber-400" />
           <p className="t-eyebrow !mb-0">{eyebrow}</p>

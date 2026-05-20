@@ -64,7 +64,7 @@ export default async function StrategiesPage() {
 
         {/* Hero */}
         <section className="section-padding border-b border-white/8">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
             <h1 className="t-display-page mb-6">
               {t('hero_title')}
@@ -80,7 +80,7 @@ export default async function StrategiesPage() {
 
         {/* Strategies list */}
         <section className="section-padding border-b border-white/8">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
               <p className="t-eyebrow">{t('list_eyebrow')}</p>
               {isPending ? (

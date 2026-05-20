@@ -86,17 +86,58 @@ module.exports = {
         'display-sm': ['clamp(1.375rem, 2.5vw, 1.75rem)', { lineHeight: '1.25', letterSpacing: '-0.015em' }],
         'label-sm': ['0.6875rem', { lineHeight: '1.4', letterSpacing: '0.05em' }],
       },
+      // Aligned with globals.css :root --layout-container-* tokens supaya
+      // Tailwind utility `max-w-default` etc emit same width sebagai
+      // .layout-container CSS class. Single source di globals.css.
+      maxWidth: {
+        'prose': 'var(--layout-container-prose-max)',
+        'narrow': 'var(--layout-container-narrow-max)',
+        'default': 'var(--layout-container-max)',
+        'wide': 'var(--layout-container-wide-max)',
+        'full-content': 'var(--layout-container-full-max)',
+        'legal': 'var(--layout-container-prose-max)',
+      },
+      // Z-index scale dari globals.css token — predictable layering.
+      // Usage: `z-sticky`, `z-nav`, `z-mobile-menu`, `z-toast`, `z-overlay`.
+      zIndex: {
+        'base':         'var(--z-base)',
+        'sticky':       'var(--z-sticky)',
+        'fixed':        'var(--z-fixed)',
+        'nav':          'var(--z-nav)',
+        'mobile-menu':  'var(--z-mobile-menu)',
+        'toast':        'var(--z-toast)',
+        'overlay':      'var(--z-overlay)',
+        'tooltip':      'var(--z-tooltip)',
+      },
+      // Gap tokens — `gap-token-md` lewat globals.css class atau Tailwind
+      // arbitrary `gap-[var(--gap-md)]`. Native Tailwind gap-4/6/8 tetap
+      // available untuk one-off, tapi prefer token untuk konsistensi.
+      spacing: {
+        'token-xs':  'var(--gap-xs)',
+        'token-sm':  'var(--gap-sm)',
+        'token-md':  'var(--gap-md)',
+        'token-lg':  'var(--gap-lg)',
+        'token-xl':  'var(--gap-xl)',
+        'token-2xl': 'var(--gap-2xl)',
+        'touch':       'var(--touch-min)',
+        'touch-cf':    'var(--touch-comfortable)',
+        'layout-px':   'var(--layout-px)',
+      },
+      // Responsive breakpoints — extend ke 4K-aware: 1920 + 2560.
+      // Tailwind default: sm=640, md=768, lg=1024, xl=1280, 2xl=1536.
+      screens: {
+        '3xl': '1920px',  /* HD+ laptops 1920 wide */
+        '4xl': '2560px',  /* 4K monitors / ultra-wide */
+      },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
-      },
-      maxWidth: {
-        'legal': '720px',
-        'prose': '720px',
-        'default': '1200px',
-        'wide': '1360px',
-        'full-content': '1600px',
+        'token-sm':  'var(--radius-sm)',
+        'token-md':  'var(--radius-md)',
+        'token-lg':  'var(--radius-lg)',
+        'token-xl':  'var(--radius-xl)',
+        'token-2xl': 'var(--radius-2xl)',
       },
       boxShadow: {
         'sm': 'var(--shadow-sm)',

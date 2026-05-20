@@ -31,7 +31,7 @@ export default async function ExecutionPage() {
 
         {/* Hero */}
         <section className="section-padding border-b border-white/8">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <Link
               href="/platform"
               className="inline-flex items-center gap-1.5 text-sm text-amber-400 hover:text-amber-400/80 transition-colors mb-8"
@@ -50,7 +50,7 @@ export default async function ExecutionPage() {
 
         {/* Latency */}
         <section className="section-padding border-b border-white/8">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <p className="t-eyebrow mb-4">{t('latency_eyebrow')}</p>
             <h2 className="t-display-sub mb-4">{t('latency_title')}</h2>
             <div className="card-enterprise">
@@ -87,7 +87,7 @@ export default async function ExecutionPage() {
 
         {/* Broker Integration */}
         <section className="section-padding border-b border-white/8">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <p className="t-eyebrow mb-4">{t('broker_eyebrow')}</p>
             <h2 className="t-display-sub mb-4">{t('broker_title')}</h2>
             <div className="card-enterprise">
@@ -106,7 +106,7 @@ export default async function ExecutionPage() {
 
         {/* VPS Infrastructure */}
         <section className="section-padding border-b border-white/8">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <p className="t-eyebrow mb-4">{t('vps_eyebrow')}</p>
             <h2 className="t-display-sub mb-4">{t('vps_title')}</h2>
             <div className="space-y-6">
@@ -132,7 +132,7 @@ export default async function ExecutionPage() {
 
         {/* Monitoring and Failover */}
         <section className="section-padding">
-          <div className="container-default px-4 sm:px-6">
+          <div className="layout-container">
             <p className="t-eyebrow mb-4">{t('ops_eyebrow')}</p>
             <h2 className="t-display-sub mb-4">{t('ops_title')}</h2>
             <div className="space-y-6">

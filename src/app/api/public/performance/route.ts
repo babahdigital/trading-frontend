@@ -118,7 +118,10 @@ async function buildFromBackend(): Promise<{ equity: EquityPoint[]; kpi: KPI; cu
     fetchJson<{ rows: BackendPerformanceRow[] }>('stats', '/api/forex/analytics/performance?period=ytd&group_by=day'),
     fetchJson<{ points: BackendDrawdownPoint[] }>('stats', '/api/forex/analytics/drawdown?period=ytd'),
     fetchJson<BackendAccountList>('stats', '/api/forex/accounts'),
-    fetchJson<BackendPositionStats>('stats', '/api/forex/positions/stats?period=ytd'),
+    // positions/stats valid periods: {1d, 7d, 30d, 90d, all} — NO 'ytd' di
+    // _VALID_PERIODS (asymmetric vs analytics endpoints). Pakai 'all' untuk
+    // lifetime canonical view (profit_factor, win_rate, total_trades).
+    fetchJson<BackendPositionStats>('stats', '/api/forex/positions/stats?period=all'),
   ]);
   if (!pnl || !pnl.points.length) {
     return null;

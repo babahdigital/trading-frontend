@@ -6,12 +6,14 @@
  * upgrades tier (typically <30s). Display real-time payment state +
  * actionable next steps.
  */
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
 import { CheckCircle2, Loader2, ArrowRight, Receipt } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useLocale } from 'next-intl';
+import { formatCurrency } from '@/lib/format-locale';
+import type { Locale } from '@/lib/format-locale';
 
 interface InvoiceStatus {
   status: 'PAID' | 'DUE' | 'CANCELED' | 'EXPIRED';
@@ -24,12 +26,13 @@ interface InvoiceStatus {
 function SuccessInner() {
   const params = useSearchParams();
   const orderId = params.get('order_id');
-  const locale = useLocale() as 'id' | 'en';
+  const locale = useLocale() as Locale;
   const isEn = locale === 'en';
   const { getAuthHeaders } = useAuth();
   const [status, setStatus] = useState<InvoiceStatus | null>(null);
   const [pollCount, setPollCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const sessionRefreshed = useRef(false);
 
   useEffect(() => {
     if (!orderId) {
@@ -49,6 +52,26 @@ function SuccessInner() {
           const data = (await res.json()) as InvoiceStatus;
           setStatus(data);
           setLoading(false);
+
+          // Saat PAID terdeteksi pertama kali — invalidate session cache
+          // (forceful /api/auth/me re-fetch) supaya SubscriptionExpiryBanner
+          // + nav portal pickup tier baru tanpa harus hard-refresh. Plus
+          // clear KYC draft + chat lead supaya tidak stale per audit.
+          if (data.status === 'PAID' && !sessionRefreshed.current) {
+            sessionRefreshed.current = true;
+            try {
+              // Refetch session — drop sessionStorage cache supaya nav portal
+              // load latest activeSubscription.
+              sessionStorage.removeItem('user');
+              await fetch('/api/auth/me', { credentials: 'same-origin', cache: 'no-store' });
+            } catch { /* network glitch ignored */ }
+            // Clear billing-related draft state
+            try {
+              localStorage.removeItem('billing.checkout.draft');
+              localStorage.removeItem('kyc.draft.v1');
+            } catch { /* localStorage disabled */ }
+          }
+
           // Keep polling kalau masih DUE — webhook may update soon
           if (data.status === 'DUE' && pollCount < 10) {
             timer = setTimeout(poll, 3000);
@@ -61,7 +84,7 @@ function SuccessInner() {
         setLoading(false);
       }
     };
-    poll();
+    void poll();
     return () => {
       cancelled = true;
       if (timer) clearTimeout(timer);
@@ -77,15 +100,13 @@ function SuccessInner() {
         className={`inline-flex h-20 w-20 items-center justify-center rounded-full border mb-6 ${
           isPaid
             ? 'bg-emerald-500/10 border-emerald-500/30'
-            : isStillProcessing
-              ? 'bg-amber-500/10 border-amber-500/30'
-              : 'bg-amber-500/10 border-amber-500/30'
+            : 'bg-amber-500/10 border-amber-500/30'
         }`}
       >
         {isPaid ? (
-          <CheckCircle2 className="h-9 w-9 text-emerald-400" />
+          <CheckCircle2 className="h-9 w-9 text-emerald-600 dark:text-emerald-400" />
         ) : (
-          <Loader2 className="h-9 w-9 text-amber-400 animate-spin" />
+          <Loader2 className="h-9 w-9 text-amber-600 dark:text-amber-400 animate-spin" />
         )}
       </div>
 
@@ -113,11 +134,11 @@ function SuccessInner() {
 
       {status && (
         <div className="mt-6 inline-flex items-center gap-3 rounded-lg border border-border/60 bg-card px-5 py-3 text-sm font-mono">
-          <Receipt className="w-4 h-4 text-amber-400" />
-          <span className="text-foreground/60">{isEn ? 'Invoice' : 'Invoice'}:</span>
+          <Receipt className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+          <span className="text-foreground/60">Invoice:</span>
           <span className="font-semibold">{status.number}</span>
           <span className="text-foreground/40">·</span>
-          <span className="text-amber-400">${status.amountUsd}</span>
+          <span className="text-amber-600 dark:text-amber-400 tabular-nums">{formatCurrency(status.amountUsd, 'USD', locale)}</span>
         </div>
       )}
 

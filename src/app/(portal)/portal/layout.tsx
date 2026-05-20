@@ -34,11 +34,14 @@ import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';
 import { AuthProvider, useAuth } from '@/lib/auth/auth-context';
 import { KillSwitchBanner } from '@/components/portal/kill-switch-banner';
+import { NotificationBellCount } from '@/components/portal/notification-bell-count';
 
 interface NavItem {
   href: string;
   labelKey: string;
   icon: typeof LayoutDashboard;
+  /** Optional badge slug — kalau set, render badge component sesuai slug. */
+  badge?: 'notifications';
 }
 
 interface NavSection {
@@ -51,7 +54,7 @@ const NAV_SECTIONS: NavSection[] = [
     labelKey: null,
     items: [
       { href: '/portal', labelKey: 'nav_dashboard', icon: LayoutDashboard },
-      { href: '/portal/notifications', labelKey: 'nav_notifications', icon: Bell },
+      { href: '/portal/notifications', labelKey: 'nav_notifications', icon: Bell, badge: 'notifications' },
       { href: '/portal/features', labelKey: 'nav_features', icon: Sparkles },
     ],
   },
@@ -141,6 +144,7 @@ function PortalLayoutInner({ children }: { children: React.ReactNode }) {
                     >
                       <item.icon className="h-4 w-4 shrink-0" />
                       <span className="truncate">{t(item.labelKey)}</span>
+                      {item.badge === 'notifications' && <NotificationBellCount />}
                     </Link>
                   );
                 })}

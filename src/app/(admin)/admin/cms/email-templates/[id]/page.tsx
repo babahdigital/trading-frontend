@@ -8,9 +8,10 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CmsPageHeader } from '@/components/cms/page-header';
+import { PageHeader } from '@/components/admin/page-header';
+import { EmptyState } from '@/components/admin/empty-state';
 import { useAuth } from '@/lib/auth/auth-context';
-import { Save, Send, Eye, ChevronLeft, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Save, Send, Eye, ChevronLeft, Loader2, AlertCircle, CheckCircle2, FileText } from 'lucide-react';
 
 interface EmailTemplate {
   id: string;
@@ -114,20 +115,33 @@ export default function EmailTemplateDetailPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <CmsPageHeader title="Template" description="Memuat..." />
+      <div className="admin-page-stack">
+        <PageHeader title="Template Email" description="Memuat…" />
+        <div className="space-y-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-24 rounded bg-muted animate-pulse" />
+          ))}
+        </div>
       </div>
     );
   }
   if (!tpl) {
     return (
-      <div className="space-y-6">
-        <CmsPageHeader title="Template" description="Template tidak ditemukan." />
-        <Link href="/admin/cms/email-templates">
-          <Button variant="outline" size="sm">
-            <ChevronLeft className="h-4 w-4 mr-1" /> Kembali
-          </Button>
-        </Link>
+      <div className="admin-page-stack">
+        <PageHeader
+          eyebrow={
+            <Link href="/admin/cms/email-templates" className="inline-flex items-center gap-1 hover:text-foreground transition-colors">
+              <ChevronLeft className="h-3 w-3" /> Email Templates
+            </Link>
+          }
+          title="Template tidak ditemukan"
+        />
+        <EmptyState
+          icon={FileText}
+          title="Template tidak ditemukan"
+          description="Template yang Anda cari mungkin sudah dihapus atau ID tidak valid."
+          actions={[{ label: 'Kembali ke daftar', href: '/admin/cms/email-templates', icon: ChevronLeft }]}
+        />
       </div>
     );
   }
@@ -136,26 +150,28 @@ export default function EmailTemplateDetailPage() {
   const previewBody = previewLocale === 'en' ? tpl.body_en : tpl.body_id;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <Link href="/admin/cms/email-templates" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-3">
-          <ChevronLeft className="h-3 w-3 mr-1" /> Kembali ke list
-        </Link>
-        <CmsPageHeader
-          title={tpl.name}
-          description={`Slug: ${tpl.slug} · ${tpl.description ?? '(no description)'}`}
-        />
-      </div>
+    <div className="admin-page-stack">
+      <PageHeader
+        eyebrow={
+          <Link href="/admin/cms/email-templates" className="inline-flex items-center gap-1 hover:text-foreground transition-colors">
+            <ChevronLeft className="h-3 w-3" /> Email Templates
+          </Link>
+        }
+        title={tpl.name}
+        description={`Slug: ${tpl.slug} · ${tpl.description ?? '(tidak ada deskripsi)'}`}
+      />
 
       {feedback && (
         <div
+          role={feedback.kind === 'err' ? 'alert' : 'status'}
+          aria-live={feedback.kind === 'err' ? 'assertive' : 'polite'}
           className={
             feedback.kind === 'ok'
-              ? 'flex items-start gap-2 p-3 rounded-md border border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
-              : 'flex items-start gap-2 p-3 rounded-md border border-rose-500/30 bg-rose-500/10 text-rose-300'
+              ? 'flex items-start gap-2 p-3 rounded-md border border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+              : 'flex items-start gap-2 p-3 rounded-md border border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300'
           }
         >
-          {feedback.kind === 'ok' ? <CheckCircle2 className="h-4 w-4 mt-0.5 shrink-0" /> : <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />}
+          {feedback.kind === 'ok' ? <CheckCircle2 className="h-4 w-4 mt-0.5 shrink-0" aria-hidden="true" /> : <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" aria-hidden="true" />}
           <span className="text-sm">{feedback.text}</span>
         </div>
       )}

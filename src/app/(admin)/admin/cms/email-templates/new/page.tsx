@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CmsPageHeader } from '@/components/cms/page-header';
+import { PageHeader } from '@/components/admin/page-header';
 import { useAuth } from '@/lib/auth/auth-context';
 import { ChevronLeft, Loader2, AlertCircle } from 'lucide-react';
 
@@ -79,18 +79,19 @@ export default function NewEmailTemplatePage() {
   }
 
   return (
-    <div className="space-y-6">
-      <CmsPageHeader
-        title="New Email Template"
+    <div className="admin-page-stack">
+      <PageHeader
+        eyebrow={
+          <Link
+            href="/admin/cms/email-templates"
+            className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+          >
+            <ChevronLeft className="h-3 w-3" /> Email Templates
+          </Link>
+        }
+        title="Template Email Baru"
         description="Buat template email transactional baru. Slug menjadi key untuk sendTemplatedEmail(slug)."
       />
-
-      <Link
-        href="/admin/cms/email-templates"
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
-      >
-        <ChevronLeft className="h-4 w-4" /> Kembali ke list
-      </Link>
 
       <form onSubmit={onSubmit} className="max-w-3xl space-y-5">
         <Card>
@@ -213,8 +214,8 @@ export default function NewEmailTemplatePage() {
         </Card>
 
         {error && (
-          <div className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
-            <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+          <div role="alert" className="flex items-start gap-2 rounded-md border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-700 dark:text-rose-300">
+            <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" aria-hidden="true" />
             <span>{error}</span>
           </div>
         )}

@@ -9,6 +9,54 @@ interface PageMetaResult {
   structuredData?: Record<string, unknown>;
 }
 
+// Default OG image untuk pages tanpa custom ogImage di PageMeta DB.
+// Path relative — resolved against metadataBase di root layout.
+const DEFAULT_OG_IMAGE = {
+  url: '/logo/babahalgo-icon-1024.png',
+  width: 1024,
+  height: 1024,
+  alt: 'BabahAlgo — Institutional-grade Quantitative Trading',
+} as const;
+
+/**
+ * Build canonical openGraph + twitter metadata pair untuk page.
+ * Used baik di DB-driven path maupun fallback path supaya semua surface
+ * dapat full OG + Twitter card konsisten.
+ */
+function buildSocialCard(opts: {
+  title: string;
+  description: string;
+  url?: string;
+  image?: string;
+  type?: 'website' | 'article';
+}) {
+  const image = opts.image || DEFAULT_OG_IMAGE.url;
+  return {
+    openGraph: {
+      title: opts.title,
+      description: opts.description,
+      url: opts.url,
+      siteName: 'BabahAlgo',
+      type: opts.type ?? 'website',
+      locale: 'id_ID',
+      images: [
+        {
+          url: image,
+          width: image === DEFAULT_OG_IMAGE.url ? DEFAULT_OG_IMAGE.width : 1200,
+          height: image === DEFAULT_OG_IMAGE.url ? DEFAULT_OG_IMAGE.height : 630,
+          alt: image === DEFAULT_OG_IMAGE.url ? DEFAULT_OG_IMAGE.alt : opts.title,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image' as const,
+      title: opts.title,
+      description: opts.description,
+      images: [image],
+    },
+  };
+}
+
 /**
  * Resolve page SEO metadata with locale awareness.
  *
@@ -56,18 +104,30 @@ export async function getPageMetadataWithStructuredData(
       // EN locale + EN column missing → caller fallback wins (avoid serving
       // ID copy on EN page). Worker will fill in next tick.
       if (isEn && !meta.title_en && !meta.description_en) {
-        return { metadata: fallback };
+        return {
+          metadata: {
+            ...fallback,
+            ...buildSocialCard({
+              title: fallback.title,
+              description: fallback.description,
+              url: path,
+            }),
+          },
+        };
       }
+
+      const social = buildSocialCard({
+        title: ogTitle,
+        description: ogDescription || description || '',
+        url: path,
+        image: meta.ogImage ?? undefined,
+      });
 
       return {
         metadata: {
           title,
           description,
-          openGraph: {
-            title: ogTitle,
-            description: ogDescription,
-            images: meta.ogImage ? [meta.ogImage] : undefined,
-          },
+          ...social,
         },
         structuredData: meta.structuredData as Record<string, unknown> | undefined,
       };
@@ -75,5 +135,14 @@ export async function getPageMetadataWithStructuredData(
   } catch (err) {
     log.warn(`PageMeta read failed for ${path}: ${err instanceof Error ? err.message : 'unknown'}`);
   }
-  return { metadata: fallback };
+  return {
+    metadata: {
+      ...fallback,
+      ...buildSocialCard({
+        title: fallback.title,
+        description: fallback.description,
+        url: path,
+      }),
+    },
+  };
 }

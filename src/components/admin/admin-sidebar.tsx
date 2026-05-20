@@ -63,6 +63,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: '/admin/vps-fleet', label: 'VPS Fleet', icon: ServerCog },
       { href: '/admin/vps', label: 'VPS Instances', icon: Server },
       { href: '/admin/audit', label: 'Audit Log', icon: ScrollText },
+      { href: '/admin/analytics', label: 'Analytics & PMF', icon: Activity },
     ],
   },
   {

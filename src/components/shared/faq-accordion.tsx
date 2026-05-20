@@ -57,11 +57,14 @@ export function FaqAccordion({
               key={item.id}
               className="group rounded-lg border border-border/60 bg-card/40 transition-colors hover:border-border open:border-amber-400/30 open:bg-card/60"
             >
-              <summary className="flex items-start justify-between gap-3 cursor-pointer px-5 py-4 list-none [&::-webkit-details-marker]:hidden">
-                <span className="text-sm font-medium text-foreground leading-snug pr-2">{q}</span>
-                <ChevronDown className="w-4 h-4 text-foreground/50 shrink-0 mt-0.5 transition-transform duration-200 group-open:rotate-180" />
+              <summary className="flex items-start justify-between gap-3 cursor-pointer px-5 py-4 list-none [&::-webkit-details-marker]:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg">
+                {/* h3 wrapper kasih semantic heading hierarchy untuk screen
+                    reader — <details><summary> sendiri tidak punya role
+                    heading, jadi sr-user kehilangan struktur Q/A. */}
+                <h3 className="text-sm font-medium text-foreground leading-snug pr-2 m-0">{q}</h3>
+                <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5 transition-transform duration-200 group-open:rotate-180" aria-hidden="true" />
               </summary>
-              <div className="px-5 pb-5 -mt-1 text-sm text-foreground/70 leading-relaxed whitespace-pre-line">
+              <div className="px-5 pb-5 -mt-1 text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
                 {a}
               </div>
             </details>

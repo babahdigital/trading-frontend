@@ -39,12 +39,12 @@ export function TrustStrip({
           key={titleKey}
           className="flex items-start gap-3 rounded-lg border border-border/40 bg-card/40 px-4 py-3"
         >
-          <span className="inline-flex w-9 h-9 rounded-md bg-emerald-500/10 ring-1 ring-emerald-500/20 items-center justify-center shrink-0">
-            <Icon className="w-4 h-4 text-emerald-400" />
+          <span className="inline-flex w-9 h-9 rounded-md bg-emerald-500/10 ring-1 ring-emerald-500/30 items-center justify-center shrink-0">
+            <Icon className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
           </span>
           <div className="min-w-0 leading-tight">
             <p className="text-sm font-medium text-foreground mb-0.5">{t(titleKey)}</p>
-            <p className="text-xs text-foreground/55 leading-snug">{t(descKey)}</p>
+            <p className="text-xs text-muted-foreground leading-snug">{t(descKey)}</p>
           </div>
         </div>
       ))}

@@ -1,16 +1,22 @@
 'use client';
 
 /**
- * Admin sidebar — conventional collapsible nav menggantikan mega-menu top-nav.
+ * Admin sidebar — modern institutional console layout.
  *
- * Desktop (lg+): persistent left sidebar dengan grup collapsible. Brand di
- * top, identity di bottom. Active route auto-expand parent group.
+ * Desktop (lg+): persistent left rail (260px expanded / 72px collapsed) dengan
+ *   grup nav collapsible, brand di top, identity strip + theme/locale di bottom.
+ * Mobile (<lg): topbar dengan burger → drawer overlay fullscreen.
  *
- * Mobile (<lg): drawer overlay (portal-based) yang dibuka via topbar burger.
+ * Modern polish (2026-05-21):
+ *   - Brand mark dengan accent glow + subtle ring untuk premium feel.
+ *   - Active item: gradient amber slab + left rail indicator + icon tone shift.
+ *   - Hover: depth via bg-muted/50 (bukan ring), feel responsive.
+ *   - Section group: spacing scale konsisten (token gaps), collapsible chevron rotate.
+ *   - Collapsed mode: icon-only tooltip mode dengan Apple HIG 44px touch targets.
+ *   - Identity strip: avatar bulat dengan initial, role chip.
  *
- * Why sidebar bukan mega-menu top-nav: Operations console punya 30+ link
- * tersebar di 5 grup; mega-menu CMS dengan 18 item terasa terlalu padat,
- * konvensional sidebar (Linear/Stripe/Vercel style) lebih scalable + scan-friendly.
+ * Render breakpoint: 4K+ tetap 260px (institutional consoles like Linear/Vercel
+ *   stay narrow di 4K supaya canvas content lebar; sidebar tidak inflate).
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -19,13 +25,14 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { Icon, IconCircle } from '@/components/ui/icon';
 import { useAuth } from '@/lib/auth/auth-context';
 import {
   LayoutDashboard, KeyRound, Server, ServerCog, Users, UserCheck, ScrollText,
   Zap, Settings, LogOut, FileText, DollarSign, HelpCircle, Image as ImageIcon,
   MessageSquare, Mail, Star, Globe, Inbox, BookOpen, Layers, Sparkles, User, Crown,
   Building2, ChevronDown, ChevronRight, Menu, X, Cog, MonitorSmartphone, Activity,
-  PanelLeftClose, PanelLeftOpen,
+  PanelLeftClose, PanelLeftOpen, Search as SearchIcon,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -39,9 +46,6 @@ type NavGroup = {
   items: NavItem[];
 };
 
-// Grup nav admin — semantic split. Operations (most-used) di atas, Content (CMS)
-// dipecah jadi 3 sub-grup yang lebih intuitif (sebelumnya mega-menu 18 item
-// dalam 4-col grid — terlalu padat).
 const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Operations',
@@ -125,6 +129,11 @@ const NAV_GROUPS: NavGroup[] = [
   },
 ];
 
+// Flatten untuk command palette search
+const ALL_NAV_ITEMS: Array<NavItem & { group: string }> = NAV_GROUPS.flatMap((g) =>
+  g.items.map((i) => ({ ...i, group: g.label })),
+);
+
 interface AdminMe {
   email?: string;
   name?: string | null;
@@ -140,6 +149,7 @@ export function AdminSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [me, setMe] = useState<AdminMe | null>(null);
+  const [paletteOpen, setPaletteOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -164,24 +174,31 @@ export function AdminSidebar() {
     };
   }, []);
 
-  // Close mobile drawer on route change
+  // Close mobile drawer + palette on route change
   useEffect(() => {
     setMobileOpen(false);
+    setPaletteOpen(false);
   }, [pathname]);
 
-  // Esc closes mobile drawer
+  // Cmd/Ctrl+K opens command palette
   useEffect(() => {
-    if (!mobileOpen) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setMobileOpen(false);
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setPaletteOpen((v) => !v);
+      }
+      if (e.key === 'Escape') {
+        if (paletteOpen) setPaletteOpen(false);
+        if (mobileOpen) setMobileOpen(false);
+      }
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [mobileOpen]);
+  }, [paletteOpen, mobileOpen]);
 
-  // Body scroll lock saat mobile drawer open
+  // Body scroll lock saat mobile drawer / palette open
   useEffect(() => {
-    if (!mobileOpen) return;
+    if (!mobileOpen && !paletteOpen) return;
     const scrollY = window.scrollY;
     const body = document.body;
     body.style.position = 'fixed';
@@ -197,7 +214,7 @@ export function AdminSidebar() {
       body.style.width = '';
       window.scrollTo(0, scrollY);
     };
-  }, [mobileOpen]);
+  }, [mobileOpen, paletteOpen]);
 
   const isActive = useCallback(
     (href: string) => pathname === href || (href !== '/admin' && pathname.startsWith(href)),
@@ -218,26 +235,32 @@ export function AdminSidebar() {
 
   return (
     <>
-      {/* Mobile topbar — burger + brand */}
-      <header className="lg:hidden sticky top-0 z-[70] flex h-14 items-center justify-between px-3 bg-background/95 backdrop-blur border-b border-border">
+      {/* Mobile topbar — burger + brand + theme + search */}
+      <header className="lg:hidden sticky top-0 z-[70] flex h-14 items-center justify-between px-3 sm:px-4 bg-background/90 backdrop-blur-md border-b border-border">
         <div className="flex items-center gap-2.5">
           <button
             type="button"
-            className="inline-flex items-center justify-center h-10 w-10 -ml-1 rounded-md text-foreground hover:bg-muted/60 active:scale-95 transition-all"
+            className="inline-flex items-center justify-center h-10 w-10 -ml-1 rounded-lg text-foreground hover:bg-muted active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             onClick={() => setMobileOpen(true)}
             aria-label="Buka menu admin"
             aria-expanded={mobileOpen}
           >
-            <Menu className="h-5 w-5" strokeWidth={2} />
+            <Icon icon={Menu} size="lg" strokeWidth={2} />
           </button>
-          <Link href="/admin" className="flex items-center gap-2">
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <MonitorSmartphone className="h-4.5 w-4.5" strokeWidth={2.25} />
-            </span>
-            <span className="text-sm font-semibold text-foreground">Admin Console</span>
+          <Link href="/admin" className="flex items-center gap-2" aria-label="Dashboard admin">
+            <BrandMark size="sm" />
+            <span className="text-sm font-semibold text-foreground">Admin</span>
           </Link>
         </div>
         <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => setPaletteOpen(true)}
+            className="inline-flex items-center justify-center h-10 w-10 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            aria-label="Cari menu"
+          >
+            <Icon icon={SearchIcon} size="lg" strokeWidth={2} />
+          </button>
           <ThemeToggle />
         </div>
       </header>
@@ -245,47 +268,80 @@ export function AdminSidebar() {
       {/* Desktop sidebar — sticky left rail */}
       <aside
         className={cn(
-          'hidden lg:flex fixed inset-y-0 left-0 z-[60] flex-col border-r border-border bg-card/40 backdrop-blur-md transition-[width] duration-200',
-          collapsed ? 'w-[68px]' : 'w-[248px]',
+          'hidden lg:flex fixed inset-y-0 left-0 z-[60] flex-col border-r border-border bg-card/60 backdrop-blur-xl transition-[width] duration-200',
+          collapsed ? 'w-[72px]' : 'w-[260px]',
         )}
+        data-collapsed={collapsed}
       >
         {/* Brand */}
-        <div className={cn('flex items-center h-16 border-b border-border', collapsed ? 'justify-center px-2' : 'justify-between px-4')}>
+        <div className={cn(
+          'flex items-center h-16 border-b border-border shrink-0',
+          collapsed ? 'justify-center px-2' : 'justify-between px-4',
+        )}>
           {!collapsed ? (
             <>
-              <Link href="/admin" className="flex items-center gap-2.5 min-w-0">
-                <span className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-primary text-primary-foreground shrink-0">
-                  <MonitorSmartphone className="h-5 w-5" strokeWidth={2.25} />
-                </span>
+              <Link href="/admin" className="flex items-center gap-2.5 min-w-0 group">
+                <BrandMark size="md" />
                 <div className="leading-tight min-w-0">
-                  <div className="text-sm font-semibold text-foreground truncate">BabahAlgo</div>
-                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Admin Console</div>
+                  <div className="text-sm font-semibold text-foreground truncate group-hover:text-amber-600 dark:group-hover:text-amber-300 transition-colors">BabahAlgo</div>
+                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Admin Console</div>
                 </div>
               </Link>
               <button
                 type="button"
                 onClick={toggleCollapsed}
-                className="inline-flex items-center justify-center h-8 w-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+                className="inline-flex items-center justify-center h-8 w-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 aria-label="Sembunyikan sidebar"
+                title="Sembunyikan (Ctrl+B)"
               >
-                <PanelLeftClose className="h-4 w-4" strokeWidth={2} />
+                <Icon icon={PanelLeftClose} size="sm" />
               </button>
             </>
           ) : (
             <button
               type="button"
               onClick={toggleCollapsed}
-              className="inline-flex items-center justify-center h-9 w-9 rounded-md bg-primary text-primary-foreground hover:scale-105 transition-transform"
+              className="inline-flex items-center justify-center h-10 w-10 rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 text-amber-50 shadow-sm hover:scale-105 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               aria-label="Buka sidebar"
-              title="Buka sidebar"
+              title="Buka sidebar (Ctrl+B)"
             >
-              <PanelLeftOpen className="h-4.5 w-4.5" strokeWidth={2} />
+              <Icon icon={PanelLeftOpen} size="sm" strokeWidth={2} />
             </button>
           )}
         </div>
 
+        {/* Search palette trigger */}
+        {!collapsed ? (
+          <div className="px-3 py-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => setPaletteOpen(true)}
+              className="w-full inline-flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              aria-label="Cari menu admin"
+            >
+              <Icon icon={SearchIcon} size="sm" />
+              <span className="flex-1 text-left">Cari menu…</span>
+              <kbd className="hidden xl:inline-flex items-center gap-0.5 px-1.5 h-5 rounded border border-border bg-background text-[10px] font-mono text-muted-foreground">
+                ⌘K
+              </kbd>
+            </button>
+          </div>
+        ) : (
+          <div className="px-2 py-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => setPaletteOpen(true)}
+              className="w-full inline-flex items-center justify-center h-10 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              aria-label="Cari menu (Ctrl+K)"
+              title="Cari menu (Ctrl+K)"
+            >
+              <Icon icon={SearchIcon} size="md" />
+            </button>
+          </div>
+        )}
+
         {/* Scrollable nav */}
-        <nav role="navigation" aria-label="Admin sections" className="flex-1 overflow-y-auto overscroll-contain px-2 py-4 space-y-3">
+        <nav role="navigation" aria-label="Admin sections" className="flex-1 overflow-y-auto overscroll-contain px-2 pb-4 space-y-3">
           {NAV_GROUPS.map((group) => (
             <SidebarGroup
               key={group.key}
@@ -299,8 +355,8 @@ export function AdminSidebar() {
         {/* Identity strip + logout */}
         <div className="shrink-0 border-t border-border p-3 space-y-2">
           {!collapsed && me?.email ? (
-            <div className="flex items-center gap-2.5 px-2 py-1.5">
-              <div className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-muted text-muted-foreground text-xs font-semibold shrink-0">
+            <div className="flex items-center gap-2.5 px-2 py-1.5 rounded-md bg-muted/40">
+              <div className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-amber-500 to-amber-600 text-amber-50 text-xs font-semibold shrink-0 shadow-sm">
                 {(me.name || me.email || '?').charAt(0).toUpperCase()}
               </div>
               <div className="flex flex-col min-w-0 leading-tight">
@@ -319,7 +375,7 @@ export function AdminSidebar() {
               aria-label="Logout"
               title="Logout"
             >
-              <LogOut className={cn('h-4 w-4', !collapsed && 'mr-2')} />
+              <Icon icon={LogOut} size="sm" className={collapsed ? '' : 'mr-2'} />
               {!collapsed && 'Logout'}
             </Button>
           </div>
@@ -334,6 +390,7 @@ export function AdminSidebar() {
               isActive={isActive}
               onClose={() => setMobileOpen(false)}
               onLogout={logout}
+              onOpenPalette={() => { setMobileOpen(false); setPaletteOpen(true); }}
               userEmail={me?.email}
               userName={me?.name}
               userRole={me?.role}
@@ -341,9 +398,43 @@ export function AdminSidebar() {
             document.body,
           )
         : null}
+
+      {/* Command palette (portal) */}
+      {mounted && paletteOpen
+        ? createPortal(
+            <CommandPalette
+              items={ALL_NAV_ITEMS}
+              onClose={() => setPaletteOpen(false)}
+            />,
+            document.body,
+          )
+        : null}
     </>
   );
 }
+
+/* ────────────────────────────────────────────────────────────────────────── */
+
+function BrandMark({ size = 'md' }: { size?: 'sm' | 'md' }) {
+  const dim = size === 'sm' ? 'h-8 w-8' : 'h-9 w-9';
+  const iconSize = size === 'sm' ? 'h-4.5 w-4.5' : 'h-5 w-5';
+  return (
+    <span
+      aria-hidden="true"
+      className={cn(
+        'relative inline-flex items-center justify-center rounded-lg shrink-0',
+        'bg-gradient-to-br from-amber-500 to-amber-600 text-amber-50 shadow-md',
+        'ring-1 ring-amber-500/20',
+        dim,
+      )}
+    >
+      <MonitorSmartphone className={iconSize} strokeWidth={2.25} />
+      <span className="absolute inset-0 rounded-lg ring-1 ring-inset ring-white/20 pointer-events-none" />
+    </span>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
 
 function SidebarGroup({
   group,
@@ -357,31 +448,36 @@ function SidebarGroup({
   const hasActiveItem = useMemo(() => group.items.some((i) => isActive(i.href)), [group.items, isActive]);
   const [expanded, setExpanded] = useState(group.defaultExpanded || hasActiveItem);
 
-  // Auto-expand kalau active item ditemukan setelah render initial
   useEffect(() => {
     if (hasActiveItem) setExpanded(true);
   }, [hasActiveItem]);
 
   if (collapsed) {
-    // Collapsed mode — render hanya item dengan icon (tooltip via title), tanpa group header
     return (
       <div className="space-y-1">
         {group.items.map((item) => {
-          const ItemIcon = item.icon;
           const active = isActive(item.href);
           return (
             <Link
               key={item.href}
               href={item.href}
               title={item.label}
+              aria-current={active ? 'page' : undefined}
               className={cn(
-                'flex items-center justify-center h-10 w-12 mx-auto rounded-md transition-colors',
+                'group relative flex items-center justify-center h-10 w-12 mx-auto rounded-lg transition-colors',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                 active
-                  ? 'bg-primary/15 text-primary'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/60',
+                  ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted',
               )}
             >
-              <ItemIcon className="h-4.5 w-4.5" strokeWidth={2} />
+              {active ? (
+                <span
+                  aria-hidden="true"
+                  className="absolute left-0 top-2 bottom-2 w-0.5 rounded-r-full bg-amber-500"
+                />
+              ) : null}
+              <Icon icon={item.icon} size="md" />
             </Link>
           );
         })}
@@ -395,34 +491,49 @@ function SidebarGroup({
         type="button"
         onClick={() => setExpanded((v) => !v)}
         className={cn(
-          'w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-[11px] font-semibold uppercase tracking-wider transition-colors',
-          'text-muted-foreground hover:text-foreground',
+          'w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-[10px] font-semibold uppercase tracking-[0.08em] transition-colors',
+          'text-muted-foreground/80 hover:text-foreground',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
         )}
         aria-expanded={expanded}
       >
         <span className="inline-flex items-center gap-2">
-          <group.icon className="h-3.5 w-3.5" strokeWidth={2} />
+          <Icon icon={group.icon} size="sm" strokeWidth={2} />
           {group.label}
         </span>
-        {expanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+        <Icon icon={expanded ? ChevronDown : ChevronRight} size="sm" />
       </button>
       {expanded ? (
         <div className="mt-1 space-y-0.5">
           {group.items.map((item) => {
-            const ItemIcon = item.icon;
             const active = isActive(item.href);
             return (
               <Link
                 key={item.href}
                 href={item.href}
+                aria-current={active ? 'page' : undefined}
                 className={cn(
-                  'flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm transition-colors',
+                  'group relative flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm transition-colors',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset',
                   active
-                    ? 'bg-primary/15 text-foreground font-medium'
+                    ? 'bg-gradient-to-r from-amber-500/15 to-amber-500/5 text-foreground font-medium'
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted/60',
                 )}
               >
-                <ItemIcon className="h-4 w-4 shrink-0" strokeWidth={2} />
+                {active ? (
+                  <span
+                    aria-hidden="true"
+                    className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-r-full bg-amber-500"
+                  />
+                ) : null}
+                <Icon
+                  icon={item.icon}
+                  size="md"
+                  className={cn(
+                    'shrink-0 transition-colors',
+                    active ? 'text-amber-700 dark:text-amber-300' : 'text-muted-foreground group-hover:text-foreground',
+                  )}
+                />
                 <span className="truncate">{item.label}</span>
               </Link>
             );
@@ -433,11 +544,14 @@ function SidebarGroup({
   );
 }
 
+/* ────────────────────────────────────────────────────────────────────────── */
+
 function MobileAdminDrawer({
   groups,
   isActive,
   onClose,
   onLogout,
+  onOpenPalette,
   userEmail,
   userName,
   userRole,
@@ -446,6 +560,7 @@ function MobileAdminDrawer({
   isActive: (href: string) => boolean;
   onClose: () => void;
   onLogout: () => void;
+  onOpenPalette: () => void;
   userEmail?: string;
   userName?: string | null;
   userRole?: string;
@@ -459,9 +574,7 @@ function MobileAdminDrawer({
     >
       <div className="flex items-center justify-between h-14 px-3 sm:px-4 border-b border-border bg-background/95 backdrop-blur shrink-0">
         <div className="flex items-center gap-2.5 min-w-0">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground shrink-0">
-            <MonitorSmartphone className="h-4.5 w-4.5" strokeWidth={2.25} />
-          </span>
+          <BrandMark size="sm" />
           <div className="leading-tight min-w-0">
             <div className="text-sm font-semibold text-foreground">BabahAlgo Admin</div>
             {(userName || userEmail) ? (
@@ -469,14 +582,24 @@ function MobileAdminDrawer({
             ) : null}
           </div>
         </div>
-        <button
-          type="button"
-          onClick={onClose}
-          className="inline-flex items-center justify-center h-10 w-10 -mr-1 rounded-md text-foreground hover:bg-muted/60 active:scale-95 transition-all"
-          aria-label="Tutup menu"
-        >
-          <X className="h-5 w-5" strokeWidth={2} />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={onOpenPalette}
+            className="inline-flex items-center justify-center h-10 w-10 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted active:scale-95 transition-all"
+            aria-label="Cari menu"
+          >
+            <Icon icon={SearchIcon} size="lg" />
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="inline-flex items-center justify-center h-10 w-10 -mr-1 rounded-lg text-foreground hover:bg-muted active:scale-95 transition-all"
+            aria-label="Tutup menu"
+          >
+            <Icon icon={X} size="lg" strokeWidth={2} />
+          </button>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto overscroll-contain px-3 sm:px-4 py-4 space-y-1">
@@ -491,7 +614,7 @@ function MobileAdminDrawer({
         ) : null}
         <ThemeToggle />
         <Button variant="outline" size="sm" onClick={() => { onClose(); onLogout(); }} className="ml-auto">
-          <LogOut className="h-4 w-4 mr-1.5" />
+          <Icon icon={LogOut} size="sm" className="mr-1.5" />
           Logout
         </Button>
       </div>
@@ -521,16 +644,16 @@ function MobileGroup({
         type="button"
         onClick={() => setExpanded((v) => !v)}
         className={cn(
-          'w-full flex items-center justify-between px-2.5 py-2.5 rounded-md text-xs font-semibold uppercase tracking-wider transition-colors',
+          'w-full flex items-center justify-between px-2.5 py-2.5 rounded-md text-xs font-semibold uppercase tracking-[0.08em] transition-colors',
           'text-muted-foreground hover:text-foreground hover:bg-muted/40',
         )}
         aria-expanded={expanded}
       >
         <span className="inline-flex items-center gap-2">
-          <group.icon className="h-3.5 w-3.5" strokeWidth={2} />
+          <Icon icon={group.icon} size="sm" strokeWidth={2} />
           {group.label}
         </span>
-        {expanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+        <Icon icon={expanded ? ChevronDown : ChevronRight} size="sm" />
       </button>
       {expanded ? (
         <div className="space-y-0.5 mt-0.5 mb-2">
@@ -541,20 +664,152 @@ function MobileGroup({
                 key={item.href}
                 href={item.href}
                 onClick={onClose}
+                aria-current={active ? 'page' : undefined}
                 className={cn(
-                  'flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm transition-colors',
+                  'relative flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm transition-colors min-h-[44px]',
                   active
-                    ? 'bg-primary/15 text-foreground font-medium'
+                    ? 'bg-gradient-to-r from-amber-500/15 to-amber-500/5 text-foreground font-medium'
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted/60',
                 )}
               >
-                <item.icon className="h-4 w-4 shrink-0" strokeWidth={2} />
+                {active ? (
+                  <span aria-hidden="true" className="absolute left-0 top-2 bottom-2 w-0.5 rounded-r-full bg-amber-500" />
+                ) : null}
+                <Icon icon={item.icon} size="md" className={active ? 'text-amber-700 dark:text-amber-300' : ''} />
                 <span className="truncate">{item.label}</span>
               </Link>
             );
           })}
         </div>
       ) : null}
+    </div>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
+
+function CommandPalette({
+  items,
+  onClose,
+}: {
+  items: Array<NavItem & { group: string }>;
+  onClose: () => void;
+}) {
+  const [query, setQuery] = useState('');
+  const [activeIdx, setActiveIdx] = useState(0);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return items;
+    return items.filter(
+      (i) =>
+        i.label.toLowerCase().includes(q) ||
+        i.group.toLowerCase().includes(q) ||
+        i.href.toLowerCase().includes(q),
+    );
+  }, [items, query]);
+
+  useEffect(() => {
+    setActiveIdx(0);
+  }, [query]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setActiveIdx((i) => Math.min(i + 1, filtered.length - 1));
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setActiveIdx((i) => Math.max(i - 1, 0));
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        const target = filtered[activeIdx];
+        if (target) {
+          window.location.href = target.href;
+        }
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [filtered, activeIdx]);
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Cari menu"
+      className="fixed inset-0 z-[100] flex items-start justify-center pt-[10vh] px-4"
+    >
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label="Tutup pencarian"
+        className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+      />
+      <div className="relative w-full max-w-xl bg-card border border-border rounded-xl shadow-2xl overflow-hidden">
+        <div className="flex items-center gap-2 px-4 h-12 border-b border-border">
+          <Icon icon={SearchIcon} size="md" tone="muted" />
+          <input
+            type="search"
+            autoFocus
+            placeholder="Cari halaman, modul, action…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="flex-1 bg-transparent outline-none text-sm placeholder:text-muted-foreground"
+            aria-label="Cari menu"
+          />
+          <kbd className="hidden sm:inline-flex items-center px-1.5 h-5 rounded border border-border bg-background text-[10px] font-mono text-muted-foreground">
+            ESC
+          </kbd>
+        </div>
+        <div className="max-h-[60vh] overflow-y-auto overscroll-contain p-2">
+          {filtered.length === 0 ? (
+            <div className="px-4 py-8 text-center text-sm text-muted-foreground">
+              Tidak ada menu cocok dengan &quot;{query}&quot;
+            </div>
+          ) : (
+            <ul role="listbox" className="space-y-0.5">
+              {filtered.map((item, idx) => {
+                const active = idx === activeIdx;
+                return (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      role="option"
+                      aria-selected={active}
+                      onMouseEnter={() => setActiveIdx(idx)}
+                      onClick={onClose}
+                      className={cn(
+                        'flex items-center gap-3 px-3 py-2 rounded-md transition-colors',
+                        active
+                          ? 'bg-amber-500/15 text-foreground'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-muted/60',
+                      )}
+                    >
+                      <IconCircle icon={item.icon} size="sm" tone={active ? 'accent' : 'muted'} />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium truncate">{item.label}</div>
+                        <div className="text-[11px] text-muted-foreground truncate">{item.group} · {item.href}</div>
+                      </div>
+                      {active ? (
+                        <span className="text-[10px] font-mono text-muted-foreground">↵</span>
+                      ) : null}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+        <div className="border-t border-border bg-muted/30 px-4 py-2 flex items-center justify-between text-[11px] text-muted-foreground">
+          <span>
+            <kbd className="px-1.5 py-0.5 rounded border border-border bg-background font-mono">↑↓</kbd> navigasi
+            {' '}
+            <kbd className="px-1.5 py-0.5 rounded border border-border bg-background font-mono">↵</kbd> pilih
+          </span>
+          <span>{filtered.length} item</span>
+        </div>
+      </div>
     </div>
   );
 }

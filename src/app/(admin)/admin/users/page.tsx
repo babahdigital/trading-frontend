@@ -4,10 +4,15 @@ import { useCallback, useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, X, Trash2, Power } from 'lucide-react';
+import { Plus, X, Trash2, Power, Users as UsersIcon } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useToast } from '@/components/ui/toast';
 import { useConfirm } from '@/components/ui/confirm-dialog';
+import { PageHeader } from '@/components/admin/page-header';
+import { EmptyState } from '@/components/admin/empty-state';
+import { activeBadge, userRoleBadge } from '@/lib/admin/badges';
+import { formatDateTime } from '@/lib/format-locale';
+import { cn } from '@/lib/utils';
 
 interface User {
   id: string;
@@ -22,15 +27,11 @@ interface User {
 }
 
 const ROLE_OPTIONS = [
-  { value: 'CLIENT', label: 'CLIENT', color: 'bg-blue-500/20 text-blue-400' },
-  { value: 'OPERATOR', label: 'OPERATOR', color: 'bg-emerald-500/20 text-emerald-400' },
-  { value: 'ADMIN', label: 'ADMIN', color: 'bg-purple-500/20 text-purple-400' },
-  { value: 'SUPER_ADMIN', label: 'SUPER ADMIN', color: 'bg-rose-500/20 text-rose-400' },
+  { value: 'CLIENT', label: 'CLIENT' },
+  { value: 'OPERATOR', label: 'OPERATOR' },
+  { value: 'ADMIN', label: 'ADMIN' },
+  { value: 'SUPER_ADMIN', label: 'SUPER ADMIN' },
 ];
-
-function roleColor(role: string): string {
-  return ROLE_OPTIONS.find((r) => r.value === role)?.color || 'bg-blue-500/20 text-blue-400';
-}
 
 export default function UsersPage() {
   const { getAuthHeaders } = useAuth();
@@ -95,9 +96,10 @@ export default function UsersPage() {
         setForm({ email: '', password: '', name: '', role: 'CLIENT', mt5Account: '' });
         setShowForm(false);
         void fetchUsers();
+        toast.push({ tone: 'success', title: 'User dibuat', description: form.email });
       } else {
         const data = await res.json().catch(() => ({}));
-        setError(data.error || 'Failed to create user');
+        setError(data.error || 'Gagal membuat user');
       }
     } catch {
       setError('Network error');
@@ -122,9 +124,10 @@ export default function UsersPage() {
       });
       if (res.ok) {
         void fetchUsers();
+        toast.push({ tone: 'success', title: 'User dihapus', description: user.email });
       } else {
         const data = await res.json().catch(() => ({}));
-        toast.push({ tone: 'error', title: 'Delete failed', description: data.error || res.statusText });
+        toast.push({ tone: 'error', title: 'Hapus gagal', description: data.error || res.statusText });
       }
     } catch (err) {
       toast.push({ tone: 'error', title: 'Network error', description: err instanceof Error ? err.message : 'unknown' });
@@ -148,9 +151,10 @@ export default function UsersPage() {
       });
       if (res.ok) {
         void fetchUsers();
+        toast.push({ tone: 'success', title: 'Role diubah', description: `${user.email} → ${newRole}` });
       } else {
         const data = await res.json().catch(() => ({}));
-        toast.push({ tone: 'error', title: 'Role change failed', description: data.error || res.statusText });
+        toast.push({ tone: 'error', title: 'Gagal ubah role', description: data.error || res.statusText });
       }
     } catch (err) {
       toast.push({ tone: 'error', title: 'Network error', description: err instanceof Error ? err.message : 'unknown' });
@@ -175,9 +179,10 @@ export default function UsersPage() {
       });
       if (res.ok) {
         void fetchUsers();
+        toast.push({ tone: 'success', title: next ? 'User diaktifkan' : 'User dinonaktifkan' });
       } else {
         const data = await res.json().catch(() => ({}));
-        toast.push({ tone: 'error', title: 'Toggle failed', description: data.error || res.statusText });
+        toast.push({ tone: 'error', title: 'Gagal', description: data.error || res.statusText });
       }
     } catch (err) {
       toast.push({ tone: 'error', title: 'Network error', description: err instanceof Error ? err.message : 'unknown' });
@@ -186,44 +191,44 @@ export default function UsersPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Users</h2>
-          <p className="text-muted-foreground">{total} registered users</p>
-        </div>
-        <Button onClick={() => setShowForm(!showForm)}>
-          {showForm ? <X className="h-4 w-4 mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
-          {showForm ? 'Cancel' : 'Add User'}
-        </Button>
-      </div>
+      <PageHeader
+        title="Users"
+        description={`${total} pengguna terdaftar`}
+        actions={
+          <Button onClick={() => setShowForm(!showForm)}>
+            {showForm ? <X className="h-4 w-4 mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
+            {showForm ? 'Batal' : 'Tambah User'}
+          </Button>
+        }
+      />
 
       {showForm && (
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>Create New User</CardTitle>
+            <CardTitle>Buat User Baru</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="grid gap-4 md:grid-cols-2">
+            <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Email *</label>
-                <Input type="email" value={form.email} onChange={(e) => updateForm('email', e.target.value)} placeholder="user@example.com" required />
+                <label htmlFor="new-user-email" className="text-sm font-medium text-muted-foreground">Email *</label>
+                <Input id="new-user-email" type="email" value={form.email} onChange={(e) => updateForm('email', e.target.value)} placeholder="user@example.com" required />
               </div>
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Password *</label>
-                <Input type="password" value={form.password} onChange={(e) => updateForm('password', e.target.value)} placeholder="Min 8 characters" required />
+                <label htmlFor="new-user-password" className="text-sm font-medium text-muted-foreground">Password *</label>
+                <Input id="new-user-password" type="password" value={form.password} onChange={(e) => updateForm('password', e.target.value)} placeholder="Min 8 karakter" required minLength={8} />
               </div>
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Name</label>
-                <Input value={form.name} onChange={(e) => updateForm('name', e.target.value)} placeholder="Full name" />
+                <label htmlFor="new-user-name" className="text-sm font-medium text-muted-foreground">Nama</label>
+                <Input id="new-user-name" value={form.name} onChange={(e) => updateForm('name', e.target.value)} placeholder="Nama lengkap" />
               </div>
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Role *</label>
+                <label htmlFor="new-user-role" className="text-sm font-medium text-muted-foreground">Role *</label>
                 <select
+                  id="new-user-role"
                   value={form.role}
                   onChange={(e) => updateForm('role', e.target.value)}
                   required
-                  aria-label="Role"
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                   {ROLE_OPTIONS.filter(r => r.value !== 'SUPER_ADMIN').map(r => (
                     <option key={r.value} value={r.value}>{r.label}</option>
@@ -231,14 +236,14 @@ export default function UsersPage() {
                 </select>
               </div>
               <div>
-                <label className="text-sm font-medium text-muted-foreground">MT5 Account</label>
-                <Input value={form.mt5Account} onChange={(e) => updateForm('mt5Account', e.target.value)} placeholder="MT5 account number" />
+                <label htmlFor="new-user-mt5" className="text-sm font-medium text-muted-foreground">MT5 Account</label>
+                <Input id="new-user-mt5" value={form.mt5Account} onChange={(e) => updateForm('mt5Account', e.target.value)} placeholder="Nomor akun MT5" />
               </div>
-              <div className="md:col-span-2 flex items-center gap-4">
+              <div className="sm:col-span-2 flex items-center gap-4 flex-wrap">
                 <Button type="submit" disabled={submitting}>
-                  {submitting ? 'Creating...' : 'Create User'}
+                  {submitting ? 'Membuat...' : 'Buat User'}
                 </Button>
-                {error && <p className="text-sm text-red-400">{error}</p>}
+                {error && <p className="text-sm text-rose-500 dark:text-rose-400" role="alert">{error}</p>}
               </div>
             </form>
           </CardContent>
@@ -252,25 +257,43 @@ export default function UsersPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b">
-                  <th className="text-left p-4 font-medium text-muted-foreground">Name</th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">Nama</th>
                   <th className="text-left p-4 font-medium text-muted-foreground">Email</th>
                   <th className="text-left p-4 font-medium text-muted-foreground">Role</th>
                   <th className="text-left p-4 font-medium text-muted-foreground">Status</th>
                   <th className="text-left p-4 font-medium text-muted-foreground">MT5</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">Licenses</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">Last Login</th>
-                  <th className="text-right p-4 font-medium text-muted-foreground">Actions</th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">Lisensi</th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">Login Terakhir</th>
+                  <th className="text-right p-4 font-medium text-muted-foreground">Aksi</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={8} className="p-4 text-center text-muted-foreground">Loading...</td></tr>
+                  Array.from({ length: 4 }).map((_, i) => (
+                    <tr key={`skl-${i}`} className="border-b">
+                      <td colSpan={8} className="p-3">
+                        <div className="h-8 rounded bg-muted animate-pulse" />
+                      </td>
+                    </tr>
+                  ))
                 ) : users.length === 0 ? (
-                  <tr><td colSpan={8} className="p-4 text-center text-muted-foreground">No users found.</td></tr>
+                  <tr>
+                    <td colSpan={8} className="p-6">
+                      <EmptyState
+                        variant="inline"
+                        icon={UsersIcon}
+                        title="Belum ada user"
+                        description="Tambahkan user baru untuk mulai onboard pelanggan atau operator."
+                        actions={[{ label: 'Tambah User', onClick: () => setShowForm(true), icon: Plus }]}
+                      />
+                    </td>
+                  </tr>
                 ) : (
                   users.map((user) => {
                     const isActive = user.isActive ?? true;
                     const isSuperAdmin = user.role === 'SUPER_ADMIN';
+                    const roleMeta = userRoleBadge(user.role);
+                    const statusMeta = activeBadge(isActive);
                     return (
                       <tr key={user.id} className="border-b hover:bg-accent/50 transition-colors">
                         <td className="p-4 font-medium">{user.name || '-'}</td>
@@ -280,8 +303,11 @@ export default function UsersPage() {
                             value={user.role}
                             disabled={isSuperAdmin}
                             onChange={(e) => handleChangeRole(user, e.target.value)}
-                            aria-label="Change role"
-                            className={`px-2 py-1 rounded text-xs font-medium border-0 cursor-pointer disabled:cursor-not-allowed ${roleColor(user.role)}`}
+                            aria-label={`Ubah role ${user.email}`}
+                            className={cn(
+                              'px-2 py-1 rounded text-xs font-medium border-0 cursor-pointer disabled:cursor-not-allowed',
+                              roleMeta.cls,
+                            )}
                           >
                             {ROLE_OPTIONS.map((r) => (
                               <option key={r.value} value={r.value} disabled={r.value === 'SUPER_ADMIN' && !isSuperAdmin}>
@@ -291,14 +317,14 @@ export default function UsersPage() {
                           </select>
                         </td>
                         <td className="p-4">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${isActive ? 'bg-emerald-500/20 text-emerald-400' : 'bg-zinc-500/20 text-zinc-400'}`}>
-                            {isActive ? 'AKTIF' : 'NONAKTIF'}
+                          <span className={cn('px-2 py-1 rounded-full text-xs font-medium', statusMeta.cls)}>
+                            {statusMeta.label}
                           </span>
                         </td>
                         <td className="p-4 font-mono text-xs">{user.mt5Account || '-'}</td>
                         <td className="p-4">{user._count.licenses}</td>
                         <td className="p-4 text-muted-foreground">
-                          {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : 'Never'}
+                          {user.lastLoginAt ? formatDateTime(user.lastLoginAt) : 'Belum pernah'}
                         </td>
                         <td className="p-4">
                           <div className="flex items-center justify-end gap-1.5">
@@ -310,17 +336,17 @@ export default function UsersPage() {
                               aria-label={isActive ? 'Nonaktifkan user' : 'Aktifkan kembali user'}
                               className="p-1.5 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                             >
-                              <Power className={`h-4 w-4 ${isActive ? 'text-emerald-400' : 'text-zinc-400'}`} />
+                              <Power className={cn('h-4 w-4', isActive ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground')} />
                             </button>
                             <button
                               type="button"
                               onClick={() => handleDelete(user)}
                               disabled={user.role !== 'CLIENT'}
-                              title={user.role === 'CLIENT' ? 'Hapus user' : 'Hanya CLIENT yang bisa di-delete'}
-                              aria-label={user.role === 'CLIENT' ? 'Hapus user' : 'Hanya CLIENT yang bisa di-delete'}
-                              className="p-1.5 rounded hover:bg-rose-500/20 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                              title={user.role === 'CLIENT' ? 'Hapus user' : 'Hanya CLIENT yang bisa dihapus'}
+                              aria-label={user.role === 'CLIENT' ? 'Hapus user' : 'Hanya CLIENT yang bisa dihapus'}
+                              className="p-1.5 rounded hover:bg-rose-500/15 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                             >
-                              <Trash2 className="h-4 w-4 text-rose-400" />
+                              <Trash2 className="h-4 w-4 text-rose-500 dark:text-rose-400" />
                             </button>
                           </div>
                         </td>
@@ -333,15 +359,29 @@ export default function UsersPage() {
           </div>
 
           {/* Mobile card stack (<md) */}
-          <ul className="md:hidden divide-y divide-border" aria-label="Users list">
+          <ul className="md:hidden divide-y divide-border" aria-label="Daftar user">
             {loading ? (
-              <li className="p-4 text-center text-muted-foreground text-sm">Loading...</li>
+              Array.from({ length: 3 }).map((_, i) => (
+                <li key={`mskl-${i}`} className="p-4">
+                  <div className="h-16 rounded bg-muted animate-pulse" />
+                </li>
+              ))
             ) : users.length === 0 ? (
-              <li className="p-4 text-center text-muted-foreground text-sm">No users found.</li>
+              <li className="p-4">
+                <EmptyState
+                  variant="inline"
+                  icon={UsersIcon}
+                  title="Belum ada user"
+                  description="Tambahkan user baru untuk mulai onboard pelanggan."
+                  actions={[{ label: 'Tambah User', onClick: () => setShowForm(true), icon: Plus }]}
+                />
+              </li>
             ) : (
               users.map((user) => {
                 const isActive = user.isActive ?? true;
                 const isSuperAdmin = user.role === 'SUPER_ADMIN';
+                const roleMeta = userRoleBadge(user.role);
+                const statusMeta = activeBadge(isActive);
                 return (
                   <li key={user.id} className="p-4 space-y-3">
                     <div className="flex items-start justify-between gap-2">
@@ -349,35 +389,36 @@ export default function UsersPage() {
                         <div className="font-medium text-sm break-words">{user.name || '-'}</div>
                         <div className="text-xs text-muted-foreground break-all">{user.email}</div>
                       </div>
-                      <span className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider ${roleColor(user.role)}`}>
-                        {user.role}
+                      <span className={cn('shrink-0 px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider', roleMeta.cls)}>
+                        {roleMeta.label}
                       </span>
                     </div>
                     <dl className="grid grid-cols-3 gap-2 text-xs">
                       <div>
                         <dt className="text-muted-foreground/70 text-[10px] uppercase tracking-wider">Status</dt>
-                        <dd className={`mt-0.5 font-medium ${isActive ? 'text-emerald-400' : 'text-zinc-400'}`}>
-                          {isActive ? 'AKTIF' : 'NONAKTIF'}
+                        <dd className="mt-0.5">
+                          <span className={cn('px-1.5 py-0.5 rounded text-[10px] font-medium', statusMeta.cls)}>
+                            {statusMeta.label}
+                          </span>
                         </dd>
                       </div>
                       <div>
-                        <dt className="text-muted-foreground/70 text-[10px] uppercase tracking-wider">Licenses</dt>
+                        <dt className="text-muted-foreground/70 text-[10px] uppercase tracking-wider">Lisensi</dt>
                         <dd className="font-medium mt-0.5">{user._count.licenses}</dd>
                       </div>
                       <div>
-                        <dt className="text-muted-foreground/70 text-[10px] uppercase tracking-wider">Last Login</dt>
+                        <dt className="text-muted-foreground/70 text-[10px] uppercase tracking-wider">Login</dt>
                         <dd className="mt-0.5 text-muted-foreground truncate">
-                          {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString() : 'Never'}
+                          {user.lastLoginAt ? formatDateTime(user.lastLoginAt) : 'Belum pernah'}
                         </dd>
                       </div>
                     </dl>
-                    {/* Mobile actions row */}
                     <div className="flex items-center gap-2 pt-2 border-t border-border/40">
                       <select
                         value={user.role}
                         disabled={isSuperAdmin}
                         onChange={(e) => handleChangeRole(user, e.target.value)}
-                        aria-label="Change role"
+                        aria-label={`Ubah role ${user.email}`}
                         className="flex-1 h-8 px-2 rounded border border-input bg-background text-xs disabled:opacity-50"
                       >
                         {ROLE_OPTIONS.map((r) => (
@@ -394,17 +435,17 @@ export default function UsersPage() {
                         aria-label={isActive ? 'Nonaktifkan user' : 'Aktifkan kembali user'}
                         className="p-1.5 rounded hover:bg-accent transition-colors disabled:opacity-30"
                       >
-                        <Power className={`h-4 w-4 ${isActive ? 'text-emerald-400' : 'text-zinc-400'}`} />
+                        <Power className={cn('h-4 w-4', isActive ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground')} />
                       </button>
                       <button
                         type="button"
                         onClick={() => handleDelete(user)}
                         disabled={user.role !== 'CLIENT'}
-                        title={user.role === 'CLIENT' ? 'Hapus user' : 'Hanya CLIENT yang bisa di-delete'}
-                        aria-label={user.role === 'CLIENT' ? 'Hapus user' : 'Hanya CLIENT yang bisa di-delete'}
-                        className="p-1.5 rounded hover:bg-rose-500/20 transition-colors disabled:opacity-30"
+                        title={user.role === 'CLIENT' ? 'Hapus user' : 'Hanya CLIENT yang bisa dihapus'}
+                        aria-label={user.role === 'CLIENT' ? 'Hapus user' : 'Hanya CLIENT yang bisa dihapus'}
+                        className="p-1.5 rounded hover:bg-rose-500/15 transition-colors disabled:opacity-30"
                       >
-                        <Trash2 className="h-4 w-4 text-rose-400" />
+                        <Trash2 className="h-4 w-4 text-rose-500 dark:text-rose-400" />
                       </button>
                     </div>
                   </li>

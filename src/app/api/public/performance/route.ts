@@ -72,6 +72,21 @@ interface BackendAccountList {
   data: BackendAccount[];
   count: number;
 }
+interface BackendPositionStats {
+  period: string;
+  total_trades: number;
+  winning_trades: number;
+  losing_trades: number;
+  win_rate: string | number;
+  gross_profit_quote: string | number;
+  gross_loss_quote: string | number;
+  net_pnl_quote: string | number;
+  profit_factor: string | number | null;
+  avg_r_multiple: string | number | null;
+  max_drawdown_quote: string | number;
+  // Tambahan optional kalau backend extend dengan avg_hold (Phase 14W).
+  avg_hold_seconds?: number | string | null;
+}
 
 function toNum(v: string | number | null | undefined): number {
   if (v == null) return 0;
@@ -98,11 +113,12 @@ async function buildFromBackend(): Promise<{ equity: EquityPoint[]; kpi: KPI; cu
   // tenant-scoped via X-API-Token. Valid periods: 1d, 7d, 30d, 90d, ytd, all.
   // Plus /api/forex/accounts untuk dapat broker balance/equity REAL —
   // anchor equity curve ke nominal nyata (bukan halusinasi $10k).
-  const [pnl, perf, dd, accts] = await Promise.all([
+  const [pnl, perf, dd, accts, posStats] = await Promise.all([
     fetchJson<{ period: string; points: BackendPnlPoint[] }>('stats', '/api/forex/analytics/pnl?period=ytd'),
     fetchJson<{ rows: BackendPerformanceRow[] }>('stats', '/api/forex/analytics/performance?period=ytd&group_by=day'),
     fetchJson<{ points: BackendDrawdownPoint[] }>('stats', '/api/forex/analytics/drawdown?period=ytd'),
     fetchJson<BackendAccountList>('stats', '/api/forex/accounts'),
+    fetchJson<BackendPositionStats>('stats', '/api/forex/positions/stats?period=ytd'),
   ]);
   if (!pnl || !pnl.points.length) {
     return null;
@@ -137,28 +153,33 @@ async function buildFromBackend(): Promise<{ equity: EquityPoint[]; kpi: KPI; cu
     ? ((lastCum - firstCum) / periodStartBalance) * 100
     : 0;
 
-  // Aggregate performance rows ke single KPI snapshot
+  // Aggregate performance rows ke single KPI snapshot.
+  // Prefer /api/forex/positions/stats CANONICAL aggregate (single value over
+  // total trades) daripada per-day weighted average — per-day PF/win-rate
+  // averaging skews ke days dengan banyak trades dan bisa over-estimate
+  // (mis. 1 day all-winners gives PF=∞, weighted average jadi inflated).
   let totalTrades = 0;
-  let winTradesEstimate = 0;
   let netPnlSum = 0;
-  let weightedPF = 0;
-  let pfWeight = 0;
   for (const r of perf?.rows ?? []) {
-    const t = r.trades || 0;
-    const w = toNum(r.win_rate);
-    totalTrades += t;
-    winTradesEstimate += t * w;
+    totalTrades += r.trades || 0;
     netPnlSum += toNum(r.net_pnl_quote);
-    if (r.profit_factor != null) {
-      weightedPF += toNum(r.profit_factor) * t;
-      pfWeight += t;
-    }
   }
-  const overallWinRate = totalTrades > 0 ? winTradesEstimate / totalTrades : 0;
-  const overallPF = pfWeight > 0 ? weightedPF / pfWeight : 0;
+  // Canonical totals dari positions/stats (kalau available):
+  const canonicalTotalTrades = posStats?.total_trades ?? totalTrades;
+  const canonicalWinRate = posStats?.win_rate != null
+    ? toNum(posStats.win_rate)
+    : (totalTrades > 0
+      ? (perf?.rows ?? []).reduce((s, r) => s + (r.trades || 0) * toNum(r.win_rate), 0) / totalTrades
+      : 0);
+  const canonicalPF = posStats?.profit_factor != null
+    ? toNum(posStats.profit_factor)
+    : 0;
 
-  // Sharpe: compute dari daily realised returns kalau cukup banyak titik.
+  // Sharpe + Sortino: compute dari daily realised returns kalau cukup banyak titik.
+  // Sharpe uses total stdev, Sortino uses downside-only deviation (lebih relevan
+  // untuk trader — penalize losses, bukan upside volatility).
   let sharpe: number | null = null;
+  let sortino: number | null = null;
   if (pnl.points.length >= 14) {
     const dailyReturns: number[] = [];
     for (let i = 1; i < pnl.points.length; i++) {
@@ -171,8 +192,24 @@ async function buildFromBackend(): Promise<{ equity: EquityPoint[]; kpi: KPI; cu
       const variance = dailyReturns.reduce((s, x) => s + (x - mean) ** 2, 0) / (dailyReturns.length - 1);
       const stdev = Math.sqrt(variance);
       if (stdev > 0) sharpe = (mean / stdev) * Math.sqrt(252);
+
+      // Downside deviation — hanya returns < 0 yang masuk variance.
+      // Threshold = 0 (penalize semua negatif, no MAR offset).
+      const negReturns = dailyReturns.filter((r) => r < 0);
+      if (negReturns.length > 1) {
+        const downsideVariance =
+          negReturns.reduce((s, x) => s + x * x, 0) / negReturns.length;
+        const downsideStdev = Math.sqrt(downsideVariance);
+        if (downsideStdev > 0) sortino = (mean / downsideStdev) * Math.sqrt(252);
+      }
     }
   }
+
+  // Avg hold time — backend belum return field `avg_hold_seconds` di
+  // /api/forex/positions/stats. Backlog Phase 14W untuk extend backend
+  // dengan AVG(closed_at - opened_at) WHERE status='CLOSED'. Sementara
+  // ini, kalau response punya field-nya (forward-compat), surface.
+  const avgHoldSeconds = posStats?.avg_hold_seconds != null ? toNum(posStats.avg_hold_seconds) : 0;
 
   // Max drawdown — true % of REAL broker capital (period-start balance).
   // Backend `drawdown_pct` field nominally returns ratio terhadap
@@ -187,14 +224,22 @@ async function buildFromBackend(): Promise<{ equity: EquityPoint[]; kpi: KPI; cu
     : 0;
   const recovery = maxDdQuote > 0 ? Math.abs(netPnlSum) / maxDdQuote : 0;
 
+  // Format avg hold seconds → human-readable (X.Yh atau XmYYs)
+  const formatHold = (seconds: number): string => {
+    if (seconds <= 0) return '—';
+    if (seconds >= 3600) return `${(seconds / 3600).toFixed(1)}h`;
+    if (seconds >= 60) return `${Math.floor(seconds / 60)}m`;
+    return `${Math.round(seconds)}s`;
+  };
+
   const kpi: KPI = {
     totalReturn: pct(totalRet),
     sharpeRatio: sharpe != null ? sharpe.toFixed(2) : '—',
-    sortinoRatio: '—', // Backend belum expose Sortino; defer.
-    profitFactor: overallPF > 0 ? overallPF.toFixed(2) : '—',
-    winRate: totalTrades > 0 ? `${(overallWinRate * 100).toFixed(1)}%` : '—',
+    sortinoRatio: sortino != null ? sortino.toFixed(2) : '—',
+    profitFactor: canonicalPF > 0 ? canonicalPF.toFixed(2) : '—',
+    winRate: canonicalTotalTrades > 0 ? `${(canonicalWinRate * 100).toFixed(1)}%` : '—',
     maxDrawdown: maxDdPct > 0 ? `-${maxDdPct.toFixed(1)}%` : '—',
-    avgHoldTime: '—', // Backend analytics tidak return avg hold; computed di Phase 14W
+    avgHoldTime: formatHold(avgHoldSeconds),
     recoveryFactor: recovery > 0 ? recovery.toFixed(1) : '—',
   };
 

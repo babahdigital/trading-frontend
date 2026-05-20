@@ -1571,6 +1571,22 @@
     "cookies": "Cookies",
     "copyright": "© {year} CV Babah Digital. All rights reserved."
   },
+  "shared": {
+    "trust": {
+      "zero_custody_title": "Zero-Custody",
+      "zero_custody_desc": "Capital stays in your broker. BabahAlgo never touches funds.",
+      "refund_title": "7-Day Refund",
+      "refund_desc": "Not satisfied? Full refund within the first 7 days, no questions asked.",
+      "no_cc_title": "No Credit Card",
+      "no_cc_desc": "Free demo, no credit card required upfront."
+    },
+    "sticky_compare_text": "Want to see every feature side-by-side?",
+    "sticky_compare_cta": "Compare on Pricing",
+    "sticky_demo_text": "Not sure yet? Try the free 7-day demo first.",
+    "sticky_demo_cta": "Activate Demo",
+    "sticky_contact_text": "Got a question? Our team is here to help.",
+    "sticky_contact_cta": "Contact Us"
+  },
   "register": {
     "title": "Register",
     "subtitle": "Join BabahAlgo",

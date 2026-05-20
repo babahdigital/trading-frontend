@@ -8,6 +8,8 @@ import {
 } from 'lucide-react';
 import { getPageMetadata } from '@/lib/seo';
 import { breadcrumbSchema, financialProductSchema, ldJson, organizationSchema } from '@/lib/seo-jsonld';
+import { TrustStrip } from '@/components/shared/trust-strip';
+import { StickyCtaBar } from '@/components/shared/sticky-cta-bar';
 
 export const dynamic = 'force-dynamic';
 
@@ -126,6 +128,9 @@ export default async function DemoPage() {
               <p className="text-xs text-muted-foreground mt-6">
                 {t('hero_note')}
               </p>
+              <div className="mt-10">
+                <TrustStrip />
+              </div>
             </div>
           </div>
         </section>
@@ -275,8 +280,21 @@ export default async function DemoPage() {
             </div>
           </div>
         </section>
+
+        <DemoStickyCompare />
       </main>
       <EnterpriseFooter />
     </div>
+  );
+}
+
+async function DemoStickyCompare() {
+  const ts = await getTranslations('shared');
+  return (
+    <StickyCtaBar
+      message={ts('sticky_compare_text')}
+      ctaLabel={ts('sticky_compare_cta')}
+      href="/pricing"
+    />
   );
 }

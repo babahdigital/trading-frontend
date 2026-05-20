@@ -26,10 +26,11 @@ import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import {
   TrendingUp, Bitcoin, Server, Sparkles, Gift, ArrowLeft, ArrowRight,
-  ShieldCheck, RotateCcw, CreditCard,
 } from 'lucide-react';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
+import { TrustStrip } from '@/components/shared/trust-strip';
+import { StickyCtaBar } from '@/components/shared/sticky-cta-bar';
 import {
   SERVICES,
   SERVICES_BY_SLUG,
@@ -122,8 +123,8 @@ export function RegisterOrchestrator({ faqs }: OrchestratorProps) {
               {/* Demo banner — gradient, separate from grid */}
               <DemoBanner onPick={pickService} t={t} />
 
-              {/* Trust strip — 3 guarantees */}
-              <TrustStrip t={t} />
+              {/* Trust strip — 3 guarantees (shared component) */}
+              <TrustStrip className="mb-10" />
 
               {/* 4-card grid — real pricing */}
               <ServicePicker
@@ -148,8 +149,12 @@ export function RegisterOrchestrator({ faqs }: OrchestratorProps) {
             </div>
           </section>
 
-          {/* Sticky compare CTA — bottom of viewport */}
-          <StickyCompareBar t={t} />
+          {/* Sticky compare CTA — shared component */}
+          <StickyCtaBar
+            message={t('sticky_compare_text')}
+            ctaLabel={t('sticky_compare_cta')}
+            href="/pricing"
+          />
         </main>
         <EnterpriseFooter />
       </div>
@@ -233,48 +238,3 @@ function DemoBanner({ onPick, t }: { onPick: (slug: ServiceSlug) => void; t: Ret
   );
 }
 
-// ───────────────── Trust strip — 3 guarantees ─────────────────
-
-function TrustStrip({ t }: { t: ReturnType<typeof useTranslations> }) {
-  const items = [
-    { icon: ShieldCheck, titleKey: 'trust_zero_custody_title', descKey: 'trust_zero_custody_desc' },
-    { icon: RotateCcw, titleKey: 'trust_refund_title', descKey: 'trust_refund_desc' },
-    { icon: CreditCard, titleKey: 'trust_no_cc_title', descKey: 'trust_no_cc_desc' },
-  ];
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-10">
-      {items.map(({ icon: Icon, titleKey, descKey }) => (
-        <div key={titleKey} className="flex items-start gap-3 rounded-lg border border-border/40 bg-card/40 px-4 py-3">
-          <span className="inline-flex w-9 h-9 rounded-md bg-emerald-500/10 ring-1 ring-emerald-500/20 items-center justify-center shrink-0">
-            <Icon className="w-4 h-4 text-emerald-400" />
-          </span>
-          <div className="min-w-0 leading-tight">
-            <p className="text-sm font-medium text-foreground mb-0.5">{t(titleKey)}</p>
-            <p className="text-xs text-foreground/55 leading-snug">{t(descKey)}</p>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ───────────────── Sticky compare bar — bottom of page ─────────────────
-
-function StickyCompareBar({ t }: { t: ReturnType<typeof useTranslations> }) {
-  return (
-    <div className="sticky bottom-0 left-0 right-0 z-30 border-t border-border/60 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-      <div className="layout-container py-3 flex items-center justify-between gap-4">
-        <p className="text-xs sm:text-sm text-foreground/70 leading-snug">
-          {t('sticky_compare_text')}
-        </p>
-        <Link
-          href="/pricing"
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md border border-amber-400/40 bg-amber-500/[0.06] text-xs sm:text-sm font-medium text-amber-400 hover:bg-amber-500/[0.12] hover:border-amber-400/60 transition-all shrink-0"
-        >
-          {t('sticky_compare_cta')}
-          <ArrowRight className="w-3.5 h-3.5" />
-        </Link>
-      </div>
-    </div>
-  );
-}

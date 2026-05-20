@@ -1571,6 +1571,22 @@
     "cookies": "Cookies",
     "copyright": "© {year} CV Babah Digital. Hak cipta dilindungi."
   },
+  "shared": {
+    "trust": {
+      "zero_custody_title": "Zero-Custody",
+      "zero_custody_desc": "Modal di broker Anda. BabahAlgo tidak menyentuh dana.",
+      "refund_title": "Refund 7-Hari",
+      "refund_desc": "Tidak puas? Refund penuh dalam 7 hari pertama, tanpa pertanyaan.",
+      "no_cc_title": "Tanpa Kartu Kredit",
+      "no_cc_desc": "Demo gratis, tidak perlu input kartu kredit di awal."
+    },
+    "sticky_compare_text": "Mau lihat fitur lengkap setiap paket?",
+    "sticky_compare_cta": "Bandingkan di Pricing",
+    "sticky_demo_text": "Belum yakin? Coba demo gratis 7 hari dulu.",
+    "sticky_demo_cta": "Aktifkan Demo",
+    "sticky_contact_text": "Punya pertanyaan? Tim kami siap bantu.",
+    "sticky_contact_cta": "Hubungi Kami"
+  },
   "register": {
     "title": "Daftar",
     "subtitle": "Bergabung dengan BabahAlgo",

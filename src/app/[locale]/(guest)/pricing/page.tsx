@@ -7,6 +7,8 @@ import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { breadcrumbSchema, ldJson, organizationSchema } from '@/lib/seo-jsonld';
 import { CapabilityLadder } from '@/components/pricing/capability-ladder';
 import { TierComparisonMatrix } from '@/components/pricing/tier-comparison-matrix';
+import { TrustStrip } from '@/components/shared/trust-strip';
+import { StickyCtaBar } from '@/components/shared/sticky-cta-bar';
 import { formatPrice, type Locale, type PriceKey } from '@/lib/pricing-format';
 import {
   ArrowRight,
@@ -125,6 +127,9 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
             <p className="text-xs text-[hsl(var(--primary))] font-mono uppercase tracking-wider mt-6">
               {tp('hero_disclaimer')}
             </p>
+            <div className="mt-10">
+              <TrustStrip />
+            </div>
           </div>
         </section>
 
@@ -240,10 +245,23 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
             </div>
           </div>
         </section>
+
+        <StickyDemoCtaWrapper />
       </main>
 
       <EnterpriseFooter />
     </div>
+  );
+}
+
+async function StickyDemoCtaWrapper() {
+  const t = await getTranslations('shared');
+  return (
+    <StickyCtaBar
+      message={t('sticky_demo_text')}
+      ctaLabel={t('sticky_demo_cta')}
+      href="/register?service=free"
+    />
   );
 }
 

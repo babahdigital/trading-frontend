@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
 import { getLocale, getMessages } from 'next-intl/server';
 import { NextIntlClientProvider } from 'next-intl';
-import { ChatWidget } from '@/components/chat/chat-widget';
+import { ChatWidgetMount } from '@/components/chat/chat-widget-mount';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import { ToastProvider } from '@/components/ui/toast';
 import { PageviewTracker } from '@/components/analytics/pageview-tracker';
+import { WebVitalsReporter } from '@/components/analytics/web-vitals';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -85,8 +86,9 @@ export default async function RootLayout({
                 Skip to main content
               </a>
               {children}
-              <ChatWidget />
+              <ChatWidgetMount />
               <PageviewTracker />
+              <WebVitalsReporter />
             </ToastProvider>
           </ThemeProvider>
         </NextIntlClientProvider>

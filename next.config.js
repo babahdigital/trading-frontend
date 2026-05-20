@@ -5,6 +5,17 @@ const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  // Sentry + OpenTelemetry pakai dynamic ESM hooks via `import-in-the-middle`
+  // dan `require-in-the-middle` yang break saat Turbopack ESM-transform
+  // bundle dengan hashed module ID. Mark sebagai external supaya Node.js
+  // require() resolve langsung dari node_modules tanpa transformasi.
+  serverExternalPackages: [
+    '@sentry/nextjs',
+    '@sentry/node',
+    '@sentry/profiling-node',
+    'import-in-the-middle',
+    'require-in-the-middle',
+  ],
   images: {
     remotePatterns: [
       // Article cover images yang di-upload via admin CMS atau dari external host

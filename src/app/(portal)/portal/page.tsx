@@ -11,6 +11,7 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { DiscoveryBanner } from '@/components/portal/discovery-banner';
 import { OnboardingChecklist } from '@/components/portal/onboarding-checklist';
 import { VerifyEmailBanner } from '@/components/portal/verify-email-banner';
+import { SubscriptionExpiryBanner } from '@/components/portal/subscription-expiry-banner';
 
 interface StatusData {
   bot_status?: string;
@@ -51,6 +52,12 @@ export default function PortalDashboard() {
   const [equityPeriod, setEquityPeriod] = useState('30D');
 
   const [emailVerified, setEmailVerified] = useState(true); // default true to avoid flash
+  const [activeSubscription, setActiveSubscription] = useState<{
+    tier: string;
+    expiresAt: string;
+    daysRemaining: number;
+    autoRenew: boolean;
+  } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -65,7 +72,7 @@ export default function PortalDashboard() {
           }
         }
       } catch { /* empty */ }
-      // Always fetch fresh — emailVerifiedAt mungkin update setelah verify click
+      // Always fetch fresh — emailVerifiedAt + subscription mungkin update
       try {
         const res = await fetch('/api/auth/me', { credentials: 'same-origin' });
         if (!res.ok) return;
@@ -73,6 +80,9 @@ export default function PortalDashboard() {
         if (!cancelled && data.user) {
           setUserName(data.user.name || data.user.email || '');
           setEmailVerified(!!data.user.emailVerifiedAt);
+          if (data.activeSubscription) {
+            setActiveSubscription(data.activeSubscription);
+          }
           try {
             sessionStorage.setItem('user', JSON.stringify(data.user));
           } catch { /* empty */ }
@@ -200,6 +210,11 @@ export default function PortalDashboard() {
       {error && (
         <div className="rounded-md bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-400">{error}</div>
       )}
+
+      {/* Subscription expiry banner — surface saat <7 hari ke expiry atau
+          sudah expired. Urgency tier: 4-7d amber, 1-3d orange, ≤0 red blocking.
+          CTA "Perpanjang" ke /portal/billing/upgrade. */}
+      <SubscriptionExpiryBanner subscription={activeSubscription} />
 
       {/* Email verification banner — surface saat user.emailVerifiedAt null.
           CTA resend invalidate previous + gen new token + send email via

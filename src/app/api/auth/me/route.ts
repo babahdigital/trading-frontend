@@ -35,10 +35,32 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
+    // Active subscription (latest by createdAt) — untuk surface expiry
+    // banner di portal supaya customer dapat warn sebelum auto-suspend.
+    const activeSubscription = await prisma.subscription.findFirst({
+      where: { userId, status: 'ACTIVE' },
+      orderBy: { createdAt: 'desc' },
+      select: { id: true, tier: true, status: true, expiresAt: true },
+    });
+
     return NextResponse.json({
       user,
       licenseId,
       subscriptionId,
+      activeSubscription: activeSubscription
+        ? {
+            id: activeSubscription.id,
+            tier: activeSubscription.tier,
+            status: activeSubscription.status,
+            expiresAt: activeSubscription.expiresAt.toISOString(),
+            // Subscription model belum punya autoRenew (License punya untuk VPS).
+            // Future: tambah saat billing recurring di-implement. Default false.
+            autoRenew: false,
+            daysRemaining: Math.ceil(
+              (activeSubscription.expiresAt.getTime() - Date.now()) / 86400000,
+            ),
+          }
+        : null,
     });
   } catch (error) {
     log.error('Identity probe error:', error);

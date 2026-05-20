@@ -307,7 +307,7 @@ export function ArticleDetailClient({ article }: ArticleDetailClientProps) {
       <main id="main-content">
         {!article ? (
           <section className="section-padding">
-            <div className="container-default px-4 sm:px-6 max-w-3xl mx-auto text-center py-16">
+            <div className="layout-container layout-container--narrow text-center py-16">
               <h1 className="text-2xl font-bold mb-4">
                 {isEn ? 'Article not found' : 'Artikel tidak ditemukan'}
               </h1>
@@ -326,7 +326,7 @@ export function ArticleDetailClient({ article }: ArticleDetailClientProps) {
                 + footer back link (sebelumnya max-w-4xl yang lebih sempit
                 menyebabkan visual jomplang). */}
             <section className="page-stamp-rule border-b border-border">
-              <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-10 lg:pt-16 lg:pb-12">
+              <div className="layout-container layout-container--narrow pt-12 pb-10 lg:pt-16 lg:pb-12">
                 <Link
                   href={`/${locale}/research`}
                   className="inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors mb-6"
@@ -369,7 +369,7 @@ export function ArticleDetailClient({ article }: ArticleDetailClientProps) {
                 tetap optimal line-length via prose-research max-width internal.
                 Mobile tetap full-bleed via padding 4. */}
             <section className="py-10 lg:py-14">
-              <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="layout-container layout-container--narrow">
                 <article
                   className="prose-research mx-auto"
                   dangerouslySetInnerHTML={{ __html: renderMarkdown(body) }}
@@ -379,7 +379,7 @@ export function ArticleDetailClient({ article }: ArticleDetailClientProps) {
 
             {/* Footer back link */}
             <section className="pb-16 border-t border-border">
-              <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+              <div className="layout-container layout-container--narrow pt-8">
                 <Link
                   href={`/${locale}/research`}
                   className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"

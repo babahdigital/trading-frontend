@@ -162,7 +162,7 @@ export default async function StrategyDetailPage({
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(organizationSchema()) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(breadcrumb) }} />
       <EnterpriseNav />
-      <main className="max-w-4xl mx-auto px-6 py-20">
+      <main className="layout-container layout-container--narrow py-20">
         {/* Back link */}
         <Link
           href="/platform/strategies"

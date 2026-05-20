@@ -162,7 +162,7 @@ export function EnterpriseNav() {
             : 'bg-background/80 backdrop-blur border-b border-transparent'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-full flex items-center justify-between gap-3">
+        <div className="layout-container h-full flex items-center justify-between gap-3">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 shrink-0" onClick={closeAll}>
             {/* Logo PNG asal: 699x175 (~4:1). Pakai aspect ratio yang akurat
@@ -240,7 +240,7 @@ export function EnterpriseNav() {
         {/* ─── Desktop Mega Menu: Platform ─── */}
         {activeMenu === 'platform' && (
           <div className="mega-menu hidden lg:block" role="menu">
-            <div className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-12 gap-8">
+            <div className="layout-container py-8 grid grid-cols-12 gap-8">
               <div className="col-span-3">
                 <MegaMenuHeading>{tm('platform_heading')}</MegaMenuHeading>
                 <div className="space-y-0.5">
@@ -284,7 +284,7 @@ export function EnterpriseNav() {
         {/* ─── Desktop Mega Menu: Solutions ─── */}
         {activeMenu === 'solutions' && (
           <div className="mega-menu hidden lg:block" role="menu">
-            <div className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-12 gap-8">
+            <div className="layout-container py-8 grid grid-cols-12 gap-8">
               <div className="col-span-4">
                 <div className="flex items-center gap-2 mb-4">
                   <span className="inline-flex h-7 w-7 rounded-md bg-amber-500/15 border border-amber-500/30 items-center justify-center">
@@ -335,7 +335,7 @@ export function EnterpriseNav() {
         {/* ─── Desktop Mega Menu: Company ─── */}
         {activeMenu === 'company' && (
           <div className="mega-menu hidden lg:block" role="menu">
-            <div className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-12 gap-8">
+            <div className="layout-container py-8 grid grid-cols-12 gap-8">
               <div className="col-span-3">
                 <MegaMenuHeading>{tm('company_about_heading')}</MegaMenuHeading>
                 <div className="space-y-0.5">

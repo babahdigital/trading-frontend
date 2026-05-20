@@ -22,7 +22,19 @@ export interface CryptoProxyOptions {
   path: string;
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   body?: unknown;
+  /**
+   * FE user ID — di FE arsitektur saat ini user.id === tenant.id.
+   * Akan di-set di header `X-Babahalgo-User-Id` (legacy) DAN `X-Tenant-Id`
+   * (canonical, dipakai backend rc24+ untuk RLS gate).
+   */
   forwardUserId?: string;
+  /**
+   * Override explicit tenant ID (kalau berbeda dari forwardUserId).
+   * Default = forwardUserId. Backend butuh `X-Tenant-Id` header untuk
+   * semua endpoint `/api/tenants/{id}/*` (RLS gate). Tanpa header ini,
+   * backend rc24+ return 422/403.
+   */
+  tenantId?: string;
   requestId?: string;
   timeoutMs?: number;
 }
@@ -47,7 +59,17 @@ export async function proxyToCryptoBackend(opts: CryptoProxyOptions): Promise<Re
     'X-API-Token': token,
     'User-Agent': 'babahalgo-frontend/1.0',
   };
-  if (opts.forwardUserId) headers['X-Babahalgo-User-Id'] = opts.forwardUserId;
+  // Tenant ID resolution: explicit tenantId > forwardUserId (default).
+  // Backend rc24+ wajib X-Tenant-Id untuk RLS gate di semua endpoint
+  // /api/tenants/{id}/*. Legacy X-Babahalgo-User-Id tetap dikirim untuk
+  // backward compat selama transition window.
+  const tenantId = opts.tenantId ?? opts.forwardUserId;
+  if (tenantId) {
+    headers['X-Tenant-Id'] = tenantId;
+  }
+  if (opts.forwardUserId) {
+    headers['X-Babahalgo-User-Id'] = opts.forwardUserId;
+  }
   if (opts.requestId) headers['X-Request-ID'] = opts.requestId;
 
   return fetch(url, {

@@ -1,40 +1,47 @@
 'use client';
 
 /**
- * Service picker — 5 cards (Signal / Crypto / VPS / Institutional / Free).
+ * Service picker — 4 cards (Signal / Crypto / VPS / Institutional).
  *
- * Renders price preview dari CMS-driven `packages` kalau slug match, atau
- * fallback ke i18n key. Single click navigates ke `?service={slug}`.
+ * Demo (free) sengaja **dipisah** ke banner di atas grid supaya 4 card
+ * berbayar tampil simetris. Card pricing derived dari `lib/pricing-format`
+ * (single source of truth) — NOT dari CMS, supaya angka selalu konsisten
+ * dengan code-side PRICE_TABLE saat ada kalibrasi.
+ *
+ * Features list dari i18n `register.fallback_packages.*_feature_N`.
  */
 import { useTranslations } from 'next-intl';
 import type { ComponentType } from 'react';
 import type { LucideProps } from 'lucide-react';
 import { Check } from 'lucide-react';
 import type { ServiceDescriptor, ServiceSlug } from '@/lib/register/service-registry';
-import type { OrchestratorPackage } from './register-orchestrator';
+import {
+  getServicePriceRange,
+  getServiceStartingFrom,
+  getServiceFeatureKeys,
+  getServiceNoteKey,
+} from '@/lib/register/service-display';
+import type { Locale } from '@/lib/pricing-format';
 
 interface ServicePickerProps {
   services: ServiceDescriptor[];
   iconMap: Record<string, ComponentType<LucideProps>>;
-  packages: OrchestratorPackage[];
-  locale: 'id' | 'en';
+  locale: Locale;
   onPick: (slug: ServiceSlug) => void;
 }
 
-function findPackage(packages: OrchestratorPackage[], slug: string): OrchestratorPackage | undefined {
-  const norm = slug.toLowerCase();
-  return packages.find((p) => p.slug.toLowerCase() === norm || p.slug.toLowerCase().includes(norm));
-}
-
-export function ServicePicker({ services, iconMap, packages, onPick }: ServicePickerProps) {
+export function ServicePicker({ services, iconMap, locale, onPick }: ServicePickerProps) {
   const t = useTranslations('register');
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 items-stretch">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 items-stretch">
       {services.map((svc) => {
         const Icon = iconMap[svc.iconKey] ?? iconMap.Sparkles;
-        const pkg = findPackage(packages, svc.slug);
-        const features = Array.isArray(pkg?.features) ? (pkg!.features as string[]) : [];
+        const priceRange = getServicePriceRange(svc.slug, locale);
+        const startingFrom = getServiceStartingFrom(svc.slug, locale);
+        const featureKeys = getServiceFeatureKeys(svc.slug);
+        const noteKey = getServiceNoteKey(svc.slug);
+
         return (
           <button
             key={svc.slug}
@@ -53,53 +60,56 @@ export function ServicePicker({ services, iconMap, packages, onPick }: ServicePi
               </span>
             )}
 
-            {/* HEAD — icon + title + blurb (fixed height) */}
-            <div className="flex items-start gap-4 mb-5">
-              <div className="shrink-0 w-11 h-11 rounded-lg bg-amber-500/10 ring-1 ring-amber-500/20 flex items-center justify-center text-amber-400">
+            {/* HEAD — icon + title (fixed slot) */}
+            <div className="mb-4">
+              <div className="w-11 h-11 rounded-lg bg-amber-500/10 ring-1 ring-amber-500/20 flex items-center justify-center text-amber-400 mb-4">
                 <Icon className="w-5 h-5" />
               </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-display text-base sm:text-lg font-semibold leading-tight mb-1.5">
-                  {t(svc.titleKey)}
-                </h3>
-                <p className="text-xs text-foreground/60 leading-relaxed line-clamp-3 min-h-[3rem]">
-                  {t(svc.blurbKey)}
-                </p>
-              </div>
+              <h3 className="font-display text-base sm:text-lg font-semibold leading-tight mb-1.5">
+                {t(svc.titleKey)}
+              </h3>
+              <p className="text-xs text-foreground/60 leading-relaxed line-clamp-3 min-h-[3rem]">
+                {t(svc.blurbKey)}
+              </p>
             </div>
 
-            {/* PRICE BLOCK — always present untuk konsistensi tinggi.
-                Kalau pkg null → tampilkan placeholder "—" supaya border-bottom
-                tetap aligned dengan cards lain di row. */}
-            <div className="mb-5 pb-5 border-b border-border/60 min-h-[3.5rem]">
-              {pkg ? (
+            {/* PRICE BLOCK — derived dari PRICE_TABLE, locale-aware */}
+            <div className="mb-4 pb-4 border-b border-border/60 min-h-[4rem]">
+              {startingFrom ? (
                 <>
-                  <div className="font-mono text-sm text-amber-400 font-semibold">{pkg.price}</div>
-                  {pkg.subtitle && (
-                    <div className="text-xs text-foreground/50 mt-1 line-clamp-2">{pkg.subtitle}</div>
-                  )}
+                  <div className="text-[10px] uppercase tracking-wider text-foreground/40 font-medium mb-1">
+                    {t('starts_from')}
+                  </div>
+                  <div className="font-mono text-base text-amber-400 font-semibold leading-tight">
+                    {startingFrom}
+                  </div>
+                  <div className="text-[10px] text-foreground/50 mt-1 leading-snug line-clamp-2">
+                    {priceRange}
+                  </div>
                 </>
               ) : (
                 <div className="font-mono text-sm text-foreground/40">—</div>
               )}
             </div>
 
-            {/* FEATURES — 3 baris fixed slot supaya cards aligned */}
-            <ul className="space-y-1.5 mb-6 flex-1">
-              {features.slice(0, 3).map((f, i) => (
+            {/* FEATURES — 4 slot fixed dari i18n */}
+            <ul className="space-y-1.5 mb-4 flex-1">
+              {featureKeys.slice(0, 4).map((key, i) => (
                 <li key={i} className="flex items-start gap-2 text-xs text-foreground/70">
                   <Check className="w-3 h-3 text-amber-400 shrink-0 mt-0.5" />
-                  <span className="leading-relaxed line-clamp-2">{f}</span>
+                  <span className="leading-relaxed line-clamp-2">{t(key)}</span>
                 </li>
               ))}
-              {features.length === 0 && (
-                <li className="text-xs text-foreground/40 italic">
-                  {t(svc.blurbKey)}
-                </li>
-              )}
             </ul>
 
-            {/* CTA — push ke bottom via mt-auto */}
+            {/* NOTE (optional, italic small) */}
+            {noteKey && (
+              <p className="text-[10px] text-foreground/40 italic leading-snug mb-3 min-h-[2rem]">
+                {t(noteKey)}
+              </p>
+            )}
+
+            {/* CTA — push ke bottom */}
             <div className="mt-auto inline-flex items-center gap-1 text-xs font-medium text-amber-400 group-hover:text-amber-300 transition-colors">
               {t(svc.ctaKey)}
               <span className="transition-transform group-hover:translate-x-0.5">→</span>

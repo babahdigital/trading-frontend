@@ -134,6 +134,19 @@ body.menu-open {
     --section-py-tablet: 6rem;
     --section-py-desktop: 8rem;
 
+    /* === LAYOUT CONTAINER WIDTHS — single source of truth ===
+       Edit ini = global resize semua halaman public/admin/portal yang
+       pakai `.layout-container` (preferred) atau `.container-default`/
+       `.container-wide`/`.container-prose` (legacy aliases). */
+    --layout-container-max:        1280px;  /* general page content */
+    --layout-container-narrow-max: 960px;   /* focused reading + dashboards */
+    --layout-container-wide-max:   1440px;  /* dashboards + showcase */
+    --layout-container-prose-max:  720px;   /* long-form prose / legal */
+    --layout-container-full-max:   1680px;  /* media-rich / hero bleed */
+    /* Horizontal padding token — clamp(mobile, viewport, desktop) untuk
+       konsistensi gutter di seluruh halaman tanpa per-page tweak. */
+    --layout-px: clamp(1rem, 2.5vw, 1.5rem);
+
     /* === BORDER RADIUS === */
     --radius-sm: 4px;
     --radius-md: 8px;
@@ -408,11 +421,38 @@ body.menu-open {
      melebar". Default container-default naik 1200→1280 supaya content
      breathe lebih di laptop 1440 / 1920. Section-padding pakai clamp inline
      padding yang sama. Reading-focused page (legal, prose) tetap 720
-     (container-prose) untuk readability. */
-  .container-prose { max-width: 720px; margin-inline: auto; width: 100%; }
-  .container-default { max-width: 1280px; margin-inline: auto; width: 100%; }
-  .container-wide { max-width: 1440px; margin-inline: auto; width: 100%; }
-  .container-full { max-width: 1680px; margin-inline: auto; width: 100%; }
+     (container-prose) untuk readability.
+
+     2026-05-20 — Centralized via CSS custom properties supaya 1 file edit
+     = global resize. Selalu pakai `.layout-container` (canonical alias)
+     untuk page-level wrapper. Variants narrow/wide/prose untuk reading
+     atau marquee layouts. Inline padding token --layout-px konsisten.
+
+     CARA PAKAI:
+       <section><div class="layout-container">…</div></section>
+       <section><div class="layout-container layout-container--narrow">…</div></section>
+       <section><div class="layout-container layout-container--prose">…</div></section>
+
+     CARA UBAH GLOBAL: edit `--layout-container-max` di :root section
+     atas, semua halaman ikut. */
+  .layout-container {
+    width: 100%;
+    max-width: var(--layout-container-max);
+    margin-inline: auto;
+    padding-inline: var(--layout-px);
+  }
+  .layout-container--narrow { max-width: var(--layout-container-narrow-max); }
+  .layout-container--wide   { max-width: var(--layout-container-wide-max); }
+  .layout-container--prose  { max-width: var(--layout-container-prose-max); }
+  .layout-container--full   { max-width: var(--layout-container-full-max); padding-inline: 0; }
+
+  /* Legacy aliases — kept for backward compat. Identical behavior to
+     `.layout-container` variants, but the new layout-container utility
+     is preferred for new code. */
+  .container-prose   { width: 100%; max-width: var(--layout-container-prose-max); margin-inline: auto; padding-inline: var(--layout-px); }
+  .container-default { width: 100%; max-width: var(--layout-container-max); margin-inline: auto; padding-inline: var(--layout-px); }
+  .container-wide    { width: 100%; max-width: var(--layout-container-wide-max); margin-inline: auto; padding-inline: var(--layout-px); }
+  .container-full    { width: 100%; max-width: var(--layout-container-full-max); margin-inline: auto; }
 
   /* ─── Card enterprise — mobile-first padding ───
      On portrait phones the card fills the viewport with tighter inner

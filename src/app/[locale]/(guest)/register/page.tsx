@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db/prisma';
 import { getPageMetadata } from '@/lib/seo';
 import { createLogger } from '@/lib/logger';
 import { RegisterOrchestrator } from '@/components/register/register-orchestrator';
+import type { FaqItem } from '@/components/register/faq-accordion';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 
@@ -25,34 +26,25 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   );
 }
 
-interface PackageData {
-  slug: string;
-  name: string;
-  price: string;
-  subtitle: string | null;
-  features: unknown;
-  note: string | null;
-  ctaLabel: string;
-  ctaLink: string;
-}
-
 export default async function RegisterPage() {
-  let packages: PackageData[] = [];
+  let faqs: FaqItem[] = [];
 
   try {
-    const tiers = await prisma.pricingTier.findMany({ where: { isVisible: true }, orderBy: { sortOrder: 'asc' } });
-    packages = tiers.map((t) => ({
-      slug: t.slug,
-      name: t.name,
-      price: t.price,
-      subtitle: t.subtitle,
-      features: t.features,
-      note: t.note,
-      ctaLabel: t.ctaLabel,
-      ctaLink: t.ctaLink,
-    }));
+    const rows = await prisma.faq.findMany({
+      where: { isVisible: true },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+      take: 6,
+      select: {
+        id: true,
+        question: true,
+        question_en: true,
+        answer: true,
+        answer_en: true,
+      },
+    });
+    faqs = rows;
   } catch (err) {
-    log.warn(`Pricing tiers fetch failed, using fallback: ${err instanceof Error ? err.message : 'unknown'}`);
+    log.warn(`Faq fetch failed: ${err instanceof Error ? err.message : 'unknown'}`);
   }
 
   return (
@@ -60,12 +52,12 @@ export default async function RegisterPage() {
       fallback={
         <div className="min-h-screen bg-background text-foreground">
           <EnterpriseNav />
-          <main id="main-content" className="container-default px-4 sm:px-6 py-20" />
+          <main id="main-content" className="layout-container py-20" />
           <EnterpriseFooter />
         </div>
       }
     >
-      <RegisterOrchestrator packages={packages} />
+      <RegisterOrchestrator faqs={faqs} />
     </Suspense>
   );
 }

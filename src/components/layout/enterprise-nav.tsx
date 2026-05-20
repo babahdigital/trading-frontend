@@ -222,13 +222,6 @@ export function EnterpriseNav() {
             >
               {t('register')}
             </Link>
-            <Link
-              href="/contact"
-              className="nav-link"
-              title={t('schedule_briefing')}
-            >
-              {t('schedule_briefing')}
-            </Link>
           </div>
 
           {/* Mobile toggle (always reachable — nav is fixed) */}
@@ -551,13 +544,6 @@ function MobileMenu({
             {t('register')}
           </Link>
         </div>
-        <Link
-          href="/contact"
-          className="block w-full text-center py-2.5 text-xs font-medium border border-border/60 rounded-md text-foreground/70 hover:text-foreground hover:bg-muted/40 transition-colors"
-          onClick={onClose}
-        >
-          {t('schedule_briefing')}
-        </Link>
       </div>
     </div>
   );

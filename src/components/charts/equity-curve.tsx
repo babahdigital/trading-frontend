@@ -60,6 +60,22 @@ export function EquityCurve({
         vertLine: { color: 'rgba(245, 181, 71, 0.5)', width: 1, style: 0 },
         horzLine: { visible: false },
       },
+      // 2026-05-20 — disable interactive pan + zoom. Period switcher (tab-bar)
+      // adalah satu-satunya control yang kita expose; horizontal scroll/drag
+      // di chart menyebabkan time-window berubah lalu y-scale auto-shift →
+      // layout jumping yang merusak tampilan. Lock view to fitContent.
+      handleScroll: {
+        mouseWheel: false,
+        pressedMouseMove: false,
+        horzTouchDrag: false,
+        vertTouchDrag: false,
+      },
+      handleScale: {
+        mouseWheel: false,
+        pinch: false,
+        axisPressedMouseMove: false,
+        axisDoubleClickReset: false,
+      },
     });
 
     const areaSeries = chart.addAreaSeries({
@@ -121,7 +137,11 @@ export function EquityCurve({
       {isEmpty ? (
         <ChartEmptyState height={height} locale={locale} />
       ) : (
-        <div ref={chartContainerRef} className="w-full" style={{ minHeight: height }} />
+        <div
+          ref={chartContainerRef}
+          className="w-full overflow-hidden touch-none select-none"
+          style={{ minHeight: height }}
+        />
       )}
     </div>
   );

@@ -467,7 +467,15 @@ body.menu-open {
     background: hsl(var(--muted));
     border-radius: var(--radius-md);
     gap: 2px;
+    /* Prevent horizontal page scroll when banyak periods di viewport
+       sempit (mobile). Wrap inside its own scroll container kalau
+       overflow, daripada push parent layout. */
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
   }
+  .tab-bar::-webkit-scrollbar { display: none; }
   .tab-btn {
     padding: 8px 16px;
     font-size: 0.75rem;

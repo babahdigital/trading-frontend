@@ -120,7 +120,7 @@ export default async function CryptoBotSolutionPage({ params }: { params: Promis
                 {t('hero_subtitle')}
               </p>
               <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
-                <Link href="/register/crypto" className="btn-primary inline-flex items-center justify-center gap-2 px-6 py-3 rounded-md text-sm font-medium">
+                <Link href="/register?service=crypto" className="btn-primary inline-flex items-center justify-center gap-2 px-6 py-3 rounded-md text-sm font-medium">
                   {t('hero_cta_register')} <ArrowRight className="w-4 h-4" />
                 </Link>
                 <Link href="/demo?product=robot-crypto" className="btn-secondary inline-flex items-center justify-center gap-2 px-6 py-3 rounded-md text-sm font-medium">
@@ -229,7 +229,7 @@ export default async function CryptoBotSolutionPage({ params }: { params: Promis
                     ))}
                   </ul>
                   <Link
-                    href={tier.id === 'hnwi' ? '/contact?subject=crypto-hnwi' : `/register/crypto?tier=${tier.id}`}
+                    href={tier.id === 'hnwi' ? '/contact?subject=crypto-hnwi' : `/register?service=crypto&tier=${tier.id}`}
                     className={`inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${
                       tier.popular
                         ? 'bg-primary text-primary-foreground hover:bg-primary/90'
@@ -288,7 +288,7 @@ export default async function CryptoBotSolutionPage({ params }: { params: Promis
               {t('cta_body')}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link href="/register/crypto" className="btn-primary inline-flex items-center justify-center gap-2 px-6 py-3 rounded-md text-sm font-medium">
+              <Link href="/register?service=crypto" className="btn-primary inline-flex items-center justify-center gap-2 px-6 py-3 rounded-md text-sm font-medium">
                 {t('cta_primary')} <ArrowRight className="w-4 h-4" />
               </Link>
               <Link href="/contact" className="btn-secondary inline-flex items-center justify-center gap-2 px-6 py-3 rounded-md text-sm font-medium">

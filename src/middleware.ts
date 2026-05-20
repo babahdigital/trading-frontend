@@ -188,6 +188,23 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url, 308);
   }
 
+  // 2026-05-20 — Registration unification. Old per-product paths
+  // (/register/signal, /register/crypto, /register/vps, /register/institutional,
+  // /register/free) redirect ke unified `/register?service={slug}` dengan
+  // 301 permanent (SEO honor). Optional locale prefix di-strip kalau ada.
+  // Query params yang sudah ada (mis. `?tier=scalping`) di-preserve.
+  const registerSlugMatch = pathname.match(/^\/(?:en|id)?\/?register\/(signal|crypto|vps|institutional|free)\/?$/);
+  if (registerSlugMatch) {
+    const slug = registerSlugMatch[1];
+    const url = request.nextUrl.clone();
+    url.pathname = pathname.startsWith('/en/') ? '/en/register' : '/register';
+    const existingService = url.searchParams.get('service');
+    if (!existingService) {
+      url.searchParams.set('service', slug);
+    }
+    return NextResponse.redirect(url, 301);
+  }
+
   // api.babahalgo.com subdomain → rewrite to /api/* routes
   if (host.startsWith('api.')) {
     // Health check at root

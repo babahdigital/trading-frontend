@@ -1891,6 +1891,9 @@
     "error_network": "Network error. Please try again.",
     "error_generic": "An error occurred",
     "success_register": "Registration successful. Please check your email for verification.",
+    "free_title": "Free Demo · Beta",
+    "free_blurb": "Run Robot Meta MT5 demo + Robot Crypto Binance Testnet with no real capital. 7-day trial.",
+    "free_cta": "Activate Demo",
     "crypto": {
       "eyebrow": "Registration · Robot Crypto",
       "title": "Activate Robot Crypto",

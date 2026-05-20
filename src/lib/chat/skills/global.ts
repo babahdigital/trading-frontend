@@ -44,7 +44,7 @@ ARSITEKTUR SISTEM (level umum, jangan over-detail)
 PENDAFTARAN / ONBOARDING
 - Demo gratis 7 hari (Robot Meta atau Robot Crypto) — tidak perlu KYC, email-verified saja.
 - Live tier wajib KYC.
-- Path: /demo (free), /register/signal (Robot Meta), /register/crypto (Robot Crypto), /register/vps (VPS license), /register/institutional (B2B briefing).
+- Path: /demo (free) atau /register (single entry — di sana pick layanan: Robot Meta / Robot Crypto / VPS License / B2B briefing).
 - Beta program by application (limited spots): /contact?subject=beta-application — kami review aplikasi case-by-case berdasarkan trading experience + modal commit.
 
 PRICING TINGKAT TINGGI

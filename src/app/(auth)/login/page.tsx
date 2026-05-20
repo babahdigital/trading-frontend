@@ -247,7 +247,7 @@ export default function LoginPage() {
                   {t('forgot_password')}
                 </Link>
                 <Link
-                  href="/register/signal"
+                  href="/register"
                   className="text-muted-foreground hover:text-amber-500 dark:hover:text-amber-400 transition-colors"
                 >
                   {t('no_account_register')}

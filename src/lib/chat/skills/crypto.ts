@@ -55,7 +55,7 @@ KONEK API KEY
 
 ONBOARDING
 - Demo 7 hari gratis (Binance Testnet, paper money): /demo?product=robot-crypto
-- Live: /register/crypto?tier=basic|pro|hnwi → /pricing → payment → /portal/crypto/connect`;
+- Live: /register?service=crypto&tier=basic|pro|hnwi → /pricing → payment → /portal/crypto/connect`;
 }
 
 /** @deprecated kept for backward compat — defaults to 'id' locale. Use getCryptoSkill(locale). */

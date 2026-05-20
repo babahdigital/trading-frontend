@@ -41,7 +41,7 @@ const CANONICAL_TIERS: CanonicalTier[] = [
     subtitle_en: 'Entry tier — try daily signals',
     features: ['Live signals (≤3 simbol)', '1 strategy aktif', 'Rule-based AI explainability', 'MT5 bridge ringan', 'Email support'],
     features_en: ['Live signals (≤3 symbols)', '1 active strategy', 'Rule-based AI explainability', 'Lightweight MT5 bridge', 'Email support'],
-    ctaLabel: 'Mulai Starter', ctaLabel_en: 'Start Starter', ctaLink: '/register/signal',
+    ctaLabel: 'Mulai Starter', ctaLabel_en: 'Start Starter', ctaLink: '/register?service=signal',
     sortOrder: 10, isVisible: true,
   },
   {
@@ -51,7 +51,7 @@ const CANONICAL_TIERS: CanonicalTier[] = [
     subtitle_en: 'For active multi-pair traders',
     features: ['Unlimited symbols', '5 strategi paralel', 'Mid-tier AI explainability', 'Priority MT5 latency', 'Email + Telegram support'],
     features_en: ['Unlimited symbols', '5 parallel strategies', 'Mid-tier AI explainability', 'Priority MT5 latency', 'Email + Telegram support'],
-    ctaLabel: 'Mulai Pro', ctaLabel_en: 'Start Pro', ctaLink: '/register/signal',
+    ctaLabel: 'Mulai Pro', ctaLabel_en: 'Start Pro', ctaLink: '/register?service=signal',
     sortOrder: 20, isVisible: true,
   },
   {
@@ -61,7 +61,7 @@ const CANONICAL_TIERS: CanonicalTier[] = [
     subtitle_en: 'Premium AI + copy-trade dashboard',
     features: ['Semua fitur Pro', 'Premium AI (gradient boost)', 'Custom backtest sweep (≤10/bulan)', 'Payout API', 'Copy-trade lead dashboard'],
     features_en: ['All Pro features', 'Premium AI (gradient boost)', 'Custom backtest sweep (≤10/month)', 'Payout API', 'Copy-trade lead dashboard'],
-    ctaLabel: 'Mulai VIP', ctaLabel_en: 'Start VIP', ctaLink: '/register/signal',
+    ctaLabel: 'Mulai VIP', ctaLabel_en: 'Start VIP', ctaLink: '/register?service=signal',
     sortOrder: 30, isVisible: true,
   },
   // CRYPTO BOT
@@ -72,7 +72,7 @@ const CANONICAL_TIERS: CanonicalTier[] = [
     subtitle_en: 'Binance Futures bot for entry traders',
     features: ['3 pair otomatis', 'Leverage maks 5x', 'Strategi scalping_momentum', 'Telegram + dashboard', 'Email support'],
     features_en: ['3 auto pairs', 'Max leverage 5x', 'Scalping momentum strategy', 'Telegram + dashboard', 'Email support'],
-    ctaLabel: 'Mulai Basic', ctaLabel_en: 'Start Basic', ctaLink: '/register/crypto?tier=basic',
+    ctaLabel: 'Mulai Basic', ctaLabel_en: 'Start Basic', ctaLink: '/register?service=crypto&tier=basic',
     sortOrder: 40, isVisible: true,
   },
   {
@@ -82,7 +82,7 @@ const CANONICAL_TIERS: CanonicalTier[] = [
     subtitle_en: 'Multi-strategy for active traders',
     features: ['8 pair + 1 manual whitelist', 'Leverage maks 10x', '4 strategi (SMC, Wyckoff, Momentum, Mean Reversion)', 'Telegram VIP + priority support'],
     features_en: ['8 pairs + 1 manual whitelist', 'Max leverage 10x', '4 strategies (SMC, Wyckoff, Momentum, Mean Reversion)', 'Telegram VIP + priority support'],
-    ctaLabel: 'Mulai Pro', ctaLabel_en: 'Start Pro', ctaLink: '/register/crypto?tier=pro',
+    ctaLabel: 'Mulai Pro', ctaLabel_en: 'Start Pro', ctaLink: '/register?service=crypto&tier=pro',
     sortOrder: 50, isVisible: true,
   },
   {
@@ -107,7 +107,7 @@ const CANONICAL_TIERS: CanonicalTier[] = [
     subtitle_en: 'You host the VPS, we provide the software + setup + support',
     features: ['Software install di VPS broker-level milik Anda', 'Full software access + risk parameter konfigurasi sendiri', 'Rekomendasi broker BAPPEBTI teregulasi', 'Konfigurasi kustom', 'Maintenance bulanan'],
     features_en: ['Software install on your own broker-level VPS', 'Full software access + self-configurable risk params', 'BAPPEBTI-regulated broker recommendation', 'Custom configuration', 'Monthly maintenance'],
-    ctaLabel: 'Konsultasi Setup', ctaLabel_en: 'Setup Consultation', ctaLink: '/register/vps',
+    ctaLabel: 'Konsultasi Setup', ctaLabel_en: 'Setup Consultation', ctaLink: '/register?service=vps',
     sortOrder: 70, isVisible: true,
   },
   {
@@ -117,7 +117,7 @@ const CANONICAL_TIERS: CanonicalTier[] = [
     subtitle_en: 'You host MT5, we host the backend orchestrator + monitoring',
     features: ['VPS Windows MT5 dari broker Anda (biasanya gratis)', 'BabahAlgo sediakan VPS Linux orchestrator', 'Multi-broker bridge (MT4 + MT5)', 'Priority technical support', 'Monitoring + alert otomatis'],
     features_en: ['Windows MT5 VPS from your broker (usually free)', 'BabahAlgo provides the Linux orchestrator VPS', 'Multi-broker bridge (MT4 + MT5)', 'Priority technical support', 'Automated monitoring + alerts'],
-    ctaLabel: 'Konsultasi Setup', ctaLabel_en: 'Setup Consultation', ctaLink: '/register/vps',
+    ctaLabel: 'Konsultasi Setup', ctaLabel_en: 'Setup Consultation', ctaLink: '/register?service=vps',
     sortOrder: 80, isVisible: true,
   },
   {
@@ -138,7 +138,7 @@ const CANONICAL_TIERS: CanonicalTier[] = [
     subtitle_en: 'Priority API + white-label deployment',
     features: ['REST + WebSocket API priority', 'Signal streaming dedicated infra', 'Custom integration support', 'Dedicated engineering contact', 'White-label tersedia'],
     features_en: ['REST + WebSocket API priority', 'Dedicated signal streaming infra', 'Custom integration support', 'Dedicated engineering contact', 'White-label available'],
-    ctaLabel: 'Speak with IR', ctaLabel_en: 'Speak with IR', ctaLink: '/register/institutional',
+    ctaLabel: 'Speak with IR', ctaLabel_en: 'Speak with IR', ctaLink: '/register?service=institutional',
     sortOrder: 100, isVisible: true,
   },
   {

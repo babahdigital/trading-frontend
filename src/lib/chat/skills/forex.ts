@@ -65,8 +65,8 @@ PERTANYAAN UMUM CUSTOMER
 
 ONBOARDING
 - Demo 7 hari gratis (akun MT5 demo customer): /demo?product=robot-meta
-- Live tier (KYC required): /register/signal?tier=swing|scalping|all
-- BabahAlgo Software License + Setup Service (consultative): /register/vps
+- Live tier (KYC required): /register?service=signal&tier=swing|scalping|all
+- BabahAlgo Software License + Setup Service (consultative): /register?service=vps
 
 SOFTWARE LICENSE + SETUP SERVICE (formerly VPS License)
 - BabahAlgo Software License grants Subscriber license untuk install + operate algorithm di VPS infrastructure milik Subscriber sendiri.

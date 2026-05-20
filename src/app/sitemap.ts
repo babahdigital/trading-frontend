@@ -33,10 +33,10 @@ const STATIC_PAGES: { path: string; priority: number; changeFrequency: 'always' 
   { path: '/about/team', priority: 0.4, changeFrequency: 'monthly' },
   { path: '/about/governance', priority: 0.4, changeFrequency: 'monthly' },
   { path: '/contact', priority: 0.6, changeFrequency: 'monthly' },
-  { path: '/register/signal', priority: 0.7, changeFrequency: 'weekly' },
-  { path: '/register/crypto', priority: 0.7, changeFrequency: 'weekly' },
-  { path: '/register/vps', priority: 0.6, changeFrequency: 'weekly' },
-  { path: '/register/institutional', priority: 0.7, changeFrequency: 'weekly' },
+  // 2026-05-20 — registration unified ke single entry /register dengan
+  // ?service= query param. Old sub-paths redirect 301 ke unified URL via
+  // middleware (preserve SEO). Sitemap surface single canonical URL.
+  { path: '/register', priority: 0.8, changeFrequency: 'weekly' },
   { path: '/legal/terms', priority: 0.3, changeFrequency: 'yearly' },
   { path: '/legal/privacy', priority: 0.3, changeFrequency: 'yearly' },
   { path: '/legal/risk-disclosure', priority: 0.3, changeFrequency: 'yearly' },

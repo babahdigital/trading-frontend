@@ -47,7 +47,7 @@ const TRACK_META: TrackMeta[] = [
     taglineKey: 'track1_tagline',
     bulletKeys: ['track1_b1', 'track1_b2', 'track1_b3', 'track1_b4', 'track1_b5'],
     ctaKey: 'track1_cta',
-    href: '/register/signal?mode=demo&product=robot-meta',
+    href: '/register?service=signal&mode=demo',
     popular: true,
   },
   {
@@ -57,7 +57,7 @@ const TRACK_META: TrackMeta[] = [
     taglineKey: 'track2_tagline',
     bulletKeys: ['track2_b1', 'track2_b2', 'track2_b3', 'track2_b4', 'track2_b5'],
     ctaKey: 'track2_cta',
-    href: '/register/crypto?mode=demo',
+    href: '/register?service=crypto&mode=demo',
   },
   {
     icon: Sparkles,
@@ -113,10 +113,10 @@ export default async function DemoPage() {
                 {t('hero_subtitle')}
               </p>
               <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
-                <Link href="/register/signal?mode=demo&product=robot-meta" className="btn-primary inline-flex items-center justify-center gap-2 px-6 py-3 rounded-md text-sm font-medium">
+                <Link href="/register?service=signal&mode=demo" className="btn-primary inline-flex items-center justify-center gap-2 px-6 py-3 rounded-md text-sm font-medium">
                   {t('hero_cta_meta')} <ArrowRight className="w-4 h-4" />
                 </Link>
-                <Link href="/register/crypto?mode=demo" className="btn-secondary inline-flex items-center justify-center gap-2 px-6 py-3 rounded-md text-sm font-medium">
+                <Link href="/register?service=crypto&mode=demo" className="btn-secondary inline-flex items-center justify-center gap-2 px-6 py-3 rounded-md text-sm font-medium">
                   {t('hero_cta_crypto')}
                 </Link>
                 <Link href="/contact?subject=indicator-beta" className="btn-tertiary inline-flex items-center justify-center gap-2 px-6 py-3 rounded-md text-sm font-medium">
@@ -266,7 +266,7 @@ export default async function DemoPage() {
               {t('cta_body')}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link href="/register/signal?mode=demo&product=robot-meta" className="btn-primary inline-flex items-center justify-center gap-2 px-6 py-3 rounded-md text-sm font-medium">
+              <Link href="/register?service=signal&mode=demo" className="btn-primary inline-flex items-center justify-center gap-2 px-6 py-3 rounded-md text-sm font-medium">
                 {t('cta_primary')} <ArrowRight className="w-4 h-4" />
               </Link>
               <Link href="/pricing" className="btn-secondary inline-flex items-center justify-center gap-2 px-6 py-3 rounded-md text-sm font-medium">

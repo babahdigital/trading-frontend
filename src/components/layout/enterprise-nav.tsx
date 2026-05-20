@@ -48,11 +48,11 @@ const SOLUTIONS_MENU = {
   ],
   register: [
     { href: '/demo', labelKey: 'register_demo_label', descKey: 'register_demo_desc' },
-    { href: '/register/free', labelKey: 'register_free_label', descKey: 'register_free_desc' },
-    { href: '/register/signal', labelKey: 'register_signal_label', descKey: 'register_signal_desc' },
-    { href: '/register/crypto', labelKey: 'register_crypto_label', descKey: 'register_crypto_desc' },
-    { href: '/register/vps', labelKey: 'register_vps_label', descKey: 'register_vps_desc' },
-    { href: '/register/institutional', labelKey: 'register_inst_label', descKey: 'register_inst_desc' },
+    { href: '/register?service=free', labelKey: 'register_free_label', descKey: 'register_free_desc' },
+    { href: '/register?service=signal', labelKey: 'register_signal_label', descKey: 'register_signal_desc' },
+    { href: '/register?service=crypto', labelKey: 'register_crypto_label', descKey: 'register_crypto_desc' },
+    { href: '/register?service=vps', labelKey: 'register_vps_label', descKey: 'register_vps_desc' },
+    { href: '/register?service=institutional', labelKey: 'register_inst_label', descKey: 'register_inst_desc' },
   ],
 };
 

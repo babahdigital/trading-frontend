@@ -45,9 +45,9 @@ interface PricingMeta {
 }
 
 const PRICING_META: PricingMeta[] = [
-  { tier: 'TIER 1', name: 'Robot Meta · Swing', priceKey: 'signal_starter', taglineKey: 'tier1_tagline', ctaKey: 'tier1_cta', featuresKey: 'tier1_features', href: '/register/signal?tier=swing' },
-  { tier: 'TIER 2', name: 'Robot Meta · Scalping', priceKey: 'signal_pro', popular: true, taglineKey: 'tier2_tagline', ctaKey: 'tier2_cta', featuresKey: 'tier2_features', href: '/register/signal?tier=scalping' },
-  { tier: 'TIER 3', name: 'Robot Meta · All-In', priceKey: 'signal_vip', taglineKey: 'tier3_tagline', ctaKey: 'tier3_cta', featuresKey: 'tier3_features', href: '/register/signal?tier=all' },
+  { tier: 'TIER 1', name: 'Robot Meta · Swing', priceKey: 'signal_starter', taglineKey: 'tier1_tagline', ctaKey: 'tier1_cta', featuresKey: 'tier1_features', href: '/register?service=signal&tier=swing' },
+  { tier: 'TIER 2', name: 'Robot Meta · Scalping', priceKey: 'signal_pro', popular: true, taglineKey: 'tier2_tagline', ctaKey: 'tier2_cta', featuresKey: 'tier2_features', href: '/register?service=signal&tier=scalping' },
+  { tier: 'TIER 3', name: 'Robot Meta · All-In', priceKey: 'signal_vip', taglineKey: 'tier3_tagline', ctaKey: 'tier3_cta', featuresKey: 'tier3_features', href: '/register?service=signal&tier=all' },
 ];
 
 const STEP_META = [
@@ -157,7 +157,7 @@ export default function SignalPage() {
               {t('hero_subtitle')}
             </p>
             <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4 mt-8 sm:mt-10">
-              <Link href="/register/signal?tier=scalping" className="btn-primary justify-center">
+              <Link href="/register?service=signal&tier=scalping" className="btn-primary justify-center">
                 {t('hero_cta_register')} <ArrowRight className="w-4 h-4" />
               </Link>
               <Link href="/demo?product=robot-meta" className="btn-secondary justify-center">

@@ -1891,6 +1891,9 @@
     "error_network": "Terjadi gangguan jaringan. Silakan coba lagi.",
     "error_generic": "Terjadi kesalahan",
     "success_register": "Pendaftaran berhasil. Silakan cek email untuk verifikasi.",
+    "free_title": "Demo Gratis · Beta",
+    "free_blurb": "Jalankan Robot Meta MT5 demo + Robot Crypto Binance Testnet tanpa modal nyata. 7 hari trial.",
+    "free_cta": "Aktifkan Demo",
     "crypto": {
       "eyebrow": "Registrasi · Robot Crypto",
       "title": "Aktivasi Robot Crypto",

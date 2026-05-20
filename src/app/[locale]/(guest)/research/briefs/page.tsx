@@ -117,7 +117,7 @@ export default function PairBriefsPage() {
                 {isEn
                   ? 'You are viewing preview mode. Subscribe for full analysis.'
                   : 'Anda melihat mode preview. Berlangganan untuk analisis lengkap.'}
-                <Link href="/register/signal" className="underline font-medium">
+                <Link href="/register?service=signal" className="underline font-medium">
                   {isEn ? 'Subscribe' : 'Berlangganan'}
                 </Link>
               </div>

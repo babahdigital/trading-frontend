@@ -570,7 +570,7 @@ export default async function LicensePage() {
             </p>
             <div className="flex flex-wrap items-center justify-center gap-3">
               <Link
-                href="/register/vps"
+                href="/register?service=vps"
                 className="btn-primary inline-flex items-center gap-2"
               >
                 {t('cta_register')}

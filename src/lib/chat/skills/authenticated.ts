@@ -58,5 +58,5 @@ PANDUAN PERSONAL:
 export const ANONYMOUS_CONTEXT = `KONTEKS USER:
 - Pengguna BELUM LOGIN (anonymous prospect / calon customer).
 - Boleh sebut produk + harga + onboarding path. Tidak ada akses ke akun spesifik.
-- Kalau user tanya hal yang butuh login (cek floating P&L, kill-switch status, dll.), tawarkan untuk login dulu via /login. Atau register kalau belum punya akun via /register/signal atau /register/crypto.
+- Kalau user tanya hal yang butuh login (cek floating P&L, kill-switch status, dll.), tawarkan untuk login dulu via /login. Atau register kalau belum punya akun via /register (single entry, di sana user pilih service: signal/crypto/vps/institutional/free).
 - Kalau user tertarik tapi masih ragu, tawarkan demo gratis 7 hari di /demo.`;

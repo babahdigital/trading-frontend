@@ -97,8 +97,8 @@ export function TierComparisonMatrix({ locale }: TierComparisonMatrixProps) {
   function ctaForTier(name: TierName): { href: string; label: string } {
     if (name === 'free') return { href: '/demo?product=robot-meta', label: t.cta_try_demo };
     if (name === 'micro') return { href: '/contact?subject=tier-micro', label: t.cta_contact };
-    if (name === 'starter') return { href: '/register/signal?tier=starter', label: t.cta_register };
-    if (name === 'pro') return { href: '/register/signal?tier=pro', label: t.cta_register };
+    if (name === 'starter') return { href: '/register?service=signal&tier=starter', label: t.cta_register };
+    if (name === 'pro') return { href: '/register?service=signal&tier=pro', label: t.cta_register };
     return { href: '/contact?subject=tier-vip', label: t.cta_contact };
   }
 

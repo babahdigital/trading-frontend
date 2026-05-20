@@ -59,13 +59,13 @@ const PRICING_TIERS: Record<string, TierMeta[]> = {
     { id: 'demo_indicator', tier: 'INDICATOR', price: 'tier_price_free', periodKey: 'period_permanent', featureCount: 5, href: '/demo?product=indicator' },
   ],
   forex: [
-    { id: 'forex_swing', tier: 'TIER 1', price: '<priceKey>:signal_starter', periodKey: 'period_monthly', featureCount: 5, href: '/register/signal?tier=swing' },
-    { id: 'forex_scalping', tier: 'TIER 2', price: '<priceKey>:signal_pro', periodKey: 'period_monthly', featureCount: 5, href: '/register/signal?tier=scalping', popular: true },
-    { id: 'forex_allin', tier: 'TIER 3', price: '<priceKey>:signal_vip', periodKey: 'period_monthly', featureCount: 5, href: '/register/signal?tier=all' },
+    { id: 'forex_swing', tier: 'TIER 1', price: '<priceKey>:signal_starter', periodKey: 'period_monthly', featureCount: 5, href: '/register?service=signal&tier=swing' },
+    { id: 'forex_scalping', tier: 'TIER 2', price: '<priceKey>:signal_pro', periodKey: 'period_monthly', featureCount: 5, href: '/register?service=signal&tier=scalping', popular: true },
+    { id: 'forex_allin', tier: 'TIER 3', price: '<priceKey>:signal_vip', periodKey: 'period_monthly', featureCount: 5, href: '/register?service=signal&tier=all' },
   ],
   crypto: [
-    { id: 'crypto_basic', tier: 'CRYPTO', price: '<priceKey>:crypto_basic', periodKey: 'period_monthly_flat', featureCount: 5, href: '/register/crypto?tier=basic' },
-    { id: 'crypto_pro', tier: 'CRYPTO PRO', price: '<priceKey>:crypto_pro', periodKey: 'period_monthly_flat', featureCount: 5, href: '/register/crypto?tier=pro', popular: true },
+    { id: 'crypto_basic', tier: 'CRYPTO', price: '<priceKey>:crypto_basic', periodKey: 'period_monthly_flat', featureCount: 5, href: '/register?service=crypto&tier=basic' },
+    { id: 'crypto_pro', tier: 'CRYPTO PRO', price: '<priceKey>:crypto_pro', periodKey: 'period_monthly_flat', featureCount: 5, href: '/register?service=crypto&tier=pro', popular: true },
     { id: 'crypto_hnwi', tier: 'CRYPTO HNWI', price: '<priceKey>:crypto_hnwi', periodKey: 'period_monthly_flat', featureCount: 5, href: '/contact?subject=crypto-hnwi' },
   ],
   // 2026-05-18 — priceKey realigned to canonical 3-tier (License Only / Hybrid
@@ -75,8 +75,8 @@ const PRICING_TIERS: Record<string, TierMeta[]> = {
   // via CMS. The ID is a label / i18n slug only; pricing comes from the new
   // priceKey which feeds formatPrice() against PRICE_TABLE.
   vps: [
-    { id: 'vps_license', tier: 'LICENSE ONLY', price: '<priceKey>:vps_license_only_setup', periodKey: 'period_one_time_setup', featureCount: 5, href: '/register/vps' },
-    { id: 'vps_premium', tier: 'HYBRID', price: '<priceKey>:vps_hybrid_setup', periodKey: 'period_one_time_setup', featureCount: 5, href: '/register/vps', popular: true },
+    { id: 'vps_license', tier: 'LICENSE ONLY', price: '<priceKey>:vps_license_only_setup', periodKey: 'period_one_time_setup', featureCount: 5, href: '/register?service=vps' },
+    { id: 'vps_premium', tier: 'HYBRID', price: '<priceKey>:vps_hybrid_setup', periodKey: 'period_one_time_setup', featureCount: 5, href: '/register?service=vps', popular: true },
     { id: 'vps_dedicated', tier: 'FULL TURNKEY', price: '<priceKey>:vps_turnkey_setup', periodKey: 'period_one_time_setup', featureCount: 5, href: '/contact?subject=dedicated-vps' },
   ],
   apis: [
@@ -96,7 +96,7 @@ const PRICING_TIERS: Record<string, TierMeta[]> = {
   // dari institutional license — confusing customer compare landing vs
   // solutions/institutional. Sekarang konsisten.
   institutional: [
-    { id: 'inst_api', tier: 'INSTITUTIONAL LICENSE', price: 'tier_price_inst_license', periodKey: 'period_inst_aum', featureCount: 5, href: '/register/institutional', popular: true },
+    { id: 'inst_api', tier: 'INSTITUTIONAL LICENSE', price: 'tier_price_inst_license', periodKey: 'period_inst_aum', featureCount: 5, href: '/register?service=institutional', popular: true },
     { id: 'inst_b2b', tier: 'SETUP & SUPPORT', price: 'tier_price_inst_setup', periodKey: 'period_inst_setup', featureCount: 5, href: '/contact?subject=institutional' },
   ],
 };

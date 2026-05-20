@@ -40,14 +40,14 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 // Prices are PriceKey references resolved locale-aware via formatPrice() di
 // render function. Names + features + periods resolved from i18n.
 const SIGNAL_TIER_META: Array<{ slug: 't1' | 't2' | 't3'; name: string; priceKey: PriceKey; cta: string; popular?: boolean }> = [
-  { slug: 't1', name: 'Tier 1 · Swing', priceKey: 'signal_starter', cta: '/register/signal?tier=swing' },
-  { slug: 't2', name: 'Tier 2 · Scalping', priceKey: 'signal_pro', popular: true, cta: '/register/signal?tier=scalping' },
-  { slug: 't3', name: 'Tier 3 · All-In', priceKey: 'signal_vip', cta: '/register/signal?tier=all' },
+  { slug: 't1', name: 'Tier 1 · Swing', priceKey: 'signal_starter', cta: '/register?service=signal&tier=swing' },
+  { slug: 't2', name: 'Tier 2 · Scalping', priceKey: 'signal_pro', popular: true, cta: '/register?service=signal&tier=scalping' },
+  { slug: 't3', name: 'Tier 3 · All-In', priceKey: 'signal_vip', cta: '/register?service=signal&tier=all' },
 ];
 
 const CRYPTO_TIER_META: Array<{ slug: 't1' | 't2' | 't3'; name: string; priceKey: PriceKey; periodKey: 'crypto_period_t1' | 'crypto_period_t2' | 'crypto_period_t3'; cta: string; popular?: boolean }> = [
-  { slug: 't1', name: 'Tier Basic', priceKey: 'crypto_basic', periodKey: 'crypto_period_t1', cta: '/register/crypto?tier=basic' },
-  { slug: 't2', name: 'Tier Pro', priceKey: 'crypto_pro', periodKey: 'crypto_period_t2', popular: true, cta: '/register/crypto?tier=pro' },
+  { slug: 't1', name: 'Tier Basic', priceKey: 'crypto_basic', periodKey: 'crypto_period_t1', cta: '/register?service=crypto&tier=basic' },
+  { slug: 't2', name: 'Tier Pro', priceKey: 'crypto_pro', periodKey: 'crypto_period_t2', popular: true, cta: '/register?service=crypto&tier=pro' },
   { slug: 't3', name: 'Tier HNWI', priceKey: 'crypto_hnwi', periodKey: 'crypto_period_t3', cta: '/contact?subject=crypto-hnwi' },
 ];
 
@@ -57,8 +57,8 @@ const CRYPTO_TIER_META: Array<{ slug: 't1' | 't2' | 't3'; name: string; priceKey
 // the middle "popular" card on /pricing to show $1,600 setup while solutions/license
 // shows Hybrid at $750. Aligned with `solutions/license/page.tsx` 3-tier.
 const VPS_TIER_META: Array<{ slug: 't1' | 't2' | 't3'; name: string; priceKey: PriceKey; periodKey: 'vps_period_setup_150' | 'vps_period_setup_300' | 'vps_period_dedicated'; cta: string; popular?: boolean }> = [
-  { slug: 't1', name: 'License Only', priceKey: 'vps_license_only_setup', periodKey: 'vps_period_setup_150', cta: '/register/vps' },
-  { slug: 't2', name: 'Hybrid', priceKey: 'vps_hybrid_setup', periodKey: 'vps_period_setup_300', popular: true, cta: '/register/vps' },
+  { slug: 't1', name: 'License Only', priceKey: 'vps_license_only_setup', periodKey: 'vps_period_setup_150', cta: '/register?service=vps' },
+  { slug: 't2', name: 'Hybrid', priceKey: 'vps_hybrid_setup', periodKey: 'vps_period_setup_300', popular: true, cta: '/register?service=vps' },
   { slug: 't3', name: 'Full Turnkey', priceKey: 'vps_turnkey_setup', periodKey: 'vps_period_dedicated', cta: '/contact?subject=dedicated-vps' },
 ];
 
@@ -197,7 +197,7 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
                     <FeatureItem key={i}>{f}</FeatureItem>
                   ))}
                 </ul>
-                <Link href="/register/institutional" className="btn-secondary w-full justify-center">
+                <Link href="/register?service=institutional" className="btn-secondary w-full justify-center">
                   {tp('inst_api_cta')} <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>

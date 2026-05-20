@@ -311,7 +311,7 @@ export default function BriefDetailPage() {
                         ? 'Get SND zones, trade ideas, key patterns, and full AI-powered analysis with a subscription.'
                         : 'Dapatkan zona SND, ide trading, pola kunci, dan analisis lengkap berbasis AI dengan berlangganan.'}
                     </p>
-                    <Link href="/register/signal" className="btn-primary py-3 px-8">
+                    <Link href="/register?service=signal" className="btn-primary py-3 px-8">
                       {isEn ? 'Subscribe Now' : 'Berlangganan Sekarang'}
                     </Link>
                   </div>

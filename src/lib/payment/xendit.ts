@@ -34,7 +34,7 @@ export async function createXenditInvoice(params: CreateInvoiceParams) {
     success_redirect_url:
       params.successRedirectUrl ??
       `${process.env.NEXT_PUBLIC_APP_URL}/portal/billing/success?order_id=${params.externalId}`,
-    failure_redirect_url: `${process.env.NEXT_PUBLIC_APP_URL}/portal/billing?status=failed`,
+    failure_redirect_url: `${process.env.NEXT_PUBLIC_APP_URL}/portal/billing/failure?order_id=${params.externalId}`,
     currency: 'IDR',
     invoice_duration: 86400, // 24 hours
     customer: {

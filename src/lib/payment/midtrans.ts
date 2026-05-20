@@ -43,7 +43,11 @@ export async function createMidtransTransaction(params: CreateTransactionParams)
       },
     ],
     callbacks: {
+      // Midtrans 3-state redirect: finish (paid), unfinish (deferred bank
+      // transfer / qris pending), error (gateway / card declined).
       finish: `${process.env.NEXT_PUBLIC_APP_URL}/portal/billing/success?order_id=${params.orderId}`,
+      unfinish: `${process.env.NEXT_PUBLIC_APP_URL}/portal/billing/pending?order_id=${params.orderId}`,
+      error: `${process.env.NEXT_PUBLIC_APP_URL}/portal/billing/failure?order_id=${params.orderId}`,
     },
     expiry: {
       unit: 'hour',

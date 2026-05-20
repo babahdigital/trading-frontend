@@ -10,6 +10,7 @@ import { SkeletonCard, SkeletonChart, SkeletonTable } from '@/components/ui/skel
 import { useAuth } from '@/lib/auth/auth-context';
 import { DiscoveryBanner } from '@/components/portal/discovery-banner';
 import { OnboardingChecklist } from '@/components/portal/onboarding-checklist';
+import { VerifyEmailBanner } from '@/components/portal/verify-email-banner';
 
 interface StatusData {
   bot_status?: string;
@@ -49,26 +50,29 @@ export default function PortalDashboard() {
   const [userName, setUserName] = useState('');
   const [equityPeriod, setEquityPeriod] = useState('30D');
 
+  const [emailVerified, setEmailVerified] = useState(true); // default true to avoid flash
+
   useEffect(() => {
     let cancelled = false;
     async function loadUser() {
-      // Prefer the session-storage hint set during login (instant, no network).
       try {
         const cached = sessionStorage.getItem('user');
         if (cached) {
           const parsed = JSON.parse(cached);
-          if (!cancelled) setUserName(parsed.name || parsed.email || '');
-          return;
+          if (!cancelled) {
+            setUserName(parsed.name || parsed.email || '');
+            setEmailVerified(!!parsed.emailVerifiedAt);
+          }
         }
       } catch { /* empty */ }
-      // Fallback: identity probe via cookie. Backstop for direct-link refreshes
-      // where sessionStorage was cleared by the browser.
+      // Always fetch fresh — emailVerifiedAt mungkin update setelah verify click
       try {
         const res = await fetch('/api/auth/me', { credentials: 'same-origin' });
         if (!res.ok) return;
         const data = await res.json();
         if (!cancelled && data.user) {
           setUserName(data.user.name || data.user.email || '');
+          setEmailVerified(!!data.user.emailVerifiedAt);
           try {
             sessionStorage.setItem('user', JSON.stringify(data.user));
           } catch { /* empty */ }
@@ -196,6 +200,11 @@ export default function PortalDashboard() {
       {error && (
         <div className="rounded-md bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-400">{error}</div>
       )}
+
+      {/* Email verification banner — surface saat user.emailVerifiedAt null.
+          CTA resend invalidate previous + gen new token + send email via
+          /api/auth/resend-verification. Dismissible per session. */}
+      <VerifyEmailBanner initialVerified={emailVerified} />
 
       {/* Onboarding 4-step checklist — auto-hide saat completed_at != null */}
       <OnboardingChecklist locale="id" />

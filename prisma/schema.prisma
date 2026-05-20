@@ -811,6 +811,43 @@ model PushSubscription {
   @@index([lastSeenAt])
 }
 
+/// Pageview + funnel event tracker (lightweight self-hosted analytics).
+/// 2026-05-20 — Phase A polish prereq (PMF measurement tanpa Plausible/
+/// Mixpanel external dep). Event payload minimal: page path, event type,
+/// optional referrer + utm campaign attribution. Server-side ingestion
+/// keeps PII off third-party.
+///
+/// Categori event:
+/// - 'pageview' — landing on a page
+/// - 'cta_click' — CTA button clicked (track conversion intent)
+/// - 'register_start' — register form opened
+/// - 'register_step' — register wizard step advance
+/// - 'register_complete' — signup successful
+/// - 'checkout_start' — checkout initiated
+/// - 'checkout_success' — payment confirmed via webhook
+/// - 'engagement' — generic engagement marker
+model AnalyticsEvent {
+  id          String   @id @default(cuid())
+  eventType   String
+  path        String?  // page path saat event terjadi
+  referrer    String?  @db.Text
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  sessionId   String?  // anonymous session ID dari client (UUID, no PII)
+  userId      String?  // optional — kalau authenticated
+  metadata    Json     @default("{}")
+  ipHash      String?  // SHA256 of IP (hash for unique visitor count, no raw IP)
+  userAgent   String?  @db.Text
+  country     String?  // ISO-2 dari Cloudflare CF-IPCountry
+  createdAt   DateTime @default(now())
+
+  @@index([eventType, createdAt])
+  @@index([sessionId])
+  @@index([path, createdAt])
+  @@index([userId])
+}
+
 model Invoice {
   id             String        @id @default(cuid())
   userId         String

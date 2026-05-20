@@ -28,6 +28,7 @@ import { SignupWizard } from './signup-wizard';
 import { LeadForm } from './lead-form';
 import { InstitutionalBooking } from './institutional-booking';
 import { ServicePicker } from './service-picker';
+import { track } from '@/lib/analytics/track';
 
 const ICONS = { TrendingUp, Bitcoin, Server, Sparkles, Gift } as const;
 
@@ -65,6 +66,7 @@ export function RegisterOrchestrator({ packages }: { packages: OrchestratorPacka
   const pickService = useCallback(
     (slug: ServiceSlug) => {
       setTransitioning(true);
+      track('register_start', { metadata: { service: slug } });
       const params = new URLSearchParams(search.toString());
       params.set('service', slug);
       // Strip stale tier/mode when switching service

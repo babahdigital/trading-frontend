@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { formatPrice, type Locale } from '@/lib/pricing-format';
 import type { ServiceDescriptor } from '@/lib/register/service-registry';
+import { track } from '@/lib/analytics/track';
 
 interface SignupWizardProps {
   service: ServiceDescriptor;
@@ -97,6 +98,16 @@ export function SignupWizard({ service, initialTier, isDemoMode = false, locale 
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
+        // Track conversion event sebelum redirect — sessionStorage masih
+        // available di same-tab next page load tapi sendBeacon flush
+        // sebelum navigate keluar.
+        track('register_complete', {
+          metadata: {
+            service: service.slug,
+            tier: form.tier || '(none)',
+            is_demo: isDemoMode ? 'true' : 'false',
+          },
+        });
         // Success — redirect ke portal kalau session ada cookie, atau login
         const redirectTo = data.redirectTo || '/login';
         router.push(redirectTo);

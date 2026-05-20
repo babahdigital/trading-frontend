@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { ChatWidget } from '@/components/chat/chat-widget';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import { ToastProvider } from '@/components/ui/toast';
+import { PageviewTracker } from '@/components/analytics/pageview-tracker';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -65,6 +66,12 @@ export default async function RootLayout({
   return (
     <html lang={locale} suppressHydrationWarning>
       <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)" />
+        <meta name="theme-color" content="#FAFAF7" media="(prefers-color-scheme: light)" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="BabahAlgo" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -79,6 +86,7 @@ export default async function RootLayout({
               </a>
               {children}
               <ChatWidget />
+              <PageviewTracker />
             </ToastProvider>
           </ThemeProvider>
         </NextIntlClientProvider>

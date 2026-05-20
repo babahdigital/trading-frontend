@@ -9,28 +9,32 @@ import { detectRequestLocale, type AppLocale } from '@/lib/i18n/server-locale';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-// Canonical pricing per audit 2026-04-26 (MONETIZATION_STRATEGY.md).
-// IDR rates pakai estimasi USD→IDR ~16,500 (revisit saat business confirm).
-// SIGNAL_BASIC = legacy alias = same price as SIGNAL_STARTER ($19).
+// Canonical pricing per audit 2026-04-26 + recalibration 2026-05-15 + 2026-05-20.
+// IDR rate USD→IDR ~16,500 (kalau forex move significant, revisit).
+// SIGNAL_BASIC = legacy alias untuk SIGNAL_STARTER, same price ($39).
+//
+// 2026-05-20: align dengan lib/pricing-format.ts dan landing pricing card.
+// Sebelumnya SIGNAL_STARTER IDR 315k = $19 (drift dari $39 canonical).
 //
 // `description` stored ID-canonical; locale swap on render via
 // localizeDescription() so EN payment-gateway page shows "1 Month" instead
 // of "1 Bulan".
 const TIER_PRICES: Record<string, { amountIdr: number; description: string }> = {
-  // Forex Signal
-  SIGNAL_STARTER: { amountIdr: 315_000, description: 'Signal Starter — 1 Bulan' },
-  SIGNAL_BASIC: { amountIdr: 315_000, description: 'Signal Basic (legacy alias Starter) — 1 Bulan' },
-  SIGNAL_PRO: { amountIdr: 1_300_000, description: 'Signal Pro — 1 Bulan' },
-  SIGNAL_VIP: { amountIdr: 4_950_000, description: 'Signal VIP — 1 Bulan' },
-  // Crypto Bot
-  CRYPTO_BASIC: { amountIdr: 815_000, description: 'Crypto Basic — 1 Bulan flat' },
-  CRYPTO_PRO: { amountIdr: 3_300_000, description: 'Crypto Pro — 1 Bulan flat' },
-  CRYPTO_HNWI: { amountIdr: 8_250_000, description: 'Crypto HNWI — 1 Bulan flat' },
-  // Software License
-  VPS_STANDARD: { amountIdr: 49_500_000, description: 'Software License — Setup' },
-  VPS_PREMIUM: { amountIdr: 124_000_000, description: 'Software License Pro — Setup' },
-  VPS_DEDICATED: { amountIdr: 24_750_000, description: 'Software License Dedicated — 1 Bulan' },
-  // Demo (gratis — tidak boleh masuk checkout, return 400)
+  // Forex Signal (canonical $39 / $79 / $299 — match lib/pricing-format.ts)
+  SIGNAL_STARTER: { amountIdr: 600_000, description: 'Signal Starter — 1 Bulan' },
+  SIGNAL_BASIC: { amountIdr: 600_000, description: 'Signal Basic (legacy alias Starter) — 1 Bulan' },
+  SIGNAL_PRO: { amountIdr: 1_290_000, description: 'Signal Pro — 1 Bulan' },
+  SIGNAL_VIP: { amountIdr: 4_900_000, description: 'Signal VIP — 1 Bulan' },
+  // Crypto Bot ($49 / $199 / $499 flat monthly)
+  CRYPTO_BASIC: { amountIdr: 799_000, description: 'Crypto Basic — 1 Bulan flat' },
+  CRYPTO_PRO: { amountIdr: 3_270_000, description: 'Crypto Pro — 1 Bulan flat' },
+  CRYPTO_HNWI: { amountIdr: 8_200_000, description: 'Crypto HNWI — 1 Bulan flat' },
+  // Software License (License Only / Hybrid / Full Turnkey setup)
+  VPS_STANDARD: { amountIdr: 5_000_000, description: 'Software License — License Only Setup' },
+  VPS_PREMIUM: { amountIdr: 12_000_000, description: 'Software License — Hybrid Setup' },
+  VPS_DEDICATED: { amountIdr: 25_000_000, description: 'Software License — Full Turnkey Setup' },
+  // Free + Demo (gratis — tidak boleh masuk checkout, return 400 via free_tier code)
+  FREE: { amountIdr: 0, description: 'Free tier — checkout tidak diperlukan' },
   DEMO: { amountIdr: 0, description: 'Demo (gratis) — checkout tidak diperlukan' },
 };
 

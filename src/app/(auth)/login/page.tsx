@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +9,7 @@ import { AuthLocaleSwitcher } from '@/components/ui/auth-locale-switcher';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import Link from 'next/link';
 import {
-  Mail, Lock, AlertCircle, ArrowLeft, ArrowRight,
+  Mail, Lock, AlertCircle, ArrowLeft, ArrowRight, CheckCircle2,
   Eye, EyeOff, ShieldCheck, Layers, Zap,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -17,7 +17,55 @@ import { cn } from '@/lib/utils';
 import { BrandLogo } from '@/components/layout/brand-logo';
 import { useToast } from '@/components/ui/toast';
 
-export default function LoginPage() {
+function VerifyBanner() {
+  const params = useSearchParams();
+  const status = params.get('verified');
+  if (!status) return null;
+  const variants: Record<string, { tone: 'success' | 'error'; msgId: string; msgEn: string }> = {
+    success: {
+      tone: 'success',
+      msgId: 'Email berhasil diverifikasi. Silakan login.',
+      msgEn: 'Email verified successfully. Please sign in.',
+    },
+    expired: {
+      tone: 'error',
+      msgId: 'Tautan verifikasi sudah expired. Hubungi support untuk kirim ulang.',
+      msgEn: 'Verification link has expired. Contact support to resend.',
+    },
+    used: {
+      tone: 'error',
+      msgId: 'Tautan verifikasi sudah pernah dipakai.',
+      msgEn: 'Verification link already used.',
+    },
+    invalid: {
+      tone: 'error',
+      msgId: 'Tautan verifikasi tidak valid.',
+      msgEn: 'Invalid verification link.',
+    },
+    error: {
+      tone: 'error',
+      msgId: 'Verifikasi gagal karena gangguan sistem. Coba lagi.',
+      msgEn: 'Verification failed due to a system error. Please try again.',
+    },
+  };
+  const variant = variants[status];
+  if (!variant) return null;
+  const isEn = typeof document !== 'undefined' && document.cookie.includes('NEXT_LOCALE=en');
+  const msg = isEn ? variant.msgEn : variant.msgId;
+  const cls =
+    variant.tone === 'success'
+      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+      : 'bg-red-500/10 border-red-500/30 text-red-300';
+  const Icon = variant.tone === 'success' ? CheckCircle2 : AlertCircle;
+  return (
+    <div className={cn('flex items-start gap-2 text-xs border rounded-md p-3 mb-4', cls)}>
+      <Icon className="h-4 w-4 shrink-0 mt-0.5" />
+      <span className="leading-relaxed">{msg}</span>
+    </div>
+  );
+}
+
+function LoginInner() {
   const t = useTranslations('auth');
   const tErr = useTranslations('errors');
   const router = useRouter();
@@ -184,6 +232,8 @@ export default function LoginPage() {
               </div>
             </div>
 
+            <VerifyBanner />
+
             <form onSubmit={handleSubmit} className="space-y-5" noValidate>
               <Field
                 id="email-input"
@@ -267,6 +317,14 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background" />}>
+      <LoginInner />
+    </Suspense>
   );
 }
 

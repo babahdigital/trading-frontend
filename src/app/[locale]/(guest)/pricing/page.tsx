@@ -9,6 +9,8 @@ import { CapabilityLadder } from '@/components/pricing/capability-ladder';
 import { TierComparisonMatrix } from '@/components/pricing/tier-comparison-matrix';
 import { TrustStrip } from '@/components/shared/trust-strip';
 import { StickyCtaBar } from '@/components/shared/sticky-cta-bar';
+import { FaqAccordion, type FaqItem } from '@/components/shared/faq-accordion';
+import { prisma } from '@/lib/db/prisma';
 import { formatPrice, type Locale, type PriceKey } from '@/lib/pricing-format';
 import {
   ArrowRight,
@@ -73,7 +75,23 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
   const { locale } = await params;
   const t = await getTranslations('pricing');
   const tp = await getTranslations('pricing_page');
+  const tr = await getTranslations('register');
   const localeKey: Locale = locale === 'en' ? 'en' : 'id';
+  const localeNav: 'id' | 'en' = locale === 'en' ? 'en' : 'id';
+
+  // Fetch top FAQs untuk surface decision-point — same source dengan /register.
+  let faqs: FaqItem[] = [];
+  try {
+    const rows = await prisma.faq.findMany({
+      where: { isVisible: true },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+      take: 6,
+      select: { id: true, question: true, question_en: true, answer: true, answer_en: true },
+    });
+    faqs = rows;
+  } catch {
+    // gracefully degrade — FAQ section akan auto-hide kalau items empty
+  }
   // apiCustomLabel dihapus 2026-05-16 — Developer API marketplace di-defer.
 
   const signalTiers = SIGNAL_TIER_META.map((m) => ({
@@ -243,6 +261,20 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
                 {tp('demo_cta_secondary')}
               </Link>
             </div>
+          </div>
+        </section>
+
+        {/* FAQ — shared component, real prisma.Faq data */}
+        <section className="section-padding border-t border-border/60">
+          <div className="layout-container">
+            <FaqAccordion
+              items={faqs}
+              locale={localeNav}
+              eyebrow={tr('faq_eyebrow')}
+              heading={tr('faq_heading')}
+              subtitle={tr('faq_subtitle')}
+              moreLink={{ label: tr('faq_more_link'), href: '/faq' }}
+            />
           </div>
         </section>
 

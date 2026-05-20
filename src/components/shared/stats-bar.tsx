@@ -1,12 +1,15 @@
 'use client';
 
 /**
- * Live stats bar — pulls real KPI dari /api/public/performance (master
- * tenant portfolio). NEVER halusinasi: kalau backend kosong / KPI '—',
- * komponen self-hide dengan returning null.
+ * Shared live stats bar — pulls real KPI dari /api/public/performance
+ * (master tenant portfolio). NEVER halusinasi: kalau backend kosong /
+ * KPI '—', komponen self-hide dengan returning null.
  *
  * 4 metrics: Total Return · Win Rate · Profit Factor · Max Drawdown.
  * Auto-refresh 30 menit (server-side cache TTL match).
+ *
+ * i18n namespace defaultnya `register` untuk backward-compat. Surface
+ * lain bisa override via prop `namespace`.
  */
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
@@ -28,8 +31,8 @@ function isMeaningful(kpi: KPI): boolean {
   return kpi.totalReturn !== '—' || kpi.winRate !== '—';
 }
 
-export function StatsBar() {
-  const t = useTranslations('register');
+export function StatsBar({ namespace = 'register' }: { namespace?: string }) {
+  const t = useTranslations(namespace);
   const [data, setData] = useState<StatsResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -61,7 +64,6 @@ export function StatsBar() {
   }
 
   if (!data || !isMeaningful(data.kpi)) {
-    // Honest: no live data, hide section.
     return null;
   }
 

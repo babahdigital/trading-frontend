@@ -1,14 +1,15 @@
 'use client';
 
 /**
- * FAQ accordion untuk register page — real data dari prisma.Faq.
+ * Shared FAQ accordion — real data dari prisma.Faq.
  * Locale-aware (id ⇄ en fallback ke source ID kalau translation kosong).
  *
  * Native <details>/<summary> supaya zero JS untuk open/close (CSS animate)
- * + accessible by default. Server renders fully expanded by default? No —
- * `details` collapsed by default. Click toggles, ESC focus close.
+ * + accessible by default. Click toggles, ESC focus close.
+ *
+ * Locale + heading copy lewat props supaya dipakai surface mana saja
+ * dengan eyebrow/title tersendiri (register, pricing, solutions, dll).
  */
-import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { ChevronDown, ArrowRight } from 'lucide-react';
 
@@ -23,18 +24,28 @@ export interface FaqItem {
 interface FaqAccordionProps {
   items: FaqItem[];
   locale: 'id' | 'en';
+  eyebrow?: string;
+  heading: string;
+  subtitle?: string;
+  moreLink?: { label: string; href: string };
 }
 
-export function FaqAccordion({ items, locale }: FaqAccordionProps) {
-  const t = useTranslations('register');
+export function FaqAccordion({
+  items,
+  locale,
+  eyebrow,
+  heading,
+  subtitle,
+  moreLink,
+}: FaqAccordionProps) {
   if (items.length === 0) return null;
 
   return (
     <section className="my-12">
       <div className="text-center mb-8">
-        <p className="t-eyebrow mb-2">{t('faq_eyebrow')}</p>
-        <h2 className="t-display-section mb-2">{t('faq_heading')}</h2>
-        <p className="text-sm text-foreground/60">{t('faq_subtitle')}</p>
+        {eyebrow && <p className="t-eyebrow mb-2">{eyebrow}</p>}
+        <h2 className="t-display-section mb-2">{heading}</h2>
+        {subtitle && <p className="text-sm text-foreground/60">{subtitle}</p>}
       </div>
 
       <div className="space-y-2">
@@ -58,15 +69,17 @@ export function FaqAccordion({ items, locale }: FaqAccordionProps) {
         })}
       </div>
 
-      <div className="text-center mt-6">
-        <Link
-          href="/faq"
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-amber-400 hover:text-amber-300 transition-colors"
-        >
-          {t('faq_more_link')}
-          <ArrowRight className="w-3 h-3" />
-        </Link>
-      </div>
+      {moreLink && (
+        <div className="text-center mt-6">
+          <Link
+            href={moreLink.href}
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-amber-400 hover:text-amber-300 transition-colors"
+          >
+            {moreLink.label}
+            <ArrowRight className="w-3 h-3" />
+          </Link>
+        </div>
+      )}
     </section>
   );
 }

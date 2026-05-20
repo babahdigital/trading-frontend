@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db/prisma';
 import { getPageMetadata } from '@/lib/seo';
 import { createLogger } from '@/lib/logger';
 import { RegisterOrchestrator } from '@/components/register/register-orchestrator';
-import type { FaqItem } from '@/components/register/faq-accordion';
+import type { FaqItem } from '@/components/shared/faq-accordion';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 

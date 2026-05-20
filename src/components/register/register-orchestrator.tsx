@@ -42,8 +42,8 @@ import { SignupWizard } from './signup-wizard';
 import { LeadForm } from './lead-form';
 import { InstitutionalBooking } from './institutional-booking';
 import { ServicePicker } from './service-picker';
-import { StatsBar } from './stats-bar';
-import { FaqAccordion, type FaqItem } from './faq-accordion';
+import { StatsBar } from '@/components/shared/stats-bar';
+import { FaqAccordion, type FaqItem } from '@/components/shared/faq-accordion';
 import { track } from '@/lib/analytics/track';
 
 const ICONS = { TrendingUp, Bitcoin, Server, Sparkles, Gift } as const;
@@ -145,7 +145,14 @@ export function RegisterOrchestrator({ faqs }: OrchestratorProps) {
               <StatsBar />
 
               {/* FAQ accordion — real data */}
-              <FaqAccordion items={faqs} locale={locale} />
+              <FaqAccordion
+                items={faqs}
+                locale={locale}
+                eyebrow={t('faq_eyebrow')}
+                heading={t('faq_heading')}
+                subtitle={t('faq_subtitle')}
+                moreLink={{ label: t('faq_more_link'), href: '/faq' }}
+              />
             </div>
           </section>
 

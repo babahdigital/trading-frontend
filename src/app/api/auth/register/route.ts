@@ -17,18 +17,25 @@ function errorResponse(code: string, message: string, status: number) {
   return NextResponse.json({ code, error: message }, { status });
 }
 
-// Canonical tier slugs per audit 2026-04-26 (PAMM tiers deprecated, zero-custody model).
-// SIGNAL_BASIC retained as alias for SIGNAL_STARTER for backward-compat with existing rows.
+// Canonical tier slugs per audit 2026-04-26 + 2026-05-20 unified registration refactor.
+// PAMM tiers deprecated 2026-04-26 (zero-custody model). SIGNAL_BASIC retained sebagai
+// alias untuk SIGNAL_STARTER kompat backward dengan existing rows.
+// FREE + CRYPTO_* tiers ditambahkan 2026-05-20 saat unified `/register?service=X` flow
+// di-rilis — sebelumnya hanya signal tiers yang diterima endpoint ini.
 const registerSchema = z.object({
   name: z.string().min(2, 'Nama minimal 2 karakter'),
   email: z.string().email('Format email tidak valid'),
   password: z.string().min(8, 'Password minimal 8 karakter'),
   tier: z.enum([
     'DEMO',
+    'FREE',
     'SIGNAL_STARTER',
     'SIGNAL_BASIC',
     'SIGNAL_PRO',
     'SIGNAL_VIP',
+    'CRYPTO_BASIC',
+    'CRYPTO_PRO',
+    'CRYPTO_HNWI',
   ]),
   accountType: z.enum(['demo', 'live']).optional(),
   brokerName: z.string().optional(),
@@ -82,15 +89,20 @@ export async function POST(request: NextRequest) {
       const startsAt = new Date();
       const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
-      // Canonical pricing per audit 2026-04-26 — Signal 3-tier
+      // Canonical pricing per audit 2026-04-26 + 2026-05-20 expansion
+      // (FREE, CRYPTO_*). Updated dari single-product signal-only ke
+      // multi-product unified registration.
       const monthlyFeeUsd = (() => {
-        if (tier === 'DEMO') return 0;
+        if (tier === 'DEMO' || tier === 'FREE') return 0;
         if (tier === 'SIGNAL_VIP') return 299;
         if (tier === 'SIGNAL_PRO') return 79;
-        // SIGNAL_STARTER + legacy SIGNAL_BASIC alias both → $19
-        return 19;
+        if (tier === 'SIGNAL_STARTER' || tier === 'SIGNAL_BASIC') return 39;
+        if (tier === 'CRYPTO_HNWI') return 499;
+        if (tier === 'CRYPTO_PRO') return 199;
+        if (tier === 'CRYPTO_BASIC') return 49;
+        return 0;
       })();
-      const profitSharePct = null; // No profit-share for Signal/Demo (only Crypto Bot, handled in /api/crypto)
+      const profitSharePct = null; // Zero-custody — semua tier flat monthly fee
 
       const subscription = await tx.subscription.create({
         data: {
@@ -128,7 +140,11 @@ export async function POST(request: NextRequest) {
     // stored encrypted at rest in User.forexApiToken so subsequent /login
     // can bridge the browser to a backend JWT pair. Failure NEVER blocks
     // the FE-side registration — customer can be linked later by ops.
-    if (tier !== 'DEMO') {
+    //
+    // Skip backend bridge untuk FREE/DEMO (no broker account) dan crypto
+    // (separate Binance bridge path). Forex bridge hanya untuk SIGNAL_* tiers.
+    const isSignalLiveTier = tier !== 'DEMO' && tier !== 'FREE' && !tier.startsWith('CRYPTO_');
+    if (isSignalLiveTier) {
       try {
         const signup = await forexSignup({
           email,

@@ -56,6 +56,7 @@ model User {
   passwordResets     PasswordResetToken[]
   cryptoSubscription CryptoBotSubscription?
   kyc                UserKyc?
+  pushSubscriptions  PushSubscription[]
 }
 
 model PasswordResetToken {
@@ -190,6 +191,13 @@ enum SubscriptionTier {
   SIGNAL_STARTER
   SIGNAL_PRO
   SIGNAL_VIP
+  // Added 2026-05-20 — unified /register?service=X refactor.
+  // FREE = zero-cost beta tier (signal view + shadow AI brain).
+  // CRYPTO_* = Robot Crypto Binance Futures tiers (flat monthly).
+  FREE
+  CRYPTO_BASIC
+  CRYPTO_PRO
+  CRYPTO_HNWI
   // Legacy — retained for existing rows; new registrations should use canonical above
   SIGNAL_BASIC
   PAMM_BASIC
@@ -777,6 +785,30 @@ model WhatsappVerification {
 
   @@index([userId, product])
   @@index([expiresAt])
+}
+
+/// PWA push notification subscription registry (Phase 1 mobile prereq).
+/// User subscribe via browser → Web Push API issues endpoint+keys → kita
+/// simpan untuk later dispatch (mis. signal alert, kill-switch trigger).
+/// VAPID keys di server side (.env: VAPID_PUBLIC_KEY + VAPID_PRIVATE_KEY).
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String?  // optional — anonymous subscriber (free tier) bisa subscribe juga
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String   // public key dari subscription.getKey('p256dh')
+  auth      String   // auth secret dari subscription.getKey('auth')
+  userAgent String?  @db.Text
+  ipAddress String?
+  // Subscription kategori topic — user pilih mana yang opt-in:
+  // ['signal_alerts', 'kill_switch', 'account_security', 'payment_status']
+  topics    String[] @default([])
+  createdAt DateTime @default(now())
+  lastSeenAt DateTime @default(now())
+  failedAttempts Int  @default(0)
+
+  @@index([userId])
+  @@index([lastSeenAt])
 }
 
 model Invoice {

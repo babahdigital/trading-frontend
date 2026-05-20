@@ -6,6 +6,12 @@ import { z } from 'zod';
 import { createLogger } from '@/lib/logger';
 import { detectRequestLocale } from '@/lib/i18n/server-locale';
 import { renderWelcomeEmail } from '@/lib/email/welcome-template';
+import { renderVerifyEmail } from '@/lib/email/verify-email-template';
+import {
+  generateVerificationToken,
+  buildVerifyUrl,
+  EMAIL_VERIFICATION_TTL_HOURS,
+} from '@/lib/auth/email-verification';
 import { forexSignup } from '@/lib/forex/auth';
 import { ForexApiError } from '@/lib/forex/types';
 
@@ -189,6 +195,31 @@ export async function POST(request: NextRequest) {
     const welcomeContent = renderWelcomeEmail(locale, { name, tier });
     sendEmail(email, welcomeContent.subject, welcomeContent.html)
       .catch((err) => log.warn(`Welcome email failed for ${email}: ${err}`));
+
+    // Email verification (Phase A polish 2026-05-20) — best-effort.
+    // Generate token, store hashed, send magic link via email.
+    // Skip kalau FREE/DEMO tier (no friction untuk trial users).
+    if (tier !== 'DEMO' && tier !== 'FREE') {
+      try {
+        const { raw, hash, expiresAt } = generateVerificationToken();
+        await prisma.emailVerificationToken.create({
+          data: { userId: result.user.id, token: hash, expiresAt },
+        });
+        const verifyUrl = buildVerifyUrl(raw);
+        const verifyContent = renderVerifyEmail(locale, {
+          name,
+          verifyUrl,
+          expiresInHours: EMAIL_VERIFICATION_TTL_HOURS,
+        });
+        sendEmail(email, verifyContent.subject, verifyContent.html).catch((err) =>
+          log.warn(`Verify email send failed for ${email}: ${err}`),
+        );
+      } catch (verifyErr) {
+        log.warn(
+          `Verify token generation failed for ${email}: ${verifyErr instanceof Error ? verifyErr.message : 'unknown'}`,
+        );
+      }
+    }
 
     return NextResponse.json({
       code: 'register_success',

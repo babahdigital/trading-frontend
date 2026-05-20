@@ -57,6 +57,25 @@ model User {
   cryptoSubscription CryptoBotSubscription?
   kyc                UserKyc?
   pushSubscriptions  PushSubscription[]
+  emailVerifications EmailVerificationToken[]
+
+  /// 2026-05-20 — Email verification tracking. NULL = belum verify.
+  /// Workflow opt-in saat ini (tidak gate access), tapi infra ready
+  /// untuk Phase B gate (block checkout + kyc submit kalau belum verify).
+  emailVerifiedAt    DateTime?
+}
+
+model EmailVerificationToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String    @unique // SHA-256 hash of raw token, never store plain
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 model PasswordResetToken {

@@ -162,8 +162,16 @@ async function request<T>(scope: Scope, path: string, init: RequestInit = {}): P
 
 // ─── Signal domain ───────────────────────────────────────────────────────────
 
+// 2026-05-20 — schema adapter post P1 RLS fix.
+// Backend `/v1/signals/latest` (post-Wave-31) returns:
+//   { id: UUID, symbol, side, confluence_score (0-100), entry_price,
+//     stop_loss, take_profits[], context, emitted_at, status, ... }
+// Vps1Signal preserves the legacy FE-facing shape (pair, direction,
+// confidence 0-1, take_profit single) for downstream consumers; the
+// shape conversion happens inside getLatestSignals so callers don't
+// need to know about the backend rename.
 export interface Vps1Signal {
-  id: number;
+  id: string;
   pair: string;
   direction: 'BUY' | 'SELL';
   entry_type?: string;
@@ -177,10 +185,75 @@ export interface Vps1Signal {
   indicator_snapshot?: Record<string, unknown>;
   indicator_snapshot_summary?: Record<string, unknown>;
   emitted_at: string;
+  status?: string;
+}
+
+interface BackendSignalRaw {
+  id: string;
+  engine_id?: string;
+  strategy_id?: string;
+  symbol: string;
+  side: 'buy' | 'sell' | 'BUY' | 'SELL';
+  timeframe?: string;
+  confluence_score?: number;
+  entry_price?: number;
+  stop_loss?: number | null;
+  take_profits?: number[];
+  context?: Record<string, unknown>;
+  emitted_at: string;
+  status?: string;
+  // legacy fallback when backend hasn't rolled the new schema yet
+  pair?: string;
+  direction?: 'BUY' | 'SELL';
+  confidence?: number;
+  take_profit?: number | null;
+  reasoning?: string;
+  indicator_snapshot?: Record<string, unknown>;
+  entry_type?: string;
+  lot?: number;
+}
+
+function adaptBackendSignal(raw: BackendSignalRaw): Vps1Signal {
+  const pair = raw.pair ?? raw.symbol;
+  const direction: 'BUY' | 'SELL' =
+    raw.direction ?? (String(raw.side).toUpperCase() === 'SELL' ? 'SELL' : 'BUY');
+  // Backend confluence_score is 0-100; FE legacy `confidence` is 0-1.
+  // Normalise to 0-1 so existing `min_confidence: 0.7` filters and
+  // SignalAuditLog.confidence (NUMERIC 0-1) keep working.
+  const rawConf = raw.confidence ?? raw.confluence_score;
+  const confidence =
+    rawConf == null
+      ? undefined
+      : rawConf > 1
+        ? rawConf / 100
+        : rawConf;
+  const tp = raw.take_profit ?? (Array.isArray(raw.take_profits) ? raw.take_profits[0] ?? null : null);
+  const reasoning =
+    raw.reasoning ??
+    (typeof raw.context === 'object' && raw.context !== null
+      ? typeof (raw.context as { reason?: unknown }).reason === 'string'
+        ? ((raw.context as { reason: string }).reason)
+        : undefined
+      : undefined);
+  return {
+    id: String(raw.id),
+    pair,
+    direction,
+    entry_type: raw.entry_type ?? raw.strategy_id,
+    lot: raw.lot,
+    entry_price: raw.entry_price,
+    stop_loss: raw.stop_loss,
+    take_profit: tp,
+    confidence,
+    reasoning,
+    indicator_snapshot: raw.indicator_snapshot ?? raw.context,
+    emitted_at: raw.emitted_at,
+    status: raw.status,
+  };
 }
 
 export async function getLatestSignals(params: {
-  since_id?: bigint | number;
+  since_id?: bigint | number | string;
   limit?: number;
   min_confidence?: number;
   pair?: string;
@@ -193,17 +266,25 @@ export async function getLatestSignals(params: {
   if (params.limit !== undefined) q.set('limit', String(params.limit));
   if (params.pair) q.set('symbol', params.pair);
   const qs = q.toString();
-  const raw = await request<Vps1Signal[] | { items: Vps1Signal[]; count?: number; next_cursor?: string | null }>(
-    'signals',
-    `/v1/signals/latest${qs ? `?${qs}` : ''}`,
-  );
-  let items: Vps1Signal[] = Array.isArray(raw) ? raw : Array.isArray(raw.items) ? raw.items : [];
+  const raw = await request<
+    BackendSignalRaw[] | { items: BackendSignalRaw[]; count?: number; next_cursor?: string | null }
+  >('signals', `/v1/signals/latest${qs ? `?${qs}` : ''}`);
+  const rawItems: BackendSignalRaw[] = Array.isArray(raw)
+    ? raw
+    : Array.isArray(raw.items)
+      ? raw.items
+      : [];
+  let items: Vps1Signal[] = rawItems.map(adaptBackendSignal);
 
   if (params.since_id !== undefined) {
-    const since = BigInt(params.since_id);
+    // Backend IDs are UUIDv7 strings (lexicographically sortable by emission).
+    // since_id supports either UUID string OR legacy bigint — compare as strings
+    // when both sides look like UUIDs; otherwise fall back to bigint compare.
+    const sinceStr = String(params.since_id);
     items = items.filter((s) => {
+      if (sinceStr.includes('-')) return s.id > sinceStr;
       try {
-        return BigInt(s.id ?? 0) > since;
+        return BigInt(s.id) > BigInt(sinceStr);
       } catch {
         return true;
       }

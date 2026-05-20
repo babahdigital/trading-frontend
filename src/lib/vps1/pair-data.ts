@@ -400,11 +400,12 @@ export async function fetchPairData(pair: string): Promise<PairDataBundle | null
       ...topList.filter((s) => s.pair === pair),
     ];
 
-    // Deduplicate signals by id
-    const seenIds = new Set<number>();
+    // Deduplicate signals by id (UUID string post-Wave-31)
+    const seenIds = new Set<string>();
     const uniqueSignals = pairSignals.filter((s) => {
-      if (seenIds.has(s.id)) return false;
-      seenIds.add(s.id);
+      const key = String(s.id);
+      if (seenIds.has(key)) return false;
+      seenIds.add(key);
       return true;
     }) as Vps1Signal[];
 

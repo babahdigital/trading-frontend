@@ -9,7 +9,7 @@ import { createLogger } from '@/lib/logger';
 const log = createLogger('dispatcher');
 
 export interface DispatchResult {
-  signalId: number;
+  signalId: string;
   sent: number;
   failed: number;
   skipped: number;

@@ -9,6 +9,19 @@ import * as Sentry from '@sentry/nextjs';
 const log = createLogger('signal-consumer');
 const SCOPE = 'signals';
 
+// Backend post-Wave-31 returns UUIDv7 string IDs. ConsumerState.lastSeenId
+// is still BigInt (SignalAuditLog.sourceId too). Cursor uses emitted_at ms
+// timestamp as BigInt — monotonic + no UUID parsing. sourceId derives a
+// deterministic 63-bit hash from the UUID's first 64 bits (mirror Phase E
+// backend pattern in forex_publisher._emit_outbox_open).
+function uuidToInt64(uuid: string): bigint {
+  const hex = uuid.replace(/-/g, '').slice(0, 16);
+  if (!/^[0-9a-fA-F]{16}$/.test(hex)) {
+    throw new Error(`uuidToInt64: not a valid UUID prefix: "${uuid}"`);
+  }
+  return BigInt('0x' + hex) & 0x7FFFFFFFFFFFFFFFn;
+}
+
 export interface SignalConsumerResult {
   processed: number;
   lastSeenId: bigint;
@@ -27,26 +40,33 @@ export async function runSignalConsumer(opts: {
   });
 
   try {
-    const lastSeenId = await getLastSeenId(SCOPE);
+    // Cursor semantics: BigInt of last seen `emitted_at` in ms epoch.
+    // Backwards-compat with pre-fix rows where lastSeenId was 0 (no cursor) —
+    // pull last 50 from backend, filter client-side, persist newest emitted_at.
+    const lastSeenMs = await getLastSeenId(SCOPE);
     const signals = await getLatestSignals({
-      since_id: lastSeenId,
       limit: opts.limit ?? 50,
       min_confidence: opts.minConfidence ?? 0.7,
     });
+    const cursorMs = Number(lastSeenMs);
+    const fresh = cursorMs > 0
+      ? signals.filter((s) => new Date(s.emitted_at).getTime() > cursorMs)
+      : signals;
 
-    if (!signals.length) {
-      await commitConsumerProgress(SCOPE, lastSeenId, 'ok', { processed: 0 });
+    if (!fresh.length) {
+      await commitConsumerProgress(SCOPE, lastSeenMs, 'ok', { processed: 0 });
       await prisma.workerRun.update({
         where: { id: run.id },
         data: { finishedAt: new Date(), status: 'OK', itemsProcessed: 0 },
       });
-      return { processed: 0, lastSeenId, status: 'skipped', durationMs: Date.now() - start };
+      return { processed: 0, lastSeenId: lastSeenMs, status: 'skipped', durationMs: Date.now() - start };
     }
 
-    let highest = lastSeenId;
-    for (const s of signals) {
+    let newestMs = cursorMs;
+    for (const s of fresh) {
       try {
-        const sid = BigInt(s.id);
+        const sid = uuidToInt64(s.id);
+        const emittedMs = new Date(s.emitted_at).getTime();
         await prisma.signalAuditLog.upsert({
           where: { sourceId: sid },
           create: {
@@ -66,7 +86,7 @@ export async function runSignalConsumer(opts: {
           },
           update: {},
         });
-        if (sid > highest) highest = sid;
+        if (emittedMs > newestMs) newestMs = emittedMs;
 
         // Dispatch to subscribers via Telegram/Email
         try {
@@ -94,15 +114,16 @@ export async function runSignalConsumer(opts: {
       }
     }
 
-    await commitConsumerProgress(SCOPE, highest, 'ok', { processed: signals.length });
+    const newestBig = BigInt(newestMs);
+    await commitConsumerProgress(SCOPE, newestBig, 'ok', { processed: fresh.length });
     await prisma.workerRun.update({
       where: { id: run.id },
-      data: { finishedAt: new Date(), status: 'OK', itemsProcessed: signals.length },
+      data: { finishedAt: new Date(), status: 'OK', itemsProcessed: fresh.length },
     });
 
     return {
-      processed: signals.length,
-      lastSeenId: highest,
+      processed: fresh.length,
+      lastSeenId: newestBig,
       status: 'ok',
       durationMs: Date.now() - start,
     };

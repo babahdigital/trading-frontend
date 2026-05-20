@@ -36,7 +36,7 @@ async function main() {
     }
 
     const mockSignal = {
-      id: 999999,
+      id: '00000000-0000-7000-8000-000000099999',
       emitted_at: new Date().toISOString(),
       pair: 'BTCUSD',
       direction: 'SELL' as const,

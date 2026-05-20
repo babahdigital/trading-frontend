@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CmsPageHeader } from '@/components/cms/page-header';
 import { useAuth } from '@/lib/auth/auth-context';
+import { useToast } from '@/components/ui/toast';
 
 interface PageMetaItem {
   id: string;
@@ -24,6 +25,7 @@ interface PageMetaItem {
 
 export default function CmsSeoPage() {
   const { getAuthHeaders } = useAuth();
+  const toast = useToast();
   const [pages, setPages] = useState<PageMetaItem[]>([]);
   const [editing, setEditing] = useState<PageMetaItem | null>(null);
   const [translatingId, setTranslatingId] = useState<string | null>(null);
@@ -61,7 +63,11 @@ export default function CmsSeoPage() {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        alert(`Auto-translate gagal: ${data.error ?? 'unknown'}`);
+        toast.push({
+          tone: 'error',
+          title: 'Auto-translate gagal',
+          description: data.error ?? 'Unknown error',
+        });
         return;
       }
       await fetchPages();
@@ -73,8 +79,13 @@ export default function CmsSeoPage() {
           if (fresh) setEditing(fresh);
         }
       }
+      toast.push({ tone: 'success', title: 'Auto-translate selesai' });
     } catch (err) {
-      alert(`Auto-translate error: ${String(err)}`);
+      toast.push({
+        tone: 'error',
+        title: 'Auto-translate error',
+        description: String(err),
+      });
     } finally {
       setTranslatingId(null);
     }

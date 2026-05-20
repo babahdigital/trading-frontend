@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CmsPageHeader } from '@/components/cms/page-header';
 import { useAuth } from '@/lib/auth/auth-context';
+import { useToast } from '@/components/ui/toast';
 
 interface BlogTopic {
   id: string;
@@ -57,6 +58,7 @@ const ASSET_CLASS_COLORS: Record<string, string> = {
 
 export default function BlogTopicsPage() {
   const { getAuthHeaders } = useAuth();
+  const toast = useToast();
   const [topics, setTopics] = useState<BlogTopic[]>([]);
   const [editing, setEditing] = useState<BlogTopic | null>(null);
   const [loading, setLoading] = useState(true);
@@ -87,7 +89,17 @@ export default function BlogTopicsPage() {
       });
       const result = await res.json();
       if (result.status === 'error') {
-        alert(`Regeneration error: ${result.topics?.[0]?.error || 'unknown'}`);
+        toast.push({
+          tone: 'error',
+          title: 'Regenerasi gagal',
+          description: result.topics?.[0]?.error || 'Unknown error',
+        });
+      } else {
+        toast.push({
+          tone: 'success',
+          title: 'Regenerasi terkirim',
+          description: `Topic "${topic.titleId}" sedang diproses.`,
+        });
       }
     } finally {
       setRegeneratingId(null);

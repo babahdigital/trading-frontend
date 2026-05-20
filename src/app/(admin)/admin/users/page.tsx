@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Plus, X, Trash2, Power } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
+import { useToast } from '@/components/ui/toast';
 
 interface User {
   id: string;
@@ -32,6 +33,7 @@ function roleColor(role: string): string {
 
 export default function UsersPage() {
   const { getAuthHeaders } = useAuth();
+  const toast = useToast();
   const [users, setUsers] = useState<User[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -115,10 +117,10 @@ export default function UsersPage() {
         void fetchUsers();
       } else {
         const data = await res.json().catch(() => ({}));
-        alert(`Delete failed: ${data.error || res.statusText}`);
+        toast.push({ tone: 'error', title: 'Delete failed', description: data.error || res.statusText });
       }
     } catch (err) {
-      alert(`Network error: ${err instanceof Error ? err.message : 'unknown'}`);
+      toast.push({ tone: 'error', title: 'Network error', description: err instanceof Error ? err.message : 'unknown' });
     }
   }
 
@@ -137,10 +139,10 @@ export default function UsersPage() {
         void fetchUsers();
       } else {
         const data = await res.json().catch(() => ({}));
-        alert(`Role change failed: ${data.error || res.statusText}`);
+        toast.push({ tone: 'error', title: 'Role change failed', description: data.error || res.statusText });
       }
     } catch (err) {
-      alert(`Network error: ${err instanceof Error ? err.message : 'unknown'}`);
+      toast.push({ tone: 'error', title: 'Network error', description: err instanceof Error ? err.message : 'unknown' });
     }
   }
 
@@ -160,10 +162,10 @@ export default function UsersPage() {
         void fetchUsers();
       } else {
         const data = await res.json().catch(() => ({}));
-        alert(`Toggle failed: ${data.error || res.statusText}`);
+        toast.push({ tone: 'error', title: 'Toggle failed', description: data.error || res.statusText });
       }
     } catch (err) {
-      alert(`Network error: ${err instanceof Error ? err.message : 'unknown'}`);
+      toast.push({ tone: 'error', title: 'Network error', description: err instanceof Error ? err.message : 'unknown' });
     }
   }
 

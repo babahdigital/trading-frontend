@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Upload } from 'lucide-react';
 import Image from 'next/image';
 import { useAuth } from '@/lib/auth/auth-context';
+import { useToast } from '@/components/ui/toast';
 
 interface ImageUploadProps {
   value: string;
@@ -15,6 +16,7 @@ interface ImageUploadProps {
 
 export function ImageUpload({ value, onChange, label = 'Image URL' }: ImageUploadProps) {
   const { getAuthToken } = useAuth();
+  const toast = useToast();
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -33,12 +35,21 @@ export function ImageUpload({ value, onChange, label = 'Image URL' }: ImageUploa
       if (res.ok) {
         const data = await res.json();
         onChange(data.url);
+        toast.push({ tone: 'success', title: 'Upload berhasil' });
       } else {
-        const err = await res.json();
-        alert(err.error || 'Upload gagal');
+        const err = await res.json().catch(() => ({}));
+        toast.push({
+          tone: 'error',
+          title: 'Upload gagal',
+          description: err.error || `HTTP ${res.status}`,
+        });
       }
-    } catch {
-      alert('Upload gagal');
+    } catch (e) {
+      toast.push({
+        tone: 'error',
+        title: 'Upload gagal',
+        description: e instanceof Error ? e.message : 'Network error',
+      });
     } finally {
       setUploading(false);
     }

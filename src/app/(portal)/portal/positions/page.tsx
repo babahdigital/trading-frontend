@@ -61,6 +61,8 @@ export default function PositionsPage() {
   }, [getAuthHeaders, t, tShared]);
 
   useEffect(() => {
+    // fetchPositions drives setState — fetch on mount + adaptive polling (WS aware).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void fetchPositions();
     const cadence = wsConnected ? POLL_SLOW_MS : POLL_FAST_MS;
     const interval = setInterval(() => { void fetchPositions(); }, cadence);

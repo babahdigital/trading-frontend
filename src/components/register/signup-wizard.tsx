@@ -57,9 +57,10 @@ export function SignupWizard({ service, initialTier, isDemoMode = false, locale 
     demoAcknowledged: false,
   });
 
-  // Re-apply initial tier kalau prop berubah (deep link refresh)
+  // Re-apply initial tier kalau prop berubah (deep link refresh) — sync prop ke state.
   useEffect(() => {
     if (initialTier) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setForm((f) => ({ ...f, tier: initialTier }));
     }
   }, [initialTier]);

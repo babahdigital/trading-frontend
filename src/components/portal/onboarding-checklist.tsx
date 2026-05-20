@@ -128,10 +128,13 @@ export function OnboardingChecklist({ locale = 'id', className }: OnboardingChec
 
   useEffect(() => {
     try {
+      // Sync dismissed dari sessionStorage — external storage hydration.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (sessionStorage.getItem(DISMISS_KEY) === '1') setDismissed(true);
     } catch {
       /* sessionStorage disabled */
     }
+    // fetchStatus drives setState — fetch on mount + 60s polling.
     fetchStatus();
     const interval = setInterval(fetchStatus, 60_000);
     return () => clearInterval(interval);

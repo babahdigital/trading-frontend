@@ -1,0 +1,79 @@
+/**
+ * FE proxy untuk backend crypto notification log endpoint (rc25+).
+ *
+ * Backend trading-crypto v0.8.0-rc25:
+ *   GET /api/tenants/{id}/notifications/log?since_id=N&limit=100
+ *
+ * Architecture: backend = single source of truth (notification_event_log
+ * table di Postgres). FE poll dengan since_id cursor untuk receive events
+ * baru, lalu decide channel per event_type + user preference:
+ *   - Telegram: backend TelegramSink (sync, sudah jalan)
+ *   - WhatsApp + Email: FE dispatch via existing adapter (Fonnte / Brevo)
+ *
+ * Auth: scope='keys' (per backend doc rc24+ endpoint /api/tenants/{id}/*
+ * butuh RequireKeys atau RequireAdmin). X-Tenant-Id wajib.
+ */
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
+import { NextRequest, NextResponse } from 'next/server';
+import { proxyToCryptoBackend, cryptoBackendConfigured } from '@/lib/proxy/crypto-client';
+
+export async function GET(request: NextRequest) {
+  const userId = request.headers.get('x-user-id');
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  if (!cryptoBackendConfigured()) {
+    // Backend belum configured — return empty payload supaya FE polling tidak crash.
+    return NextResponse.json({
+      items: [],
+      next_since_id: 0,
+      has_more: false,
+      source: 'unconfigured',
+    });
+  }
+
+  // Forward query params apa adanya (since_id, limit, event_type filter, severity).
+  const params = new URLSearchParams();
+  const sinceId = request.nextUrl.searchParams.get('since_id');
+  const limit = request.nextUrl.searchParams.get('limit') ?? '100';
+  if (sinceId) params.set('since_id', sinceId);
+  params.set('limit', String(Math.min(Math.max(parseInt(limit, 10) || 100, 1), 500)));
+  const eventType = request.nextUrl.searchParams.get('event_type');
+  if (eventType) params.set('event_type', eventType);
+  const severity = request.nextUrl.searchParams.get('severity');
+  if (severity) params.set('severity', severity);
+
+  const res = await proxyToCryptoBackend({
+    scope: 'keys',
+    path: `/api/tenants/${encodeURIComponent(userId)}/notifications/log?${params}`,
+    method: 'GET',
+    forwardUserId: userId,
+    tenantId: userId,
+    timeoutMs: 8_000,
+  });
+
+  if (!res.ok) {
+    // 404 sebelum backend rc25 deploy — return empty graceful.
+    if (res.status === 404) {
+      return NextResponse.json({
+        items: [],
+        next_since_id: sinceId ? Number(sinceId) : 0,
+        has_more: false,
+        source: 'not_ready',
+      });
+    }
+    return NextResponse.json(
+      { error: 'backend_error', status: res.status },
+      { status: res.status },
+    );
+  }
+
+  const data = await res.json();
+  return NextResponse.json({
+    items: data.items ?? [],
+    next_since_id: data.next_since_id ?? 0,
+    has_more: Boolean(data.has_more),
+    source: 'backend',
+  });
+}

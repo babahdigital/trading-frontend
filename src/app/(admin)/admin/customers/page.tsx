@@ -67,6 +67,8 @@ export default function CustomersPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, filter, search]);
 
+  // fetchCustomers drives setState — intentional fetch on mount + refetch.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { void fetchCustomers(); }, [fetchCustomers]);
 
   // Debounce search 400ms

@@ -13,6 +13,9 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    // SSR hydration guard — `mounted` flip harus terjadi setelah mount untuk
+    // mencegah SSR/client mismatch saat menentukan icon (Sun vs Moon).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 

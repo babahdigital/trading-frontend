@@ -82,6 +82,8 @@ export function SymbolSelector({
 
   useEffect(() => {
     if (forceStatic) {
+      // Force static mode — sync state ke static catalog.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSymbols([...STATIC_SYMBOL_CATALOG]);
       setSource('static');
       return;

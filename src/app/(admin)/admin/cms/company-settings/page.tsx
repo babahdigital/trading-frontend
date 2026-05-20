@@ -55,6 +55,8 @@ export default function CompanySettingsPage() {
   }, [getAuthHeaders]);
 
   useEffect(() => {
+    // fetchData drives setState — intentional fetch on mount + refetch.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchData();
   }, [fetchData]);
 

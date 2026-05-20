@@ -50,6 +50,8 @@ export default function CmsInquiriesPage() {
     setLoading(false);
   }, [getAuthHeaders]);
 
+  // fetchInquiries drives setState — intentional fetch on mount + refetch.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchInquiries(); }, [fetchInquiries]);
 
   async function updateStatus(id: string, status: string) {

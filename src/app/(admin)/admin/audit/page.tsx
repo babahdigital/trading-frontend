@@ -55,6 +55,9 @@ export default function AuditPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, actionFilter, userIdFilter]);
 
+  // `fetchAudit` callback memicu setState (loading/data) — fetch on mount + refetch
+  // saat dependencies berubah. Intentional, bukan render cascade.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { void fetchAudit(); }, [fetchAudit]);
 
   function applyFilters() {

@@ -52,6 +52,8 @@ export default function CmsBannersPage() {
     }
   }, [getAuthHeaders, push]);
 
+  // fetchBanners drives setState — intentional fetch on mount + refetch.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchBanners(); }, [fetchBanners]);
 
   async function handleSave() {

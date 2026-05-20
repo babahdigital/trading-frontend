@@ -139,6 +139,8 @@ export default function CmsChatLeadsPage() {
   }, [getAuthHeaders, statusFilter, debouncedSearch, toast]);
 
   useEffect(() => {
+    // fetchLeads drives setState — intentional fetch on mount + refetch.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchLeads();
   }, [fetchLeads]);
 
@@ -177,6 +179,8 @@ export default function CmsChatLeadsPage() {
                 <span className={`${refreshing ? 'animate-ping' : ''} absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75`} />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
               </span>
+              {/* Date.now() di-call setiap render — disengaja untuk "live sync" feel, di-refresh polling 30s. */}
+              {/* eslint-disable-next-line react-hooks/purity */}
               Live · sync {lastSync ? `${Math.max(0, Math.floor((Date.now() - lastSync.getTime()) / 1000))}s lalu` : '—'}
             </span>
             <Button size="sm" variant="outline" onClick={() => fetchLeads()} disabled={loading || refreshing}>

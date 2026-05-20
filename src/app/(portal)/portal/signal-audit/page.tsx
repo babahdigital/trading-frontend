@@ -94,6 +94,8 @@ export default function SignalAuditPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pair, outcome, minConf, offset]);
 
+  // load drives setState — intentional fetch on mount + refetch saat filter berubah.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load(); }, [load]);
 
   function toggleExpand(id: string) {

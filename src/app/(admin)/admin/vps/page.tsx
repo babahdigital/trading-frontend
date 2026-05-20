@@ -58,6 +58,8 @@ export default function VpsPage() {
   }, [getAuthHeaders]);
 
   useEffect(() => {
+    // fetchVps drives setState — intentional fetch on mount + refetch.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void fetchVps();
   }, [fetchVps]);
 

@@ -77,6 +77,9 @@ export default function AdminAnalyticsPage() {
   }, [windowDays, getAuthHeaders]);
 
   useEffect(() => {
+    // `load` callback drives setState (loading/data/error) — intentional pattern
+    // untuk fetch on mount + refetch saat dependencies (windowDays) berubah.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void load();
   }, [load]);
 

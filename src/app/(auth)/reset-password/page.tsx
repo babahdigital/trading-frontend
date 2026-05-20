@@ -25,6 +25,8 @@ function ResetPasswordInner() {
 
   // Surface a friendly error if the page was reached without a token.
   useEffect(() => {
+    // Sync state dari query param `token` (external/URL state) — pattern valid.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!token) setError(t('reset_token_missing'));
   }, [token, t]);
 

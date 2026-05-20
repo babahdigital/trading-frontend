@@ -73,6 +73,8 @@ export function useKycStatus(): UseKycStatusResult {
 
   useEffect(() => {
     isMounted.current = true;
+    // fetchStatus drives setState — fetch on mount + adaptive polling.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void fetchStatus();
     // Pause polling kalau status sudah final (APPROVED/REJECTED) — tidak akan
     // berubah lagi tanpa user action. Hemat backend load.

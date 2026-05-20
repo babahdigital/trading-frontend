@@ -103,6 +103,8 @@ export default function SettingsPage() {
   }, [getAuthHeaders]);
 
   useEffect(() => {
+    // fetchInfo drives setState — intentional fetch on mount + refetch.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchInfo();
   }, [fetchInfo]);
 

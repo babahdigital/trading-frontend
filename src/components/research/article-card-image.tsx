@@ -85,6 +85,8 @@ export function ArticleCardImage({
   className = '',
   aspectClass = 'aspect-[16/9]',
 }: ArticleCardImageProps) {
+  // Icon di-resolve dari static lookup table (pickCategoryMeta) — bukan dynamic
+  // component creation. Static-components rule false-positive di pattern map ini.
   const Icon = pickCategoryIcon(category);
   const accentClass = pickCategoryAccent(category);
 
@@ -114,6 +116,7 @@ export function ArticleCardImage({
       <div className="absolute inset-0 [background-image:radial-gradient(circle_at_1px_1px,_rgba(245,181,71,0.18)_1px,transparent_0)] [background-size:24px_24px] opacity-50" />
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="inline-flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full bg-amber-500/[0.06] dark:bg-amber-500/[0.10] ring-1 ring-amber-500/30 backdrop-blur-sm">
+          {/* eslint-disable-next-line react-hooks/static-components */}
           <Icon
             className={`h-7 w-7 sm:h-8 sm:w-8 ${accentClass}`}
             strokeWidth={1.5}
@@ -123,6 +126,7 @@ export function ArticleCardImage({
       </div>
       {category ? (
         <span className="absolute bottom-2.5 left-2.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-background/80 backdrop-blur text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
+          {/* eslint-disable-next-line react-hooks/static-components */}
           <Icon className={`h-3 w-3 ${accentClass}`} strokeWidth={2} aria-hidden />
           {category}
         </span>

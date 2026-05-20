@@ -9,7 +9,10 @@ export function CookieConsent() {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
+    // Show banner kalau cookie consent belum di-accept — sync UI dari localStorage.
+    // SSR-safe: setState dipanggil hanya di client setelah mount.
     if (typeof window !== 'undefined' && !localStorage.getItem('cookie-consent')) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setShow(true);
     }
   }, []);

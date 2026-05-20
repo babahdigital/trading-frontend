@@ -69,6 +69,8 @@ export default function NotificationsPage() {
   }, [getAuthHeaders]);
 
   useEffect(() => {
+    // load drives setState — fetch on mount + 30s polling untuk live notifications.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
     const tm = setInterval(load, 30_000);
     return () => clearInterval(tm);

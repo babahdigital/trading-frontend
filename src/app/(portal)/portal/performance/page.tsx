@@ -78,6 +78,8 @@ export default function PerformancePage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // fetchPerformance drives setState — intentional fetch on mount + refetch.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchPerformance(days); }, [days, fetchPerformance]);
 
   const now = new Date();

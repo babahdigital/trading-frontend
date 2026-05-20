@@ -101,10 +101,11 @@ export function RegionPreferences({ variant = 'compact', className }: RegionPref
   const [timezone, setTimezone] = useState<string>('Asia/Jakarta');
   const [pendingLocale, setPendingLocale] = useState<'id' | 'en'>(locale);
 
-  // Hydrate dari cookie on mount
+  // Hydrate dari cookie on mount — sync state dari external storage.
   useEffect(() => {
     const c = readCookie('NEXT_REGION');
     const tz = readCookie('NEXT_TZ');
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (c) setCountry(c);
     if (tz) {
       setTimezone(tz);
@@ -114,6 +115,8 @@ export function RegionPreferences({ variant = 'compact', className }: RegionPref
   }, []);
 
   useEffect(() => {
+    // Sync pending locale saat next-intl locale berubah (parent state).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPendingLocale(locale);
   }, [locale]);
 

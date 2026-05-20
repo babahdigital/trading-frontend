@@ -290,6 +290,8 @@ export function ChatWidget() {
     if (!isOpen) return;
     if (!streamingFingerprint) return;
     const behavior: ScrollBehavior = isLoading ? 'auto' : 'smooth';
+    // scrollToBottom may touch refs/state internally — intentional UX driver per chunk.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     scrollToBottom(behavior);
   }, [streamingFingerprint, isOpen, isLoading, scrollToBottom]);
 
@@ -308,7 +310,9 @@ export function ChatWidget() {
   }, [isOpen, isNearBottom, messages.length, isLoading]);
 
   useEffect(() => {
+    // Flag new message badge saat assistant balas tapi chat tertutup — sync UI dari messages stream.
     if (!isOpen && messages.length > 1 && messages[messages.length - 1].role === 'assistant') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setHasNewMessage(true);
     }
   }, [messages, isOpen]);

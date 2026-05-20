@@ -65,6 +65,8 @@ export default function AdminTeamPage() {
   }
 
   useEffect(() => {
+    // load drives setState — intentional fetch on mount.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

@@ -52,9 +52,11 @@ export default function GlobalError({
   const [locale, setLocale] = useState<'id' | 'en'>('id');
 
   useEffect(() => {
+    // Sync locale dari cookie/navigator setelah hydration — pakai effect untuk
+    // hindari SSR/client mismatch (SSR default 'id', client baca cookie).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLocale(readClientLocale());
     if (process.env.NODE_ENV !== 'production') {
-      // eslint-disable-next-line no-console
       console.error('[global-error]', error);
     }
   }, [error]);

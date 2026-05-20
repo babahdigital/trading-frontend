@@ -128,6 +128,8 @@ export function KillSwitchBanner() {
   }, [getAuthHeaders]);
 
   useEffect(() => {
+    // fetchStatus drives setState — fetch on mount + 30s polling untuk kill-switch state.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void fetchStatus();
     const id = setInterval(() => {
       void fetchStatus();

@@ -41,6 +41,8 @@ export default function CmsSeoPage() {
     setLoading(false);
   }, [getAuthHeaders]);
 
+  // fetchPages drives setState — intentional fetch on mount + refetch.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchPages(); }, [fetchPages]);
 
   async function handleSave() {

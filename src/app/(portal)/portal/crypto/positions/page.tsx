@@ -65,6 +65,8 @@ export default function CryptoPositionsPage() {
   }, [getAuthHeaders]);
 
   useEffect(() => {
+    // load drives setState — fetch on mount + 10s polling untuk live positions.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
     const tmr = setInterval(load, 10_000);
     return () => clearInterval(tmr);

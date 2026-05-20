@@ -118,7 +118,7 @@ export function EquityCurve({
       ro?.disconnect();
       chart.remove();
     };
-  }, [data, height, isEmpty]);
+  }, [data, height, isEmpty, locale]);
 
   const handlePeriodChange = (period: string) => {
     setCurrentPeriod(period);

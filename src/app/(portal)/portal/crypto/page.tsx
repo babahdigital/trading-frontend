@@ -118,6 +118,8 @@ export default function CryptoOverviewPage() {
   }, [getAuthHeaders]);
 
   useEffect(() => {
+    // load drives setState — fetch on mount + 15s polling untuk live data.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
     const tmr = setInterval(load, 15_000);
     return () => clearInterval(tmr);

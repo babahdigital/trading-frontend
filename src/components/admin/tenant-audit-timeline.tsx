@@ -94,6 +94,8 @@ export function TenantAuditTimeline({ tenantId, locale = 'id', refreshMs = 30_00
   }, [getAuthHeaders, tenantId]);
 
   useEffect(() => {
+    // fetchAudit drives setState — fetch on mount + optional polling per refreshMs.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchAudit();
     if (refreshMs > 0) {
       const interval = setInterval(fetchAudit, refreshMs);

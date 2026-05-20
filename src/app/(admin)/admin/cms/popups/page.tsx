@@ -51,6 +51,8 @@ export default function CmsPopupsPage() {
     }
   }, [getAuthHeaders, push]);
 
+  // fetchPopups drives setState — intentional fetch on mount + refetch.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchPopups(); }, [fetchPopups]);
 
   async function handleSave() {

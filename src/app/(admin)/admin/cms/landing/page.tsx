@@ -49,6 +49,8 @@ export default function CmsLandingPage() {
     }
   }, [getAuthHeaders, push]);
 
+  // fetchSections drives setState — intentional fetch on mount + refetch.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchSections(); }, [fetchSections]);
 
   async function handleSave() {

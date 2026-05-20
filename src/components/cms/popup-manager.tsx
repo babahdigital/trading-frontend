@@ -45,6 +45,8 @@ export function PopupManager() {
           timers.push(setTimeout(() => showPopup(popup), delay));
         }
       } else if (popup.trigger === 'PAGE_LOAD') {
+        // showPopup memicu setState (open popup) — intentional on PAGE_LOAD trigger.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         showPopup(popup);
       }
     }

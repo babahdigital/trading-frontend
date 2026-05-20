@@ -70,6 +70,8 @@ export default function CmsSubscribersPage() {
   }, [getAuthHeaders, statusFilter, sourceFilter, debouncedSearch]);
 
   useEffect(() => {
+    // fetchSubscribers drives setState — intentional fetch on mount + refetch.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchSubscribers();
   }, [fetchSubscribers]);
 

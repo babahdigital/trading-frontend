@@ -222,6 +222,8 @@ export default function PortalFeaturesPage() {
   }, [getAuthHeaders, toast, t, tShared]);
 
   useEffect(() => {
+    // load drives setState — intentional fetch on mount + refetch.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
   }, [load]);
 

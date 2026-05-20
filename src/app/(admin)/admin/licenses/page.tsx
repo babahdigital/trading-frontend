@@ -100,10 +100,14 @@ export default function LicensesPage() {
   }, [getAuthHeaders]);
 
   useEffect(() => {
+    // fetchLicenses drives setState — intentional fetch on mount + refetch.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void fetchLicenses();
   }, [fetchLicenses]);
 
   useEffect(() => {
+    // fetchFormOptions drives setState — intentional fetch saat modal terbuka.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (showForm) void fetchFormOptions();
   }, [showForm, fetchFormOptions]);
 

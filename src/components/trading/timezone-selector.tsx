@@ -38,7 +38,9 @@ export function TimezoneSelector({
   const [current, setCurrent] = useState<string>(value ?? detectBrowserTimezone());
 
   useEffect(() => {
+    // Sync `current` dari controlled prop atau external storage.
     if (value) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCurrent(value);
       return;
     }

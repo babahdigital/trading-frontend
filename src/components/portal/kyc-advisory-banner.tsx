@@ -74,6 +74,8 @@ export function KycAdvisoryBanner() {
     if (status === 'NOT_SUBMITTED' || status === 'DRAFT') {
       try {
         const flag = sessionStorage.getItem(DISMISS_KEY);
+        // Sync dismissed dari sessionStorage — external storage hydration.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         if (flag === 'true') setDismissed(true);
       } catch { /* localStorage disabled */ }
     } else {

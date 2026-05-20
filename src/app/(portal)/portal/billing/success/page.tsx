@@ -36,6 +36,8 @@ function SuccessInner() {
 
   useEffect(() => {
     if (!orderId) {
+      // Guard kalau orderId hilang dari URL — set loading=false supaya UI render error state.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoading(false);
       return;
     }

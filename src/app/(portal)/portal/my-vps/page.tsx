@@ -140,6 +140,8 @@ export default function MyVpsPage() {
 
   function licenseInfo() {
     if (!status?.license_expiry) return null;
+    // Date.now() di-evaluate per render — di-refresh otomatis lewat polling parent state.
+    // eslint-disable-next-line react-hooks/purity
     const diff = new Date(status.license_expiry).getTime() - Date.now();
     if (diff <= 0) return { text: t('license_expired'), urgent: true };
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));

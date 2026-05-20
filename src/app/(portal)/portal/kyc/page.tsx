@@ -227,12 +227,13 @@ export default function KycPage() {
   const [draftRestored, setDraftRestored] = useState(false);
   const [showErrors, setShowErrors] = useState(false);
 
-  // Restore draft on mount
+  // Restore draft on mount — sync state dari localStorage (external storage).
   useEffect(() => {
     try {
       const raw = localStorage.getItem(DRAFT_KEY);
       if (raw) {
         const draft = JSON.parse(raw) as Partial<FormData>;
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setForm((f) => ({ ...f, ...draft }));
         setDraftRestored(true);
       }

@@ -36,6 +36,8 @@ export default function CmsTestimonialsPage() {
     setLoading(false);
   }, [getAuthHeaders]);
 
+  // fetchItems drives setState — intentional fetch on mount + refetch.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchItems(); }, [fetchItems]);
 
   async function handleSave() {

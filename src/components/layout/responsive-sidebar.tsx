@@ -15,8 +15,9 @@ export function ResponsiveSidebar({ children }: ResponsiveSidebarProps) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
-  // Tutup sidebar saat navigasi
+  // Tutup sidebar saat navigasi — sync UI state dari router pathname.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setOpen(false);
   }, [pathname]);
 

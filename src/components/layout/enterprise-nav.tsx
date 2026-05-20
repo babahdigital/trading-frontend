@@ -88,6 +88,8 @@ export function EnterpriseNav() {
   const lockedScrollY = useRef(0);
 
   useEffect(() => {
+    // SSR hydration guard — flip mounted setelah mount untuk gate client-only UI.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 

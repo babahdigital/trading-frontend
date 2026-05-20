@@ -152,6 +152,8 @@ export function AdminSidebar() {
   const [paletteOpen, setPaletteOpen] = useState(false);
 
   useEffect(() => {
+    // SSR hydration guard + restore collapsed pref dari localStorage (external storage).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
     try {
       const stored = localStorage.getItem(COLLAPSE_STORAGE_KEY);
@@ -174,8 +176,9 @@ export function AdminSidebar() {
     };
   }, []);
 
-  // Close mobile drawer + palette on route change
+  // Close mobile drawer + palette on route change — sync UI state dengan pathname.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMobileOpen(false);
     setPaletteOpen(false);
   }, [pathname]);
@@ -449,6 +452,8 @@ function SidebarGroup({
   const [expanded, setExpanded] = useState(group.defaultExpanded || hasActiveItem);
 
   useEffect(() => {
+    // Auto-expand group saat user navigate ke child item dari group lain — sync UX.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (hasActiveItem) setExpanded(true);
   }, [hasActiveItem]);
 
@@ -635,6 +640,8 @@ function MobileGroup({
   const [expanded, setExpanded] = useState(group.defaultExpanded || hasActiveItem);
 
   useEffect(() => {
+    // Auto-expand group saat user navigate ke child item dari group lain — sync UX.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (hasActiveItem) setExpanded(true);
   }, [hasActiveItem]);
 
@@ -710,6 +717,8 @@ function CommandPalette({
   }, [items, query]);
 
   useEffect(() => {
+    // Reset selection index saat query berubah — sync state dengan filter.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setActiveIdx(0);
   }, [query]);
 

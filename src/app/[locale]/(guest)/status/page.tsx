@@ -290,10 +290,11 @@ export default function StatusPage() {
   }
 
   useEffect(() => {
+    // load drives setState — fetch on mount + 30s polling untuk status realtime.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
     const id = setInterval(load, 30_000);
     return () => clearInterval(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const overall = data?.overall ?? 'operational';

@@ -106,6 +106,8 @@ export default function MySignalsPage() {
   }, [getAuthHeaders]);
 
   useEffect(() => {
+    // load drives setState — fetch on mount + adaptive polling (WS aware).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
     const cadence = wsConnected ? POLL_SLOW_MS : POLL_FAST_MS;
     const interval = setInterval(load, cadence);

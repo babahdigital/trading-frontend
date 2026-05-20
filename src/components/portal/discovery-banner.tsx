@@ -95,6 +95,8 @@ export function DiscoveryBanner() {
     if (!highlight || typeof window === 'undefined') return;
     try {
       const key = DISMISS_KEY_PREFIX + highlight.item.name;
+      // Sync dismissed state dari localStorage per-highlight — external storage hydration.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDismissed(window.localStorage.getItem(key) === '1');
     } catch {
       /* storage disabled */

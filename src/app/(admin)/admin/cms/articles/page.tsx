@@ -50,6 +50,8 @@ export default function CmsArticlesPage() {
     setLoading(false);
   }, [getAuthHeaders]);
 
+  // fetchArticles drives setState — intentional fetch on mount + refetch.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchArticles(); }, [fetchArticles]);
 
   async function handleSave() {

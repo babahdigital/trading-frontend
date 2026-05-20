@@ -58,6 +58,8 @@ export default function CmsPricingPage() {
     }
   }, [getAuthHeaders, push]);
 
+  // fetchTiers drives setState — intentional fetch on mount + refetch.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchTiers(); }, [fetchTiers]);
 
   async function handleSave() {

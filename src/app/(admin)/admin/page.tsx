@@ -208,6 +208,8 @@ export default function AdminDashboard() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [equityPeriod]);
 
+  // fetchAll drives setState — intentional fetch on mount + refetch.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { void fetchAll(); }, [fetchAll]);
 
   // Auto-refresh positions and AI state every 5s

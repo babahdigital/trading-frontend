@@ -162,6 +162,8 @@ export default function PortalDashboard() {
 
   function licenseCountdown() {
     if (!status?.license_expiry) return null;
+    // Date.now() di-evaluate per render — di-refresh otomatis lewat polling parent state.
+    // eslint-disable-next-line react-hooks/purity
     const diff = new Date(status.license_expiry).getTime() - Date.now();
     if (diff <= 0) return t('license_expired');
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));

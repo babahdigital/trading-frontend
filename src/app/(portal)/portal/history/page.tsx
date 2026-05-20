@@ -68,6 +68,8 @@ export default function HistoryPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // fetchTrades drives setState — intentional fetch on mount + refetch saat `days` berubah.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchTrades(days); }, [days, fetchTrades]);
 
   const filtered = pairFilter
@@ -76,14 +78,12 @@ export default function HistoryPage() {
 
   const totalPnl = filtered.reduce((sum, tr) => sum + (tr.pnl || 0), 0);
 
-  // Build cumulative PnL data
-  const cumulativeData = (() => {
-    let cum = 0;
-    return filtered.map((tr, i) => {
-      cum += tr.pnl || 0;
-      return { trade: i + 1, pnl: Math.round(cum * 100) / 100 };
-    });
-  })();
+  // Build cumulative PnL data — pure reduce, tidak mutate local var (immutable-safe)
+  const cumulativeData = filtered.reduce<Array<{ trade: number; pnl: number }>>((acc, tr, i) => {
+    const prev = acc.length > 0 ? acc[acc.length - 1].pnl : 0;
+    acc.push({ trade: i + 1, pnl: Math.round((prev + (tr.pnl || 0)) * 100) / 100 });
+    return acc;
+  }, []);
 
   function exportCsv() {
     if (filtered.length === 0) return;

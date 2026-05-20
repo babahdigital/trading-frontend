@@ -71,6 +71,8 @@ export function NotificationChannelPrefs() {
   }, [getAuthHeaders]);
 
   useEffect(() => {
+    // fetchPrefs drives setState — intentional fetch on mount.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void fetchPrefs();
   }, [fetchPrefs]);
 

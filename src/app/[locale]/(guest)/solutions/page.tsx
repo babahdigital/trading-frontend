@@ -5,6 +5,11 @@ import { ArrowRight, TrendingUp, Server, Building2, Bitcoin } from 'lucide-react
 import { getPageMetadata } from '@/lib/seo';
 import { getTranslations } from 'next-intl/server';
 import { DecisionQuiz } from '@/components/solutions/decision-quiz';
+import { TrustStrip } from '@/components/shared/trust-strip';
+import { StatsBar } from '@/components/shared/stats-bar';
+import { StickyCtaBar } from '@/components/shared/sticky-cta-bar';
+import { FaqAccordion, type FaqItem } from '@/components/shared/faq-accordion';
+import { prisma } from '@/lib/db/prisma';
 
 export const dynamic = 'force-dynamic';
 
@@ -76,6 +81,22 @@ export default async function SolutionsPage({ params }: { params: Promise<{ loca
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'solutions_page' });
   const tNav = await getTranslations({ locale, namespace: 'nav' });
+  const tr = await getTranslations({ locale, namespace: 'register' });
+  const ts = await getTranslations({ locale, namespace: 'shared' });
+  const localeNav: 'id' | 'en' = locale === 'en' ? 'en' : 'id';
+
+  let faqs: FaqItem[] = [];
+  try {
+    const rows = await prisma.faq.findMany({
+      where: { isVisible: true },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+      take: 6,
+      select: { id: true, question: true, question_en: true, answer: true, answer_en: true },
+    });
+    faqs = rows;
+  } catch {
+    // gracefully degrade
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -97,6 +118,16 @@ export default async function SolutionsPage({ params }: { params: Promise<{ loca
             <p className="t-lead text-foreground/60 max-w-2xl mx-auto">
               {t('hero_subtitle')}
             </p>
+            <div className="mt-10">
+              <TrustStrip />
+            </div>
+          </div>
+        </section>
+
+        {/* Live KPI master tenant — REAL stats, auto-hide kalau empty */}
+        <section className="border-b border-white/8">
+          <div className="layout-container py-8 sm:py-10">
+            <StatsBar />
           </div>
         </section>
 
@@ -194,6 +225,20 @@ export default async function SolutionsPage({ params }: { params: Promise<{ loca
           </div>
         </section>
 
+        {/* FAQ — real data shared */}
+        <section className="section-padding border-t border-white/8">
+          <div className="layout-container">
+            <FaqAccordion
+              items={faqs}
+              locale={localeNav}
+              eyebrow={tr('faq_eyebrow')}
+              heading={tr('faq_heading')}
+              subtitle={tr('faq_subtitle')}
+              moreLink={{ label: tr('faq_more_link'), href: '/faq' }}
+            />
+          </div>
+        </section>
+
         {/* Bottom CTA */}
         <section className="section-padding">
           <div className="layout-container text-center">
@@ -211,6 +256,11 @@ export default async function SolutionsPage({ params }: { params: Promise<{ loca
           </div>
         </section>
 
+        <StickyCtaBar
+          message={ts('sticky_compare_text')}
+          ctaLabel={ts('sticky_compare_cta')}
+          href="/pricing"
+        />
       </main>
       <EnterpriseFooter />
     </div>

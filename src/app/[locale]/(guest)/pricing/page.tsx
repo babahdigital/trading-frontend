@@ -10,6 +10,7 @@ import { TierComparisonMatrix } from '@/components/pricing/tier-comparison-matri
 import { TrustStrip } from '@/components/shared/trust-strip';
 import { StickyCtaBar } from '@/components/shared/sticky-cta-bar';
 import { FaqAccordion, type FaqItem } from '@/components/shared/faq-accordion';
+import { StatsBar } from '@/components/shared/stats-bar';
 import { prisma } from '@/lib/db/prisma';
 import { formatPrice, type Locale, type PriceKey } from '@/lib/pricing-format';
 import {
@@ -148,6 +149,13 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
             <div className="mt-10">
               <TrustStrip />
             </div>
+          </div>
+        </section>
+
+        {/* Live KPI dari master tenant — REAL performance, auto-hide kalau empty */}
+        <section className="border-b border-border/60">
+          <div className="layout-container py-8 sm:py-10">
+            <StatsBar />
           </div>
         </section>
 

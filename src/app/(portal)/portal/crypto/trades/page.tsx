@@ -2,12 +2,19 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { History, ChevronLeft, Filter, Download } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { EmptyState } from '@/components/admin/empty-state';
+import { formatNumber } from '@/lib/format-locale';
+import type { Locale } from '@/lib/format-locale';
+
+function fmtNumLocal(v: number, locale: Locale, digits = 2): string {
+  return formatNumber(v, locale, { minimumFractionDigits: digits, maximumFractionDigits: digits });
+}
 
 interface Trade {
   id: number;
@@ -38,16 +45,12 @@ const CLOSE_REASON_KEY: Record<string, string> = {
 };
 
 const CLOSE_REASON_TONE: Record<string, string> = {
-  tp: 'bg-green-500/15 text-green-300',
-  sl: 'bg-red-500/15 text-red-300',
-  manual: 'bg-slate-500/15 text-slate-300',
-  kill_switch: 'bg-amber-500/15 text-amber-300',
-  funding_exit: 'bg-violet-500/15 text-violet-300',
+  tp: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
+  sl: 'bg-rose-500/15 text-rose-700 dark:text-rose-300',
+  manual: 'bg-slate-500/15 text-slate-700 dark:text-slate-300',
+  kill_switch: 'bg-amber-500/15 text-amber-700 dark:text-amber-300',
+  funding_exit: 'bg-violet-500/15 text-violet-700 dark:text-violet-300',
 };
-
-function fmtNum(v: number, digits = 2): string {
-  return v.toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits });
-}
 
 function fmtDuration(seconds: number): string {
   const m = Math.floor(seconds / 60);
@@ -58,6 +61,7 @@ function fmtDuration(seconds: number): string {
 
 export default function CryptoTradesPage() {
   const t = useTranslations('portal.crypto.trades');
+  const locale = useLocale() as Locale;
   const { getAuthHeaders } = useAuth();
   const [trades, setTrades] = useState<Trade[]>([]);
   const [source, setSource] = useState('');
@@ -142,9 +146,9 @@ export default function CryptoTradesPage() {
       {/* Stats summary */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <Card><CardContent className="p-3.5"><div className="text-[10px] uppercase text-muted-foreground">{t('kpi_total')}</div><div className="text-xl font-bold font-mono mt-1">{totals.total}</div></CardContent></Card>
-        <Card><CardContent className="p-3.5"><div className="text-[10px] uppercase text-muted-foreground">{t('kpi_winrate')}</div><div className="text-xl font-bold font-mono mt-1 text-green-300">{totals.winRate.toFixed(1)}%</div></CardContent></Card>
-        <Card><CardContent className="p-3.5"><div className="text-[10px] uppercase text-muted-foreground">{t('kpi_winloss')}</div><div className="text-xl font-bold font-mono mt-1"><span className="text-green-300">{totals.wins}</span> / <span className="text-red-300">{totals.losses}</span></div></CardContent></Card>
-        <Card><CardContent className="p-3.5"><div className="text-[10px] uppercase text-muted-foreground">{t('kpi_net')}</div><div className={cn('text-xl font-bold font-mono mt-1', totals.totalNet >= 0 ? 'text-green-300' : 'text-red-300')}>{totals.totalNet >= 0 ? '+' : ''}{fmtNum(totals.totalNet)}</div></CardContent></Card>
+        <Card><CardContent className="p-3.5"><div className="text-[10px] uppercase text-muted-foreground">{t('kpi_winrate')}</div><div className="text-xl font-bold font-mono mt-1 currency-pos">{totals.winRate.toFixed(1)}%</div></CardContent></Card>
+        <Card><CardContent className="p-3.5"><div className="text-[10px] uppercase text-muted-foreground">{t('kpi_winloss')}</div><div className="text-xl font-bold font-mono mt-1"><span className="currency-pos">{totals.wins}</span> / <span className="currency-neg">{totals.losses}</span></div></CardContent></Card>
+        <Card><CardContent className="p-3.5"><div className="text-[10px] uppercase text-muted-foreground">{t('kpi_net')}</div><div className={cn('text-xl font-bold font-mono mt-1', totals.totalNet >= 0 ? 'currency-pos' : 'currency-neg')}>{totals.totalNet >= 0 ? '+' : ''}{fmtNumLocal(totals.totalNet, locale)}</div></CardContent></Card>
       </div>
 
       {/* Filter bar */}
@@ -172,9 +176,9 @@ export default function CryptoTradesPage() {
       </div>
 
       {loading ? (
-        <div className="space-y-2">{[1, 2, 3, 4, 5].map((i) => <div key={i} className="h-14 rounded-md bg-white/5 animate-pulse" />)}</div>
+        <div className="space-y-2">{[1, 2, 3, 4, 5].map((i) => <div key={i} className="h-14 rounded-md bg-muted animate-pulse" />)}</div>
       ) : filtered.length === 0 ? (
-        <Card><CardContent className="p-8 text-center text-muted-foreground">{t('empty')}</CardContent></Card>
+        <Card><CardContent className="p-6"><EmptyState variant="inline" icon={History} title={t('empty')} size="sm" /></CardContent></Card>
       ) : (
         <Card>
           <CardContent className="p-0">
@@ -197,13 +201,13 @@ export default function CryptoTradesPage() {
                     <tr key={tr.id} className="border-b border-white/5 hover:bg-white/[0.02]">
                       <td className="p-3 font-mono font-semibold">{tr.symbol}<div className="text-[10px] uppercase text-muted-foreground font-normal">{tr.market_type}{tr.leverage > 1 && ` · ${tr.leverage}x`}</div></td>
                       <td className="p-3 hidden sm:table-cell">
-                        <span className={cn('px-2 py-0.5 rounded text-xs font-mono', tr.side === 'LONG' ? 'bg-green-500/15 text-green-300' : 'bg-red-500/15 text-red-300')}>{tr.side}</span>
+                        <span className={cn('px-2 py-0.5 rounded text-xs font-mono font-medium', tr.side === 'LONG' ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'bg-rose-500/15 text-rose-700 dark:text-rose-300')}>{tr.side}</span>
                       </td>
-                      <td className={cn('p-3 text-right font-mono font-semibold', tr.net_pnl_usdt >= 0 ? 'text-green-300' : 'text-red-300')}>
-                        {tr.net_pnl_usdt >= 0 ? '+' : ''}{fmtNum(tr.net_pnl_usdt)}
+                      <td className={cn('p-3 text-right font-mono font-semibold', tr.net_pnl_usdt >= 0 ? 'currency-pos' : 'currency-neg')}>
+                        {tr.net_pnl_usdt >= 0 ? '+' : ''}{fmtNumLocal(tr.net_pnl_usdt, locale)}
                       </td>
-                      <td className="p-3 text-right font-mono hidden md:table-cell">{fmtNum(tr.entry_price)}</td>
-                      <td className="p-3 text-right font-mono hidden md:table-cell">{fmtNum(tr.exit_price)}</td>
+                      <td className="p-3 text-right font-mono hidden md:table-cell">{fmtNumLocal(tr.entry_price, locale)}</td>
+                      <td className="p-3 text-right font-mono hidden md:table-cell">{fmtNumLocal(tr.exit_price, locale)}</td>
                       <td className="p-3 hidden lg:table-cell">
                         <span className={cn('px-2 py-0.5 rounded text-xs font-mono', CLOSE_REASON_TONE[tr.close_reason] ?? 'bg-slate-500/15 text-slate-300')}>
                           {reasonLabel(tr.close_reason)}

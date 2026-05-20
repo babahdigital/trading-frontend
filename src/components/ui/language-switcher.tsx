@@ -17,7 +17,10 @@ export function LanguageSwitcher() {
     // pages still show English". Cookie matches geo-middleware's settings:
     // 1-year persistence, root path, SameSite=lax, server-readable.
     if (typeof document !== 'undefined') {
-      document.cookie = `NEXT_LOCALE=${newLocale}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`;
+      // Secure flag aktif di production (HTTPS) untuk konsistensi dengan
+      // proxy.ts geo-IP cookie. Di dev (HTTP) skip secure supaya browser accept.
+      const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+      document.cookie = `NEXT_LOCALE=${newLocale}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax${secure}`;
     }
     router.replace(pathname, { locale: newLocale });
   };

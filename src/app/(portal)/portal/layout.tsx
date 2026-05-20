@@ -31,6 +31,7 @@ import { Button } from '@/components/ui/button';
 import { ResponsiveSidebar } from '@/components/layout/responsive-sidebar';
 import { BrandLogo } from '@/components/layout/brand-logo';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { LanguageSwitcher } from '@/components/ui/language-switcher';
 import { AuthProvider, useAuth } from '@/lib/auth/auth-context';
 import { KillSwitchBanner } from '@/components/portal/kill-switch-banner';
 
@@ -148,12 +149,16 @@ function PortalLayoutInner({ children }: { children: React.ReactNode }) {
           ))}
         </nav>
 
-        <div className="p-3 border-t border-white/10 flex items-center gap-2">
-          <Button variant="ghost" className="flex-1 justify-start gap-2.5 text-sm" onClick={logout}>
+        <div className="p-3 border-t border-white/10 space-y-2">
+          {/* Locale + theme — quick toggles. */}
+          <div className="flex items-center gap-2">
+            <LanguageSwitcher />
+            <ThemeToggle />
+          </div>
+          <Button variant="ghost" className="w-full justify-start gap-2.5 text-sm" onClick={logout}>
             <LogOut className="h-4 w-4" />
             {t('logout')}
           </Button>
-          <ThemeToggle />
         </div>
       </ResponsiveSidebar>
 

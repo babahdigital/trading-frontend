@@ -105,7 +105,7 @@ export default function PositionsPage() {
       </div>
 
       {error && (
-        <div className="rounded-md bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-400">{error}</div>
+        <div className="rounded-md bg-red-500/10 border border-red-500/20 p-3 text-sm text-rose-600 dark:text-rose-400">{error}</div>
       )}
 
       {/* Desktop Table */}
@@ -115,7 +115,7 @@ export default function PositionsPage() {
             <CardTitle className="text-sm font-medium">{t('open_count', { count: positions.length })}</CardTitle>
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">{t('floating_pnl_label')}</span>
-              <span className={cn('font-mono font-semibold', totalPnl >= 0 ? 'text-green-400' : 'text-red-400')}>
+              <span className={cn('font-mono font-semibold', totalPnl >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400')}>
                 {totalPnl >= 0 ? '+' : ''}${totalPnl.toFixed(2)}
               </span>
             </div>
@@ -147,13 +147,13 @@ export default function PositionsPage() {
                         <td className="py-3 font-mono font-semibold">{pos.symbol}</td>
                         <td className="py-3">
                           <span className={cn('px-2 py-0.5 rounded text-xs font-medium',
-                            pos.direction === 'BUY' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                            pos.direction === 'BUY' ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'bg-rose-500/15 text-rose-700 dark:text-rose-300'
                           )}>{pos.direction}</span>
                         </td>
-                        <td className={cn('py-3 text-right font-mono font-semibold', pos.pnl_usd >= 0 ? 'text-green-400' : 'text-red-400')}>
+                        <td className={cn('py-3 text-right font-mono font-semibold', pos.pnl_usd >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400')}>
                           {pos.pnl_usd >= 0 ? '+' : ''}${pos.pnl_usd?.toFixed(2)}
                         </td>
-                        <td className={cn('py-3 text-right font-mono', (pos.pnl_pips || 0) >= 0 ? 'text-green-400' : 'text-red-400')}>
+                        <td className={cn('py-3 text-right font-mono', (pos.pnl_pips || 0) >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400')}>
                           {pos.pnl_pips !== undefined ? `${pos.pnl_pips >= 0 ? '+' : ''}${pos.pnl_pips}` : '-'}
                         </td>
                         <td className="py-3 text-right font-mono text-xs text-muted-foreground">
@@ -162,7 +162,7 @@ export default function PositionsPage() {
                         <td className="py-3 text-xs text-muted-foreground">{genericSetup(pos.setup)}</td>
                         <td className="py-3">
                           <span className={cn('px-2 py-0.5 rounded text-xs',
-                            pos.status === 'holding' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'
+                            pos.status === 'holding' ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'bg-amber-500/15 text-amber-700 dark:text-amber-300'
                           )}>
                             {pos.status === 'holding' ? t('status_holding') : pos.status || t('status_active')}
                           </span>
@@ -196,11 +196,11 @@ export default function PositionsPage() {
                     <div className="flex items-center gap-2">
                       <span className="font-mono font-bold">{pos.symbol}</span>
                       <span className={cn('px-1.5 py-0.5 rounded text-xs',
-                        pos.direction === 'BUY' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                        pos.direction === 'BUY' ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'bg-rose-500/15 text-rose-700 dark:text-rose-300'
                       )}>{pos.direction}</span>
                     </div>
                     <span className={cn('font-mono font-bold',
-                      pos.pnl_usd >= 0 ? 'text-green-400' : 'text-red-400'
+                      pos.pnl_usd >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                     )}>
                       {pos.pnl_usd >= 0 ? '+' : ''}${pos.pnl_usd?.toFixed(2)}
                     </span>
@@ -217,7 +217,7 @@ export default function PositionsPage() {
             <Card>
               <CardContent className="py-3 flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">{t('total_floating_pnl')}</span>
-                <span className={cn('font-mono font-bold', totalPnl >= 0 ? 'text-green-400' : 'text-red-400')}>
+                <span className={cn('font-mono font-bold', totalPnl >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400')}>
                   {totalPnl >= 0 ? '+' : ''}${totalPnl.toFixed(2)}
                 </span>
               </CardContent>

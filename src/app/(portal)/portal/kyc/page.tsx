@@ -721,7 +721,7 @@ function Field({
   return (
     <div>
       <label className="block text-sm font-medium mb-1.5">
-        {label}{required && <span className="text-red-400 ml-0.5">*</span>}
+        {label}{required && <span className="text-rose-600 dark:text-rose-400 ml-0.5">*</span>}
       </label>
       {textarea ? (
         <textarea
@@ -745,7 +745,7 @@ function Field({
         />
       )}
       {error ? (
-        <p className="text-xs text-red-400 mt-1 flex items-center gap-1">
+        <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1">
           <AlertCircle className="w-3 h-3" />
           {error}
         </p>

@@ -139,7 +139,7 @@ export default function MarketPage() {
       </Card>
 
       {error && (
-        <div className="rounded-md bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-400">{error}</div>
+        <div className="rounded-md bg-red-500/10 border border-red-500/20 p-3 text-sm text-rose-600 dark:text-rose-400">{error}</div>
       )}
 
       {/* ROW 2: Pair Grid (Client view - simplified) */}

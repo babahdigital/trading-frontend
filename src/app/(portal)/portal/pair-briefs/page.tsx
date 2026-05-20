@@ -94,7 +94,7 @@ export default function PortalPairBriefsPage() {
                     </span>
                   )}
                 </div>
-                <span className={`text-sm font-medium ${brief.fundamentalBias === 'BULLISH' ? 'text-emerald-500' : brief.fundamentalBias === 'BEARISH' ? 'text-red-500' : 'text-muted-foreground'}`}>
+                <span className={`text-sm font-medium ${brief.fundamentalBias === 'BULLISH' ? 'text-emerald-500' : brief.fundamentalBias === 'BEARISH' ? 'text-rose-600 dark:text-rose-400' : 'text-muted-foreground'}`}>
                   {brief.fundamentalBias || t('bias_neutral')}
                 </span>
               </div>
@@ -111,7 +111,7 @@ export default function PortalPairBriefsPage() {
               {brief.tradeIdeas && brief.tradeIdeas.length > 0 && (
                 <div className="mt-2 flex gap-2">
                   {brief.tradeIdeas.map((idea, i) => (
-                    <span key={i} className={`text-xs px-2 py-0.5 rounded ${idea.direction === 'BUY' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
+                    <span key={i} className={`text-xs px-2 py-0.5 rounded ${idea.direction === 'BUY' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-rose-600 dark:text-rose-400'}`}>
                       {idea.direction} @ {formatPrice(idea.entry)}
                     </span>
                   ))}

@@ -21,7 +21,7 @@ function FailureInner() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 py-16 text-center bg-background">
       <div className="inline-flex h-20 w-20 items-center justify-center rounded-full bg-red-500/10 border border-red-500/30 mb-6">
-        <AlertOctagon className="h-9 w-9 text-red-400" />
+        <AlertOctagon className="h-9 w-9 text-rose-600 dark:text-rose-400" />
       </div>
 
       <h1 className="text-2xl sm:text-3xl font-bold mb-3">

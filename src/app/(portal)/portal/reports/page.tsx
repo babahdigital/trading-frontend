@@ -53,7 +53,7 @@ export default function ReportsPage() {
       <h1 className="text-2xl font-bold text-foreground">{t('title')}</h1>
 
       {error && (
-        <div className="rounded-md bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-400">
+        <div className="rounded-md bg-red-500/10 border border-red-500/20 p-3 text-sm text-rose-600 dark:text-rose-400">
           {error}
         </div>
       )}
@@ -106,7 +106,7 @@ export default function ReportsPage() {
                     <p
                       className={cn(
                         'text-2xl font-bold',
-                        (report.total_pnl as number) >= 0 ? 'text-green-400' : 'text-red-400'
+                        (report.total_pnl as number) >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                       )}
                     >
                       {(report.total_pnl as number) >= 0 ? '+' : ''}$

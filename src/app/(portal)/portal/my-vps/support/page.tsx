@@ -145,7 +145,7 @@ export default function MyVpsSupportPage() {
         <CardContent>
           {sent ? (
             <div className="text-center py-8">
-              <p className="text-green-400 font-medium mb-2">{t('sent_title')}</p>
+              <p className="text-emerald-600 dark:text-emerald-400 font-medium mb-2">{t('sent_title')}</p>
               <p className="text-sm text-muted-foreground mb-4">{t('sent_body')}</p>
               <Button variant="outline" size="sm" onClick={() => setSent(false)}>
                 {t('sent_again')}
@@ -182,7 +182,7 @@ export default function MyVpsSupportPage() {
                 />
               </div>
               {error && (
-                <div className="text-sm text-red-400">{error}</div>
+                <div className="text-sm text-rose-600 dark:text-rose-400">{error}</div>
               )}
               <Button type="submit" disabled={sending}>
                 {sending ? t('submitting') : t('submit')}

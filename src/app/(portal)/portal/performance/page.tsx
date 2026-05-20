@@ -107,7 +107,7 @@ export default function PerformancePage() {
       </div>
 
       {error && (
-        <div className="rounded-md bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-400">{error}</div>
+        <div className="rounded-md bg-red-500/10 border border-red-500/20 p-3 text-sm text-rose-600 dark:text-rose-400">{error}</div>
       )}
 
       {loading ? (
@@ -126,19 +126,19 @@ export default function PerformancePage() {
             </Card>
             <Card>
               <CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground">{t('kpi_avg_win')}</CardTitle></CardHeader>
-              <CardContent><p className="text-xl font-bold font-mono text-green-400">{fmt(data?.avg_win, '+$')}</p></CardContent>
+              <CardContent><p className="text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400">{fmt(data?.avg_win, '+$')}</p></CardContent>
             </Card>
             <Card>
               <CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground">{t('kpi_avg_loss')}</CardTitle></CardHeader>
-              <CardContent><p className="text-xl font-bold font-mono text-red-400">{fmt(data?.avg_loss, '-$')}</p></CardContent>
+              <CardContent><p className="text-xl font-bold font-mono text-rose-600 dark:text-rose-400">{fmt(data?.avg_loss, '-$')}</p></CardContent>
             </Card>
             <Card>
               <CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground">{t('kpi_best_day')}</CardTitle></CardHeader>
-              <CardContent><p className="text-xl font-bold font-mono text-green-400">{fmt(data?.best_day, '+$')}</p></CardContent>
+              <CardContent><p className="text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400">{fmt(data?.best_day, '+$')}</p></CardContent>
             </Card>
             <Card>
               <CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground">{t('kpi_worst_day')}</CardTitle></CardHeader>
-              <CardContent><p className="text-xl font-bold font-mono text-red-400">{fmt(data?.worst_day, '-$')}</p></CardContent>
+              <CardContent><p className="text-xl font-bold font-mono text-rose-600 dark:text-rose-400">{fmt(data?.worst_day, '-$')}</p></CardContent>
             </Card>
           </div>
 
@@ -204,7 +204,7 @@ export default function PerformancePage() {
                       </div>
                       <div className="text-right">
                         <span className="text-sm font-mono">{cr.trades} {t('trades_suffix')}</span>
-                        <span className={cn('ml-3 text-sm font-mono', cr.pnl >= 0 ? 'text-green-400' : 'text-red-400')}>
+                        <span className={cn('ml-3 text-sm font-mono', cr.pnl >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400')}>
                           {cr.pnl >= 0 ? '+' : ''}${cr.pnl.toFixed(2)}
                         </span>
                       </div>
@@ -236,7 +236,7 @@ export default function PerformancePage() {
                           <td className="py-3 font-mono font-medium">{p.pair}</td>
                           <td className="py-3 text-right font-mono">{p.trades}</td>
                           <td className="py-3 text-right font-mono">{p.win_rate?.toFixed(1)}%</td>
-                          <td className={cn('py-3 text-right font-mono font-medium', p.pnl >= 0 ? 'text-green-400' : 'text-red-400')}>
+                          <td className={cn('py-3 text-right font-mono font-medium', p.pnl >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400')}>
                             {p.pnl >= 0 ? '+' : ''}${p.pnl.toFixed(2)}
                           </td>
                         </tr>

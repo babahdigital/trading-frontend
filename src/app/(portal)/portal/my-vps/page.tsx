@@ -122,8 +122,8 @@ export default function MyVpsPage() {
   function botStatusLabel(s?: string) {
     if (!s) return { label: t('bot_status_unknown'), color: 'text-muted-foreground', bg: 'bg-muted' };
     const lower = s.toLowerCase();
-    if (lower === 'active' || lower === 'running') return { label: t('bot_status_active'), color: 'text-green-400', bg: 'bg-green-500/20' };
-    if (lower === 'error') return { label: t('bot_status_error'), color: 'text-red-400', bg: 'bg-red-500/20' };
+    if (lower === 'active' || lower === 'running') return { label: t('bot_status_active'), color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-green-500/20' };
+    if (lower === 'error') return { label: t('bot_status_error'), color: 'text-rose-600 dark:text-rose-400', bg: 'bg-red-500/20' };
     if (lower === 'stopped') return { label: t('bot_status_stopped'), color: 'text-orange-400', bg: 'bg-orange-500/20' };
     return { label: s, color: 'text-yellow-400', bg: 'bg-yellow-500/20' };
   }
@@ -180,15 +180,15 @@ export default function MyVpsPage() {
         <div className="flex items-center gap-2 flex-wrap">
           <span className={cn('inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium', botSt.bg, botSt.color)}>
             <span className={cn('w-1.5 h-1.5 rounded-full',
-              botSt.color === 'text-green-400' ? 'bg-green-400' :
-              botSt.color === 'text-red-400' ? 'bg-red-400' :
+              botSt.color === 'text-emerald-600 dark:text-emerald-400' ? 'bg-green-400' :
+              botSt.color === 'text-rose-600 dark:text-rose-400' ? 'bg-red-400' :
               botSt.color === 'text-orange-400' ? 'bg-orange-400' : 'bg-yellow-400'
             )} />
             {t('bot_label', { status: botSt.label })}
           </span>
           {license && (
             <span className={cn('inline-flex items-center rounded-full px-3 py-1 text-xs font-medium',
-              license.urgent ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'
+              license.urgent ? 'bg-rose-500/15 text-rose-700 dark:text-rose-300' : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
             )}>
               <Shield className="w-3 h-3 mr-1" />
               {t('license_label', { value: license.text })}
@@ -198,7 +198,7 @@ export default function MyVpsPage() {
       </div>
 
       {error && (
-        <div className="rounded-md bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-400">{error}</div>
+        <div className="rounded-md bg-red-500/10 border border-red-500/20 p-3 text-sm text-rose-600 dark:text-rose-400">{error}</div>
       )}
 
       {/* KPI Cards */}
@@ -212,7 +212,7 @@ export default function MyVpsPage() {
               {status?.equity !== undefined ? `$${status.equity.toLocaleString()}` : '-'}
             </p>
             {status?.equity_change_pct !== undefined && (
-              <p className={cn('text-xs', status.equity_change_pct >= 0 ? 'text-green-400' : 'text-red-400')}>
+              <p className={cn('text-xs', status.equity_change_pct >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400')}>
                 {status.equity_change_pct >= 0 ? '▲ +' : '▼ '}{status.equity_change_pct.toFixed(1)}%
               </p>
             )}
@@ -224,7 +224,7 @@ export default function MyVpsPage() {
           </CardHeader>
           <CardContent>
             <p className={cn('text-2xl font-bold font-mono',
-              status?.today_pnl !== undefined ? (status.today_pnl >= 0 ? 'text-green-400' : 'text-red-400') : ''
+              status?.today_pnl !== undefined ? (status.today_pnl >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400') : ''
             )}>
               {formatPnl(status?.today_pnl)}
             </p>
@@ -242,7 +242,7 @@ export default function MyVpsPage() {
           <CardContent>
             <p className="text-2xl font-bold font-mono">{status?.open_trades ?? positions.length}</p>
             <p className={cn('text-xs font-mono',
-              (status?.floating_pnl || 0) >= 0 ? 'text-green-400' : 'text-red-400'
+              (status?.floating_pnl || 0) >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
             )}>
               {t('floating_label', { value: formatPnl(status?.floating_pnl) })}
             </p>
@@ -266,7 +266,7 @@ export default function MyVpsPage() {
           <span>{t('uptime_label', { value: formatUptime(status?.uptime_seconds) })}</span>
         </div>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Wifi className={cn('w-4 h-4', status?.mt5_connected ? 'text-green-400' : 'text-red-400')} />
+          <Wifi className={cn('w-4 h-4', status?.mt5_connected ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400')} />
           <span>{t('mt5_label', { value: status?.mt5_connected ? t('mt5_connected') : t('mt5_disconnected') })}</span>
         </div>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -322,12 +322,12 @@ export default function MyVpsPage() {
                     <div>
                       <span className="font-mono font-semibold text-sm">{pos.symbol}</span>
                       <span className={cn('ml-2 text-xs px-1.5 py-0.5 rounded',
-                        pos.direction === 'BUY' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                        pos.direction === 'BUY' ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'bg-rose-500/15 text-rose-700 dark:text-rose-300'
                       )}>{pos.direction}</span>
                     </div>
                     <div className="text-right">
                       <span className={cn('font-mono font-semibold text-sm',
-                        pos.pnl_usd >= 0 ? 'text-green-400' : 'text-red-400'
+                        pos.pnl_usd >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                       )}>
                         {pos.pnl_usd >= 0 ? '+' : ''}${pos.pnl_usd?.toFixed(2)}
                       </span>

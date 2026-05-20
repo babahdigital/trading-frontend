@@ -77,9 +77,9 @@ export default function VpsFleetPage() {
 
   function healthBadge(health: string | null) {
     if (!health) return { label: 'Tidak diketahui', cls: 'bg-slate-500/20 text-slate-400' };
-    if (health === 'ok') return { label: 'Sehat', cls: 'bg-green-500/20 text-green-400' };
-    if (health === 'degraded') return { label: 'Terganggu', cls: 'bg-yellow-500/20 text-yellow-400' };
-    return { label: 'Tidak terjangkau', cls: 'bg-red-500/20 text-red-400' };
+    if (health === 'ok') return { label: 'Sehat', cls: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' };
+    if (health === 'degraded') return { label: 'Terganggu', cls: 'bg-amber-500/15 text-amber-700 dark:text-amber-300' };
+    return { label: 'Tidak terjangkau', cls: 'bg-rose-500/15 text-rose-700 dark:text-rose-300' };
   }
 
   return (
@@ -93,8 +93,8 @@ export default function VpsFleetPage() {
       {summary && (
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
           <KpiCard label="Total" value={summary.total} icon={<Server className="w-4 h-4" />} />
-          <KpiCard label="Aktif" value={summary.online} icon={<Wifi className="w-4 h-4 text-green-400" />} color="text-green-400" />
-          <KpiCard label="Mati" value={summary.offline} icon={<WifiOff className="w-4 h-4 text-red-400" />} color="text-red-400" />
+          <KpiCard label="Aktif" value={summary.online} icon={<Wifi className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />} color="text-emerald-600 dark:text-emerald-400" />
+          <KpiCard label="Mati" value={summary.offline} icon={<WifiOff className="w-4 h-4 text-rose-600 dark:text-rose-400" />} color="text-rose-600 dark:text-rose-400" />
           <KpiCard label="Terganggu" value={summary.degraded} icon={<Activity className="w-4 h-4 text-yellow-400" />} color="text-yellow-400" />
           {summary.outdated !== null && (
             <KpiCard label="Perlu Update" value={summary.outdated} icon={<AlertTriangle className="w-4 h-4 text-orange-400" />} color="text-orange-400" />
@@ -128,7 +128,7 @@ export default function VpsFleetPage() {
                   <InfoLine label="Host" value={vps.host} mono />
                   <InfoLine label="Status" value={vps.status} />
                   <InfoLine label="Versi" value={vps.codeVersion || '-'} mono badge={
-                    vps.isUpToDate === false ? { label: 'Perlu Update', cls: 'bg-orange-500/20 text-orange-400' } : undefined
+                    vps.isUpToDate === false ? { label: 'Perlu Update', cls: 'bg-orange-500/15 text-orange-700 dark:text-orange-300' } : undefined
                   } />
                   <InfoLine label="Lisensi" value={String(vps.licenseCount)} />
                   <InfoLine

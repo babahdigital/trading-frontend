@@ -211,8 +211,8 @@ export default function MySignalsPage() {
                     <div className={cn(
                       'shrink-0 w-10 h-10 rounded-full flex items-center justify-center border',
                       dirIsBuy
-                        ? 'bg-green-500/10 border-green-500/30 text-green-400'
-                        : 'bg-red-500/10 border-red-500/30 text-red-400',
+                        ? 'bg-green-500/10 border-green-500/30 text-emerald-600 dark:text-emerald-400'
+                        : 'bg-red-500/10 border-red-500/30 text-rose-600 dark:text-rose-400',
                     )}>
                       <Icon className="h-5 w-5" />
                     </div>

@@ -83,23 +83,23 @@ export default function VpsFleetDetailPage() {
   }, [vpsId]);
 
   function statusBadge(status: string) {
-    if (status === 'ONLINE') return { label: 'Online', cls: 'bg-green-500/20 text-green-400' };
-    if (status === 'OFFLINE') return { label: 'Offline', cls: 'bg-red-500/20 text-red-400' };
-    if (status === 'PROVISIONING') return { label: 'Provisioning', cls: 'bg-blue-500/20 text-blue-400' };
-    return { label: status, cls: 'bg-yellow-500/20 text-yellow-400' };
+    if (status === 'ONLINE') return { label: 'Online', cls: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' };
+    if (status === 'OFFLINE') return { label: 'Offline', cls: 'bg-rose-500/15 text-rose-700 dark:text-rose-300' };
+    if (status === 'PROVISIONING') return { label: 'Provisioning', cls: 'bg-sky-500/15 text-sky-700 dark:text-sky-300' };
+    return { label: status, cls: 'bg-amber-500/15 text-amber-700 dark:text-amber-300' };
   }
 
   function healthBadge(health: string | null) {
     if (!health) return { label: 'Tidak diketahui', cls: 'bg-slate-500/20 text-slate-400' };
-    if (health === 'ok') return { label: 'Sehat', cls: 'bg-green-500/20 text-green-400' };
-    if (health === 'degraded') return { label: 'Terganggu', cls: 'bg-yellow-500/20 text-yellow-400' };
-    return { label: 'Tidak terjangkau', cls: 'bg-red-500/20 text-red-400' };
+    if (health === 'ok') return { label: 'Sehat', cls: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' };
+    if (health === 'degraded') return { label: 'Terganggu', cls: 'bg-amber-500/15 text-amber-700 dark:text-amber-300' };
+    return { label: 'Tidak terjangkau', cls: 'bg-rose-500/15 text-rose-700 dark:text-rose-300' };
   }
 
   function licenseBadge(status: string) {
-    if (status === 'ACTIVE') return { label: 'Aktif', cls: 'bg-green-500/20 text-green-400' };
-    if (status === 'EXPIRED') return { label: 'Kedaluwarsa', cls: 'bg-red-500/20 text-red-400' };
-    return { label: status, cls: 'bg-yellow-500/20 text-yellow-400' };
+    if (status === 'ACTIVE') return { label: 'Aktif', cls: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' };
+    if (status === 'EXPIRED') return { label: 'Kedaluwarsa', cls: 'bg-rose-500/15 text-rose-700 dark:text-rose-300' };
+    return { label: status, cls: 'bg-amber-500/15 text-amber-700 dark:text-amber-300' };
   }
 
   if (loading) {
@@ -202,7 +202,7 @@ export default function VpsFleetDetailPage() {
                     <div className="flex items-center gap-2">
                       {hc.responseTimeMs !== null && <span className="font-mono">{hc.responseTimeMs}ms</span>}
                       <span className={cn('px-1.5 py-0.5 rounded',
-                        hc.httpStatus === 200 ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                        hc.httpStatus === 200 ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'bg-rose-500/15 text-rose-700 dark:text-rose-300'
                       )}>
                         {hc.httpStatus || '?'}
                       </span>
@@ -223,8 +223,8 @@ export default function VpsFleetDetailPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             <DetailRow label="Versi Kode" value={vps.codeVersion || '-'} mono badge={
-              vps.isUpToDate === false ? { label: 'Perlu Update', cls: 'bg-orange-500/20 text-orange-400' } :
-              vps.isUpToDate === true ? { label: 'Terbaru', cls: 'bg-green-500/20 text-green-400' } : undefined
+              vps.isUpToDate === false ? { label: 'Perlu Update', cls: 'bg-orange-500/15 text-orange-700 dark:text-orange-300' } :
+              vps.isUpToDate === true ? { label: 'Terbaru', cls: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' } : undefined
             } />
             <DetailRow label="Status Sync" value={vps.lastSyncStatus || '-'} />
             <DetailRow label="Sync Terakhir" value={

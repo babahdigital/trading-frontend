@@ -70,17 +70,17 @@ export default function MyVpsTelegramPage() {
             <div className="flex items-center gap-3">
               {isConnected ? (
                 <>
-                  <CheckCircle2 className="w-5 h-5 text-green-400" />
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                   <div>
-                    <p className="text-sm font-medium text-green-400">{t('connected')}</p>
+                    <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400">{t('connected')}</p>
                     <p className="text-xs text-muted-foreground">{t('chat_id_label', { value: profile?.telegramChatId ?? '' })}</p>
                   </div>
                 </>
               ) : (
                 <>
-                  <XCircle className="w-5 h-5 text-red-400" />
+                  <XCircle className="w-5 h-5 text-rose-600 dark:text-rose-400" />
                   <div>
-                    <p className="text-sm font-medium text-red-400">{t('not_connected')}</p>
+                    <p className="text-sm font-medium text-rose-600 dark:text-rose-400">{t('not_connected')}</p>
                     <p className="text-xs text-muted-foreground">{t('not_connected_hint')}</p>
                   </div>
                 </>

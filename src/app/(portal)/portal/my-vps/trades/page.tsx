@@ -40,10 +40,10 @@ export default function MyVpsTradesPage() {
   function closeReasonBadge(reason?: string) {
     if (!reason) return null;
     const r = reason.toLowerCase();
-    if (r.includes('take_profit') || r.includes('tp')) return { label: t('reason_tp'), cls: 'bg-green-500/20 text-green-400' };
-    if (r.includes('stop_loss') || r.includes('sl')) return { label: t('reason_sl'), cls: 'bg-red-500/20 text-red-400' };
-    if (r.includes('manual')) return { label: t('reason_manual'), cls: 'bg-blue-500/20 text-blue-400' };
-    if (r.includes('max_hold')) return { label: t('reason_max_hold'), cls: 'bg-yellow-500/20 text-yellow-400' };
+    if (r.includes('take_profit') || r.includes('tp')) return { label: t('reason_tp'), cls: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' };
+    if (r.includes('stop_loss') || r.includes('sl')) return { label: t('reason_sl'), cls: 'bg-rose-500/15 text-rose-700 dark:text-rose-300' };
+    if (r.includes('manual')) return { label: t('reason_manual'), cls: 'bg-sky-500/15 text-sky-700 dark:text-sky-300' };
+    if (r.includes('max_hold')) return { label: t('reason_max_hold'), cls: 'bg-amber-500/15 text-amber-700 dark:text-amber-300' };
     return { label: reason, cls: 'bg-slate-500/20 text-slate-400' };
   }
 
@@ -140,7 +140,7 @@ export default function MyVpsTradesPage() {
         <Card>
           <CardContent className="pt-6">
             <p className="text-sm text-muted-foreground">{t('kpi_total_pnl')}</p>
-            <p className={cn('text-xl font-bold font-mono', totalPnl >= 0 ? 'text-green-400' : 'text-red-400')}>
+            <p className={cn('text-xl font-bold font-mono', totalPnl >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400')}>
               {totalPnl >= 0 ? '+' : ''}${totalPnl.toFixed(2)}
             </p>
           </CardContent>
@@ -149,9 +149,9 @@ export default function MyVpsTradesPage() {
           <CardContent className="pt-6">
             <p className="text-sm text-muted-foreground">{t('kpi_winloss')}</p>
             <p className="text-xl font-bold font-mono">
-              <span className="text-green-400">{wins}</span>
+              <span className="text-emerald-600 dark:text-emerald-400">{wins}</span>
               <span className="text-muted-foreground mx-1">/</span>
-              <span className="text-red-400">{losses}</span>
+              <span className="text-rose-600 dark:text-rose-400">{losses}</span>
             </p>
           </CardContent>
         </Card>
@@ -181,7 +181,7 @@ export default function MyVpsTradesPage() {
       </div>
 
       {error && (
-        <div className="rounded-md bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-400">{error}</div>
+        <div className="rounded-md bg-red-500/10 border border-red-500/20 p-3 text-sm text-rose-600 dark:text-rose-400">{error}</div>
       )}
 
       {/* Desktop Table */}
@@ -219,10 +219,10 @@ export default function MyVpsTradesPage() {
                         <td className="py-3 font-mono font-medium">{tr.pair}</td>
                         <td className="py-3">
                           <span className={cn('px-2 py-0.5 rounded text-xs font-medium',
-                            tr.type?.toLowerCase() === 'buy' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                            tr.type?.toLowerCase() === 'buy' ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'bg-rose-500/15 text-rose-700 dark:text-rose-300'
                           )}>{tr.type}</span>
                         </td>
-                        <td className={cn('py-3 text-right font-mono font-medium', tr.pnl >= 0 ? 'text-green-400' : 'text-red-400')}>
+                        <td className={cn('py-3 text-right font-mono font-medium', tr.pnl >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400')}>
                           {tr.pnl >= 0 ? '+' : ''}${tr.pnl.toFixed(2)}
                         </td>
                         <td className="py-3 text-right text-muted-foreground">{tr.duration || '-'}</td>
@@ -259,11 +259,11 @@ export default function MyVpsTradesPage() {
                     <div className="flex items-center gap-2">
                       <span className="font-mono font-semibold text-sm">{tr.pair}</span>
                       <span className={cn('px-2 py-0.5 rounded text-xs font-medium',
-                        tr.type?.toLowerCase() === 'buy' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                        tr.type?.toLowerCase() === 'buy' ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'bg-rose-500/15 text-rose-700 dark:text-rose-300'
                       )}>{tr.type}</span>
                     </div>
                     <span className={cn('font-mono font-semibold text-sm',
-                      tr.pnl >= 0 ? 'text-green-400' : 'text-red-400'
+                      tr.pnl >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                     )}>
                       {tr.pnl >= 0 ? '+' : ''}${tr.pnl.toFixed(2)}
                     </span>

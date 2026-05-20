@@ -5,8 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, KeyRound } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
+import { useToast } from '@/components/ui/toast';
+import { PageHeader } from '@/components/admin/page-header';
+import { FilterBar } from '@/components/admin/filter-bar';
+import { EmptyState } from '@/components/admin/empty-state';
+import { licenseStatusBadge } from '@/lib/admin/badges';
+import { formatDate } from '@/lib/format-locale';
 
 interface License {
   id: string;
@@ -31,24 +37,18 @@ interface VpsOption {
   name: string;
 }
 
-const statusColor: Record<string, string> = {
-  ACTIVE: 'bg-green-500/20 text-green-400',
-  PENDING: 'bg-yellow-500/20 text-yellow-400',
-  EXPIRED: 'bg-red-500/20 text-red-400',
-  REVOKED: 'bg-red-700/20 text-red-500',
-  SUSPENDED: 'bg-orange-500/20 text-orange-400',
-};
-
 const LICENSE_TYPES = ['VPS_INSTALLATION', 'PAMM_SUBSCRIBER', 'SIGNAL_SUBSCRIBER'];
 
 type FilterType = 'ALL' | 'ACTIVE' | 'EXPIRED' | 'PENDING';
 
 export default function LicensesPage() {
   const { getAuthHeaders } = useAuth();
+  const toast = useToast();
   const [licenses, setLicenses] = useState<License[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<FilterType>('ALL');
+  const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [users, setUsers] = useState<UserOption[]>([]);
   const [vpsList, setVpsList] = useState<VpsOption[]>([]);
@@ -131,9 +131,10 @@ export default function LicensesPage() {
         setForm({ userId: '', type: LICENSE_TYPES[0], startsAt: '', expiresAt: '', vpsInstanceId: '' });
         setShowForm(false);
         void fetchLicenses();
+        toast.push({ tone: 'success', title: 'Lisensi berhasil dibuat' });
       } else {
         const data = await res.json().catch(() => ({}));
-        setError(data.error || 'Failed to generate license');
+        setError(data.error || 'Gagal membuat lisensi');
       }
     } catch {
       setError('Network error');
@@ -142,53 +143,69 @@ export default function LicensesPage() {
     }
   }
 
-  const filtered = filter === 'ALL' ? licenses : licenses.filter((l) => l.status === filter);
+  const filtered = licenses
+    .filter((l) => filter === 'ALL' || l.status === filter)
+    .filter((l) => {
+      if (!search) return true;
+      const q = search.toLowerCase();
+      return (
+        l.licenseKey.toLowerCase().includes(q) ||
+        l.user.email.toLowerCase().includes(q) ||
+        (l.user.name || '').toLowerCase().includes(q) ||
+        (l.vpsInstance?.name || '').toLowerCase().includes(q)
+      );
+    });
 
-  const filters: FilterType[] = ['ALL', 'ACTIVE', 'EXPIRED', 'PENDING'];
+  const filterOptions = [
+    { value: 'ALL' as const, label: 'Semua', count: licenses.length },
+    { value: 'ACTIVE' as const, label: 'Aktif', count: licenses.filter(l => l.status === 'ACTIVE').length },
+    { value: 'EXPIRED' as const, label: 'Kedaluwarsa', count: licenses.filter(l => l.status === 'EXPIRED').length },
+    { value: 'PENDING' as const, label: 'Menunggu', count: licenses.filter(l => l.status === 'PENDING').length },
+  ];
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Licenses</h2>
-          <p className="text-muted-foreground">{total} total licenses</p>
-        </div>
-        <Button onClick={() => setShowForm(!showForm)}>
-          {showForm ? <X className="h-4 w-4 mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
-          {showForm ? 'Cancel' : 'Generate License'}
-        </Button>
-      </div>
+      <PageHeader
+        title="Licenses"
+        description={`${total} total lisensi`}
+        actions={
+          <Button onClick={() => setShowForm(!showForm)}>
+            {showForm ? <X className="h-4 w-4 mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
+            {showForm ? 'Batal' : 'Generate Lisensi'}
+          </Button>
+        }
+      />
 
       {showForm && (
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>Generate New License</CardTitle>
+            <CardTitle>Generate Lisensi Baru</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="grid gap-4 md:grid-cols-2">
+            <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label className="text-sm font-medium text-muted-foreground">User *</label>
+                <label htmlFor="lic-user" className="text-sm font-medium text-muted-foreground">User *</label>
                 <select
+                  id="lic-user"
                   value={form.userId}
                   onChange={(e) => updateForm('userId', e.target.value)}
                   required
-                  aria-label="User"
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
-                  <option value="">Select user...</option>
+                  <option value="">Pilih user…</option>
                   {users.map((u) => (
                     <option key={u.id} value={u.id}>{u.name || u.email}</option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Type *</label>
+                <label htmlFor="lic-type" className="text-sm font-medium text-muted-foreground">Tipe *</label>
                 <select
+                  id="lic-type"
                   value={form.type}
                   onChange={(e) => updateForm('type', e.target.value)}
                   required
-                  aria-label="License type"
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                   {LICENSE_TYPES.map((t) => (
                     <option key={t} value={t}>{t.replace(/_/g, ' ')}</option>
@@ -196,91 +213,105 @@ export default function LicensesPage() {
                 </select>
               </div>
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Starts At *</label>
-                <Input type="date" value={form.startsAt} onChange={(e) => updateForm('startsAt', e.target.value)} required />
+                <label htmlFor="lic-start" className="text-sm font-medium text-muted-foreground">Mulai Aktif *</label>
+                <Input id="lic-start" type="date" value={form.startsAt} onChange={(e) => updateForm('startsAt', e.target.value)} required />
               </div>
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Expires At *</label>
-                <Input type="date" value={form.expiresAt} onChange={(e) => updateForm('expiresAt', e.target.value)} required />
+                <label htmlFor="lic-exp" className="text-sm font-medium text-muted-foreground">Berakhir *</label>
+                <Input id="lic-exp" type="date" value={form.expiresAt} onChange={(e) => updateForm('expiresAt', e.target.value)} required />
               </div>
               <div>
-                <label className="text-sm font-medium text-muted-foreground">VPS Instance (optional)</label>
+                <label htmlFor="lic-vps" className="text-sm font-medium text-muted-foreground">VPS Instance (opsional)</label>
                 <select
+                  id="lic-vps"
                   value={form.vpsInstanceId}
                   onChange={(e) => updateForm('vpsInstanceId', e.target.value)}
-                  aria-label="VPS Instance"
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
-                  <option value="">None</option>
+                  <option value="">— Tidak ada —</option>
                   {vpsList.map((v) => (
                     <option key={v.id} value={v.id}>{v.name}</option>
                   ))}
                 </select>
               </div>
-              <div className="md:col-span-2 flex items-center gap-4">
+              <div className="sm:col-span-2 flex items-center gap-4 flex-wrap">
                 <Button type="submit" disabled={submitting}>
-                  {submitting ? 'Generating...' : 'Generate License'}
+                  {submitting ? 'Memproses…' : 'Generate Lisensi'}
                 </Button>
-                {error && <p className="text-sm text-red-400">{error}</p>}
+                {error && <p className="text-sm text-rose-500 dark:text-rose-400" role="alert">{error}</p>}
               </div>
             </form>
           </CardContent>
         </Card>
       )}
 
-      <div className="flex gap-2 mb-4">
-        {filters.map((f) => (
-          <Button
-            key={f}
-            variant={filter === f ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setFilter(f)}
-          >
-            {f}
-          </Button>
-        ))}
-      </div>
+      <FilterBar
+        className="mb-4"
+        search={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Cari key, email, atau VPS…"
+        filters={filterOptions}
+        activeFilter={filter}
+        onFilterChange={setFilter}
+      />
 
       <Card>
         <CardContent className="p-0">
-          <div className="md:overflow-x-auto">
-            <table className="w-full text-sm table-responsive">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left p-4 font-medium text-muted-foreground">License Key</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">Type</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">Client</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">Status</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">Expires</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">VPS</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr><td colSpan={6} className="p-4 text-center text-muted-foreground no-label">Loading...</td></tr>
-                ) : filtered.length === 0 ? (
-                  <tr><td colSpan={6} className="p-4 text-center text-muted-foreground no-label">
-                    {filter === 'ALL' ? 'No licenses yet. Generate your first license.' : `No ${filter.toLowerCase()} licenses.`}
-                  </td></tr>
-                ) : (
-                  filtered.map((lic) => (
-                    <tr key={lic.id} className="border-b hover:bg-accent/50 transition-colors">
-                      <td className="p-4 font-mono text-xs" data-label="License Key">{lic.licenseKey}</td>
-                      <td className="p-4" data-label="Type">{lic.type.replace(/_/g, ' ')}</td>
-                      <td className="p-4" data-label="Client">{lic.user.name || lic.user.email}</td>
-                      <td className="p-4" data-label="Status">
-                        <span className={cn('px-2 py-1 rounded-full text-xs font-medium', statusColor[lic.status] || '')}>
-                          {lic.status}
-                        </span>
-                      </td>
-                      <td className="p-4 text-muted-foreground" data-label="Expires">{new Date(lic.expiresAt).toLocaleDateString()}</td>
-                      <td className="p-4" data-label="VPS">{lic.vpsInstance?.name || '-'}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+          {loading ? (
+            <div className="p-3 space-y-2">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="h-12 rounded bg-muted animate-pulse" />
+              ))}
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="p-6">
+              <EmptyState
+                variant="inline"
+                icon={KeyRound}
+                title={search
+                  ? 'Tidak ada lisensi yang cocok'
+                  : filter === 'ALL'
+                    ? 'Belum ada lisensi'
+                    : `Tidak ada lisensi ${filter.toLowerCase()}`}
+                description={!search && filter === 'ALL' ? 'Mulai dengan generate lisensi pertama untuk customer.' : undefined}
+                actions={!search && filter === 'ALL' ? [{ label: 'Generate Lisensi', onClick: () => setShowForm(true), icon: Plus }] : []}
+              />
+            </div>
+          ) : (
+            <div className="md:overflow-x-auto">
+              <table className="w-full text-sm table-responsive">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left p-4 font-medium text-muted-foreground">License Key</th>
+                    <th className="text-left p-4 font-medium text-muted-foreground">Tipe</th>
+                    <th className="text-left p-4 font-medium text-muted-foreground">Client</th>
+                    <th className="text-left p-4 font-medium text-muted-foreground">Status</th>
+                    <th className="text-left p-4 font-medium text-muted-foreground">Berakhir</th>
+                    <th className="text-left p-4 font-medium text-muted-foreground">VPS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((lic) => {
+                    const statusMeta = licenseStatusBadge(lic.status);
+                    return (
+                      <tr key={lic.id} className="border-b hover:bg-accent/50 transition-colors">
+                        <td className="p-4 font-mono text-xs" data-label="License Key">{lic.licenseKey}</td>
+                        <td className="p-4" data-label="Tipe">{lic.type.replace(/_/g, ' ')}</td>
+                        <td className="p-4" data-label="Client">{lic.user.name || lic.user.email}</td>
+                        <td className="p-4" data-label="Status">
+                          <span className={cn('px-2 py-1 rounded-full text-xs font-medium', statusMeta.cls)}>
+                            {statusMeta.label}
+                          </span>
+                        </td>
+                        <td className="p-4 text-muted-foreground" data-label="Berakhir">{formatDate(lic.expiresAt)}</td>
+                        <td className="p-4" data-label="VPS">{lic.vpsInstance?.name || '-'}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

@@ -60,7 +60,10 @@ export function AccountTypeBadge({ type, size = 'sm', className = '' }: Props) {
  * context is demo, per DEMO_UX_GUIDE §3.1.
  */
 export function formatDemoEquity(value: number, accountType: AccountType, locale: string): string {
-  const fmt = value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  // Locale-aware number formatting (id-ID uses period thousands separator,
+  // en-US uses comma). Demo suffix injected per locale.
+  const localeTag = locale === 'id' ? 'id-ID' : 'en-US';
+  const fmt = value.toLocaleString(localeTag, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   if (accountType === 'demo') {
     const suffix = locale === 'id' ? '(simulasi)' : '(simulated)';
     return `${fmt} ${suffix}`;

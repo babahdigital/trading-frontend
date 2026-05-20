@@ -85,7 +85,17 @@ export function TierComparisonMatrix({ locale }: TierComparisonMatrixProps) {
 
   function formatEquity(min: number): string {
     if (min === 0) return t.none_label;
-    return `$${min.toLocaleString(locale === 'id' ? 'id-ID' : 'en-US')}`;
+    // Forex broker equity convention = USD universal. Untuk ID locale,
+    // tampilkan "$X (≈ Rp Y)" sebagai dual-label supaya user paham nilai
+    // dalam mata uang lokal tanpa hilang konteks USD asli (audit trail).
+    const usd = `$${min.toLocaleString('en-US')}`;
+    if (locale === 'id') {
+      // Approx rate untuk display saja — tidak untuk billing. Update di
+      // central rate table kalau perlu konversi real-time (future).
+      const idr = Math.round(min * 16000);
+      return `${usd} (≈ Rp ${idr.toLocaleString('id-ID')})`;
+    }
+    return usd;
   }
 
   function aiModeLabel(mode: 'shadow' | 'live' | 'adjust'): string {

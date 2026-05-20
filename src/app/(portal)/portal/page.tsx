@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { EquityCurve } from '@/components/charts/equity-curve';
@@ -12,6 +12,13 @@ import { DiscoveryBanner } from '@/components/portal/discovery-banner';
 import { OnboardingChecklist } from '@/components/portal/onboarding-checklist';
 import { VerifyEmailBanner } from '@/components/portal/verify-email-banner';
 import { SubscriptionExpiryBanner } from '@/components/portal/subscription-expiry-banner';
+import { PageHeader } from '@/components/admin/page-header';
+import { StatCard, StatCardGrid } from '@/components/admin/stat-card';
+import { EmptyState } from '@/components/admin/empty-state';
+import { Icon } from '@/components/ui/icon';
+import { Activity, TrendingUp, Wallet, ListChecks, Bot, ArrowUp, ArrowDown } from 'lucide-react';
+import { formatCurrency, formatPercent, formatDuration } from '@/lib/format-locale';
+import type { Locale } from '@/lib/format-locale';
 
 interface StatusData {
   bot_status?: string;
@@ -42,6 +49,7 @@ interface StatusData {
 export default function PortalDashboard() {
   const t = useTranslations('portal.dashboard');
   const tShared = useTranslations('portal.shared');
+  const locale = useLocale() as Locale;
   const { getAuthHeaders } = useAuth();
   const [status, setStatus] = useState<StatusData | null>(null);
   const [equityData, setEquityData] = useState<{ time: string; value: number }[]>([]);
@@ -51,7 +59,7 @@ export default function PortalDashboard() {
   const [userName, setUserName] = useState('');
   const [equityPeriod, setEquityPeriod] = useState('30D');
 
-  const [emailVerified, setEmailVerified] = useState(true); // default true to avoid flash
+  const [emailVerified, setEmailVerified] = useState(true);
   const [activeSubscription, setActiveSubscription] = useState<{
     tier: string;
     expiresAt: string;
@@ -72,7 +80,6 @@ export default function PortalDashboard() {
           }
         }
       } catch { /* empty */ }
-      // Always fetch fresh — emailVerifiedAt + subscription mungkin update
       try {
         const res = await fetch('/api/auth/me', { credentials: 'same-origin' });
         if (!res.ok) return;
@@ -80,20 +87,15 @@ export default function PortalDashboard() {
         if (!cancelled && data.user) {
           setUserName(data.user.name || data.user.email || '');
           setEmailVerified(!!data.user.emailVerifiedAt);
-          if (data.activeSubscription) {
-            setActiveSubscription(data.activeSubscription);
-          }
-          try {
-            sessionStorage.setItem('user', JSON.stringify(data.user));
-          } catch { /* empty */ }
+          if (data.activeSubscription) setActiveSubscription(data.activeSubscription);
+          try { sessionStorage.setItem('user', JSON.stringify(data.user)); } catch { /* empty */ }
         }
-      } catch { /* network glitch — leave userName blank */ }
+      } catch { /* network glitch */ }
     }
     loadUser();
     return () => { cancelled = true; };
   }, []);
 
-  // Fetch status (polling)
   useEffect(() => {
     let active = true;
     async function fetchStatus() {
@@ -114,7 +116,6 @@ export default function PortalDashboard() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Fetch equity data
   useEffect(() => {
     async function fetchEquity() {
       try {
@@ -135,7 +136,6 @@ export default function PortalDashboard() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [equityPeriod]);
 
-  // Fetch weekly PnL
   useEffect(() => {
     async function fetchWeeklyPnl() {
       try {
@@ -152,17 +152,12 @@ export default function PortalDashboard() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function botStatusColor(s?: string) {
-    if (!s) return 'text-muted-foreground';
+  function botStatusTone(s?: string): 'success' | 'danger' | 'warning' | 'default' {
+    if (!s) return 'default';
     const lower = s.toLowerCase();
-    if (lower === 'active' || lower === 'running') return 'text-green-400';
-    if (lower === 'error') return 'text-red-400';
-    return 'text-yellow-400';
-  }
-
-  function formatPnl(val?: number) {
-    if (val === undefined || val === null) return '-';
-    return `${val >= 0 ? '+' : ''}$${val.toFixed(2)}`;
+    if (lower === 'active' || lower === 'running') return 'success';
+    if (lower === 'error') return 'danger';
+    return 'warning';
   }
 
   function licenseCountdown() {
@@ -176,10 +171,10 @@ export default function PortalDashboard() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold">{t('title')}</h1>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <PageHeader title={t('title')} />
+        <StatCardGrid columns={4}>
           {[1, 2, 3, 4].map((i) => <SkeletonCard key={i} />)}
-        </div>
+        </StatCardGrid>
         <SkeletonChart />
         <SkeletonTable rows={5} />
       </div>
@@ -188,106 +183,108 @@ export default function PortalDashboard() {
 
   const positions = status?.open_positions || [];
   const aiStates = status?.ai_state_by_pair ? Object.entries(status.ai_state_by_pair) : [];
+  const todayPnl = status?.today_pnl;
+  const floatingPnl = status?.floating_pnl;
+  const equity = status?.equity;
+  const equityChangePct = status?.equity_change_pct;
+
+  // Equity di backend disimpan dalam USD (master broker Exness USD).
+  // Untuk locale id, kita tampilkan IDR equivalent via Intl.NumberFormat — backend
+  // tidak konversi, FE display saja sehingga audit trail tetap USD-native.
+  // Pertimbangan: kurs realtime butuh provider — untuk MVP tampilkan USD apa adanya
+  // di kedua locale (institutional convention forex = USD universal).
+  const displayCurrency = 'USD';
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <div>
-          <h1 className="text-2xl font-bold">{t('title')}</h1>
-          {userName && <p className="text-sm text-muted-foreground">{t('welcome', { name: userName })}</p>}
-        </div>
-        <div className="flex items-center gap-2">
-          <span className={cn('inline-flex items-center rounded-full px-3 py-1 text-xs font-medium',
-            status?.license_status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'
-          )}>
-            {t('license_label')} {status?.license_status === 'active' ? t('license_active') : status?.license_status || t('license_unknown')}
-          </span>
-          {licenseCountdown() && <span className="text-xs text-muted-foreground">{licenseCountdown()}</span>}
-        </div>
-      </div>
+      <PageHeader
+        title={t('title')}
+        description={userName ? t('welcome', { name: userName }) : undefined}
+        actions={
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className={cn(
+              'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium',
+              status?.license_status === 'active'
+                ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
+                : 'bg-amber-500/15 text-amber-700 dark:text-amber-300',
+            )}>
+              <span className={cn(
+                'inline-block h-1.5 w-1.5 rounded-full',
+                status?.license_status === 'active' ? 'bg-emerald-500' : 'bg-amber-500',
+              )} />
+              {t('license_label')} {status?.license_status === 'active' ? t('license_active') : status?.license_status || t('license_unknown')}
+            </span>
+            {licenseCountdown() && <span className="text-xs text-muted-foreground">{licenseCountdown()}</span>}
+          </div>
+        }
+      />
 
       {error && (
-        <div className="rounded-md bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-400">{error}</div>
+        <div role="alert" className="rounded-md bg-rose-500/10 border border-rose-500/30 p-3 text-sm text-rose-700 dark:text-rose-300">
+          {error}
+        </div>
       )}
 
-      {/* Subscription expiry banner — surface saat <7 hari ke expiry atau
-          sudah expired. Urgency tier: 4-7d amber, 1-3d orange, ≤0 red blocking.
-          CTA "Perpanjang" ke /portal/billing/upgrade. */}
       <SubscriptionExpiryBanner subscription={activeSubscription} />
-
-      {/* Email verification banner — surface saat user.emailVerifiedAt null.
-          CTA resend invalidate previous + gen new token + send email via
-          /api/auth/resend-verification. Dismissible per session. */}
       <VerifyEmailBanner initialVerified={emailVerified} />
-
-      {/* Onboarding 4-step checklist — auto-hide saat completed_at != null */}
-      <OnboardingChecklist locale="id" />
-
-      {/* Discovery banner — surfaces compelling locked feature for upgrade */}
+      <OnboardingChecklist locale={locale === 'en' ? 'en' : 'id'} />
       <DiscoveryBanner />
 
-      {/* ROW 1: KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">{t('kpi_bot_status')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className={cn('text-2xl font-bold capitalize', botStatusColor(status?.bot_status))}>
-              {status?.bot_status || '-'}
-            </p>
-            <p className="text-xs text-muted-foreground">{status?.active_pairs || 14} {t('kpi_pairs_suffix')}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">{t('kpi_equity')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold font-mono">
-              {status?.equity !== undefined ? `$${status.equity.toLocaleString()}` : '-'}
-            </p>
-            {status?.equity_change_pct !== undefined && (
-              <p className={cn('text-xs', status.equity_change_pct >= 0 ? 'text-green-400' : 'text-red-400')}>
-                ▲ {status.equity_change_pct >= 0 ? '+' : ''}{status.equity_change_pct.toFixed(1)}%
-              </p>
-            )}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">{t('kpi_today_pnl')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className={cn('text-2xl font-bold font-mono',
-              status?.today_pnl !== undefined ? (status.today_pnl >= 0 ? 'text-green-400' : 'text-red-400') : ''
+      {/* KPI Row */}
+      <StatCardGrid columns={4}>
+        <StatCard
+          label={t('kpi_bot_status')}
+          value={<span className="capitalize">{status?.bot_status || '-'}</span>}
+          sub={`${status?.active_pairs ?? 14} ${t('kpi_pairs_suffix')}`}
+          icon={Activity}
+          iconTone={botStatusTone(status?.bot_status)}
+        />
+        <StatCard
+          label={t('kpi_equity')}
+          value={equity != null ? formatCurrency(equity, displayCurrency, locale) : '-'}
+          sub={equityChangePct != null
+            ? <span className={cn('inline-flex items-center gap-1', equityChangePct >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400')}>
+                <Icon icon={equityChangePct >= 0 ? ArrowUp : ArrowDown} size="xs" />
+                {formatPercent(equityChangePct, locale, { sign: true })}
+              </span>
+            : undefined}
+          icon={Wallet}
+          iconTone="accent"
+        />
+        <StatCard
+          label={t('kpi_today_pnl')}
+          value={
+            <span className={cn(
+              todayPnl != null ? (todayPnl >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400') : '',
             )}>
-              {formatPnl(status?.today_pnl)}
-            </p>
-            {(status?.wins_today !== undefined || status?.losses_today !== undefined) && (
-              <p className="text-xs text-muted-foreground">
-                {t('kpi_wl_short', { wins: status?.wins_today ?? 0, losses: status?.losses_today ?? 0 })}
-              </p>
-            )}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">{t('kpi_open_trades')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold font-mono">{status?.open_trades ?? positions.length}</p>
-            <p className={cn('text-xs font-mono',
-              (status?.floating_pnl || 0) >= 0 ? 'text-green-400' : 'text-red-400'
+              {todayPnl != null ? `${todayPnl >= 0 ? '+' : ''}${formatCurrency(Math.abs(todayPnl), displayCurrency, locale)}` : '-'}
+            </span>
+          }
+          sub={(status?.wins_today != null || status?.losses_today != null)
+            ? t('kpi_wl_short', { wins: status?.wins_today ?? 0, losses: status?.losses_today ?? 0 })
+            : undefined}
+          icon={TrendingUp}
+          iconTone={todayPnl != null ? (todayPnl >= 0 ? 'success' : 'danger') : 'default'}
+        />
+        <StatCard
+          label={t('kpi_open_trades')}
+          value={status?.open_trades ?? positions.length}
+          sub={
+            <span className={cn(
+              'font-mono',
+              (floatingPnl ?? 0) >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400',
             )}>
-              {formatPnl(status?.floating_pnl)}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+              {floatingPnl != null
+                ? `${floatingPnl >= 0 ? '+' : ''}${formatCurrency(Math.abs(floatingPnl), displayCurrency, locale)}`
+                : '-'}
+            </span>
+          }
+          icon={ListChecks}
+          iconTone={(floatingPnl ?? 0) >= 0 ? 'success' : 'danger'}
+        />
+      </StatCardGrid>
 
-      {/* ROW 2: Equity Curve */}
+      {/* Equity Curve */}
       <Card>
         <CardHeader>
           <CardTitle className="text-sm font-medium">{t('equity_curve_title')}</CardTitle>
@@ -302,84 +299,101 @@ export default function PortalDashboard() {
               onPeriodChange={setEquityPeriod}
             />
           ) : (
-            <div className="flex items-center justify-center h-[240px] sm:h-[280px] md:h-[320px] text-muted-foreground text-sm">
-              {t('equity_empty')}
-            </div>
+            <EmptyState
+              variant="inline"
+              icon={Activity}
+              title={t('equity_empty')}
+              size="sm"
+            />
           )}
         </CardContent>
       </Card>
 
-      {/* ROW 3: Open Positions + Bot Activity Feed */}
+      {/* Open Positions + Bot Activity */}
       <div className="grid gap-4 lg:grid-cols-2">
-        {/* Positions */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-sm font-medium">{t('open_positions_title')}</CardTitle>
-            <span className="text-xs text-muted-foreground">{t('polling_3s')}</span>
+            <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              {t('polling_3s')}
+            </span>
           </CardHeader>
           <CardContent>
             {positions.length === 0 ? (
-              <p className="text-muted-foreground text-sm text-center py-4">{t('open_positions_empty')}</p>
+              <EmptyState
+                variant="inline"
+                icon={TrendingUp}
+                title={t('open_positions_empty')}
+                size="sm"
+              />
             ) : (
-              <div className="space-y-2">
+              <ul className="space-y-2">
                 {positions.map((pos, i) => (
-                  <div key={i} className={cn('flex items-center justify-between p-3 rounded-lg border',
-                    pos.pnl_usd >= 0 ? 'border-green-500/20' : 'border-red-500/20'
+                  <li key={i} className={cn(
+                    'flex items-center justify-between p-3 rounded-lg border transition-colors',
+                    pos.pnl_usd >= 0 ? 'border-emerald-500/30 hover:bg-emerald-500/5' : 'border-rose-500/30 hover:bg-rose-500/5',
                   )}>
-                    <div>
+                    <div className="flex items-center gap-2 min-w-0">
                       <span className="font-mono font-semibold text-sm">{pos.symbol}</span>
-                      <span className={cn('ml-2 text-xs px-1.5 py-0.5 rounded',
-                        pos.direction === 'BUY' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                      <span className={cn(
+                        'text-xs px-1.5 py-0.5 rounded font-medium',
+                        pos.direction === 'BUY'
+                          ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
+                          : 'bg-rose-500/15 text-rose-700 dark:text-rose-300',
                       )}>{pos.direction}</span>
                     </div>
                     <div className="text-right">
-                      <span className={cn('font-mono font-semibold text-sm',
-                        pos.pnl_usd >= 0 ? 'text-green-400' : 'text-red-400'
+                      <div className={cn(
+                        'font-mono font-semibold text-sm',
+                        pos.pnl_usd >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400',
                       )}>
-                        {pos.pnl_usd >= 0 ? '+' : ''}${pos.pnl_usd?.toFixed(2)}
-                      </span>
-                      <div className="text-xs text-muted-foreground">
-                        {Math.floor((pos.duration_seconds || 0) / 60)}m
+                        {pos.pnl_usd >= 0 ? '+' : ''}{formatCurrency(Math.abs(pos.pnl_usd || 0), displayCurrency, locale)}
                       </div>
+                      <div className="text-xs text-muted-foreground">{formatDuration(pos.duration_seconds || 0)}</div>
                     </div>
-                  </div>
+                  </li>
                 ))}
-              </div>
+              </ul>
             )}
           </CardContent>
         </Card>
 
-        {/* Bot Activity Feed */}
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium">{t('bot_activity_title')}</CardTitle>
           </CardHeader>
           <CardContent>
             {aiStates.length === 0 ? (
-              <p className="text-muted-foreground text-sm text-center py-4">{t('bot_activity_empty')}</p>
+              <EmptyState
+                variant="inline"
+                icon={Bot}
+                title={t('bot_activity_empty')}
+                size="sm"
+              />
             ) : (
-              <div className="space-y-2 max-h-[300px] overflow-y-auto">
+              <ul className="space-y-1.5 max-h-[300px] overflow-y-auto">
                 {aiStates.map(([pair, state]) => (
-                  <div key={pair} className="flex items-center gap-3 p-2 text-sm">
-                    <span className="w-2 h-2 rounded-full bg-blue-400 flex-shrink-0" />
-                    <div>
+                  <li key={pair} className="flex items-center gap-3 p-2 text-sm rounded-md hover:bg-muted/40 transition-colors">
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-sky-500 dark:bg-sky-400 flex-shrink-0 animate-pulse" />
+                    <div className="min-w-0 flex-1">
                       <span className="font-mono font-semibold">{pair}</span>
-                      <span className="text-muted-foreground ml-2">
+                      <span className="text-muted-foreground ml-2 truncate">
                         {state.runtime_status_label || t('bot_default_status')}
                       </span>
                     </div>
                     {state.updated_seconds_ago !== undefined && (
-                      <span className="text-xs text-muted-foreground ml-auto">{state.updated_seconds_ago}s</span>
+                      <span className="text-xs text-muted-foreground tabular-nums shrink-0">{state.updated_seconds_ago}s</span>
                     )}
-                  </div>
+                  </li>
                 ))}
-              </div>
+              </ul>
             )}
           </CardContent>
         </Card>
       </div>
 
-      {/* ROW 4: Daily PnL Mini Bar (7 days) */}
+      {/* Weekly PnL */}
       <Card>
         <CardHeader>
           <CardTitle className="text-sm font-medium">{t('weekly_pnl_title')}</CardTitle>
@@ -388,9 +402,12 @@ export default function PortalDashboard() {
           {weeklyPnl.length > 0 ? (
             <PnlBarChart data={weeklyPnl} height={160} />
           ) : (
-            <div className="flex items-center justify-center h-[160px] text-muted-foreground text-sm">
-              {t('weekly_pnl_empty')}
-            </div>
+            <EmptyState
+              variant="inline"
+              icon={TrendingUp}
+              title={t('weekly_pnl_empty')}
+              size="sm"
+            />
           )}
         </CardContent>
       </Card>

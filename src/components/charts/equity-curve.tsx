@@ -83,7 +83,14 @@ export function EquityCurve({
       bottomColor: chartTheme.colors.primaryFaint,
       lineColor: chartTheme.colors.primary,
       lineWidth: 2,
-      priceFormat: { type: 'custom', formatter: (p: number) => '$' + p.toLocaleString() },
+      priceFormat: {
+        type: 'custom',
+        // Locale-aware: ID locale tampilkan "Rp X" (thousands separator id-ID),
+        // EN locale tampilkan "$X" (en-US format). Backend storage tetap USD.
+        formatter: (p: number) => locale === 'id'
+          ? 'Rp ' + p.toLocaleString('id-ID')
+          : '$' + p.toLocaleString('en-US'),
+      },
     });
 
     areaSeries.setData(data as { time: string; value: number }[]);

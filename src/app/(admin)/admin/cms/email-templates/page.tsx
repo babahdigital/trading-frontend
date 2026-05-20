@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CmsPageHeader } from '@/components/cms/page-header';
+import { PageHeader } from '@/components/admin/page-header';
+import { EmptyState } from '@/components/admin/empty-state';
 import { useAuth } from '@/lib/auth/auth-context';
 import { Mail, Edit, Plus } from 'lucide-react';
 
@@ -42,29 +43,36 @@ export default function EmailTemplatesPage() {
 
   return (
     <div className="space-y-6">
-      <CmsPageHeader
+      <PageHeader
         title="Email Templates"
         description="Edit subject + body email transactional. Bilingual id/en. Variable interpolation pakai {{variable_name}}. Setiap template di-load dari DB saat dipakai sendTemplatedEmail()."
+        actions={
+          <Button variant="outline" asChild>
+            <Link href="/admin/cms/email-templates/new" className="gap-1.5">
+              <Plus className="h-4 w-4" />
+              New Template
+            </Link>
+          </Button>
+        }
       />
 
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          Total: <span className="font-semibold text-foreground">{templates.length}</span> template
-        </p>
-        <Link href="/admin/cms/email-templates/new">
-          <Button variant="outline">
-            <Plus className="h-4 w-4 mr-2" />
-            New Template
-          </Button>
-        </Link>
-      </div>
+      <p className="text-sm text-muted-foreground -mt-3">
+        Total: <span className="font-semibold text-foreground">{templates.length}</span> template
+      </p>
 
       {loading ? (
-        <div className="text-center py-8 text-muted-foreground">Memuat…</div>
-      ) : templates.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground border border-dashed border-border rounded-lg">
-          Belum ada template. Migration seed harusnya menambahkan welcome_user, password_reset, lead_confirmation default.
+        <div className="space-y-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}><CardContent className="p-4"><div className="h-14 rounded bg-muted animate-pulse" /></CardContent></Card>
+          ))}
         </div>
+      ) : templates.length === 0 ? (
+        <EmptyState
+          icon={Mail}
+          title="Belum ada email template"
+          description="Migration seed harusnya menambahkan welcome_user, password_reset, lead_confirmation default."
+          actions={[{ label: 'New Template', href: '/admin/cms/email-templates/new', icon: Plus }]}
+        />
       ) : (
         <div className="space-y-2">
           {templates.map((tpl) => (

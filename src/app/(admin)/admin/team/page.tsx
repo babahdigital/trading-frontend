@@ -3,9 +3,12 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
-  ShieldCheck, Crown, Wrench, UserPlus, Power, Settings, AlertCircle,
+  ShieldCheck, Crown, Wrench, UserPlus, Power, Settings, AlertCircle, Users,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { PageHeader } from '@/components/admin/page-header';
+import { EmptyState } from '@/components/admin/empty-state';
+import { formatRelative as formatRelativeI18n } from '@/lib/format-locale';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useToast } from '@/components/ui/toast';
 import { useConfirm } from '@/components/ui/confirm-dialog';
@@ -31,13 +34,7 @@ const ROLE_META = {
 
 function formatRelative(iso: string | null): string {
   if (!iso) return '—';
-  const d = new Date(iso);
-  const diff = Date.now() - d.getTime();
-  const days = Math.floor(diff / 86_400_000);
-  if (days < 1) return 'hari ini';
-  if (days < 7) return `${days}h lalu`;
-  if (days < 30) return `${Math.floor(days / 7)}m lalu`;
-  return d.toLocaleDateString('id-ID', { month: 'short', day: 'numeric', year: 'numeric' });
+  return formatRelativeI18n(iso);
 }
 
 export default function AdminTeamPage() {
@@ -105,20 +102,18 @@ export default function AdminTeamPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Tim & RBAC</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Kelola super admin, admin, dan operator. Setiap perubahan tercatat di audit chain SHA-256.
-          </p>
-        </div>
-        <Link href="/admin/team/new">
-          <Button className="gap-2">
-            <UserPlus className="h-4 w-4" strokeWidth={2.25} />
-            Tambah operator / admin
+      <PageHeader
+        title="Tim & RBAC"
+        description="Kelola super admin, admin, dan operator. Setiap perubahan tercatat di audit chain SHA-256."
+        actions={
+          <Button asChild className="gap-2">
+            <Link href="/admin/team/new">
+              <UserPlus className="h-4 w-4" strokeWidth={2.25} />
+              Tambah operator / admin
+            </Link>
           </Button>
-        </Link>
-      </div>
+        }
+      />
 
       {error && (
         <div role="alert" className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2.5 text-sm text-destructive">
@@ -141,9 +136,22 @@ export default function AdminTeamPage() {
           </thead>
           <tbody className="divide-y divide-border">
             {loading ? (
-              <tr><td colSpan={6} className="py-8 text-center text-muted-foreground no-label">Memuat tim…</td></tr>
+              Array.from({ length: 3 }).map((_, i) => (
+                <tr key={i}>
+                  <td colSpan={6} className="py-3 px-4 no-label"><div className="h-6 rounded bg-muted animate-pulse" /></td>
+                </tr>
+              ))
             ) : users.length === 0 ? (
-              <tr><td colSpan={6} className="py-8 text-center text-muted-foreground no-label">Belum ada admin/operator.</td></tr>
+              <tr>
+                <td colSpan={6} className="py-6 no-label">
+                  <EmptyState
+                    variant="inline"
+                    icon={Users}
+                    title="Belum ada admin/operator"
+                    description="Tambahkan anggota tim pertama untuk mulai mengelola platform."
+                  />
+                </td>
+              </tr>
             ) : users.map((u) => {
               const roleMeta = ROLE_META[u.role];
               const Icon = roleMeta.icon;

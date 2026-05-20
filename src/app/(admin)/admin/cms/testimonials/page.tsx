@@ -1,11 +1,14 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import Link from 'next/link';
+import { ExternalLink, MessageSquareQuote, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CmsPageHeader } from '@/components/cms/page-header';
+import { PageHeader } from '@/components/admin/page-header';
+import { EmptyState } from '@/components/admin/empty-state';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 
@@ -59,13 +62,24 @@ export default function CmsTestimonialsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <CmsPageHeader title="Testimonials" previewUrl="/" />
-          <p className="text-muted-foreground">Kelola testimonial yang tampil di landing page.</p>
-        </div>
-        <Button onClick={() => setEditing(empty)}>+ Tambah Testimonial</Button>
-      </div>
+      <PageHeader
+        title="Testimonials"
+        description="Kelola testimonial yang tampil di landing page."
+        actions={
+          <>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/" target="_blank" className="gap-2">
+                <ExternalLink className="h-4 w-4" />
+                Preview
+              </Link>
+            </Button>
+            <Button onClick={() => setEditing(empty)} className="gap-1.5">
+              <Plus className="h-4 w-4" />
+              Tambah Testimonial
+            </Button>
+          </>
+        }
+      />
 
       {editing && (
         <Card>
@@ -89,15 +103,28 @@ export default function CmsTestimonialsPage() {
         </Card>
       )}
 
-      {loading ? <div className="text-center py-8 text-muted-foreground">Loading...</div> : (
+      {loading ? (
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}><CardContent className="p-4"><div className="h-6 w-full max-w-md rounded bg-muted animate-pulse" /></CardContent></Card>
+          ))}
+        </div>
+      ) : items.length === 0 ? (
+        <EmptyState
+          icon={MessageSquareQuote}
+          title="Belum ada testimonial"
+          description="Tambahkan testimonial untuk membangun kepercayaan calon klien di landing page."
+          actions={[{ label: 'Tambah Testimonial', onClick: () => setEditing(empty), icon: Plus }]}
+        />
+      ) : (
         <div className="space-y-3">
           {items.map((t) => (
             <Card key={t.id}>
               <CardContent className="p-4 flex items-center justify-between">
-                <div>
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-semibold">{t.name}</span>
-                  {t.role && <span className="text-sm text-muted-foreground ml-2">{t.role}</span>}
-                  <span className="text-yellow-400 ml-2">{'★'.repeat(t.rating)}</span>
+                  {t.role && <span className="text-sm text-muted-foreground">{t.role}</span>}
+                  <span className="text-amber-500 dark:text-amber-400" aria-label={`Rating ${t.rating} dari 5`}>{'★'.repeat(t.rating)}</span>
                 </div>
                 <div className="flex gap-2">
                   <Button size="sm" variant="outline" onClick={() => setEditing(t)}>Edit</Button>

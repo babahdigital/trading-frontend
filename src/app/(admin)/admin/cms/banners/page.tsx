@@ -1,11 +1,15 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import Link from 'next/link';
+import { ExternalLink, Megaphone, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CmsPageHeader } from '@/components/cms/page-header';
+import { PageHeader } from '@/components/admin/page-header';
+import { EmptyState } from '@/components/admin/empty-state';
+import { activeBadge } from '@/lib/admin/badges';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useToast } from '@/components/ui/toast';
 import { useConfirm } from '@/components/ui/confirm-dialog';
@@ -120,13 +124,24 @@ export default function CmsBannersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <CmsPageHeader title="Banner Manager" previewUrl="/" />
-          <p className="text-muted-foreground">Kelola banner promosi di halaman publik.</p>
-        </div>
-        <Button onClick={() => setEditing(emptyBanner)}>+ Tambah Banner</Button>
-      </div>
+      <PageHeader
+        title="Banner Manager"
+        description="Kelola banner promosi di halaman publik."
+        actions={
+          <>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/" target="_blank" className="gap-2">
+                <ExternalLink className="h-4 w-4" />
+                Preview
+              </Link>
+            </Button>
+            <Button onClick={() => setEditing(emptyBanner)} className="gap-1.5">
+              <Plus className="h-4 w-4" />
+              Tambah Banner
+            </Button>
+          </>
+        }
+      />
 
       {editing && (
         <Card>
@@ -168,25 +183,42 @@ export default function CmsBannersPage() {
         </Card>
       )}
 
-      {loading ? <div className="text-center py-8 text-muted-foreground">Loading...</div> : (
+      {loading ? (
         <div className="space-y-3">
-          {banners.map((b) => (
-            <Card key={b.id}>
-              <CardContent className="p-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-4 h-4 rounded border" style={{ backgroundColor: b.bgColor || '#0ea5e9' }} />
-                  <div>
-                    <span className="font-semibold">{b.title}</span>
-                    <span className="text-xs text-muted-foreground ml-2">{b.position} {b.isActive ? '' : '(inactive)'}</span>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button size="sm" variant="outline" onClick={() => setEditing(b)}>Edit</Button>
-                  <Button size="sm" variant="destructive" onClick={() => handleDelete(b.id)}>Hapus</Button>
-                </div>
-              </CardContent>
-            </Card>
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}><CardContent className="p-4"><div className="h-6 w-full max-w-md rounded bg-muted animate-pulse" /></CardContent></Card>
           ))}
+        </div>
+      ) : banners.length === 0 ? (
+        <EmptyState
+          icon={Megaphone}
+          title="Belum ada banner"
+          description="Tambahkan banner pertama untuk menampilkan promosi di halaman publik."
+          actions={[{ label: 'Tambah Banner', onClick: () => setEditing(emptyBanner), icon: Plus }]}
+        />
+      ) : (
+        <div className="space-y-3">
+          {banners.map((b) => {
+            const ab = activeBadge(b.isActive);
+            return (
+              <Card key={b.id}>
+                <CardContent className="p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-4 h-4 rounded border" style={{ backgroundColor: b.bgColor || '#0ea5e9' }} />
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold">{b.title}</span>
+                      <span className="text-xs text-muted-foreground">{b.position}</span>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${ab.cls}`}>{ab.label}</span>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" onClick={() => setEditing(b)}>Edit</Button>
+                    <Button size="sm" variant="destructive" onClick={() => handleDelete(b.id)}>Hapus</Button>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>

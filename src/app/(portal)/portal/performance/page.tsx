@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -11,6 +11,11 @@ import { HourlyHeatmap } from '@/components/charts/hourly-heatmap';
 import { MonthlyCalendar } from '@/components/charts/monthly-calendar';
 import { useAuth } from '@/lib/auth/auth-context';
 import { strategyDisplayName, isStrategyObfuscationEnabled } from '@/lib/trading/strategy-names';
+import { PageHeader } from '@/components/admin/page-header';
+import { StatCard, StatCardGrid } from '@/components/admin/stat-card';
+import { formatCurrency, formatPercent } from '@/lib/format-locale';
+import type { Locale } from '@/lib/format-locale';
+import { TrendingUp, Activity, TrendingDown, Award, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 
 interface PairBreakdown {
   pair: string;
@@ -51,6 +56,7 @@ function genericSetup(setup: string): string {
 export default function PerformancePage() {
   const t = useTranslations('portal.performance');
   const tShared = useTranslations('portal.shared');
+  const locale = useLocale() as Locale;
   const { getAuthHeaders } = useAuth();
   const [data, setData] = useState<PerformanceData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -74,11 +80,6 @@ export default function PerformancePage() {
 
   useEffect(() => { fetchPerformance(days); }, [days, fetchPerformance]);
 
-  function fmt(val: number | undefined, prefix = '', suffix = '') {
-    if (val === undefined || val === null) return '-';
-    return `${prefix}${val.toFixed(2)}${suffix}`;
-  }
-
   const now = new Date();
 
   // Build chart data from setup breakdown
@@ -94,53 +95,87 @@ export default function PerformancePage() {
   })) || [];
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{t('title')}</h1>
-        <div className="flex items-center gap-1">
-          {[30, 90].map((d) => (
-            <Button key={d} variant={days === d ? 'default' : 'outline'} size="sm" onClick={() => setDays(d)}>
-              {d}D
-            </Button>
-          ))}
-        </div>
-      </div>
+    <div className="portal-page-stack">
+      <PageHeader
+        title={t('title')}
+        actions={
+          <div className="flex items-center gap-1">
+            {[30, 90].map((d) => (
+              <Button key={d} variant={days === d ? 'default' : 'outline'} size="sm" onClick={() => setDays(d)}>
+                {d}D
+              </Button>
+            ))}
+          </div>
+        }
+      />
 
       {error && (
-        <div className="rounded-md bg-red-500/10 border border-red-500/20 p-3 text-sm text-rose-600 dark:text-rose-400">{error}</div>
+        <div role="alert" className="rounded-md bg-rose-500/10 border border-rose-500/30 p-3 text-sm text-rose-700 dark:text-rose-300">{error}</div>
       )}
 
       {loading ? (
-        <p className="text-muted-foreground text-sm">{tShared('loading')}</p>
+        <StatCardGrid columns={4}>
+          {Array.from({ length: 6 }).map((_, i) => (
+            <StatCard key={i} label="" value="" loading />
+          ))}
+        </StatCardGrid>
       ) : (
         <>
           {/* ROW 1: 6 KPI Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground">{t('kpi_win_rate')}</CardTitle></CardHeader>
-              <CardContent><p className="text-xl font-bold font-mono">{fmt(data?.win_rate, '', '%')}</p></CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground">{t('kpi_profit_factor')}</CardTitle></CardHeader>
-              <CardContent><p className="text-xl font-bold font-mono">{fmt(data?.profit_factor)}</p></CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground">{t('kpi_avg_win')}</CardTitle></CardHeader>
-              <CardContent><p className="text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400">{fmt(data?.avg_win, '+$')}</p></CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground">{t('kpi_avg_loss')}</CardTitle></CardHeader>
-              <CardContent><p className="text-xl font-bold font-mono text-rose-600 dark:text-rose-400">{fmt(data?.avg_loss, '-$')}</p></CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground">{t('kpi_best_day')}</CardTitle></CardHeader>
-              <CardContent><p className="text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400">{fmt(data?.best_day, '+$')}</p></CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground">{t('kpi_worst_day')}</CardTitle></CardHeader>
-              <CardContent><p className="text-xl font-bold font-mono text-rose-600 dark:text-rose-400">{fmt(data?.worst_day, '-$')}</p></CardContent>
-            </Card>
-          </div>
+          <StatCardGrid columns={4} className="lg:grid-cols-6">
+            <StatCard
+              label={t('kpi_win_rate')}
+              value={data?.win_rate != null ? formatPercent(data.win_rate, locale, { decimals: 1 }) : '—'}
+              icon={Activity}
+              iconTone="info"
+            />
+            <StatCard
+              label={t('kpi_profit_factor')}
+              value={data?.profit_factor != null ? data.profit_factor.toFixed(2) : '—'}
+              icon={Award}
+              iconTone="accent"
+            />
+            <StatCard
+              label={t('kpi_avg_win')}
+              value={
+                <span className="text-emerald-600 dark:text-emerald-400">
+                  {data?.avg_win != null ? `+${formatCurrency(data.avg_win, 'USD', locale)}` : '—'}
+                </span>
+              }
+              icon={ArrowUpRight}
+              iconTone="success"
+            />
+            <StatCard
+              label={t('kpi_avg_loss')}
+              value={
+                <span className="text-rose-600 dark:text-rose-400">
+                  {data?.avg_loss != null ? `-${formatCurrency(Math.abs(data.avg_loss), 'USD', locale)}` : '—'}
+                </span>
+              }
+              icon={ArrowDownRight}
+              iconTone="danger"
+            />
+            <StatCard
+              label={t('kpi_best_day')}
+              value={
+                <span className="text-emerald-600 dark:text-emerald-400">
+                  {data?.best_day != null ? `+${formatCurrency(data.best_day, 'USD', locale)}` : '—'}
+                </span>
+              }
+              icon={TrendingUp}
+              iconTone="success"
+            />
+            <StatCard
+              label={t('kpi_worst_day')}
+              value={
+                <span className="text-rose-600 dark:text-rose-400">
+                  {data?.worst_day != null ? `-${formatCurrency(Math.abs(data.worst_day), 'USD', locale)}` : '—'}
+                </span>
+              }
+              icon={TrendingDown}
+              iconTone="danger"
+            />
+          </StatCardGrid>
 
           {/* ROW 2: Strategy Donut + Win Rate Bar */}
           {donutData.length > 0 && (
@@ -198,14 +233,14 @@ export default function PerformancePage() {
                     <div key={i} className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <span className={cn('w-3 h-3 rounded-full',
-                          cr.pnl >= 0 ? 'bg-green-500' : 'bg-red-500'
+                          cr.pnl >= 0 ? 'bg-emerald-500' : 'bg-rose-500'
                         )} />
                         <span className="text-sm">{cr.reason}</span>
                       </div>
                       <div className="text-right">
                         <span className="text-sm font-mono">{cr.trades} {t('trades_suffix')}</span>
                         <span className={cn('ml-3 text-sm font-mono', cr.pnl >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400')}>
-                          {cr.pnl >= 0 ? '+' : ''}${cr.pnl.toFixed(2)}
+                          {cr.pnl >= 0 ? '+' : ''}{formatCurrency(Math.abs(cr.pnl), 'USD', locale)}
                         </span>
                       </div>
                     </div>
@@ -237,7 +272,7 @@ export default function PerformancePage() {
                           <td className="py-3 text-right font-mono">{p.trades}</td>
                           <td className="py-3 text-right font-mono">{p.win_rate?.toFixed(1)}%</td>
                           <td className={cn('py-3 text-right font-mono font-medium', p.pnl >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400')}>
-                            {p.pnl >= 0 ? '+' : ''}${p.pnl.toFixed(2)}
+                            {p.pnl >= 0 ? '+' : ''}{formatCurrency(Math.abs(p.pnl), 'USD', locale)}
                           </td>
                         </tr>
                       ))}

@@ -5,9 +5,11 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { EmptyState } from '@/components/admin/empty-state';
+import { formatDate, formatDateTime } from '@/lib/format-locale';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth/auth-context';
-import { ArrowLeft, Activity, Globe, KeyRound, RefreshCw, Wifi } from 'lucide-react';
+import { ArrowLeft, Activity, Globe, KeyRound, RefreshCw, Wifi, AlertCircle } from 'lucide-react';
 
 interface HealthCheck {
   id: string;
@@ -90,7 +92,7 @@ export default function VpsFleetDetailPage() {
   }
 
   function healthBadge(health: string | null) {
-    if (!health) return { label: 'Tidak diketahui', cls: 'bg-slate-500/20 text-slate-400' };
+    if (!health) return { label: 'Tidak diketahui', cls: 'bg-slate-500/15 text-slate-700 dark:bg-slate-500/20 dark:text-slate-300' };
     if (health === 'ok') return { label: 'Sehat', cls: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' };
     if (health === 'degraded') return { label: 'Terganggu', cls: 'bg-amber-500/15 text-amber-700 dark:text-amber-300' };
     return { label: 'Tidak terjangkau', cls: 'bg-rose-500/15 text-rose-700 dark:text-rose-300' };
@@ -109,9 +111,13 @@ export default function VpsFleetDetailPage() {
           <Link href="/admin/vps-fleet">
             <Button variant="ghost" size="sm"><ArrowLeft className="w-4 h-4 mr-1" /> Kembali</Button>
           </Link>
-          <h2 className="text-3xl font-bold tracking-tight">Detail VPS</h2>
+          <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight">Detail VPS</h2>
         </div>
-        <p className="text-muted-foreground text-sm">Memuat data...</p>
+        <div className="grid gap-6 lg:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}><CardContent className="p-6"><div className="h-32 rounded bg-muted animate-pulse" /></CardContent></Card>
+          ))}
+        </div>
       </div>
     );
   }
@@ -123,11 +129,14 @@ export default function VpsFleetDetailPage() {
           <Link href="/admin/vps-fleet">
             <Button variant="ghost" size="sm"><ArrowLeft className="w-4 h-4 mr-1" /> Kembali</Button>
           </Link>
-          <h2 className="text-3xl font-bold tracking-tight">Detail VPS</h2>
+          <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight">Detail VPS</h2>
         </div>
-        <div className="text-center py-12 text-muted-foreground">
-          {error || 'VPS tidak ditemukan'}
-        </div>
+        <EmptyState
+          variant="error"
+          icon={AlertCircle}
+          title={error || 'VPS tidak ditemukan'}
+          description="Periksa kembali ID VPS atau coba muat ulang halaman."
+        />
       </div>
     );
   }
@@ -144,8 +153,8 @@ export default function VpsFleetDetailPage() {
             <Button variant="ghost" size="sm"><ArrowLeft className="w-4 h-4 mr-1" /> Kembali</Button>
           </Link>
           <div>
-            <div className="flex items-center gap-3">
-              <h2 className="text-3xl font-bold tracking-tight">{vps.name}</h2>
+            <div className="flex items-center gap-3 flex-wrap">
+              <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight">{vps.name}</h2>
               <span className={cn('px-2.5 py-1 rounded-full text-xs font-medium', sBadge.cls)}>
                 {sBadge.label}
               </span>
@@ -186,9 +195,7 @@ export default function VpsFleetDetailPage() {
               <span className={cn('px-2 py-0.5 rounded text-xs font-medium', hBadge.cls)}>{hBadge.label}</span>
             </div>
             <DetailRow label="Cek Terakhir" value={
-              vps.lastHealthCheckAt
-                ? new Date(vps.lastHealthCheckAt).toLocaleString('id-ID')
-                : 'Belum pernah'
+              vps.lastHealthCheckAt ? formatDateTime(vps.lastHealthCheckAt) : 'Belum pernah'
             } />
             {/* Recent health checks */}
             {vps.healthChecks.length > 0 && (
@@ -197,7 +204,7 @@ export default function VpsFleetDetailPage() {
                 {vps.healthChecks.map((hc) => (
                   <div key={hc.id} className="flex items-center justify-between text-xs p-2 rounded border">
                     <span className="text-muted-foreground">
-                      {new Date(hc.checkedAt).toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                      {formatDateTime(hc.checkedAt)}
                     </span>
                     <div className="flex items-center gap-2">
                       {hc.responseTimeMs !== null && <span className="font-mono">{hc.responseTimeMs}ms</span>}
@@ -228,7 +235,7 @@ export default function VpsFleetDetailPage() {
             } />
             <DetailRow label="Status Sync" value={vps.lastSyncStatus || '-'} />
             <DetailRow label="Sync Terakhir" value={
-              vps.lastSyncAt ? new Date(vps.lastSyncAt).toLocaleString('id-ID') : '-'
+              vps.lastSyncAt ? formatDateTime(vps.lastSyncAt) : '-'
             } />
             <DetailRow label="Seed Checksum" value={vps.hasSeedChecksum ? 'Ada' : 'Belum ada'} />
             <DetailRow label="Sync Token" value={vps.hasSyncToken ? 'Terenkripsi' : 'Belum ada'} />
@@ -270,7 +277,12 @@ export default function VpsFleetDetailPage() {
         </CardHeader>
         <CardContent>
           {vps.licenses.length === 0 ? (
-            <p className="text-muted-foreground text-sm text-center py-4">Tidak ada lisensi terhubung</p>
+            <EmptyState
+              variant="inline"
+              size="sm"
+              icon={KeyRound}
+              title="Tidak ada lisensi terhubung"
+            />
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -302,7 +314,7 @@ export default function VpsFleetDetailPage() {
                           </span>
                         </td>
                         <td className="p-3 text-muted-foreground text-xs">
-                          {lic.expiresAt ? new Date(lic.expiresAt).toLocaleDateString('id-ID') : '-'}
+                          {lic.expiresAt ? formatDate(lic.expiresAt) : '-'}
                         </td>
                       </tr>
                     );

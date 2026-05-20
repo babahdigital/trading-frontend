@@ -1,11 +1,14 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import Link from 'next/link';
+import { ExternalLink, FileText, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CmsPageHeader } from '@/components/cms/page-header';
+import { PageHeader } from '@/components/admin/page-header';
+import { EmptyState } from '@/components/admin/empty-state';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 
@@ -75,13 +78,24 @@ export default function CmsArticlesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <CmsPageHeader title="Research Articles" previewUrl="/research" />
-          <p className="text-muted-foreground">Manage research articles and insights.</p>
-        </div>
-        <Button onClick={() => setEditing({ ...EMPTY_ARTICLE })}>+ New Article</Button>
-      </div>
+      <PageHeader
+        title="Research Articles"
+        description="Manage research articles and insights."
+        actions={
+          <>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/research" target="_blank" className="gap-2">
+                <ExternalLink className="h-4 w-4" />
+                Preview
+              </Link>
+            </Button>
+            <Button onClick={() => setEditing({ ...EMPTY_ARTICLE })} className="gap-1.5">
+              <Plus className="h-4 w-4" />
+              New Article
+            </Button>
+          </>
+        }
+      />
 
       {editing && (
         <Card>
@@ -154,22 +168,31 @@ export default function CmsArticlesPage() {
       )}
 
       {loading ? (
-        <div className="text-center py-8 text-muted-foreground">Loading...</div>
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}><CardContent className="p-4"><div className="h-6 w-full max-w-md rounded bg-muted animate-pulse" /></CardContent></Card>
+          ))}
+        </div>
       ) : articles.length === 0 ? (
-        <div className="text-center py-8 text-muted-foreground">No articles yet. Click &quot;+ New Article&quot; to write one.</div>
+        <EmptyState
+          icon={FileText}
+          title="Belum ada artikel"
+          description="Tulis artikel pertama untuk dipublikasikan ke surface research."
+          actions={[{ label: 'New Article', onClick: () => setEditing({ ...EMPTY_ARTICLE }), icon: Plus }]}
+        />
       ) : (
         <div className="space-y-3">
           {articles.map((a) => (
             <Card key={a.id}>
               <CardContent className="p-4 flex items-center justify-between">
                 <div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-mono text-xs bg-muted px-2 py-0.5 rounded">{a.category}</span>
                     <span className="font-semibold">{a.title}</span>
                     {a.isPublished ? (
-                      <span className="text-xs text-green-500">Published</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-emerald-500/15 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">Published</span>
                     ) : (
-                      <span className="text-xs text-muted-foreground">Draft</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-slate-500/15 text-slate-700 dark:bg-slate-500/20 dark:text-slate-300">Draft</span>
                     )}
                   </div>
                   <p className="text-sm text-muted-foreground mt-1">{a.excerpt.substring(0, 100)}...</p>

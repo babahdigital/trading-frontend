@@ -7,6 +7,11 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth/auth-context';
+import { PageHeader } from '@/components/admin/page-header';
+import { EmptyState } from '@/components/admin/empty-state';
+import { formatDateTime, formatCurrency } from '@/lib/format-locale';
+import type { Locale } from '@/lib/format-locale';
+import { FileSearch } from 'lucide-react';
 
 interface SignalRow {
   id: string;
@@ -33,23 +38,23 @@ const OUTCOMES = ['', 'OPEN', 'WIN', 'LOSS', 'BREAKEVEN', 'CANCELLED'] as const;
 function outcomeClass(outcome: SignalRow['outcome']) {
   switch (outcome) {
     case 'WIN':
-      return 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30';
+      return 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30';
     case 'LOSS':
-      return 'bg-rose-500/15 text-rose-400 border-rose-500/30';
+      return 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30';
     case 'BREAKEVEN':
-      return 'bg-slate-500/15 text-slate-300 border-slate-500/30';
+      return 'bg-slate-500/15 text-slate-700 dark:text-slate-300 border-slate-500/30';
     case 'OPEN':
-      return 'bg-amber-500/15 text-amber-400 border-amber-500/30';
+      return 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30';
     case 'CANCELLED':
-      return 'bg-zinc-500/15 text-zinc-400 border-zinc-500/30';
+      return 'bg-zinc-500/15 text-zinc-700 dark:text-zinc-300 border-zinc-500/30';
     default:
-      return 'bg-sky-500/15 text-sky-400 border-sky-500/30';
+      return 'bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30';
   }
 }
 
 export default function SignalAuditPage() {
   const t = useTranslations('portal.signal_audit');
-  const locale = useLocale();
+  const locale = useLocale() as Locale;
   const { getAuthHeaders } = useAuth();
   const [rows, setRows] = useState<SignalRow[]>([]);
   const [total, setTotal] = useState(0);
@@ -62,8 +67,6 @@ export default function SignalAuditPage() {
   const [minConf, setMinConf] = useState('');
   const [offset, setOffset] = useState(0);
   const limit = 50;
-
-  const dateLocale = locale === 'id' ? 'id-ID' : 'en-US';
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -102,21 +105,19 @@ export default function SignalAuditPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">{t('title')}</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          {t('subtitle')}
-        </p>
-      </div>
+    <div className="portal-page-stack">
+      <PageHeader
+        title={t('title')}
+        description={t('subtitle')}
+      />
 
       {error && (
-        <div role="alert" className="rounded-md bg-rose-500/10 border border-rose-500/30 p-3 text-sm text-rose-400">
+        <div role="alert" className="rounded-md bg-rose-500/10 border border-rose-500/30 p-3 text-sm text-rose-700 dark:text-rose-300">
           {error}
         </div>
       )}
 
-      <Card className="bg-card border-border">
+      <Card>
         <CardHeader>
           <CardTitle className="text-base font-semibold">{t('filter_title')}</CardTitle>
         </CardHeader>
@@ -154,8 +155,8 @@ export default function SignalAuditPage() {
         </CardContent>
       </Card>
 
-      <Card className="bg-card border-border">
-        <CardHeader className="flex-row items-center justify-between">
+      <Card>
+        <CardHeader className="flex-row items-center justify-between flex-wrap gap-2">
           <CardTitle className="text-base font-semibold">
             {loading ? t('loading') : t('records_count', { count: total.toLocaleString() })}
           </CardTitle>
@@ -170,82 +171,170 @@ export default function SignalAuditPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="text-xs uppercase text-muted-foreground border-b border-border/50">
-                <tr>
-                  <th className="text-left py-2 px-2">{t('table_time')}</th>
-                  <th className="text-left py-2 px-2">{t('table_pair')}</th>
-                  <th className="text-left py-2 px-2">{t('table_dir')}</th>
-                  <th className="text-right py-2 px-2">{t('table_entry')}</th>
-                  <th className="text-right py-2 px-2">{t('table_sl')}</th>
-                  <th className="text-right py-2 px-2">{t('table_tp')}</th>
-                  <th className="text-right py-2 px-2">{t('table_conf')}</th>
-                  <th className="text-right py-2 px-2">{t('table_pl')}</th>
-                  <th className="text-center py-2 px-2">{t('table_outcome')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.length === 0 && !loading && (
-                  <tr><td colSpan={9} className="py-8 text-center text-muted-foreground">
-                    {t('empty')}
-                  </td></tr>
-                )}
-                {rows.map((r) => (
-                  <Fragment key={r.id}>
-                    <tr
-                        className="border-b border-border/30 hover:bg-white/5 cursor-pointer focus-within:bg-white/5"
-                        onClick={() => toggleExpand(r.id)}
-                        tabIndex={0}
-                        onKeyDown={(e) => { if (e.key === 'Enter') toggleExpand(r.id); }}>
-                      <td className="py-2 px-2 text-xs text-muted-foreground tabular-nums">
-                        {new Date(r.emittedAt).toLocaleString(dateLocale, { dateStyle: 'short', timeStyle: 'short' })}
-                      </td>
-                      <td className="py-2 px-2 font-medium">{r.pair}</td>
-                      <td className="py-2 px-2">
-                        <span className={cn('text-xs font-medium', r.direction === 'BUY' ? 'text-emerald-400' : 'text-rose-400')}>
-                          {r.direction}
-                        </span>
-                      </td>
-                      <td className="py-2 px-2 text-right tabular-nums">{r.entryPrice ?? '—'}</td>
-                      <td className="py-2 px-2 text-right tabular-nums text-rose-300/80">{r.stopLoss ?? '—'}</td>
-                      <td className="py-2 px-2 text-right tabular-nums text-emerald-300/80">{r.takeProfit ?? '—'}</td>
-                      <td className="py-2 px-2 text-right tabular-nums">
-                        {r.confidence ? Number(r.confidence).toFixed(2) : '—'}
-                      </td>
-                      <td className={cn('py-2 px-2 text-right tabular-nums',
-                        r.profitUsd && Number(r.profitUsd) > 0 ? 'text-emerald-400' :
-                        r.profitUsd && Number(r.profitUsd) < 0 ? 'text-rose-400' : 'text-muted-foreground')}>
-                        {r.profitUsd ? `$${Number(r.profitUsd).toFixed(2)}` : '—'}
-                      </td>
-                      <td className="py-2 px-2 text-center">
-                        <span className={cn('inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border', outcomeClass(r.outcome))}>
-                          {r.outcome}
-                        </span>
-                      </td>
+          {loading ? (
+            <div className="space-y-2">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="h-12 rounded bg-muted animate-pulse" />
+              ))}
+            </div>
+          ) : rows.length === 0 ? (
+            <EmptyState
+              variant="inline"
+              icon={FileSearch}
+              title={t('empty')}
+              size="sm"
+            />
+          ) : (
+            <>
+              {/* Desktop table */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="text-xs uppercase text-muted-foreground border-b border-border/50">
+                    <tr>
+                      <th className="text-left py-2 px-2">{t('table_time')}</th>
+                      <th className="text-left py-2 px-2">{t('table_pair')}</th>
+                      <th className="text-left py-2 px-2">{t('table_dir')}</th>
+                      <th className="text-right py-2 px-2">{t('table_entry')}</th>
+                      <th className="text-right py-2 px-2">{t('table_sl')}</th>
+                      <th className="text-right py-2 px-2">{t('table_tp')}</th>
+                      <th className="text-right py-2 px-2">{t('table_conf')}</th>
+                      <th className="text-right py-2 px-2">{t('table_pl')}</th>
+                      <th className="text-center py-2 px-2">{t('table_outcome')}</th>
                     </tr>
-                    {expanded.has(r.id) && (
-                      <tr className="border-b border-border/30 bg-white/[0.02]">
-                        <td colSpan={9} className="py-3 px-4 text-xs text-muted-foreground">
-                          <div className="grid gap-2 md:grid-cols-3">
-                            <div><span className="text-foreground/60">{t('detail_source_id')}</span> <span className="font-mono">{r.sourceId}</span></div>
-                            <div><span className="text-foreground/60">{t('detail_entry_type')}</span> {r.entryType ?? '—'}</div>
-                            <div><span className="text-foreground/60">{t('detail_lot')}</span> {r.lot ?? '—'}</div>
-                            {r.closedAt && <div><span className="text-foreground/60">{t('detail_closed_at')}</span> {new Date(r.closedAt).toLocaleString(dateLocale)}</div>}
-                            {r.closePrice && <div><span className="text-foreground/60">{t('detail_close_price')}</span> {r.closePrice}</div>}
-                            {r.closeReason && <div><span className="text-foreground/60">{t('detail_close_reason')}</span> {r.closeReason}</div>}
+                  </thead>
+                  <tbody>
+                    {rows.map((r) => (
+                      <Fragment key={r.id}>
+                        <tr
+                            className="border-b border-border/30 hover:bg-muted/40 cursor-pointer focus-within:bg-muted/40"
+                            onClick={() => toggleExpand(r.id)}
+                            tabIndex={0}
+                            onKeyDown={(e) => { if (e.key === 'Enter') toggleExpand(r.id); }}>
+                          <td className="py-2 px-2 text-xs text-muted-foreground tabular-nums">
+                            {formatDateTime(r.emittedAt, locale)}
+                          </td>
+                          <td className="py-2 px-2 font-medium font-mono">{r.pair}</td>
+                          <td className="py-2 px-2">
+                            <span className={cn('text-xs font-medium', r.direction === 'BUY' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400')}>
+                              {r.direction}
+                            </span>
+                          </td>
+                          <td className="py-2 px-2 text-right tabular-nums">{r.entryPrice ?? '—'}</td>
+                          <td className="py-2 px-2 text-right tabular-nums text-rose-600/80 dark:text-rose-300/80">{r.stopLoss ?? '—'}</td>
+                          <td className="py-2 px-2 text-right tabular-nums text-emerald-600/80 dark:text-emerald-300/80">{r.takeProfit ?? '—'}</td>
+                          <td className="py-2 px-2 text-right tabular-nums">
+                            {r.confidence ? Number(r.confidence).toFixed(2) : '—'}
+                          </td>
+                          <td className={cn('py-2 px-2 text-right tabular-nums',
+                            r.profitUsd && Number(r.profitUsd) > 0 ? 'text-emerald-600 dark:text-emerald-400' :
+                            r.profitUsd && Number(r.profitUsd) < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-muted-foreground')}>
+                            {r.profitUsd ? formatCurrency(Number(r.profitUsd), 'USD', locale) : '—'}
+                          </td>
+                          <td className="py-2 px-2 text-center">
+                            <span className={cn('inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border', outcomeClass(r.outcome))}>
+                              {r.outcome}
+                            </span>
+                          </td>
+                        </tr>
+                        {expanded.has(r.id) && (
+                          <tr className="border-b border-border/30 bg-muted/30">
+                            <td colSpan={9} className="py-3 px-4 text-xs text-muted-foreground">
+                              <div className="grid gap-2 md:grid-cols-3">
+                                <div><span className="text-foreground/60">{t('detail_source_id')}</span> <span className="font-mono">{r.sourceId}</span></div>
+                                <div><span className="text-foreground/60">{t('detail_entry_type')}</span> {r.entryType ?? '—'}</div>
+                                <div><span className="text-foreground/60">{t('detail_lot')}</span> {r.lot ?? '—'}</div>
+                                {r.closedAt && <div><span className="text-foreground/60">{t('detail_closed_at')}</span> {formatDateTime(r.closedAt, locale)}</div>}
+                                {r.closePrice && <div><span className="text-foreground/60">{t('detail_close_price')}</span> {r.closePrice}</div>}
+                                {r.closeReason && <div><span className="text-foreground/60">{t('detail_close_reason')}</span> {r.closeReason}</div>}
+                              </div>
+                              {r.reasoning && (
+                                <p className="mt-3 whitespace-pre-wrap text-foreground/80">{r.reasoning}</p>
+                              )}
+                            </td>
+                          </tr>
+                        )}
+                      </Fragment>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile card stack — audit P1 fix */}
+              <ul className="md:hidden space-y-2" aria-label={t('records_count', { count: total.toLocaleString() })}>
+                {rows.map((r) => {
+                  const isExpanded = expanded.has(r.id);
+                  const profit = r.profitUsd ? Number(r.profitUsd) : null;
+                  return (
+                    <li
+                      key={r.id}
+                      className={cn(
+                        'rounded-lg border p-3 transition-colors',
+                        r.direction === 'BUY' ? 'border-emerald-500/20' : 'border-rose-500/20',
+                      )}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => toggleExpand(r.id)}
+                        className="w-full text-left"
+                        aria-expanded={isExpanded}
+                      >
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-mono font-semibold text-sm">{r.pair}</span>
+                              <span className={cn(
+                                'px-1.5 py-0.5 rounded text-[10px] font-medium uppercase',
+                                r.direction === 'BUY'
+                                  ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
+                                  : 'bg-rose-500/15 text-rose-700 dark:text-rose-300',
+                              )}>{r.direction}</span>
+                              <span className={cn('inline-block px-1.5 py-0.5 rounded text-[10px] font-medium border', outcomeClass(r.outcome))}>
+                                {r.outcome}
+                              </span>
+                            </div>
+                            <div className="text-[11px] text-muted-foreground mt-0.5">{formatDateTime(r.emittedAt, locale)}</div>
                           </div>
-                          {r.reasoning && (
-                            <p className="mt-3 whitespace-pre-wrap text-foreground/80">{r.reasoning}</p>
+                          {profit != null && (
+                            <div className={cn('font-mono font-semibold text-sm tabular-nums',
+                              profit > 0 ? 'text-emerald-600 dark:text-emerald-400' :
+                              profit < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-muted-foreground')}>
+                              {formatCurrency(profit, 'USD', locale)}
+                            </div>
                           )}
-                        </td>
-                      </tr>
-                    )}
-                  </Fragment>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                        </div>
+                        <dl className="grid grid-cols-3 gap-2 text-xs">
+                          <div>
+                            <dt className="text-muted-foreground/70 text-[10px] uppercase tracking-wider">{t('table_entry')}</dt>
+                            <dd className="font-mono tabular-nums mt-0.5">{r.entryPrice ?? '—'}</dd>
+                          </div>
+                          <div>
+                            <dt className="text-muted-foreground/70 text-[10px] uppercase tracking-wider">{t('table_sl')}</dt>
+                            <dd className="font-mono tabular-nums mt-0.5 text-rose-600/80 dark:text-rose-300/80">{r.stopLoss ?? '—'}</dd>
+                          </div>
+                          <div>
+                            <dt className="text-muted-foreground/70 text-[10px] uppercase tracking-wider">{t('table_tp')}</dt>
+                            <dd className="font-mono tabular-nums mt-0.5 text-emerald-600/80 dark:text-emerald-300/80">{r.takeProfit ?? '—'}</dd>
+                          </div>
+                        </dl>
+                      </button>
+                      {isExpanded && (
+                        <div className="mt-3 pt-3 border-t border-border/40 text-xs text-muted-foreground space-y-1">
+                          <div><span className="text-foreground/60">{t('detail_source_id')}</span> <span className="font-mono">{r.sourceId}</span></div>
+                          <div><span className="text-foreground/60">{t('detail_entry_type')}</span> {r.entryType ?? '—'}</div>
+                          <div><span className="text-foreground/60">{t('detail_lot')}</span> {r.lot ?? '—'}</div>
+                          {r.confidence && <div><span className="text-foreground/60">{t('table_conf')}</span> {Number(r.confidence).toFixed(2)}</div>}
+                          {r.closedAt && <div><span className="text-foreground/60">{t('detail_closed_at')}</span> {formatDateTime(r.closedAt, locale)}</div>}
+                          {r.closePrice && <div><span className="text-foreground/60">{t('detail_close_price')}</span> {r.closePrice}</div>}
+                          {r.closeReason && <div><span className="text-foreground/60">{t('detail_close_reason')}</span> {r.closeReason}</div>}
+                          {r.reasoning && <p className="mt-2 whitespace-pre-wrap text-foreground/80">{r.reasoning}</p>}
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
+          )}
         </CardContent>
       </Card>
     </div>

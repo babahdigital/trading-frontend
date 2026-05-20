@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth/auth-context';
 import { ArrowLeft, Bot, CheckCircle2, ExternalLink, MessageCircle, XCircle } from 'lucide-react';
+import { PageHeader } from '@/components/admin/page-header';
 
 interface Profile {
   telegramChatId?: string | null;
@@ -42,19 +43,16 @@ export default function MyVpsTelegramPage() {
   ] as const;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <Link href="/portal/my-vps">
-          <Button variant="ghost" size="sm">
-            <ArrowLeft className="w-4 h-4 mr-1" /> {t('back')}
-          </Button>
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold">{t('heading')}</h1>
-          <p className="text-sm text-muted-foreground">{t('tagline')}</p>
-        </div>
-      </div>
+    <div className="portal-page-stack">
+      <PageHeader
+        title={t('heading')}
+        description={t('tagline')}
+        eyebrow={
+          <Link href="/portal/my-vps" className="inline-flex items-center gap-1 hover:text-foreground transition-colors">
+            <ArrowLeft className="w-3 h-3" /> {t('back')}
+          </Link>
+        }
+      />
 
       {/* Connection Status */}
       <Card>

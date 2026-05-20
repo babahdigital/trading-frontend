@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { PageHeader } from '@/components/admin/page-header';
 import { useAuth } from '@/lib/auth/auth-context';
 
 export default function AdminProfilePage() {
@@ -66,10 +67,10 @@ export default function AdminProfilePage() {
 
   return (
     <div className="space-y-6 max-w-2xl">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Akun Saya</h1>
-        <p className="text-sm text-muted-foreground mt-1">Pengaturan akun admin</p>
-      </div>
+      <PageHeader
+        title="Akun Saya"
+        description="Pengaturan akun admin"
+      />
 
       <Card className="bg-card border-border">
         <CardHeader>
@@ -123,12 +124,12 @@ export default function AdminProfilePage() {
             </div>
 
             {error && (
-              <div className="text-sm text-red-400 bg-red-400/10 p-3 rounded-md" role="alert">
+              <div className="text-sm text-rose-700 dark:text-rose-300 bg-rose-500/10 border border-rose-500/30 p-3 rounded-md" role="alert">
                 {error}
               </div>
             )}
             {message && (
-              <div className="text-sm text-emerald-400 bg-emerald-400/10 p-3 rounded-md" role="status">
+              <div className="text-sm text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 p-3 rounded-md" role="status">
                 {message}
               </div>
             )}

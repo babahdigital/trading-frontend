@@ -1,11 +1,13 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { Search, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CmsPageHeader } from '@/components/cms/page-header';
+import { PageHeader } from '@/components/admin/page-header';
+import { EmptyState } from '@/components/admin/empty-state';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useToast } from '@/components/ui/toast';
 import { useConfirm } from '@/components/ui/confirm-dialog';
@@ -110,15 +112,16 @@ export default function CmsSeoPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <CmsPageHeader title="SEO / Page Meta" />
-          <p className="text-muted-foreground">
-            Kelola title, description, dan OG tags per halaman. Tulis Indonesian sebagai source — worker zero-touch otomatis translate ke English dalam 5 menit, atau klik <strong>Auto-translate</strong> untuk instant.
-          </p>
-        </div>
-        <Button onClick={() => setEditing(empty)}>+ Tambah Page Meta</Button>
-      </div>
+      <PageHeader
+        title="SEO / Page Meta"
+        description="Kelola title, description, dan OG tags per halaman. Tulis Indonesian sebagai source — worker zero-touch otomatis translate ke English dalam 5 menit, atau klik Auto-translate untuk instant."
+        actions={
+          <Button onClick={() => setEditing(empty)} className="gap-1.5">
+            <Plus className="h-4 w-4" />
+            Tambah Page Meta
+          </Button>
+        }
+      />
 
       {editing && (
         <Card>
@@ -131,7 +134,7 @@ export default function CmsSeoPage() {
 
             {/* Indonesian — Source of truth */}
             <div className="rounded-lg border border-border/60 p-4 space-y-3">
-              <p className="text-xs font-mono uppercase tracking-wider text-amber-400">Bahasa Indonesia · Source of truth</p>
+              <p className="text-xs font-mono uppercase tracking-wider text-amber-600 dark:text-amber-400">Bahasa Indonesia · Source of truth</p>
               <div><label className="text-sm font-medium mb-1 block">Title (ID)</label><Input value={editing.title} onChange={(e) => setEditing({ ...editing, title: e.target.value })} /></div>
               <div><label className="text-sm font-medium mb-1 block">Description (ID)</label><Textarea value={editing.description || ''} onChange={(e) => setEditing({ ...editing, description: e.target.value })} rows={2} /></div>
               <div className="grid grid-cols-2 gap-3">
@@ -166,7 +169,7 @@ export default function CmsSeoPage() {
                 <div><label className="text-sm font-medium mb-1 block">OG Description (EN)</label><Input value={editing.ogDescription_en ?? ''} onChange={(e) => setEditing({ ...editing, ogDescription_en: e.target.value || null })} /></div>
               </div>
               {!editing.id && (
-                <p className="text-xs text-amber-400">ⓘ Simpan dulu (Indonesian), lalu Auto-translate akan tersedia.</p>
+                <p className="text-xs text-amber-600 dark:text-amber-400">ⓘ Simpan dulu (Indonesian), lalu Auto-translate akan tersedia.</p>
               )}
             </div>
 
@@ -178,7 +181,20 @@ export default function CmsSeoPage() {
         </Card>
       )}
 
-      {loading ? <div className="text-center py-8 text-muted-foreground">Loading...</div> : (
+      {loading ? (
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}><CardContent className="p-4"><div className="h-10 rounded bg-muted animate-pulse" /></CardContent></Card>
+          ))}
+        </div>
+      ) : pages.length === 0 ? (
+        <EmptyState
+          icon={Search}
+          title="Belum ada page meta"
+          description="Tambahkan entri pertama untuk override default title/description per path."
+          actions={[{ label: 'Tambah Page Meta', onClick: () => setEditing(empty), icon: Plus }]}
+        />
+      ) : (
         <div className="space-y-3">
           {pages.map((p) => (
             <Card key={p.id}>
@@ -187,9 +203,9 @@ export default function CmsSeoPage() {
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <span className="font-mono text-xs bg-muted px-2 py-0.5 rounded">{p.path}</span>
                     {hasEnglish(p) ? (
-                      <span className="text-xs px-2 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/40 text-emerald-300">✓ EN</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-emerald-500/15 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">✓ EN</span>
                     ) : (
-                      <span className="text-xs px-2 py-0.5 rounded bg-amber-500/15 border border-amber-500/40 text-amber-300">⚠ Need EN</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-amber-500/15 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">⚠ Need EN</span>
                     )}
                   </div>
                   <span className="font-semibold truncate block">{p.title}</span>

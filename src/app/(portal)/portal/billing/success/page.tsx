@@ -152,7 +152,7 @@ function SuccessInner() {
             {isEn ? 'View Billing' : 'Lihat Tagihan'}
           </Link>
         )}
-        <Link href="/contact" className="text-foreground/50 hover:text-amber-400 transition-colors text-sm self-center">
+        <Link href="/contact" className="text-foreground/50 hover:text-amber-600 dark:hover:text-amber-400 transition-colors text-sm self-center">
           {isEn ? 'Need help?' : 'Butuh bantuan?'}
         </Link>
       </div>

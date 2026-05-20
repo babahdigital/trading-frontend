@@ -8,6 +8,10 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth/auth-context';
 import { ArrowLeft, Shield, Settings2, Zap } from 'lucide-react';
+import { PageHeader } from '@/components/admin/page-header';
+import { EmptyState } from '@/components/admin/empty-state';
+import { formatDate } from '@/lib/format-locale';
+import type { Locale } from '@/lib/format-locale';
 
 interface StatusData {
   bot_status?: string;
@@ -23,7 +27,7 @@ interface StatusData {
 
 export default function MyVpsSettingsPage() {
   const t = useTranslations('portal.vps.settings');
-  const locale = useLocale();
+  const locale = useLocale() as Locale;
   const { getAuthHeaders } = useAuth();
   const [status, setStatus] = useState<StatusData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -44,22 +48,21 @@ export default function MyVpsSettingsPage() {
   const pairs = status?.ai_state_by_pair ? Object.keys(status.ai_state_by_pair) : [];
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <Link href="/portal/my-vps">
-          <Button variant="ghost" size="sm">
-            <ArrowLeft className="w-4 h-4 mr-1" /> {t('back')}
-          </Button>
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold">{t('heading')}</h1>
-          <p className="text-sm text-muted-foreground">{t('tagline')}</p>
-        </div>
-      </div>
+    <div className="portal-page-stack">
+      <PageHeader
+        title={t('heading')}
+        description={t('tagline')}
+        eyebrow={
+          <Link href="/portal/my-vps" className="inline-flex items-center gap-1 hover:text-foreground transition-colors">
+            <ArrowLeft className="w-3 h-3" /> {t('back')}
+          </Link>
+        }
+      />
 
       {loading ? (
-        <p className="text-muted-foreground text-sm">{t('loading')}</p>
+        <div className="space-y-3">
+          {Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-32 rounded bg-muted animate-pulse" />)}
+        </div>
       ) : (
         <>
           {/* Active Pairs */}
@@ -71,7 +74,7 @@ export default function MyVpsSettingsPage() {
             </CardHeader>
             <CardContent>
               {pairs.length === 0 ? (
-                <p className="text-muted-foreground text-sm">{t('no_active_pairs')}</p>
+                <EmptyState variant="inline" title={t('no_active_pairs')} size="sm" />
               ) : (
                 <div className="flex flex-wrap gap-2">
                   {pairs.map((pair) => (
@@ -98,7 +101,7 @@ export default function MyVpsSettingsPage() {
                 <InfoRow label={t('row_stop_loss')} value={t('row_stop_loss_value')} />
                 <InfoRow label={t('row_take_profit')} value={t('row_take_profit_value')} />
               </div>
-              <div className="mt-4 p-3 rounded-md bg-amber-500/10 border border-amber-500/20 text-sm text-amber-400">
+              <div className="mt-4 p-3 rounded-md bg-amber-500/10 border border-amber-500/20 text-sm text-amber-700 dark:text-amber-300">
                 {t('risk_note')}
               </div>
             </CardContent>
@@ -119,7 +122,7 @@ export default function MyVpsSettingsPage() {
                 <InfoRow
                   label={t('row_license_expiry')}
                   value={status?.license_expiry
-                    ? new Date(status.license_expiry).toLocaleDateString(locale === 'en' ? 'en-US' : 'id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+                    ? formatDate(status.license_expiry, locale, { day: 'numeric', month: 'long', year: 'numeric' })
                     : '-'
                   }
                 />

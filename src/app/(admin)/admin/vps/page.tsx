@@ -4,6 +4,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PageHeader } from '@/components/admin/page-header';
+import { vpsStatusBadge } from '@/lib/admin/badges';
+import { formatDateTime } from '@/lib/format-locale';
 import { cn } from '@/lib/utils';
 import { Plus, RefreshCw, Server, X } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
@@ -18,13 +21,6 @@ interface VpsInstance {
   lastResponseTime: number | null;
   createdAt: string;
 }
-
-const statusBadge: Record<string, string> = {
-  ONLINE: 'bg-green-500/20 text-green-400',
-  OFFLINE: 'bg-red-500/20 text-red-400',
-  PROVISIONING: 'bg-yellow-500/20 text-yellow-400',
-  SUSPENDED: 'bg-orange-500/20 text-orange-400',
-};
 
 const defaultForm = {
   name: '',
@@ -105,21 +101,21 @@ export default function VpsPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">VPS Instances</h2>
-          <p className="text-muted-foreground">Manage client VPS deployments</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="icon" onClick={fetchVps} disabled={loading}>
-            <RefreshCw className={cn('h-4 w-4', loading && 'animate-spin')} />
-          </Button>
-          <Button onClick={() => setShowForm(!showForm)}>
-            {showForm ? <X className="h-4 w-4 mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
-            {showForm ? 'Cancel' : 'Register VPS'}
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        title="VPS Instances"
+        description="Manage client VPS deployments"
+        actions={
+          <>
+            <Button variant="outline" size="icon" onClick={fetchVps} disabled={loading}>
+              <RefreshCw className={cn('h-4 w-4', loading && 'animate-spin')} />
+            </Button>
+            <Button onClick={() => setShowForm(!showForm)}>
+              {showForm ? <X className="h-4 w-4 mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
+              {showForm ? 'Cancel' : 'Register VPS'}
+            </Button>
+          </>
+        }
+      />
 
       {showForm && (
         <Card className="mb-6">
@@ -164,7 +160,7 @@ export default function VpsPage() {
                 <Button type="submit" disabled={submitting}>
                   {submitting ? 'Registering...' : 'Register VPS'}
                 </Button>
-                {error && <p className="text-sm text-red-400">{error}</p>}
+                {error && <p className="text-sm text-rose-600 dark:text-rose-400">{error}</p>}
               </div>
             </form>
           </CardContent>
@@ -187,7 +183,11 @@ export default function VpsPage() {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={6} className="p-4 text-center text-muted-foreground no-label">Loading...</td></tr>
+                  Array.from({ length: 3 }).map((_, i) => (
+                    <tr key={i} className="border-b">
+                      <td colSpan={6} className="p-4 no-label"><div className="h-6 rounded bg-muted animate-pulse" /></td>
+                    </tr>
+                  ))
                 ) : instances.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="p-8 text-center no-label">
@@ -196,26 +196,29 @@ export default function VpsPage() {
                     </td>
                   </tr>
                 ) : (
-                  instances.map((vps) => (
-                    <tr key={vps.id} className="border-b hover:bg-accent/50 transition-colors">
-                      <td className="p-4 font-medium" data-label="Name">{vps.name}</td>
-                      <td className="p-4 font-mono text-xs" data-label="Host">{vps.host}:{vps.port}</td>
-                      <td className="p-4" data-label="Status">
-                        <span className={cn('px-2 py-1 rounded-full text-xs font-medium', statusBadge[vps.status] || 'bg-gray-500/20 text-gray-400')}>
-                          {vps.status}
-                        </span>
-                      </td>
-                      <td className="p-4 text-muted-foreground" data-label="Last Health">
-                        {vps.lastHealthCheck ? new Date(vps.lastHealthCheck).toLocaleString() : 'Never'}
-                      </td>
-                      <td className="p-4 text-muted-foreground" data-label="Response Time">
-                        {vps.lastResponseTime != null ? `${vps.lastResponseTime}ms` : '-'}
-                      </td>
-                      <td className="p-4" data-label="Actions">
-                        <Button variant="ghost" size="sm">Details</Button>
-                      </td>
-                    </tr>
-                  ))
+                  instances.map((vps) => {
+                    const sb = vpsStatusBadge(vps.status);
+                    return (
+                      <tr key={vps.id} className="border-b hover:bg-accent/50 transition-colors">
+                        <td className="p-4 font-medium" data-label="Name">{vps.name}</td>
+                        <td className="p-4 font-mono text-xs" data-label="Host">{vps.host}:{vps.port}</td>
+                        <td className="p-4" data-label="Status">
+                          <span className={cn('px-2 py-1 rounded-full text-xs font-medium', sb.cls)}>
+                            {sb.label}
+                          </span>
+                        </td>
+                        <td className="p-4 text-muted-foreground" data-label="Last Health">
+                          {vps.lastHealthCheck ? formatDateTime(vps.lastHealthCheck) : 'Never'}
+                        </td>
+                        <td className="p-4 text-muted-foreground" data-label="Response Time">
+                          {vps.lastResponseTime != null ? `${vps.lastResponseTime}ms` : '-'}
+                        </td>
+                        <td className="p-4" data-label="Actions">
+                          <Button variant="ghost" size="sm">Details</Button>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>

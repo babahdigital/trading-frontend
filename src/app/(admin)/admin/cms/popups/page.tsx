@@ -1,12 +1,16 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import Link from 'next/link';
+import { ExternalLink, LayoutTemplate, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CmsPageHeader } from '@/components/cms/page-header';
+import { PageHeader } from '@/components/admin/page-header';
+import { EmptyState } from '@/components/admin/empty-state';
 import { ImageUploadField } from '@/components/admin/image-upload-field';
+import { activeBadge } from '@/lib/admin/badges';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useToast } from '@/components/ui/toast';
 import { useConfirm } from '@/components/ui/confirm-dialog';
@@ -119,13 +123,24 @@ export default function CmsPopupsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <CmsPageHeader title="Popup Manager" previewUrl="/" />
-          <p className="text-muted-foreground">Kelola popup/modal yang muncul di halaman publik.</p>
-        </div>
-        <Button onClick={() => setEditing(emptyPopup)}>+ Tambah Popup</Button>
-      </div>
+      <PageHeader
+        title="Popup Manager"
+        description="Kelola popup/modal yang muncul di halaman publik."
+        actions={
+          <>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/" target="_blank" className="gap-2">
+                <ExternalLink className="h-4 w-4" />
+                Preview
+              </Link>
+            </Button>
+            <Button onClick={() => setEditing(emptyPopup)} className="gap-1.5">
+              <Plus className="h-4 w-4" />
+              Tambah Popup
+            </Button>
+          </>
+        }
+      />
 
       {editing && (
         <Card>
@@ -169,22 +184,39 @@ export default function CmsPopupsPage() {
         </Card>
       )}
 
-      {loading ? <div className="text-center py-8 text-muted-foreground">Loading...</div> : (
+      {loading ? (
         <div className="space-y-3">
-          {popups.map((p) => (
-            <Card key={p.id}>
-              <CardContent className="p-4 flex items-center justify-between">
-                <div>
-                  <span className="font-semibold">{p.title}</span>
-                  <span className="text-xs text-muted-foreground ml-2">{p.trigger}: {p.triggerValue} {p.isActive ? '' : '(inactive)'}</span>
-                </div>
-                <div className="flex gap-2">
-                  <Button size="sm" variant="outline" onClick={() => setEditing(p)}>Edit</Button>
-                  <Button size="sm" variant="destructive" onClick={() => handleDelete(p.id)}>Hapus</Button>
-                </div>
-              </CardContent>
-            </Card>
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}><CardContent className="p-4"><div className="h-6 w-full max-w-md rounded bg-muted animate-pulse" /></CardContent></Card>
           ))}
+        </div>
+      ) : popups.length === 0 ? (
+        <EmptyState
+          icon={LayoutTemplate}
+          title="Belum ada popup"
+          description="Tambahkan popup pertama untuk meningkatkan konversi pada halaman publik."
+          actions={[{ label: 'Tambah Popup', onClick: () => setEditing(emptyPopup), icon: Plus }]}
+        />
+      ) : (
+        <div className="space-y-3">
+          {popups.map((p) => {
+            const ab = activeBadge(p.isActive);
+            return (
+              <Card key={p.id}>
+                <CardContent className="p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-semibold">{p.title}</span>
+                    <span className="text-xs text-muted-foreground">{p.trigger}: {p.triggerValue}</span>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${ab.cls}`}>{ab.label}</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" onClick={() => setEditing(p)}>Edit</Button>
+                    <Button size="sm" variant="destructive" onClick={() => handleDelete(p.id)}>Hapus</Button>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>

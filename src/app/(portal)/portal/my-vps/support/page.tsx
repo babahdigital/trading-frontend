@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth/auth-context';
 import { ArrowLeft, ChevronDown, HelpCircle, Mail, MessageSquare, Send } from 'lucide-react';
+import { PageHeader } from '@/components/admin/page-header';
 
 const FAQ_KEYS = [
   { q: 'faq_q1', a: 'faq_a1' },
@@ -64,19 +65,16 @@ export default function MyVpsSupportPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <Link href="/portal/my-vps">
-          <Button variant="ghost" size="sm">
-            <ArrowLeft className="w-4 h-4 mr-1" /> {t('back')}
-          </Button>
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold">{t('heading')}</h1>
-          <p className="text-sm text-muted-foreground">{t('tagline')}</p>
-        </div>
-      </div>
+    <div className="portal-page-stack">
+      <PageHeader
+        title={t('heading')}
+        description={t('tagline')}
+        eyebrow={
+          <Link href="/portal/my-vps" className="inline-flex items-center gap-1 hover:text-foreground transition-colors">
+            <ArrowLeft className="w-3 h-3" /> {t('back')}
+          </Link>
+        }
+      />
 
       {/* FAQ */}
       <Card>
@@ -182,7 +180,7 @@ export default function MyVpsSupportPage() {
                 />
               </div>
               {error && (
-                <div className="text-sm text-rose-600 dark:text-rose-400">{error}</div>
+                <div role="alert" className="rounded-md bg-rose-500/10 border border-rose-500/30 p-3 text-sm text-rose-700 dark:text-rose-300">{error}</div>
               )}
               <Button type="submit" disabled={sending}>
                 {sending ? t('submitting') : t('submit')}

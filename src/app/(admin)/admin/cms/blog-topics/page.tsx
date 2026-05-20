@@ -1,11 +1,15 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { BookOpenText, FileText, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CmsPageHeader } from '@/components/cms/page-header';
+import { PageHeader } from '@/components/admin/page-header';
+import { EmptyState } from '@/components/admin/empty-state';
+import { StatCard, StatCardGrid } from '@/components/admin/stat-card';
+import { formatDateTime, formatNumber } from '@/lib/format-locale';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useToast } from '@/components/ui/toast';
 import { useConfirm } from '@/components/ui/confirm-dialog';
@@ -43,18 +47,18 @@ interface BlogTopic {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  PENDING: 'bg-slate-500/20 text-slate-300',
-  GENERATING: 'bg-blue-500/20 text-blue-300 animate-pulse',
-  GENERATED: 'bg-yellow-500/20 text-yellow-300',
-  PUBLISHED: 'bg-green-500/20 text-green-300',
-  FAILED: 'bg-red-500/20 text-red-300',
+  PENDING: 'bg-slate-500/15 text-slate-700 dark:bg-slate-500/20 dark:text-slate-300',
+  GENERATING: 'bg-sky-500/15 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300 animate-pulse',
+  GENERATED: 'bg-amber-500/15 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300',
+  PUBLISHED: 'bg-emerald-500/15 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300',
+  FAILED: 'bg-rose-500/15 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300',
   DISABLED: 'bg-muted text-muted-foreground',
 };
 
 const ASSET_CLASS_COLORS: Record<string, string> = {
-  FOREX: 'bg-sky-500/20 text-sky-300',
-  CRYPTO: 'bg-orange-500/20 text-orange-300',
-  MULTI: 'bg-purple-500/20 text-purple-300',
+  FOREX: 'bg-sky-500/15 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300',
+  CRYPTO: 'bg-orange-500/15 text-orange-700 dark:bg-orange-500/20 dark:text-orange-300',
+  MULTI: 'bg-purple-500/15 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300',
 };
 
 export default function BlogTopicsPage() {
@@ -180,40 +184,17 @@ export default function BlogTopicsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <CmsPageHeader
-          title="Blog Topics"
-          description="AI-generated blog content catalog. Topics are processed by the blog-article-generator worker."
-          previewUrl="/research"
-        />
-      </div>
+      <PageHeader
+        title="Blog Topics"
+        description="AI-generated blog content catalog. Topics are processed by the blog-article-generator worker."
+      />
 
-      <div className="grid grid-cols-4 gap-3">
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-xs text-muted-foreground">Total topics</div>
-            <div className="text-2xl font-bold">{summary.total}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-xs text-muted-foreground">Published</div>
-            <div className="text-2xl font-bold text-green-400">{summary.published}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-xs text-muted-foreground">Pending</div>
-            <div className="text-2xl font-bold text-slate-300">{summary.pending}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-xs text-muted-foreground">Failed</div>
-            <div className="text-2xl font-bold text-red-400">{summary.failed}</div>
-          </CardContent>
-        </Card>
-      </div>
+      <StatCardGrid columns={4}>
+        <StatCard label="Total topics" value={formatNumber(summary.total)} icon={FileText} />
+        <StatCard label="Published" value={formatNumber(summary.published)} icon={CheckCircle2} iconTone="success" />
+        <StatCard label="Pending" value={formatNumber(summary.pending)} icon={Clock} iconTone="info" />
+        <StatCard label="Failed" value={formatNumber(summary.failed)} icon={AlertCircle} iconTone="danger" />
+      </StatCardGrid>
 
       <div className="flex gap-3 items-end flex-wrap">
         <div>
@@ -350,18 +331,22 @@ export default function BlogTopicsPage() {
       )}
 
       {loading ? (
-        <div className="text-center py-8 text-muted-foreground">Loading topics...</div>
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}><CardContent className="p-4"><div className="h-16 rounded bg-muted animate-pulse" /></CardContent></Card>
+          ))}
+        </div>
       ) : topics.length === 0 ? (
-        <Card>
-          <CardContent className="p-8 text-center space-y-4">
-            <p className="text-muted-foreground">No blog topics yet.</p>
-            <p className="text-sm">
-              Run seed: <code className="bg-muted px-2 py-1 rounded text-xs">
-                curl -H &quot;x-cron-secret: $CRON_SECRET&quot; https://babahalgo.com/api/cron/seed-blog-topics
-              </code>
-            </p>
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={BookOpenText}
+          title="Belum ada blog topic"
+          description="Seed katalog topic via cron untuk memulai generator artikel."
+          meta={
+            <code className="bg-muted px-2 py-1 rounded text-xs">
+              curl -H &quot;x-cron-secret: $CRON_SECRET&quot; https://babahalgo.com/api/cron/seed-blog-topics
+            </code>
+          }
+        />
       ) : (
         <div className="space-y-3">
           {topics.map((t) => (
@@ -380,26 +365,26 @@ export default function BlogTopicsPage() {
                       <span className="text-xs text-muted-foreground">·</span>
                       <span className="text-xs font-mono text-muted-foreground">{t.category}</span>
                       {t.autoPublish && (
-                        <span className="text-xs text-green-400">auto-publish</span>
+                        <span className="text-xs text-emerald-600 dark:text-emerald-400">auto-publish</span>
                       )}
                       {!t.isActive && (
-                        <span className="text-xs text-red-400">inactive</span>
+                        <span className="text-xs text-rose-600 dark:text-rose-400">inactive</span>
                       )}
                     </div>
                     <div className="font-semibold text-sm mb-1">{t.titleId}</div>
                     <div className="text-xs text-muted-foreground truncate">{t.excerptId}</div>
                     {t.lastError && (
-                      <div className="text-xs text-red-400 mt-2 font-mono bg-red-500/5 p-2 rounded border border-red-500/20">
+                      <div className="text-xs text-rose-700 dark:text-rose-300 mt-2 font-mono bg-rose-500/5 p-2 rounded border border-rose-500/20">
                         {t.lastError}
                       </div>
                     )}
-                    <div className="flex gap-4 mt-2 text-xs text-muted-foreground">
-                      <span>Target: {t.targetLengthWords} kata</span>
+                    <div className="flex gap-4 mt-2 text-xs text-muted-foreground flex-wrap">
+                      <span>Target: {formatNumber(t.targetLengthWords)} kata</span>
                       <span>Priority: {t.priority}</span>
                       {t.lastGeneratedAt && (
-                        <span>Generated: {new Date(t.lastGeneratedAt).toLocaleString('id-ID')}</span>
+                        <span>Generated: {formatDateTime(t.lastGeneratedAt)}</span>
                       )}
-                      {t.aiTokensUsed > 0 && <span>Tokens: {t.aiTokensUsed.toLocaleString()}</span>}
+                      {t.aiTokensUsed > 0 && <span>Tokens: {formatNumber(t.aiTokensUsed)}</span>}
                     </div>
                   </div>
                   <div className="flex flex-col gap-2">

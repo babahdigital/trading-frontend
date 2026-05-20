@@ -4,9 +4,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CmsPageHeader } from '@/components/cms/page-header';
+import { PageHeader } from '@/components/admin/page-header';
 import { useAuth } from '@/lib/auth/auth-context';
-import { Save, Send, Mail, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
+import { Save, Send, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 
 interface EmailSettings {
   apiKey: string;          // masked
@@ -117,15 +117,19 @@ export default function EmailSettingsPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <CmsPageHeader title="Email Settings" description="Konfigurasi Brevo SMTP/API." />
-        <div className="text-muted-foreground">Memuat…</div>
+        <PageHeader title="Email Settings" description="Konfigurasi Brevo SMTP/API." />
+        <div className="space-y-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Card key={i}><CardContent className="p-6"><div className="h-20 rounded bg-muted animate-pulse" /></CardContent></Card>
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <CmsPageHeader
+      <PageHeader
         title="Email Settings (Brevo)"
         description="Konfigurasi Brevo Transactional API + SMTP. Sensitive value di-encrypt sebelum disimpan ke database. Setting ini override env vars (BREVO_API_KEY, SMTP_FROM)."
       />
@@ -134,8 +138,8 @@ export default function EmailSettingsPage() {
         <div
           className={
             feedback.kind === 'ok'
-              ? 'flex items-start gap-2 p-3 rounded-md border border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
-              : 'flex items-start gap-2 p-3 rounded-md border border-rose-500/30 bg-rose-500/10 text-rose-300'
+              ? 'flex items-start gap-2 p-3 rounded-md border border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+              : 'flex items-start gap-2 p-3 rounded-md border border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300'
           }
         >
           {feedback.kind === 'ok' ? (

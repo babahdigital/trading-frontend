@@ -4,7 +4,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CmsPageHeader } from '@/components/cms/page-header';
+import { PageHeader } from '@/components/admin/page-header';
+import { formatDateTime } from '@/lib/format-locale';
 import { useAuth } from '@/lib/auth/auth-context';
 import { Save, Plus } from 'lucide-react';
 
@@ -81,15 +82,17 @@ export default function SiteSettingsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <CmsPageHeader
-          title="Site Settings"
-          description="Key-value config global — integration tokens, feature toggles, compliance URLs. Read by content workers + components."
-        />
-      </div>
+      <PageHeader
+        title="Site Settings"
+        description="Key-value config global — integration tokens, feature toggles, compliance URLs. Read by content workers + components."
+      />
 
       {loading ? (
-        <div className="text-center py-8 text-muted-foreground">Loading settings...</div>
+        <div className="space-y-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Card key={i}><CardContent className="p-6"><div className="h-20 rounded bg-muted animate-pulse" /></CardContent></Card>
+          ))}
+        </div>
       ) : (
         <>
           {/* Known/curated settings (always shown, even if not in DB yet) */}
@@ -110,7 +113,7 @@ export default function SiteSettingsPage() {
                       </div>
                       {existing && (
                         <span className="text-xs text-muted-foreground font-mono">
-                          updated {new Date(existing.updatedAt).toLocaleString('id-ID')}
+                          updated {formatDateTime(existing.updatedAt)}
                         </span>
                       )}
                     </div>

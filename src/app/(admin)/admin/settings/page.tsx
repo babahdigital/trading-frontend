@@ -3,6 +3,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { PageHeader } from '@/components/admin/page-header';
+import { EmptyState } from '@/components/admin/empty-state';
+import { formatDateTime, formatNumber } from '@/lib/format-locale';
 import { useAuth } from '@/lib/auth/auth-context';
 import { RefreshCw, CheckCircle2, XCircle, AlertCircle, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
@@ -67,7 +70,9 @@ function StatusPill({ ok, label }: { ok: boolean; label: string }) {
   return (
     <span className={cn(
       'inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-mono',
-      ok ? 'bg-green-500/15 text-green-300 border border-green-500/30' : 'bg-red-500/15 text-red-300 border border-red-500/30',
+      ok
+        ? 'bg-emerald-500/15 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 border border-emerald-500/30'
+        : 'bg-rose-500/15 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300 border border-rose-500/30',
     )}>
       {ok ? <CheckCircle2 className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
       {label}
@@ -103,38 +108,47 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="text-center py-8 text-muted-foreground">Memuat system info...</div>
+      <div className="space-y-6">
+        <PageHeader title="Settings & System" description="Memuat system info..." />
+        <div className="grid gap-4 md:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}><CardContent className="p-6"><div className="h-32 rounded bg-muted animate-pulse" /></CardContent></Card>
+          ))}
+        </div>
+      </div>
     );
   }
 
   if (error || !data) {
     return (
-      <div className="text-center py-8 text-red-400">
-        Gagal memuat: {error ?? 'unknown'}
-        <div className="mt-2">
-          <Button size="sm" onClick={fetchInfo}>Coba lagi</Button>
-        </div>
+      <div className="space-y-6">
+        <PageHeader title="Settings & System" />
+        <EmptyState
+          variant="error"
+          icon={AlertCircle}
+          title="Gagal memuat system info"
+          description={error ?? 'unknown error'}
+          actions={[{ label: 'Coba lagi', onClick: fetchInfo, icon: RefreshCw }]}
+        />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Settings & System</h2>
-          <p className="text-muted-foreground">
-            Observability snapshot — flags, secrets presence, worker health, AI usage.
-          </p>
-          <p className="text-xs text-muted-foreground mt-1 font-mono">
-            Generated {new Date(data.generatedAt).toLocaleString('id-ID')}
-          </p>
-        </div>
-        <Button size="sm" variant="outline" onClick={fetchInfo} disabled={refreshing}>
-          <RefreshCw className={cn('h-4 w-4 mr-2', refreshing && 'animate-spin')} />
-          Refresh
-        </Button>
-      </div>
+      <PageHeader
+        title="Settings & System"
+        description="Observability snapshot — flags, secrets presence, worker health, AI usage."
+        actions={
+          <Button size="sm" variant="outline" onClick={fetchInfo} disabled={refreshing}>
+            <RefreshCw className={cn('h-4 w-4 mr-2', refreshing && 'animate-spin')} />
+            Refresh
+          </Button>
+        }
+      />
+      <p className="text-xs text-muted-foreground -mt-3 font-mono">
+        Generated {formatDateTime(data.generatedAt)}
+      </p>
 
       {/* Row 1: App + DB */}
       <div className="grid gap-4 md:grid-cols-2">
@@ -227,12 +241,18 @@ export default function SettingsPage() {
                 return (
                   <div key={idx} className="grid grid-cols-[1fr_100px_90px_100px_1fr] gap-2 py-1 border-b border-border/30">
                     <span>{w.worker}</span>
-                    <span className={cn(ok ? 'text-green-300' : w.status === 'RUNNING' ? 'text-blue-300' : 'text-red-300')}>
+                    <span className={cn(
+                      ok
+                        ? 'text-emerald-700 dark:text-emerald-300'
+                        : w.status === 'RUNNING'
+                          ? 'text-sky-700 dark:text-sky-300'
+                          : 'text-rose-700 dark:text-rose-300'
+                    )}>
                       {w.status}
                     </span>
                     <span>{w.itemsProcessed}</span>
                     <span>{duration !== null ? `${duration}s` : '—'}</span>
-                    <span className="truncate text-red-300">{w.errorMessage ?? ''}</span>
+                    <span className="truncate text-rose-700 dark:text-rose-300">{w.errorMessage ?? ''}</span>
                   </div>
                 );
               })}
@@ -260,9 +280,9 @@ export default function SettingsPage() {
               {data.ai.last7Days.map((c, idx) => (
                 <div key={idx} className="grid grid-cols-4 gap-2 py-1">
                   <span>{c.purpose}</span>
-                  <span>{c.calls.toLocaleString()}</span>
-                  <span>{c.inputTokens.toLocaleString()}</span>
-                  <span>{c.outputTokens.toLocaleString()}</span>
+                  <span>{formatNumber(c.calls)}</span>
+                  <span>{formatNumber(c.inputTokens)}</span>
+                  <span>{formatNumber(c.outputTokens)}</span>
                 </div>
               ))}
             </div>

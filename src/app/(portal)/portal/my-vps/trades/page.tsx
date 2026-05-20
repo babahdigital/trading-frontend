@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,8 +10,13 @@ import { cn } from '@/lib/utils';
 import { CumulativePnl } from '@/components/charts/cumulative-pnl';
 import { useAuth } from '@/lib/auth/auth-context';
 import { csvEscape } from '@/lib/csv';
-import { ArrowLeft, Download } from 'lucide-react';
+import { ArrowLeft, Download, History as HistoryIcon } from 'lucide-react';
 import { strategyDisplayName, isStrategyObfuscationEnabled } from '@/lib/trading/strategy-names';
+import { PageHeader } from '@/components/admin/page-header';
+import { EmptyState } from '@/components/admin/empty-state';
+import { StatCard, StatCardGrid } from '@/components/admin/stat-card';
+import { formatCurrency, formatDate, formatPercent } from '@/lib/format-locale';
+import type { Locale } from '@/lib/format-locale';
 
 interface Trade {
   date: string;
@@ -30,6 +35,7 @@ function genericSetup(setup?: string): string {
 export default function MyVpsTradesPage() {
   const t = useTranslations('portal.vps.trades');
   const tShared = useTranslations('portal.shared');
+  const locale = useLocale() as Locale;
   const { getAuthHeaders } = useAuth();
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,7 +50,7 @@ export default function MyVpsTradesPage() {
     if (r.includes('stop_loss') || r.includes('sl')) return { label: t('reason_sl'), cls: 'bg-rose-500/15 text-rose-700 dark:text-rose-300' };
     if (r.includes('manual')) return { label: t('reason_manual'), cls: 'bg-sky-500/15 text-sky-700 dark:text-sky-300' };
     if (r.includes('max_hold')) return { label: t('reason_max_hold'), cls: 'bg-amber-500/15 text-amber-700 dark:text-amber-300' };
-    return { label: reason, cls: 'bg-slate-500/20 text-slate-400' };
+    return { label: reason, cls: 'bg-slate-500/15 text-slate-700 dark:text-slate-300' };
   }
 
   const fetchTrades = useCallback(async (d: number) => {
@@ -110,58 +116,45 @@ export default function MyVpsTradesPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-3">
-          <Link href="/portal/my-vps">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="w-4 h-4 mr-1" /> {t('back')}
-            </Button>
+    <div className="portal-page-stack">
+      <PageHeader
+        title={t('heading')}
+        description={t('tagline')}
+        eyebrow={
+          <Link href="/portal/my-vps" className="inline-flex items-center gap-1 hover:text-foreground transition-colors">
+            <ArrowLeft className="w-3 h-3" /> {t('back')}
           </Link>
-          <div>
-            <h1 className="text-2xl font-bold">{t('heading')}</h1>
-            <p className="text-sm text-muted-foreground">{t('tagline')}</p>
-          </div>
-        </div>
-        <Button variant="outline" size="sm" onClick={exportCsv} disabled={filtered.length === 0}>
-          <Download className="w-4 h-4 mr-1" /> {t('export_csv')}
-        </Button>
-      </div>
+        }
+        actions={
+          <Button variant="outline" size="sm" onClick={exportCsv} disabled={filtered.length === 0}>
+            <Download className="w-4 h-4 mr-1" /> {t('export_csv')}
+          </Button>
+        }
+      />
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-sm text-muted-foreground">{t('kpi_total')}</p>
-            <p className="text-xl font-bold font-mono">{filtered.length}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-sm text-muted-foreground">{t('kpi_total_pnl')}</p>
-            <p className={cn('text-xl font-bold font-mono', totalPnl >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400')}>
-              {totalPnl >= 0 ? '+' : ''}${totalPnl.toFixed(2)}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-sm text-muted-foreground">{t('kpi_winloss')}</p>
-            <p className="text-xl font-bold font-mono">
+      <StatCardGrid columns={4}>
+        <StatCard label={t('kpi_total')} value={String(filtered.length)} />
+        <StatCard
+          label={t('kpi_total_pnl')}
+          value={
+            <span className={cn(totalPnl >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400')}>
+              {totalPnl >= 0 ? '+' : ''}{formatCurrency(Math.abs(totalPnl), 'USD', locale)}
+            </span>
+          }
+        />
+        <StatCard
+          label={t('kpi_winloss')}
+          value={
+            <>
               <span className="text-emerald-600 dark:text-emerald-400">{wins}</span>
               <span className="text-muted-foreground mx-1">/</span>
               <span className="text-rose-600 dark:text-rose-400">{losses}</span>
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-sm text-muted-foreground">{t('kpi_winrate')}</p>
-            <p className="text-xl font-bold font-mono">{winRate}%</p>
-          </CardContent>
-        </Card>
-      </div>
+            </>
+          }
+        />
+        <StatCard label={t('kpi_winrate')} value={formatPercent(Number(winRate), locale, { decimals: 1 })} />
+      </StatCardGrid>
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3">
@@ -181,7 +174,7 @@ export default function MyVpsTradesPage() {
       </div>
 
       {error && (
-        <div className="rounded-md bg-red-500/10 border border-red-500/20 p-3 text-sm text-rose-600 dark:text-rose-400">{error}</div>
+        <div role="alert" className="rounded-md bg-rose-500/10 border border-rose-500/30 p-3 text-sm text-rose-700 dark:text-rose-300">{error}</div>
       )}
 
       {/* Desktop Table */}
@@ -191,9 +184,11 @@ export default function MyVpsTradesPage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <p className="text-muted-foreground text-sm">{t('loading')}</p>
+            <div className="space-y-2">
+              {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-12 rounded bg-muted animate-pulse" />)}
+            </div>
           ) : filtered.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">{t('empty')}</div>
+            <EmptyState variant="inline" icon={HistoryIcon} title={t('empty')} size="sm" />
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -213,9 +208,9 @@ export default function MyVpsTradesPage() {
                     const badge = closeReasonBadge(tr.close_reason);
                     return (
                       <tr key={i} className={cn('border-b border-border/50 last:border-0',
-                        tr.pnl >= 0 ? 'bg-green-500/[0.02]' : 'bg-red-500/[0.02]'
+                        tr.pnl >= 0 ? 'bg-emerald-500/[0.03]' : 'bg-rose-500/[0.03]'
                       )}>
-                        <td className="py-3 text-muted-foreground text-xs">{tr.date}</td>
+                        <td className="py-3 text-muted-foreground text-xs">{formatDate(tr.date, locale)}</td>
                         <td className="py-3 font-mono font-medium">{tr.pair}</td>
                         <td className="py-3">
                           <span className={cn('px-2 py-0.5 rounded text-xs font-medium',
@@ -223,7 +218,7 @@ export default function MyVpsTradesPage() {
                           )}>{tr.type}</span>
                         </td>
                         <td className={cn('py-3 text-right font-mono font-medium', tr.pnl >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400')}>
-                          {tr.pnl >= 0 ? '+' : ''}${tr.pnl.toFixed(2)}
+                          {tr.pnl >= 0 ? '+' : ''}{formatCurrency(Math.abs(tr.pnl), 'USD', locale)}
                         </td>
                         <td className="py-3 text-right text-muted-foreground">{tr.duration || '-'}</td>
                         <td className="py-3 text-muted-foreground text-xs">{genericSetup(tr.setup)}</td>
@@ -243,16 +238,18 @@ export default function MyVpsTradesPage() {
       {/* Mobile Card View */}
       <div className="md:hidden space-y-3">
         {loading ? (
-          <p className="text-muted-foreground text-sm text-center py-4">{t('loading')}</p>
+          <div className="space-y-2">
+            {Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-20 rounded bg-muted animate-pulse" />)}
+          </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground">{t('empty')}</div>
+          <EmptyState icon={HistoryIcon} title={t('empty')} size="sm" />
         ) : (
           filtered.map((tr, i) => {
             const badge = closeReasonBadge(tr.close_reason);
             return (
               <Card key={i} className={cn(
                 'border',
-                tr.pnl >= 0 ? 'border-green-500/20' : 'border-red-500/20'
+                tr.pnl >= 0 ? 'border-emerald-500/20' : 'border-rose-500/20'
               )}>
                 <CardContent className="pt-4 pb-3">
                   <div className="flex items-center justify-between mb-2">
@@ -265,11 +262,11 @@ export default function MyVpsTradesPage() {
                     <span className={cn('font-mono font-semibold text-sm',
                       tr.pnl >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                     )}>
-                      {tr.pnl >= 0 ? '+' : ''}${tr.pnl.toFixed(2)}
+                      {tr.pnl >= 0 ? '+' : ''}{formatCurrency(Math.abs(tr.pnl), 'USD', locale)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{tr.date}</span>
+                    <span>{formatDate(tr.date, locale)}</span>
                     <span>{tr.duration || '-'}</span>
                   </div>
                   <div className="flex items-center justify-between mt-1.5 text-xs">

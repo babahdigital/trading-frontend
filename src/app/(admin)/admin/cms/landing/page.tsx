@@ -1,11 +1,14 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import Link from 'next/link';
+import { ExternalLink, LayoutGrid, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CmsPageHeader } from '@/components/cms/page-header';
+import { PageHeader } from '@/components/admin/page-header';
+import { EmptyState } from '@/components/admin/empty-state';
 import { ReorderButtons } from '@/components/cms/reorder-buttons';
 import { GenerateEnglishButton } from '@/components/cms/generate-english-button';
 import { useAuth } from '@/lib/auth/auth-context';
@@ -144,15 +147,27 @@ export default function CmsLandingPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <CmsPageHeader title="Landing Page Editor" previewUrl="/" />
-          <p className="text-muted-foreground">Kelola section-section pada halaman landing.</p>
-        </div>
-        <Button onClick={() => setEditing({ id: '', slug: '', title: '', subtitle: '', content: {}, sortOrder: sections.length, isVisible: true })}>
-          + Tambah Section
-        </Button>
-      </div>
+      <PageHeader
+        title="Landing Page Editor"
+        description="Kelola section-section pada halaman landing."
+        actions={
+          <>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/" target="_blank" className="gap-2">
+                <ExternalLink className="h-4 w-4" />
+                Preview
+              </Link>
+            </Button>
+            <Button
+              onClick={() => setEditing({ id: '', slug: '', title: '', subtitle: '', content: {}, sortOrder: sections.length, isVisible: true })}
+              className="gap-1.5"
+            >
+              <Plus className="h-4 w-4" />
+              Tambah Section
+            </Button>
+          </>
+        }
+      />
       <GenerateEnglishButton type="all-landing" onSuccess={fetchSections} />
 
       {editing && (
@@ -205,9 +220,22 @@ export default function CmsLandingPage() {
       )}
 
       {loading ? (
-        <div className="text-center py-8 text-muted-foreground">Loading...</div>
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}><CardContent className="p-4"><div className="h-10 rounded bg-muted animate-pulse" /></CardContent></Card>
+          ))}
+        </div>
       ) : sections.length === 0 ? (
-        <div className="text-center py-8 text-muted-foreground">Belum ada section. Klik &quot;+ Tambah Section&quot; untuk memulai.</div>
+        <EmptyState
+          icon={LayoutGrid}
+          title="Belum ada section landing"
+          description="Tambahkan section pertama untuk mulai membangun halaman landing dinamis."
+          actions={[{
+            label: 'Tambah Section',
+            onClick: () => setEditing({ id: '', slug: '', title: '', subtitle: '', content: {}, sortOrder: 0, isVisible: true }),
+            icon: Plus,
+          }]}
+        />
       ) : (
         <div className="space-y-3">
           {sections.map((s, i) => (

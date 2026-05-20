@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CmsPageHeader } from '@/components/cms/page-header';
+import { PageHeader } from '@/components/admin/page-header';
 import { useAuth } from '@/lib/auth/auth-context';
 import { Save, Loader2, AlertCircle, CheckCircle2, Building2, Mail, Globe, Phone } from 'lucide-react';
 
@@ -83,14 +83,19 @@ export default function CompanySettingsPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <CmsPageHeader title="Company Settings" description="Memuat..." />
+        <PageHeader title="Company Settings" description="Memuat..." />
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}><CardContent className="p-6"><div className="h-24 rounded bg-muted animate-pulse" /></CardContent></Card>
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <CmsPageHeader
+      <PageHeader
         title="Company Settings"
         description="Identitas perusahaan terpusat. Nilai di sini dipakai di footer, halaman /contact, halaman /legal/*, email templates, dan SEO meta. Edit sekali, terpakai di banyak tempat."
       />
@@ -99,8 +104,8 @@ export default function CompanySettingsPage() {
         <div
           className={
             feedback.kind === 'ok'
-              ? 'flex items-start gap-2 p-3 rounded-md border border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
-              : 'flex items-start gap-2 p-3 rounded-md border border-rose-500/30 bg-rose-500/10 text-rose-300'
+              ? 'flex items-start gap-2 p-3 rounded-md border border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+              : 'flex items-start gap-2 p-3 rounded-md border border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300'
           }
         >
           {feedback.kind === 'ok' ? (

@@ -1,11 +1,14 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { ScrollText, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CmsPageHeader } from '@/components/cms/page-header';
+import { PageHeader } from '@/components/admin/page-header';
+import { EmptyState } from '@/components/admin/empty-state';
+import { formatDate } from '@/lib/format-locale';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 
@@ -88,38 +91,56 @@ export default function CmsChangelogPage() {
 
   return (
     <div className="space-y-6">
-      <CmsPageHeader title="Changelog" description="Catatan rilis platform — dipublikasikan di /changelog" />
+      <PageHeader
+        title="Changelog"
+        description="Catatan rilis platform — dipublikasikan di /changelog"
+        actions={
+          <Button onClick={() => setEditing({ ...EMPTY })} className="gap-1.5">
+            <Plus className="h-4 w-4" />
+            New Entry
+          </Button>
+        }
+      />
 
       {error && (
-        <div role="alert" className="rounded-md bg-rose-500/10 border border-rose-500/30 p-3 text-sm text-rose-400">
+        <div role="alert" className="rounded-md bg-rose-500/10 border border-rose-500/30 p-3 text-sm text-rose-700 dark:text-rose-300">
           {error}
         </div>
       )}
 
       <Card>
-        <CardHeader className="flex-row items-center justify-between">
+        <CardHeader>
           <CardTitle className="text-base font-semibold">
-            {loading ? 'Loading…' : `${entries.length} entri`}
+            {loading ? 'Memuat…' : `${entries.length} entri`}
           </CardTitle>
-          <Button onClick={() => setEditing({ ...EMPTY })}>+ New Entry</Button>
         </CardHeader>
         <CardContent className="space-y-3">
-          {entries.map((e) => (
+          {loading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="h-16 rounded-md bg-muted animate-pulse" />
+            ))
+          ) : entries.length === 0 ? (
+            <EmptyState
+              variant="inline"
+              icon={ScrollText}
+              title="Belum ada entri changelog"
+              description="Catat rilis platform pertama Anda di sini."
+              actions={[{ label: 'New Entry', onClick: () => setEditing({ ...EMPTY }), icon: Plus }]}
+            />
+          ) : entries.map((e) => (
             <div key={e.id} className="flex items-center justify-between gap-3 p-3 border border-border rounded-md">
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-sm text-amber-400">v{e.version}</span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-mono text-sm text-amber-600 dark:text-amber-400">v{e.version}</span>
                   <span className="text-xs px-1.5 py-0.5 rounded bg-foreground/5 border border-border">{e.category}</span>
                   {e.isPublished ? (
-                    <span className="text-xs text-emerald-400">Published</span>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-emerald-500/15 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">Published</span>
                   ) : (
-                    <span className="text-xs text-foreground/50">Draft</span>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-slate-500/15 text-slate-700 dark:bg-slate-500/20 dark:text-slate-300">Draft</span>
                   )}
                 </div>
                 <p className="text-sm font-medium mt-1 truncate">{e.title}</p>
-                <p className="text-xs text-foreground/50">
-                  {new Date(e.releasedAt).toLocaleDateString('id-ID')}
-                </p>
+                <p className="text-xs text-muted-foreground">{formatDate(e.releasedAt)}</p>
               </div>
               <div className="flex items-center gap-2">
                 <Button size="sm" variant="outline" onClick={() => setEditing(e)}>Edit</Button>

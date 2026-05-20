@@ -1,11 +1,14 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import Link from 'next/link';
+import { ExternalLink, Tags, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CmsPageHeader } from '@/components/cms/page-header';
+import { PageHeader } from '@/components/admin/page-header';
+import { EmptyState } from '@/components/admin/empty-state';
 import { GenerateEnglishButton } from '@/components/cms/generate-english-button';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useToast } from '@/components/ui/toast';
@@ -165,13 +168,25 @@ export default function CmsPricingPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <CmsPageHeader title="Pricing Tiers" description="Kelola paket harga. Tulis Indonesian dulu, lalu Auto-translate ke English." previewUrl="/pricing" />
-        </div>
-        <Button onClick={() => setEditing(emptyTier)}>+ Tambah Tier</Button>
-      </div>
-      <div className="flex items-center gap-3">
+      <PageHeader
+        title="Pricing Tiers"
+        description="Kelola paket harga. Tulis Indonesian dulu, lalu Auto-translate ke English."
+        actions={
+          <>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/pricing" target="_blank" className="gap-2">
+                <ExternalLink className="h-4 w-4" />
+                Preview
+              </Link>
+            </Button>
+            <Button onClick={() => setEditing(emptyTier)} className="gap-1.5">
+              <Plus className="h-4 w-4" />
+              Tambah Tier
+            </Button>
+          </>
+        }
+      />
+      <div className="flex items-center gap-3 flex-wrap">
         <GenerateEnglishButton type="all-pricing" onSuccess={fetchTiers} />
         <span className="text-xs text-muted-foreground">— bulk translate semua tier sekaligus</span>
       </div>
@@ -187,7 +202,7 @@ export default function CmsPricingPage() {
 
             {/* Indonesian — Source of truth */}
             <div className="rounded-lg border border-border/60 p-4 space-y-3">
-              <p className="text-xs font-mono uppercase tracking-wider text-amber-400">Bahasa Indonesia · Source of truth</p>
+              <p className="text-xs font-mono uppercase tracking-wider text-amber-600 dark:text-amber-400">Bahasa Indonesia · Source of truth</p>
               <div><label className="text-sm font-medium mb-1 block">Name (ID)</label><Input value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} /></div>
               <div><label className="text-sm font-medium mb-1 block">Subtitle (ID)</label><Input value={editing.subtitle || ''} onChange={(e) => setEditing({ ...editing, subtitle: e.target.value })} /></div>
               <div>
@@ -239,7 +254,7 @@ export default function CmsPricingPage() {
               </div>
               <div><label className="text-sm font-medium mb-1 block">CTA Label (EN)</label><Input value={editing.ctaLabel_en ?? ''} onChange={(e) => setEditing({ ...editing, ctaLabel_en: e.target.value || null })} /></div>
               {!editing.id && (
-                <p className="text-xs text-amber-400">ⓘ Simpan dulu (Indonesian), lalu tombol Auto-translate akan tersedia.</p>
+                <p className="text-xs text-amber-600 dark:text-amber-400">ⓘ Simpan dulu (Indonesian), lalu tombol Auto-translate akan tersedia.</p>
               )}
             </div>
 
@@ -253,7 +268,20 @@ export default function CmsPricingPage() {
         </Card>
       )}
 
-      {loading ? <div className="text-center py-8 text-muted-foreground">Loading...</div> : (
+      {loading ? (
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}><CardContent className="p-4"><div className="h-10 rounded bg-muted animate-pulse" /></CardContent></Card>
+          ))}
+        </div>
+      ) : tiers.length === 0 ? (
+        <EmptyState
+          icon={Tags}
+          title="Belum ada tier pricing"
+          description="Tambahkan tier pertama untuk ditampilkan di /pricing publik."
+          actions={[{ label: 'Tambah Tier', onClick: () => setEditing(emptyTier), icon: Plus }]}
+        />
+      ) : (
         <div className="space-y-3">
           {tiers.map((t) => (
             <Card key={t.id}>
@@ -261,9 +289,9 @@ export default function CmsPricingPage() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
                     {hasEnglish(t) ? (
-                      <span className="text-xs px-2 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/40 text-emerald-300">✓ EN</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-emerald-500/15 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">✓ EN</span>
                     ) : (
-                      <span className="text-xs px-2 py-0.5 rounded bg-amber-500/15 border border-amber-500/40 text-amber-300">⚠ Need EN</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-amber-500/15 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">⚠ Need EN</span>
                     )}
                     <span className="font-semibold">{t.name}</span>
                     <span className="text-primary font-bold">{t.price}</span>

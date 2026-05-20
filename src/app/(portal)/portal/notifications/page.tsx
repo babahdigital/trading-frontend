@@ -6,10 +6,11 @@ import { Bell, RefreshCw, Inbox, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth/auth-context';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { NotificationCard, type BackendNotification } from '@/components/notifications/notification-card';
 import { NotificationChannelPrefs } from '@/components/portal/notification-channel-prefs';
 import { cn } from '@/lib/utils';
+import { PageHeader } from '@/components/admin/page-header';
+import { EmptyState } from '@/components/admin/empty-state';
 
 interface RecentResponse {
   source?: 'backend' | 'local-fallback';
@@ -80,44 +81,44 @@ export default function NotificationsPage() {
   });
 
   return (
-    <div className="space-y-5 max-w-3xl">
-      <div className="flex items-end justify-between gap-3 flex-wrap">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-3">
-            <Bell className="h-6 w-6 sm:h-7 sm:w-7 text-amber-400" />
+    <div className="portal-page-stack max-w-3xl">
+      <PageHeader
+        title={
+          <span className="flex items-center gap-3">
+            <Bell className="h-6 w-6 sm:h-7 sm:w-7 text-amber-600 dark:text-amber-400" />
             {t('title')}
-          </h1>
-          <p className="text-muted-foreground mt-1.5 text-sm sm:text-base">
-            {t('subtitle')}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {source === 'local-fallback' && (
-            <span className="px-2.5 py-1 rounded-md text-xs font-mono bg-amber-500/10 border border-amber-500/30 text-amber-300">
-              {tShared('local_fallback_badge')}
-            </span>
-          )}
-          <Button size="sm" variant="outline" asChild>
-            <Link href="/portal/account#notifications">
-              <Settings className="h-4 w-4 mr-2" /> {t('preferences_button')}
-            </Link>
-          </Button>
-          <Button size="sm" variant="outline" onClick={load} disabled={refreshing}>
-            <RefreshCw className={cn('h-4 w-4 mr-2', refreshing && 'animate-spin')} /> {tShared('refresh')}
-          </Button>
-        </div>
-      </div>
+          </span>
+        }
+        description={t('subtitle')}
+        actions={
+          <div className="flex items-center gap-2 flex-wrap">
+            {source === 'local-fallback' && (
+              <span className="px-2.5 py-1 rounded-md text-xs font-mono bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300">
+                {tShared('local_fallback_badge')}
+              </span>
+            )}
+            <Button size="sm" variant="outline" asChild>
+              <Link href="/portal/account#notifications">
+                <Settings className="h-4 w-4 mr-2" /> {t('preferences_button')}
+              </Link>
+            </Button>
+            <Button size="sm" variant="outline" onClick={load} disabled={refreshing}>
+              <RefreshCw className={cn('h-4 w-4 mr-2', refreshing && 'animate-spin')} /> {tShared('refresh')}
+            </Button>
+          </div>
+        }
+      />
 
       {/* Filters */}
       <div className="flex flex-wrap gap-2">
-        <div className="inline-flex rounded-md border border-white/10 bg-card p-0.5 text-xs">
+        <div className="inline-flex rounded-md border border-border bg-card p-0.5 text-xs">
           {SEVERITY_FILTERS.map((f) => (
             <button
               key={f.id}
               onClick={() => setFilter(f.id)}
               className={cn(
                 'px-3 py-1.5 rounded font-mono uppercase transition-colors',
-                filter === f.id ? 'bg-amber-500/15 text-amber-300' : 'text-muted-foreground hover:text-foreground',
+                filter === f.id ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300' : 'text-muted-foreground hover:text-foreground',
               )}
               aria-pressed={filter === f.id}
             >
@@ -130,14 +131,14 @@ export default function NotificationsPage() {
             </button>
           ))}
         </div>
-        <div className="inline-flex rounded-md border border-white/10 bg-card p-0.5 text-xs">
+        <div className="inline-flex rounded-md border border-border bg-card p-0.5 text-xs">
           {CHANNEL_FILTERS.map((c) => (
             <button
               key={c.id}
               onClick={() => setChannelFilter(c.id)}
               className={cn(
                 'px-3 py-1.5 rounded font-mono uppercase transition-colors',
-                channelFilter === c.id ? 'bg-emerald-500/15 text-emerald-300' : 'text-muted-foreground hover:text-foreground',
+                channelFilter === c.id ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'text-muted-foreground hover:text-foreground',
               )}
               aria-pressed={channelFilter === c.id}
             >
@@ -156,18 +157,14 @@ export default function NotificationsPage() {
 
       {loading ? (
         <div className="space-y-3">
-          {[1, 2, 3, 4].map((i) => <div key={i} className="h-24 rounded-lg bg-white/5 animate-pulse" />)}
+          {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-24 rounded-lg bg-muted animate-pulse" />)}
         </div>
       ) : filtered.length === 0 ? (
-        <Card>
-          <CardContent className="p-8 text-center text-muted-foreground space-y-3">
-            <Inbox className="h-10 w-10 mx-auto opacity-40" />
-            <p className="font-medium">{filter === 'all' ? t('empty_all') : t('empty_filtered', { severity: filter })}</p>
-            <p className="text-xs">
-              {t('empty_hint')}
-            </p>
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={Inbox}
+          title={filter === 'all' ? t('empty_all') : t('empty_filtered', { severity: filter })}
+          description={t('empty_hint')}
+        />
       ) : (
         <div className="space-y-2.5">
           {filtered.map((n) => (

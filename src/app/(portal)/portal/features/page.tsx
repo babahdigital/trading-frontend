@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { Sparkles, Lock, RefreshCw, ArrowUpRight, BarChart3, Brain, Target, Loader2 } from 'lucide-react';
+import { Sparkles, Lock, RefreshCw, ArrowUpRight, BarChart3, Brain, Target } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useToast } from '@/components/ui/toast';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { type CapabilityTier, tierLabel, tierIncludes, CAPABILITY_TIER_ORDER } from '@/lib/capabilities/tier-mapping';
+import { PageHeader } from '@/components/admin/page-header';
+import { EmptyState } from '@/components/admin/empty-state';
 
 interface FeatureItem {
   name: string;
@@ -33,9 +35,9 @@ interface TenantFeaturesResponse {
 type Bucket = 'indicators' | 'strategies' | 'ai_subsystems';
 
 const SECTION_META: Record<Bucket, { labelKey: string; icon: typeof BarChart3; color: string }> = {
-  indicators: { labelKey: 'section_indicators', icon: BarChart3, color: 'text-sky-300' },
-  strategies: { labelKey: 'section_strategies', icon: Target, color: 'text-emerald-300' },
-  ai_subsystems: { labelKey: 'section_ai_subsystems', icon: Brain, color: 'text-amber-300' },
+  indicators: { labelKey: 'section_indicators', icon: BarChart3, color: 'text-sky-600 dark:text-sky-300' },
+  strategies: { labelKey: 'section_strategies', icon: Target, color: 'text-emerald-600 dark:text-emerald-300' },
+  ai_subsystems: { labelKey: 'section_ai_subsystems', icon: Brain, color: 'text-amber-600 dark:text-amber-300' },
 };
 
 function ToggleSwitch({
@@ -63,10 +65,10 @@ function ToggleSwitch({
         'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
         disabled
-          ? 'cursor-not-allowed bg-white/5 opacity-50'
+          ? 'cursor-not-allowed bg-muted opacity-50'
           : checked
             ? 'bg-amber-500'
-            : 'bg-white/10 hover:bg-white/15',
+            : 'bg-muted hover:bg-muted/80',
       )}
     >
       <span
@@ -108,7 +110,7 @@ function UpgradeModal({
       >
         <div className="flex items-start gap-3 mb-4">
           <div className="rounded-lg bg-amber-500/15 p-2 shrink-0">
-            <Lock className="h-5 w-5 text-amber-400" />
+            <Lock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
           </div>
           <div>
             <h3 className="text-lg font-semibold leading-tight">{t('modal_title', { tier: tierLabel(requiredTier) })}</h3>
@@ -125,7 +127,7 @@ function UpgradeModal({
           <Button variant="outline" size="sm" onClick={onClose}>
             {t('modal_later')}
           </Button>
-          <Button size="sm" asChild className="bg-amber-500 hover:bg-amber-400 text-black">
+          <Button size="sm" asChild className="bg-amber-500 hover:bg-amber-400 text-amber-50 dark:text-amber-950">
             <Link href="/pricing">
               {t('modal_view_plans')} <ArrowUpRight className="h-4 w-4 ml-1.5" />
             </Link>
@@ -154,8 +156,8 @@ function FeatureRow({
       className={cn(
         'flex items-start gap-3 sm:gap-4 px-3 sm:px-4 py-3 rounded-lg border transition-colors',
         locked
-          ? 'border-white/[0.06] bg-white/[0.015] opacity-70'
-          : 'border-white/10 bg-card hover:border-white/20',
+          ? 'border-border/60 bg-muted/40 opacity-70'
+          : 'border-border bg-card hover:border-border/80',
       )}
     >
       <ToggleSwitch
@@ -169,13 +171,13 @@ function FeatureRow({
         <div className="flex items-center gap-2 flex-wrap">
           <code className="text-sm font-mono font-medium text-foreground/90">{item.name}</code>
           {locked && (
-            <Badge variant="outline" className="border-amber-500/40 text-amber-300 text-[10px] uppercase tracking-wider">
+            <Badge variant="outline" className="border-amber-500/40 text-amber-700 dark:text-amber-300 text-[10px] uppercase tracking-wider">
               <Lock className="h-3 w-3 mr-1" />
               {t('upgrade_badge', { tier: tierLabel(item.requires_tier) })}
             </Badge>
           )}
           {!locked && item.requires_tier !== 'beta' && (
-            <Badge variant="outline" className="border-white/10 text-muted-foreground text-[10px] uppercase tracking-wider">
+            <Badge variant="outline" className="border-border text-muted-foreground text-[10px] uppercase tracking-wider">
               {tierLabel(item.requires_tier)}
             </Badge>
           )}
@@ -323,28 +325,28 @@ export default function PortalFeaturesPage() {
   }, [tier]);
 
   return (
-    <div className="space-y-6 max-w-5xl">
-      <div className="flex items-end justify-between gap-3 flex-wrap">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-3">
-            <Sparkles className="h-6 w-6 sm:h-7 sm:w-7 text-amber-400" />
+    <div className="portal-page-stack max-w-5xl">
+      <PageHeader
+        title={
+          <span className="flex items-center gap-3">
+            <Sparkles className="h-6 w-6 sm:h-7 sm:w-7 text-amber-600 dark:text-amber-400" />
             {t('title')}
-          </h1>
-          <p className="text-muted-foreground mt-1.5 text-sm sm:text-base max-w-2xl">
-            {t('subtitle')}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {data?.source === 'fallback' && (
-            <span className="px-2.5 py-1 rounded-md text-xs font-mono bg-amber-500/10 border border-amber-500/30 text-amber-300">
-              {tShared('local_fallback_badge')}
-            </span>
-          )}
-          <Button size="sm" variant="outline" onClick={load} disabled={refreshing}>
-            <RefreshCw className={cn('h-4 w-4 mr-2', refreshing && 'animate-spin')} /> {tShared('refresh')}
-          </Button>
-        </div>
-      </div>
+          </span>
+        }
+        description={t('subtitle')}
+        actions={
+          <div className="flex items-center gap-2 flex-wrap">
+            {data?.source === 'fallback' && (
+              <span className="px-2.5 py-1 rounded-md text-xs font-mono bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300">
+                {tShared('local_fallback_badge')}
+              </span>
+            )}
+            <Button size="sm" variant="outline" onClick={load} disabled={refreshing}>
+              <RefreshCw className={cn('h-4 w-4 mr-2', refreshing && 'animate-spin')} /> {tShared('refresh')}
+            </Button>
+          </div>
+        }
+      />
 
       {/* Tier banner */}
       {data && (
@@ -360,7 +362,7 @@ export default function PortalFeaturesPage() {
               )}
             </div>
             {nextTier && (
-              <Button asChild size="sm" className="bg-amber-500 hover:bg-amber-400 text-black">
+              <Button asChild size="sm" className="bg-amber-500 hover:bg-amber-400 text-amber-50 dark:text-amber-950">
                 <Link href="/pricing">
                   {t('upgrade_to', { tier: tierLabel(nextTier) })} <ArrowUpRight className="h-4 w-4 ml-1.5" />
                 </Link>
@@ -371,7 +373,7 @@ export default function PortalFeaturesPage() {
       )}
 
       {/* Section tabs */}
-      <div className="inline-flex rounded-md border border-white/10 bg-card p-0.5 text-xs flex-wrap">
+      <div className="inline-flex rounded-md border border-border bg-card p-0.5 text-xs flex-wrap">
         {(Object.keys(SECTION_META) as Bucket[]).map((b) => {
           const meta = SECTION_META[b];
           const Icon = meta.icon;
@@ -383,7 +385,7 @@ export default function PortalFeaturesPage() {
               onClick={() => setActiveBucket(b)}
               className={cn(
                 'px-3 py-1.5 rounded font-mono uppercase transition-colors flex items-center gap-1.5',
-                activeBucket === b ? 'bg-amber-500/15 text-amber-300' : 'text-muted-foreground hover:text-foreground',
+                activeBucket === b ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300' : 'text-muted-foreground hover:text-foreground',
               )}
             >
               <Icon className="h-3.5 w-3.5" />
@@ -396,18 +398,14 @@ export default function PortalFeaturesPage() {
 
       {loading ? (
         <div className="space-y-2">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="h-16 rounded-lg bg-white/5 animate-pulse" />
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="h-16 rounded-lg bg-muted animate-pulse" />
           ))}
         </div>
       ) : data ? (
         <div className="space-y-2">
           {data[activeBucket].length === 0 ? (
-            <Card>
-              <CardContent className="p-8 text-center text-muted-foreground">
-                {t('category_empty')}
-              </CardContent>
-            </Card>
+            <EmptyState variant="inline" icon={Sparkles} title={t('category_empty')} size="sm" />
           ) : (
             data[activeBucket].map((item) => {
               const key = `${activeBucket}:${item.name}`;
@@ -424,17 +422,12 @@ export default function PortalFeaturesPage() {
           )}
         </div>
       ) : (
-        <Card>
-          <CardContent className="p-8 text-center text-muted-foreground">
-            <Loader2 className="h-6 w-6 mx-auto opacity-40 mb-2" />
-            {t('load_data_failed')}
-          </CardContent>
-        </Card>
+        <EmptyState variant="error" title={t('load_data_failed')} />
       )}
 
       {/* Tier ladder hint */}
       {data && (
-        <Card className="border-white/10">
+        <Card className="border-border">
           <CardContent className="p-4 sm:p-5">
             <div className="text-xs uppercase tracking-wider font-mono text-muted-foreground mb-3">{t('tier_ladder')}</div>
             <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
@@ -447,16 +440,16 @@ export default function PortalFeaturesPage() {
                       className={cn(
                         'inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-mono uppercase tracking-wider',
                         isCurrent
-                          ? 'bg-amber-500 text-black font-semibold'
+                          ? 'bg-amber-500 text-amber-50 dark:text-amber-950 font-semibold'
                           : reached
-                            ? 'bg-amber-500/10 text-amber-300'
-                            : 'bg-white/5 text-muted-foreground',
+                            ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300'
+                            : 'bg-muted text-muted-foreground',
                       )}
                     >
                       {tierLabel(tt)}
                     </span>
                     {i < CAPABILITY_TIER_ORDER.length - 1 && (
-                      <span className={cn('text-[10px]', reached ? 'text-amber-400/50' : 'text-white/15')}>›</span>
+                      <span className={cn('text-[10px]', reached ? 'text-amber-400/50' : 'text-muted-foreground/40')}>›</span>
                     )}
                   </div>
                 );

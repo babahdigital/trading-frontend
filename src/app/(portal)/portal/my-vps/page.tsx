@@ -10,6 +10,11 @@ import { PnlBarChart } from '@/components/charts/pnl-bar-chart';
 import { SkeletonCard, SkeletonChart, SkeletonTable } from '@/components/ui/skeleton';
 import { useAuth } from '@/lib/auth/auth-context';
 import { Activity, ArrowRight, Clock, Shield, Wifi } from 'lucide-react';
+import { PageHeader } from '@/components/admin/page-header';
+import { EmptyState } from '@/components/admin/empty-state';
+import { StatCard, StatCardGrid } from '@/components/admin/stat-card';
+import { formatCurrency, formatDate, formatPercent } from '@/lib/format-locale';
+import type { Locale } from '@/lib/format-locale';
 
 interface StatusData {
   bot_status?: string;
@@ -43,7 +48,7 @@ interface StatusData {
 
 export default function MyVpsPage() {
   const t = useTranslations('portal.vps.dashboard');
-  const locale = useLocale();
+  const locale = useLocale() as Locale;
   const { getAuthHeaders } = useAuth();
   const [status, setStatus] = useState<StatusData | null>(null);
   const [equityData, setEquityData] = useState<{ time: string; value: number }[]>([]);
@@ -120,17 +125,17 @@ export default function MyVpsPage() {
   }, []);
 
   function botStatusLabel(s?: string) {
-    if (!s) return { label: t('bot_status_unknown'), color: 'text-muted-foreground', bg: 'bg-muted' };
+    if (!s) return { label: t('bot_status_unknown'), color: 'text-muted-foreground', bg: 'bg-muted', dot: 'bg-muted-foreground/40' };
     const lower = s.toLowerCase();
-    if (lower === 'active' || lower === 'running') return { label: t('bot_status_active'), color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-green-500/20' };
-    if (lower === 'error') return { label: t('bot_status_error'), color: 'text-rose-600 dark:text-rose-400', bg: 'bg-red-500/20' };
-    if (lower === 'stopped') return { label: t('bot_status_stopped'), color: 'text-orange-400', bg: 'bg-orange-500/20' };
-    return { label: s, color: 'text-yellow-400', bg: 'bg-yellow-500/20' };
+    if (lower === 'active' || lower === 'running') return { label: t('bot_status_active'), color: 'text-emerald-700 dark:text-emerald-300', bg: 'bg-emerald-500/15', dot: 'bg-emerald-500' };
+    if (lower === 'error') return { label: t('bot_status_error'), color: 'text-rose-700 dark:text-rose-300', bg: 'bg-rose-500/15', dot: 'bg-rose-500' };
+    if (lower === 'stopped') return { label: t('bot_status_stopped'), color: 'text-orange-700 dark:text-orange-300', bg: 'bg-orange-500/15', dot: 'bg-orange-500' };
+    return { label: s, color: 'text-amber-700 dark:text-amber-300', bg: 'bg-amber-500/15', dot: 'bg-amber-500' };
   }
 
   function formatPnl(val?: number) {
     if (val === undefined || val === null) return '-';
-    return `${val >= 0 ? '+' : ''}$${val.toFixed(2)}`;
+    return `${val >= 0 ? '+' : ''}${formatCurrency(Math.abs(val), 'USD', locale)}`;
   }
 
   function licenseInfo() {
@@ -153,10 +158,10 @@ export default function MyVpsPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <h1 className="text-2xl font-bold">{t('heading')}</h1>
+      <div className="portal-page-stack">
+        <PageHeader title={t('heading')} description={t('tagline')} />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map((i) => <SkeletonCard key={i} />)}
+          {Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)}
         </div>
         <SkeletonChart />
         <SkeletonTable rows={5} />
@@ -170,94 +175,68 @@ export default function MyVpsPage() {
   const aiStates = status?.ai_state_by_pair ? Object.entries(status.ai_state_by_pair) : [];
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <div>
-          <h1 className="text-2xl font-bold">{t('heading')}</h1>
-          <p className="text-sm text-muted-foreground">{t('tagline')}</p>
-        </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className={cn('inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium', botSt.bg, botSt.color)}>
-            <span className={cn('w-1.5 h-1.5 rounded-full',
-              botSt.color === 'text-emerald-600 dark:text-emerald-400' ? 'bg-green-400' :
-              botSt.color === 'text-rose-600 dark:text-rose-400' ? 'bg-red-400' :
-              botSt.color === 'text-orange-400' ? 'bg-orange-400' : 'bg-yellow-400'
-            )} />
-            {t('bot_label', { status: botSt.label })}
-          </span>
-          {license && (
-            <span className={cn('inline-flex items-center rounded-full px-3 py-1 text-xs font-medium',
-              license.urgent ? 'bg-rose-500/15 text-rose-700 dark:text-rose-300' : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
-            )}>
-              <Shield className="w-3 h-3 mr-1" />
-              {t('license_label', { value: license.text })}
+    <div className="portal-page-stack">
+      <PageHeader
+        title={t('heading')}
+        description={t('tagline')}
+        actions={
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className={cn('inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium', botSt.bg, botSt.color)}>
+              <span className={cn('w-1.5 h-1.5 rounded-full', botSt.dot)} />
+              {t('bot_label', { status: botSt.label })}
             </span>
-          )}
-        </div>
-      </div>
+            {license && (
+              <span className={cn('inline-flex items-center rounded-full px-3 py-1 text-xs font-medium',
+                license.urgent ? 'bg-rose-500/15 text-rose-700 dark:text-rose-300' : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
+              )}>
+                <Shield className="w-3 h-3 mr-1" />
+                {t('license_label', { value: license.text })}
+              </span>
+            )}
+          </div>
+        }
+      />
 
       {error && (
-        <div className="rounded-md bg-red-500/10 border border-red-500/20 p-3 text-sm text-rose-600 dark:text-rose-400">{error}</div>
+        <div role="alert" className="rounded-md bg-rose-500/10 border border-rose-500/30 p-3 text-sm text-rose-700 dark:text-rose-300">{error}</div>
       )}
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">{t('kpi_equity')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold font-mono">
-              {status?.equity !== undefined ? `$${status.equity.toLocaleString()}` : '-'}
-            </p>
-            {status?.equity_change_pct !== undefined && (
-              <p className={cn('text-xs', status.equity_change_pct >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400')}>
-                {status.equity_change_pct >= 0 ? '▲ +' : '▼ '}{status.equity_change_pct.toFixed(1)}%
-              </p>
-            )}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">{t('kpi_today_pnl')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className={cn('text-2xl font-bold font-mono',
+      <StatCardGrid columns={4}>
+        <StatCard
+          label={t('kpi_equity')}
+          value={status?.equity !== undefined ? formatCurrency(status.equity, 'USD', locale) : '-'}
+          sub={status?.equity_change_pct !== undefined ? (
+            <span className={cn(status.equity_change_pct >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400')}>
+              {status.equity_change_pct >= 0 ? '▲ ' : '▼ '}{formatPercent(Math.abs(status.equity_change_pct), locale, { decimals: 1 })}
+            </span>
+          ) : undefined}
+        />
+        <StatCard
+          label={t('kpi_today_pnl')}
+          value={
+            <span className={cn(
               status?.today_pnl !== undefined ? (status.today_pnl >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400') : ''
-            )}>
-              {formatPnl(status?.today_pnl)}
-            </p>
-            {(status?.wins_today !== undefined || status?.losses_today !== undefined) && (
-              <p className="text-xs text-muted-foreground">
-                {t('win_loss_short', { wins: status?.wins_today ?? 0, losses: status?.losses_today ?? 0 })}
-              </p>
-            )}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">{t('kpi_open_positions')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold font-mono">{status?.open_trades ?? positions.length}</p>
-            <p className={cn('text-xs font-mono',
-              (status?.floating_pnl || 0) >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
-            )}>
+            )}>{formatPnl(status?.today_pnl)}</span>
+          }
+          sub={(status?.wins_today !== undefined || status?.losses_today !== undefined) ?
+            t('win_loss_short', { wins: status?.wins_today ?? 0, losses: status?.losses_today ?? 0 }) : undefined}
+        />
+        <StatCard
+          label={t('kpi_open_positions')}
+          value={String(status?.open_trades ?? positions.length)}
+          sub={(
+            <span className={cn('font-mono', (status?.floating_pnl || 0) >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400')}>
               {t('floating_label', { value: formatPnl(status?.floating_pnl) })}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">{t('kpi_active_pairs')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold font-mono">{status?.active_pairs ?? aiStates.length}</p>
-            <p className="text-xs text-muted-foreground">{t('from_total_pairs')}</p>
-          </CardContent>
-        </Card>
-      </div>
+            </span>
+          )}
+        />
+        <StatCard
+          label={t('kpi_active_pairs')}
+          value={String(status?.active_pairs ?? aiStates.length)}
+          sub={t('from_total_pairs')}
+        />
+      </StatCardGrid>
 
       {/* System Info Strip */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -275,7 +254,7 @@ export default function MyVpsPage() {
         </div>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Shield className="w-4 h-4" />
-          <span>{t('sync_label', { value: status?.last_sync ? new Date(status.last_sync).toLocaleDateString(locale === 'en' ? 'en-US' : 'id-ID') : '-' })}</span>
+          <span>{t('sync_label', { value: status?.last_sync ? formatDate(status.last_sync, locale) : '-' })}</span>
         </div>
       </div>
 
@@ -312,12 +291,12 @@ export default function MyVpsPage() {
           </CardHeader>
           <CardContent>
             {positions.length === 0 ? (
-              <p className="text-muted-foreground text-sm text-center py-4">{t('no_open_positions')}</p>
+              <EmptyState variant="inline" title={t('no_open_positions')} size="sm" />
             ) : (
               <div className="space-y-2">
                 {positions.slice(0, 5).map((pos, i) => (
                   <div key={i} className={cn('flex items-center justify-between p-3 rounded-lg border',
-                    pos.pnl_usd >= 0 ? 'border-green-500/20' : 'border-red-500/20'
+                    pos.pnl_usd >= 0 ? 'border-emerald-500/20' : 'border-rose-500/20'
                   )}>
                     <div>
                       <span className="font-mono font-semibold text-sm">{pos.symbol}</span>
@@ -329,7 +308,7 @@ export default function MyVpsPage() {
                       <span className={cn('font-mono font-semibold text-sm',
                         pos.pnl_usd >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                       )}>
-                        {pos.pnl_usd >= 0 ? '+' : ''}${pos.pnl_usd?.toFixed(2)}
+                        {formatPnl(pos.pnl_usd)}
                       </span>
                       <div className="text-xs text-muted-foreground">
                         {Math.floor((pos.duration_seconds || 0) / 60)}m
@@ -353,12 +332,12 @@ export default function MyVpsPage() {
           </CardHeader>
           <CardContent>
             {aiStates.length === 0 ? (
-              <p className="text-muted-foreground text-sm text-center py-4">{t('no_activity')}</p>
+              <EmptyState variant="inline" title={t('no_activity')} size="sm" />
             ) : (
               <div className="space-y-2 max-h-[300px] overflow-y-auto">
                 {aiStates.map(([pair, state]) => (
                   <div key={pair} className="flex items-center gap-3 p-2 text-sm">
-                    <span className="w-2 h-2 rounded-full bg-blue-400 flex-shrink-0" />
+                    <span className="w-2 h-2 rounded-full bg-sky-500 flex-shrink-0" />
                     <div>
                       <span className="font-mono font-semibold">{pair}</span>
                       <span className="text-muted-foreground ml-2">

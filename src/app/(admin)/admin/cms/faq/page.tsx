@@ -1,11 +1,14 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import Link from 'next/link';
+import { ExternalLink, HelpCircle, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CmsPageHeader } from '@/components/cms/page-header';
+import { PageHeader } from '@/components/admin/page-header';
+import { EmptyState } from '@/components/admin/empty-state';
 import { GenerateEnglishButton } from '@/components/cms/generate-english-button';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useToast } from '@/components/ui/toast';
@@ -160,18 +163,28 @@ export default function CmsFaqPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <CmsPageHeader title="FAQ Manager" previewUrl="/faq" />
-          <p className="text-muted-foreground">
-            Kelola FAQ. Tulis Indonesian sebagai source of truth, lalu klik <strong>Auto-translate</strong> untuk generate English via AI (boleh edit manual setelahnya).
-          </p>
-        </div>
-        <Button onClick={() => setEditing({ id: '', question: '', answer: '', question_en: null, answer_en: null, category: 'GENERAL', sortOrder: faqs.length, isVisible: true })}>
-          + Tambah FAQ
-        </Button>
-      </div>
-      <div className="flex items-center gap-3">
+      <PageHeader
+        title="FAQ Manager"
+        description="Kelola FAQ. Tulis Indonesian sebagai source of truth, lalu klik Auto-translate untuk generate English via AI (boleh edit manual setelahnya)."
+        actions={
+          <>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/faq" target="_blank" className="gap-2">
+                <ExternalLink className="h-4 w-4" />
+                Preview
+              </Link>
+            </Button>
+            <Button
+              onClick={() => setEditing({ id: '', question: '', answer: '', question_en: null, answer_en: null, category: 'GENERAL', sortOrder: faqs.length, isVisible: true })}
+              className="gap-1.5"
+            >
+              <Plus className="h-4 w-4" />
+              Tambah FAQ
+            </Button>
+          </>
+        }
+      />
+      <div className="flex items-center gap-3 flex-wrap">
         <GenerateEnglishButton type="all-faq" onSuccess={fetchFaqs} />
         <span className="text-xs text-muted-foreground">— bulk translate semua row sekaligus</span>
       </div>
@@ -203,7 +216,7 @@ export default function CmsFaqPage() {
 
             {/* Indonesian — Source of truth */}
             <div className="rounded-lg border border-border/60 p-4 space-y-3">
-              <p className="text-xs font-mono uppercase tracking-wider text-amber-400">Bahasa Indonesia · Source of truth</p>
+              <p className="text-xs font-mono uppercase tracking-wider text-amber-600 dark:text-amber-400">Bahasa Indonesia · Source of truth</p>
               <div>
                 <label className="text-sm font-medium mb-1 block">Pertanyaan (ID)</label>
                 <Input value={editing.question} onChange={(e) => setEditing({ ...editing, question: e.target.value })} placeholder="Contoh: Apa itu BabahAlgo?" />
@@ -251,7 +264,7 @@ export default function CmsFaqPage() {
                 />
               </div>
               {!editing.id && (
-                <p className="text-xs text-amber-400">
+                <p className="text-xs text-amber-600 dark:text-amber-400">
                   ⓘ Simpan dulu (Bahasa Indonesia), lalu tombol Auto-translate akan tersedia.
                 </p>
               )}
@@ -269,7 +282,24 @@ export default function CmsFaqPage() {
         </Card>
       )}
 
-      {loading ? <div className="text-center py-8 text-muted-foreground">Loading...</div> : (
+      {loading ? (
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}><CardContent className="p-4"><div className="h-12 rounded bg-muted animate-pulse" /></CardContent></Card>
+          ))}
+        </div>
+      ) : faqs.length === 0 ? (
+        <EmptyState
+          icon={HelpCircle}
+          title="Belum ada FAQ"
+          description="Tambahkan pertanyaan pertama agar tampil di halaman /faq publik."
+          actions={[{
+            label: 'Tambah FAQ',
+            onClick: () => setEditing({ id: '', question: '', answer: '', question_en: null, answer_en: null, category: 'GENERAL', sortOrder: 0, isVisible: true }),
+            icon: Plus,
+          }]}
+        />
+      ) : (
         <div className="space-y-3">
           {faqs.map((f) => (
             <Card key={f.id}>
@@ -278,9 +308,9 @@ export default function CmsFaqPage() {
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <span className="font-mono text-xs bg-muted px-2 py-0.5 rounded">{f.category}</span>
                     {hasEnglish(f) ? (
-                      <span className="text-xs px-2 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/40 text-emerald-300">✓ EN</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-emerald-500/15 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">✓ EN</span>
                     ) : (
-                      <span className="text-xs px-2 py-0.5 rounded bg-amber-500/15 border border-amber-500/40 text-amber-300">⚠ Need EN</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-amber-500/15 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">⚠ Need EN</span>
                     )}
                   </div>
                   <span className="font-semibold truncate block">{f.question}</span>

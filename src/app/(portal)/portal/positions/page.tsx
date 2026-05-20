@@ -1,12 +1,17 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useBabahalgoWS } from '@/lib/api/use-websocket';
 import { strategyDisplayName, isStrategyObfuscationEnabled } from '@/lib/trading/strategy-names';
+import { PageHeader } from '@/components/admin/page-header';
+import { EmptyState } from '@/components/admin/empty-state';
+import { formatCurrency } from '@/lib/format-locale';
+import type { Locale } from '@/lib/format-locale';
+import { Activity } from 'lucide-react';
 
 interface Position {
   symbol: string;
@@ -29,6 +34,7 @@ const POLL_SLOW_MS = 15000;
 export default function PositionsPage() {
   const t = useTranslations('portal.positions');
   const tShared = useTranslations('portal.shared');
+  const locale = useLocale() as Locale;
   const { getAuthHeaders } = useAuth();
   const [positions, setPositions] = useState<Position[]>([]);
   const [loading, setLoading] = useState(true);
@@ -78,34 +84,36 @@ export default function PositionsPage() {
   const totalPnl = positions.reduce((sum, p) => sum + (p.pnl_usd || 0), 0);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <h1 className="text-2xl font-bold">{t('title')}</h1>
-        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          <span
-            className={cn(
-              'inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full font-mono uppercase tracking-wider text-[10px]',
-              wsConnected
-                ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/30'
-                : 'bg-muted/40 text-muted-foreground border border-border',
-            )}
-            aria-live="polite"
-          >
+    <div className="portal-page-stack">
+      <PageHeader
+        title={t('title')}
+        actions={
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
             <span
-              className={cn('w-1.5 h-1.5 rounded-full', wsConnected ? 'bg-emerald-400 animate-pulse' : 'bg-muted-foreground/40')}
-              aria-hidden
-            />
-            {wsConnected ? tShared('live_label') : tShared('polling_label')}
-          </span>
-          <span>{t('refresh_label')} {wsConnected ? t('refresh_on_event') : t('refresh_3s')}</span>
-          {lastUpdated && (
-            <span>{lastUpdated.toLocaleTimeString()}</span>
-          )}
-        </div>
-      </div>
+              className={cn(
+                'inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full font-mono uppercase tracking-wider text-[10px]',
+                wsConnected
+                  ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30'
+                  : 'bg-muted/40 text-muted-foreground border border-border',
+              )}
+              aria-live="polite"
+            >
+              <span
+                className={cn('w-1.5 h-1.5 rounded-full', wsConnected ? 'bg-emerald-500 animate-pulse' : 'bg-muted-foreground/40')}
+                aria-hidden
+              />
+              {wsConnected ? tShared('live_label') : tShared('polling_label')}
+            </span>
+            <span className="hidden sm:inline">{t('refresh_label')} {wsConnected ? t('refresh_on_event') : t('refresh_3s')}</span>
+            {lastUpdated && (
+              <span className="font-mono tabular-nums">{lastUpdated.toLocaleTimeString()}</span>
+            )}
+          </div>
+        }
+      />
 
       {error && (
-        <div className="rounded-md bg-red-500/10 border border-red-500/20 p-3 text-sm text-rose-600 dark:text-rose-400">{error}</div>
+        <div role="alert" className="rounded-md bg-rose-500/10 border border-rose-500/30 p-3 text-sm text-rose-700 dark:text-rose-300">{error}</div>
       )}
 
       {/* Desktop Table */}
@@ -116,15 +124,24 @@ export default function PositionsPage() {
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">{t('floating_pnl_label')}</span>
               <span className={cn('font-mono font-semibold', totalPnl >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400')}>
-                {totalPnl >= 0 ? '+' : ''}${totalPnl.toFixed(2)}
+                {totalPnl >= 0 ? '+' : ''}{formatCurrency(Math.abs(totalPnl), 'USD', locale)}
               </span>
             </div>
           </CardHeader>
           <CardContent>
             {loading ? (
-              <p className="text-muted-foreground text-sm">{tShared('loading')}</p>
+              <div className="space-y-2">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="h-12 rounded bg-muted animate-pulse" />
+                ))}
+              </div>
             ) : positions.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">{t('empty')}</div>
+              <EmptyState
+                variant="inline"
+                icon={Activity}
+                title={t('empty')}
+                size="sm"
+              />
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -142,7 +159,7 @@ export default function PositionsPage() {
                   <tbody>
                     {positions.map((pos, i) => (
                       <tr key={i} className={cn('border-b border-border/50 last:border-0 transition-colors',
-                        pos.pnl_usd >= 0 ? 'hover:bg-green-500/5' : 'hover:bg-red-500/5'
+                        pos.pnl_usd >= 0 ? 'hover:bg-emerald-500/5' : 'hover:bg-rose-500/5'
                       )}>
                         <td className="py-3 font-mono font-semibold">{pos.symbol}</td>
                         <td className="py-3">
@@ -151,7 +168,7 @@ export default function PositionsPage() {
                           )}>{pos.direction}</span>
                         </td>
                         <td className={cn('py-3 text-right font-mono font-semibold', pos.pnl_usd >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400')}>
-                          {pos.pnl_usd >= 0 ? '+' : ''}${pos.pnl_usd?.toFixed(2)}
+                          {pos.pnl_usd >= 0 ? '+' : ''}{formatCurrency(Math.abs(pos.pnl_usd ?? 0), 'USD', locale)}
                         </td>
                         <td className={cn('py-3 text-right font-mono', (pos.pnl_pips || 0) >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400')}>
                           {pos.pnl_pips !== undefined ? `${pos.pnl_pips >= 0 ? '+' : ''}${pos.pnl_pips}` : '-'}
@@ -180,16 +197,18 @@ export default function PositionsPage() {
       {/* Mobile Card View */}
       <div className="md:hidden space-y-3">
         {loading ? (
-          <p className="text-muted-foreground text-sm">{tShared('loading')}</p>
+          <div className="space-y-2">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="h-20 rounded bg-muted animate-pulse" />
+            ))}
+          </div>
         ) : positions.length === 0 ? (
-          <Card>
-            <CardContent className="py-8 text-center text-muted-foreground">{t('empty')}</CardContent>
-          </Card>
+          <EmptyState icon={Activity} title={t('empty')} size="sm" />
         ) : (
           <>
             {positions.map((pos, i) => (
               <Card key={i} className={cn('border-l-4',
-                pos.pnl_usd >= 0 ? 'border-l-green-500' : 'border-l-red-500'
+                pos.pnl_usd >= 0 ? 'border-l-emerald-500' : 'border-l-rose-500'
               )}>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between mb-2">
@@ -202,7 +221,7 @@ export default function PositionsPage() {
                     <span className={cn('font-mono font-bold',
                       pos.pnl_usd >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                     )}>
-                      {pos.pnl_usd >= 0 ? '+' : ''}${pos.pnl_usd?.toFixed(2)}
+                      {pos.pnl_usd >= 0 ? '+' : ''}{formatCurrency(Math.abs(pos.pnl_usd ?? 0), 'USD', locale)}
                     </span>
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
@@ -218,7 +237,7 @@ export default function PositionsPage() {
               <CardContent className="py-3 flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">{t('total_floating_pnl')}</span>
                 <span className={cn('font-mono font-bold', totalPnl >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400')}>
-                  {totalPnl >= 0 ? '+' : ''}${totalPnl.toFixed(2)}
+                  {totalPnl >= 0 ? '+' : ''}{formatCurrency(Math.abs(totalPnl), 'USD', locale)}
                 </span>
               </CardContent>
             </Card>

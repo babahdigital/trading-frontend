@@ -5,8 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { PageHeader } from '@/components/admin/page-header';
 import { cn } from '@/lib/utils';
 import { AlertTriangle, CheckCircle2, ShieldCheck, Zap } from 'lucide-react';
+import { formatDateTime } from '@/lib/format-locale';
 import { useAuth } from '@/lib/auth/auth-context';
 
 interface KillSwitchEvent {
@@ -138,15 +140,15 @@ export default function KillSwitchPage() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold tracking-tight">Kill Switch</h2>
-        <p className="text-muted-foreground">Emergency license termination events</p>
-      </div>
+      <PageHeader
+        title="Kill Switch"
+        description="Emergency license termination events"
+      />
 
       <Card className="mb-6">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5 text-red-500" />
+            <AlertTriangle className="h-5 w-5 text-rose-600 dark:text-rose-400" />
             Manual Kill Switch
           </CardTitle>
         </CardHeader>
@@ -176,12 +178,12 @@ export default function KillSwitchPage() {
             </div>
           </div>
           {confirmStep && (
-            <p className="mt-2 text-sm text-yellow-400">
+            <p className="mt-2 text-sm text-amber-600 dark:text-amber-400">
               Are you sure? This will immediately terminate the license. Click &quot;CONFIRM KILL&quot; to proceed.
             </p>
           )}
-          {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
-          {success && <p className="mt-2 text-sm text-green-400">{success}</p>}
+          {error && <p className="mt-2 text-sm text-rose-600 dark:text-rose-400">{error}</p>}
+          {success && <p className="mt-2 text-sm text-emerald-600 dark:text-emerald-400">{success}</p>}
         </CardContent>
       </Card>
 
@@ -189,7 +191,7 @@ export default function KillSwitchPage() {
       <Card className="mb-6">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <ShieldCheck className="h-5 w-5 text-emerald-400" />
+            <ShieldCheck className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
             Resolve Forex Kill-Switch Event
           </CardTitle>
           <p className="text-sm text-muted-foreground">
@@ -246,13 +248,13 @@ export default function KillSwitchPage() {
                 {resolveSubmitting ? 'Resolving...' : 'Resolve Event'}
               </Button>
               {resolveSuccess && (
-                <span className="text-sm text-emerald-400 flex items-center gap-1.5">
+                <span className="text-sm text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
                   <CheckCircle2 className="h-4 w-4" />
                   {resolveSuccess}
                 </span>
               )}
             </div>
-            {resolveError && <p className="text-sm text-red-400">{resolveError}</p>}
+            {resolveError && <p className="text-sm text-rose-600 dark:text-rose-400">{resolveError}</p>}
           </div>
         </CardContent>
       </Card>
@@ -275,7 +277,13 @@ export default function KillSwitchPage() {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={5} className="p-4 text-center text-muted-foreground no-label">Loading...</td></tr>
+                  Array.from({ length: 3 }).map((_, i) => (
+                    <tr key={i} className="border-b">
+                      <td colSpan={5} className="p-4 no-label">
+                        <div className="h-6 rounded bg-muted animate-pulse" />
+                      </td>
+                    </tr>
+                  ))
                 ) : events.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="p-8 text-center no-label">
@@ -287,19 +295,21 @@ export default function KillSwitchPage() {
                   events.map((evt) => (
                     <tr key={evt.id} className="border-b hover:bg-accent/50 transition-colors">
                       <td className="p-4 text-muted-foreground whitespace-nowrap" data-label="Time">
-                        {new Date(evt.createdAt).toLocaleString()}
+                        {formatDateTime(evt.createdAt)}
                       </td>
                       <td className="p-4 font-mono text-xs" data-label="License Key">{evt.licenseKey || evt.licenseId || '-'}</td>
                       <td className="p-4" data-label="Triggered By">{evt.triggeredBy || '-'}</td>
                       <td className="p-4" data-label="Success">
                         <span className={cn(
                           'px-2 py-1 rounded-full text-xs font-medium',
-                          evt.success ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                          evt.success
+                            ? 'bg-emerald-500/15 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300'
+                            : 'bg-rose-500/15 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300'
                         )}>
                           {evt.success ? 'YES' : 'NO'}
                         </span>
                       </td>
-                      <td className="p-4 text-xs text-red-400" data-label="Error">{evt.error || '-'}</td>
+                      <td className="p-4 text-xs text-rose-600 dark:text-rose-400" data-label="Error">{evt.error || '-'}</td>
                     </tr>
                   ))
                 )}

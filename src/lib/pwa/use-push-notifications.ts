@@ -43,26 +43,32 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
   return outputArray;
 }
 
+/**
+ * Detect Web Push support — runs at module load (kalau di client) supaya
+ * lazy useState init bisa langsung pakai hasil tanpa effect roundtrip.
+ * SSR-safe (return false saat typeof window undefined).
+ */
+function detectPushSupport(): boolean {
+  if (typeof window === 'undefined') return false;
+  return (
+    'serviceWorker' in navigator &&
+    'PushManager' in window &&
+    'Notification' in window
+  );
+}
+
 export function usePushNotifications(): UsePushNotificationsReturn {
-  const [isSupported, setIsSupported] = useState(false);
+  // Lazy init dari feature detection — tidak perlu setIsSupported di effect.
+  const [isSupported] = useState<boolean>(detectPushSupport);
   const [isSubscribed, setIsSubscribed] = useState(false);
-  const [status, setStatus] = useState<Status>('idle');
+  const [status, setStatus] = useState<Status>(() => detectPushSupport() ? 'idle' : 'unsupported');
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const supported =
-      'serviceWorker' in navigator &&
-      'PushManager' in window &&
-      'Notification' in window;
-    setIsSupported(supported);
+    if (!isSupported) return;
 
-    if (!supported) {
-      setStatus('unsupported');
-      return;
-    }
-
-    // Check existing subscription
+    // Check existing subscription async — set state dalam callback, bukan
+    // synchronously di effect body.
     navigator.serviceWorker.ready.then((registration) => {
       registration.pushManager.getSubscription().then((sub) => {
         if (sub) {
@@ -72,13 +78,13 @@ export function usePushNotifications(): UsePushNotificationsReturn {
           const perm = Notification.permission;
           if (perm === 'denied') setStatus('denied');
           else if (perm === 'default') setStatus('permission_required');
-          else setStatus('idle');
+          // else: keep current status (default 'idle')
         }
       });
     }).catch(() => {
       // SW belum register; skip — hook caller akan trigger register via subscribe()
     });
-  }, []);
+  }, [isSupported]);
 
   const subscribe = useCallback(async (topics: string[] = ['signal_alert']): Promise<boolean> => {
     setError(null);

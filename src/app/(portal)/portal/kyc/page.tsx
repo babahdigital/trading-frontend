@@ -31,6 +31,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import { PageHeader } from '@/components/admin/page-header';
+import { formatDateTime } from '@/lib/format-locale';
+import type { Locale } from '@/lib/format-locale';
 
 interface KycSummary {
   id?: string;
@@ -62,31 +65,31 @@ interface FormData {
 
 const STATUS_META: Record<string, { tone: string; icon: typeof ShieldCheck; labelKey: string; descKey: string }> = {
   NOT_SUBMITTED: {
-    tone: 'border-amber-500/30 bg-amber-500/5 text-amber-300',
+    tone: 'border-amber-500/30 bg-amber-500/5 text-amber-700 dark:text-amber-300',
     icon: AlertCircle,
     labelKey: 'status_not_submitted_label',
     descKey: 'status_not_submitted_desc',
   },
   PENDING_REVIEW: {
-    tone: 'border-blue-500/30 bg-blue-500/5 text-blue-300',
+    tone: 'border-sky-500/30 bg-sky-500/5 text-sky-700 dark:text-sky-300',
     icon: Clock,
     labelKey: 'status_pending_review_label',
     descKey: 'status_pending_review_desc',
   },
   ADDITIONAL_INFO_REQUIRED: {
-    tone: 'border-amber-500/30 bg-amber-500/5 text-amber-300',
+    tone: 'border-amber-500/30 bg-amber-500/5 text-amber-700 dark:text-amber-300',
     icon: FileCheck,
     labelKey: 'status_additional_info_label',
     descKey: 'status_additional_info_desc',
   },
   APPROVED: {
-    tone: 'border-green-500/30 bg-green-500/5 text-green-300',
+    tone: 'border-emerald-500/30 bg-emerald-500/5 text-emerald-700 dark:text-emerald-300',
     icon: ShieldCheck,
     labelKey: 'status_approved_label',
     descKey: 'status_approved_desc',
   },
   REJECTED: {
-    tone: 'border-red-500/30 bg-red-500/5 text-red-300',
+    tone: 'border-rose-500/30 bg-rose-500/5 text-rose-700 dark:text-rose-300',
     icon: XCircle,
     labelKey: 'status_rejected_label',
     descKey: 'status_rejected_desc',
@@ -212,7 +215,7 @@ function validateStep(step: number, form: FormData): { valid: boolean; errors: P
 
 export default function KycPage() {
   const t = useTranslations('portal.kyc');
-  const locale = useLocale();
+  const locale = useLocale() as Locale;
   const isEn = locale === 'en';
   const { getAuthHeaders } = useAuth();
   const [summary, setSummary] = useState<KycSummary | null>(null);
@@ -317,24 +320,21 @@ export default function KycPage() {
     return <KycLoadingSkeleton />;
   }
 
-  const dateLocale = isEn ? 'en-US' : 'id-ID';
   const today = new Date().toISOString().slice(0, 10);
   const minDob = new Date();
   minDob.setFullYear(minDob.getFullYear() - 100);
-  const maxDob = new Date();
-  maxDob.setFullYear(maxDob.getFullYear() - 18);
 
   return (
-    <div className="space-y-6 max-w-3xl pb-24">
-      <header>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-3">
-          <IdCard className="h-6 w-6 sm:h-7 sm:w-7 text-amber-400" />
-          {t('page_title')}
-        </h1>
-        <p className="text-muted-foreground mt-2 text-sm sm:text-base">
-          {t('page_subtitle')}
-        </p>
-      </header>
+    <div className="portal-page-stack max-w-3xl pb-24">
+      <PageHeader
+        title={
+          <span className="flex items-center gap-3">
+            <IdCard className="h-6 w-6 sm:h-7 sm:w-7 text-amber-600 dark:text-amber-400" />
+            {t('page_title')}
+          </span>
+        }
+        description={t('page_subtitle')}
+      />
 
       {/* Status badge */}
       <Card className={cn('border-2', meta.tone)}>
@@ -344,13 +344,13 @@ export default function KycPage() {
             <p className="font-bold">{t(meta.labelKey)}</p>
             <p className="text-sm opacity-90 mt-0.5">{t(meta.descKey)}</p>
             {summary?.rejectionReason && (
-              <div className="mt-3 p-3 rounded bg-red-500/10 border border-red-500/30 text-sm">
+              <div className="mt-3 p-3 rounded bg-rose-500/10 border border-rose-500/30 text-sm">
                 <span className="font-semibold">{t('rejection_reason_label')} </span>{summary.rejectionReason}
               </div>
             )}
             {summary?.submittedAt && (
               <p className="text-xs mt-2 opacity-70 font-mono">
-                {t('submitted_at', { timestamp: new Date(summary.submittedAt).toLocaleString(dateLocale) })}
+                {t('submitted_at', { timestamp: formatDateTime(summary.submittedAt, locale) })}
               </p>
             )}
           </div>
@@ -362,7 +362,7 @@ export default function KycPage() {
         <Card>
           <CardContent className="p-5">
             <h2 className="font-semibold mb-3 flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+              <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
               {isEn ? 'Submitted information' : 'Informasi yang dikirim'}
             </h2>
             <dl className="grid sm:grid-cols-2 gap-3 text-sm">
@@ -379,7 +379,7 @@ export default function KycPage() {
         <>
           {/* Draft restored notice */}
           {draftRestored && (
-            <div className="rounded-md border border-blue-500/30 bg-blue-500/10 p-3 text-xs text-blue-200 flex items-start gap-2">
+            <div className="rounded-md border border-sky-500/30 bg-sky-500/10 p-3 text-xs text-sky-700 dark:text-sky-300 flex items-start gap-2">
               <Loader2 className="w-4 h-4 shrink-0 mt-0.5" />
               <span>
                 {isEn
@@ -393,7 +393,7 @@ export default function KycPage() {
           <StepIndicator step={step} isEn={isEn} />
 
           {error && (
-            <div className="p-3 rounded-md border border-red-500/30 bg-red-500/5 text-red-300 text-sm">
+            <div role="alert" className="p-3 rounded-md border border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300 text-sm">
               {error}
             </div>
           )}
@@ -402,7 +402,7 @@ export default function KycPage() {
           {step === 0 && (
             <Card>
               <CardContent className="p-5 space-y-4">
-                <h2 className="font-semibold flex items-center gap-2"><User className="w-4 h-4 text-amber-400" /> {t('section_personal')}</h2>
+                <h2 className="font-semibold flex items-center gap-2"><User className="w-4 h-4 text-amber-600 dark:text-amber-400" /> {t('section_personal')}</h2>
                 <div className="grid sm:grid-cols-2 gap-4">
                   <Field
                     label={t('field_full_name')}
@@ -454,7 +454,7 @@ export default function KycPage() {
           {step === 1 && (
             <Card>
               <CardContent className="p-5 space-y-4">
-                <h2 className="font-semibold flex items-center gap-2"><MapPin className="w-4 h-4 text-amber-400" /> {t('section_address')}</h2>
+                <h2 className="font-semibold flex items-center gap-2"><MapPin className="w-4 h-4 text-amber-600 dark:text-amber-400" /> {t('section_address')}</h2>
                 <Field
                   label={t('field_address_line1')}
                   required
@@ -517,7 +517,7 @@ export default function KycPage() {
           {step === 2 && (
             <Card>
               <CardContent className="p-5 space-y-4">
-                <h2 className="font-semibold flex items-center gap-2"><FileText className="w-4 h-4 text-amber-400" /> {t('section_document')}</h2>
+                <h2 className="font-semibold flex items-center gap-2"><FileText className="w-4 h-4 text-amber-600 dark:text-amber-400" /> {t('section_document')}</h2>
                 <div className="grid sm:grid-cols-2 gap-4">
                   <Select
                     label={t('field_document_type')}
@@ -548,7 +548,7 @@ export default function KycPage() {
           {step === 3 && (
             <Card>
               <CardContent className="p-5 space-y-4">
-                <h2 className="font-semibold flex items-center gap-2"><BarChart3 className="w-4 h-4 text-amber-400" /> {t('section_risk_profile')}</h2>
+                <h2 className="font-semibold flex items-center gap-2"><BarChart3 className="w-4 h-4 text-amber-600 dark:text-amber-400" /> {t('section_risk_profile')}</h2>
                 <div className="grid sm:grid-cols-3 gap-4">
                   <Select
                     label={t('field_investment_experience')}
@@ -649,8 +649,8 @@ function StepIndicator({ step, isEn }: { step: number; isEn: boolean }) {
             <div
               className={cn(
                 'flex items-center gap-2 px-2 py-1.5 rounded-md text-xs',
-                active && 'bg-amber-500 text-black font-semibold',
-                done && 'text-emerald-400',
+                active && 'bg-amber-500 text-amber-50 dark:text-amber-950 font-semibold',
+                done && 'text-emerald-600 dark:text-emerald-400',
                 !active && !done && 'text-muted-foreground',
               )}
             >
@@ -714,7 +714,7 @@ function Field({
   const baseInputCls = cn(
     'w-full text-sm rounded-md border bg-background px-3 py-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2',
     error
-      ? 'border-red-500/50 focus-visible:ring-red-500/50'
+      ? 'border-rose-500/50 focus-visible:ring-rose-500/50'
       : 'border-input focus-visible:ring-ring',
     mono && 'font-mono',
   );

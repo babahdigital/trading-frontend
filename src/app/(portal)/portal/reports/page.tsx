@@ -1,10 +1,16 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth/auth-context';
+import { PageHeader } from '@/components/admin/page-header';
+import { EmptyState } from '@/components/admin/empty-state';
+import { StatCard, StatCardGrid } from '@/components/admin/stat-card';
+import { formatCurrency } from '@/lib/format-locale';
+import type { Locale } from '@/lib/format-locale';
+import { FileText, BarChart2, DollarSign } from 'lucide-react';
 
 interface ReportData {
   summary?: string;
@@ -16,6 +22,7 @@ interface ReportData {
 export default function ReportsPage() {
   const t = useTranslations('portal.reports');
   const tShared = useTranslations('portal.shared');
+  const locale = useLocale() as Locale;
   const { getAuthHeaders } = useAuth();
   const [report, setReport] = useState<ReportData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -49,28 +56,30 @@ export default function ReportsPage() {
   const highlightKeys = ['summary', 'trades_count', 'total_pnl'];
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-foreground">{t('title')}</h1>
+    <div className="portal-page-stack">
+      <PageHeader title={t('title')} />
 
       {error && (
-        <div className="rounded-md bg-red-500/10 border border-red-500/20 p-3 text-sm text-rose-600 dark:text-rose-400">
+        <div role="alert" className="rounded-md bg-rose-500/10 border border-rose-500/30 p-3 text-sm text-rose-700 dark:text-rose-300">
           {error}
         </div>
       )}
 
       {loading ? (
-        <p className="text-muted-foreground text-sm">{t('loading')}</p>
-      ) : !report ? (
-        <div className="flex items-center justify-center py-12">
-          <p className="text-muted-foreground">{t('no_report')}</p>
+        <div className="space-y-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="h-20 rounded bg-muted animate-pulse" />
+          ))}
         </div>
+      ) : !report ? (
+        <EmptyState icon={FileText} title={t('no_report')} />
       ) : (
         <>
           {/* Highlighted Metrics */}
           {(report.summary || report.trades_count !== undefined || report.total_pnl !== undefined) && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-4">
               {report.summary && (
-                <Card className="bg-card border-border md:col-span-3">
+                <Card>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-medium text-muted-foreground">
                       {t('summary')}
@@ -82,44 +91,35 @@ export default function ReportsPage() {
                 </Card>
               )}
 
-              {report.trades_count !== undefined && (
-                <Card className="bg-card border-border">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">
-                      {t('total_trades')}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-2xl font-bold text-foreground">{report.trades_count}</p>
-                  </CardContent>
-                </Card>
-              )}
-
-              {report.total_pnl !== undefined && (
-                <Card className="bg-card border-border">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">
-                      {t('total_pnl')}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p
-                      className={cn(
-                        'text-2xl font-bold',
-                        (report.total_pnl as number) >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
-                      )}
-                    >
-                      {(report.total_pnl as number) >= 0 ? '+' : ''}$
-                      {(report.total_pnl as number).toFixed(2)}
-                    </p>
-                  </CardContent>
-                </Card>
+              {(report.trades_count !== undefined || report.total_pnl !== undefined) && (
+                <StatCardGrid columns={2}>
+                  {report.trades_count !== undefined && (
+                    <StatCard
+                      label={t('total_trades')}
+                      value={String(report.trades_count)}
+                      icon={BarChart2}
+                      iconTone="info"
+                    />
+                  )}
+                  {report.total_pnl !== undefined && (
+                    <StatCard
+                      label={t('total_pnl')}
+                      value={
+                        <span className={cn((report.total_pnl as number) >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400')}>
+                          {(report.total_pnl as number) >= 0 ? '+' : ''}{formatCurrency(Math.abs(report.total_pnl as number), 'USD', locale)}
+                        </span>
+                      }
+                      icon={DollarSign}
+                      iconTone={(report.total_pnl as number) >= 0 ? 'success' : 'danger'}
+                    />
+                  )}
+                </StatCardGrid>
               )}
             </div>
           )}
 
           {/* Full Report Details */}
-          <Card className="bg-card border-border">
+          <Card>
             <CardHeader>
               <CardTitle className="text-lg font-semibold text-foreground">{t('details_title')}</CardTitle>
             </CardHeader>

@@ -8,6 +8,7 @@ import { TwoFaTab } from './tabs/two-fa';
 import { NotificationsTab } from './tabs/notifications';
 import { BillingTab } from './tabs/billing';
 import { TradingTab } from './tabs/trading';
+import { PageHeader } from '@/components/admin/page-header';
 
 const TABS = [
   { id: 'profile', labelKey: 'tab_profile' },
@@ -24,11 +25,8 @@ export default function AccountPage() {
   const [tab, setTab] = useState<TabId>('profile');
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">{t('title')}</h1>
-        <p className="text-sm text-muted-foreground mt-1">{t('subtitle')}</p>
-      </div>
+    <div className="portal-page-stack">
+      <PageHeader title={t('title')} description={t('subtitle')} />
 
       <div role="tablist" aria-label={t('tablist_aria')} className="border-b border-border overflow-x-auto">
         <div className="flex min-w-max gap-1">
@@ -44,7 +42,7 @@ export default function AccountPage() {
               className={cn(
                 'px-4 py-2 text-sm transition-colors border-b-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60',
                 tab === item.id
-                  ? 'border-amber-400 text-amber-400'
+                  ? 'border-amber-500 text-amber-600 dark:text-amber-400'
                   : 'border-transparent text-muted-foreground hover:text-foreground'
               )}
             >

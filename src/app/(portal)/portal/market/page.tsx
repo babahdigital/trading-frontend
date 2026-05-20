@@ -1,11 +1,16 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { ScannerHeatmap } from '@/components/charts/scanner-heatmap';
 import { useAuth } from '@/lib/auth/auth-context';
+import { PageHeader } from '@/components/admin/page-header';
+import { EmptyState } from '@/components/admin/empty-state';
+import { Radar } from 'lucide-react';
+import { formatTime } from '@/lib/format-locale';
+import type { Locale } from '@/lib/format-locale';
 
 interface ScannerItem {
   pair: string;
@@ -39,14 +44,15 @@ function getCurrentSessions(): SessionInfo[] {
 }
 
 function sessionDot(status: string) {
-  if (status === 'active') return 'bg-green-400';
-  if (status === 'opening') return 'bg-yellow-400';
+  if (status === 'active') return 'bg-emerald-500 dark:bg-emerald-400';
+  if (status === 'opening') return 'bg-amber-500 dark:bg-amber-400';
   return 'bg-slate-500';
 }
 
 export default function MarketPage() {
   const t = useTranslations('portal.market');
   const tShared = useTranslations('portal.shared');
+  const locale = useLocale() as Locale;
   const { getAuthHeaders } = useAuth();
   const [items, setItems] = useState<ScannerItem[]>([]);
   const [news, setNews] = useState<NewsEvent[]>([]);
@@ -110,15 +116,17 @@ export default function MarketPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{t('title')}</h1>
-        {lastUpdated && (
-          <span className="text-xs text-muted-foreground">
-            {tShared('updated_at')}: {lastUpdated.toLocaleTimeString()}
-          </span>
-        )}
-      </div>
+    <div className="portal-page-stack">
+      <PageHeader
+        title={t('title')}
+        actions={
+          lastUpdated && (
+            <span className="text-xs text-muted-foreground font-mono tabular-nums">
+              {tShared('updated_at')}: {formatTime(lastUpdated, locale)}
+            </span>
+          )
+        }
+      />
 
       {/* ROW 1: Session Status Bar */}
       <Card>
@@ -139,14 +147,18 @@ export default function MarketPage() {
       </Card>
 
       {error && (
-        <div className="rounded-md bg-red-500/10 border border-red-500/20 p-3 text-sm text-rose-600 dark:text-rose-400">{error}</div>
+        <div role="alert" className="rounded-md bg-rose-500/10 border border-rose-500/30 p-3 text-sm text-rose-700 dark:text-rose-300">{error}</div>
       )}
 
       {/* ROW 2: Pair Grid (Client view - simplified) */}
       {loading ? (
-        <p className="text-muted-foreground text-sm">{t('loading_scanner')}</p>
+        <div className="space-y-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-12 rounded bg-muted animate-pulse" />
+          ))}
+        </div>
       ) : heatmapPairs.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground">{t('no_scanner_data')}</div>
+        <EmptyState icon={Radar} title={t('no_scanner_data')} />
       ) : (
         <Card>
           <CardHeader>
@@ -169,7 +181,7 @@ export default function MarketPage() {
               {news.filter((n) => n.impact === 'high').slice(0, 5).map((event, i) => (
                 <div key={i} className="border rounded-lg p-3">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="w-2 h-2 rounded-full bg-red-500" />
+                    <span className="w-2 h-2 rounded-full bg-rose-500" />
                     <span className="font-semibold text-sm">{event.title}</span>
                     <span className="text-xs text-muted-foreground ml-auto">{event.time}</span>
                   </div>

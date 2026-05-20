@@ -9,6 +9,8 @@ import { useBabahalgoWS } from '@/lib/api/use-websocket';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { PageHeader } from '@/components/admin/page-header';
+import { EmptyState } from '@/components/admin/empty-state';
 
 interface Signal {
   id?: string | number;
@@ -123,7 +125,7 @@ export default function MySignalsPage() {
   if (needSubscription) {
     return (
       <div className="max-w-2xl mx-auto py-12 text-center space-y-4">
-        <Lock className="h-12 w-12 text-amber-400 mx-auto" />
+        <Lock className="h-12 w-12 text-amber-600 dark:text-amber-400 mx-auto" />
         <h1 className="text-2xl font-bold">{t('subscription_required_title')}</h1>
         <p className="text-muted-foreground">
           {t('subscription_required_desc')}
@@ -141,56 +143,53 @@ export default function MySignalsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
-          <p className="text-muted-foreground mt-1">
-            {t('subtitle')}
-          </p>
-          {tier && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 mt-2 rounded font-mono text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20">
-              {t('tier_label')} {tier}
-            </span>
-          )}
-        </div>
-        <Button size="sm" variant="outline" onClick={load} disabled={refreshing}>
-          <RefreshCw className={cn('h-4 w-4 mr-2', refreshing && 'animate-spin')} />
-          {tShared('refresh')}
-        </Button>
-      </div>
+    <div className="portal-page-stack">
+      <PageHeader
+        title={t('title')}
+        description={t('subtitle')}
+        actions={
+          <Button size="sm" variant="outline" onClick={load} disabled={refreshing}>
+            <RefreshCw className={cn('h-4 w-4 mr-2', refreshing && 'animate-spin')} />
+            {tShared('refresh')}
+          </Button>
+        }
+      />
+
+      {tier && (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded font-mono text-xs bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20">
+          {t('tier_label')} {tier}
+        </span>
+      )}
 
       {source === 'local-fallback' && (
-        <div className="p-3 rounded-md border border-amber-500/30 bg-amber-500/5 text-amber-200 text-sm flex items-center gap-2">
+        <div className="p-3 rounded-md border border-amber-500/30 bg-amber-500/5 text-amber-700 dark:text-amber-300 text-sm flex items-center gap-2">
           <AlertCircle className="h-4 w-4 shrink-0" />
           {t('fallback_warning')}
         </div>
       )}
 
       {error && (
-        <div className="p-3 rounded-md border border-red-500/30 bg-red-500/5 text-red-300 text-sm">
+        <div role="alert" className="p-3 rounded-md border border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300 text-sm">
           {error}
         </div>
       )}
 
       {loading && signals.length === 0 ? (
         <div className="space-y-3">
-          {[1, 2, 3].map((i) => (
+          {Array.from({ length: 3 }).map((_, i) => (
             <Card key={i}><CardContent className="p-4 animate-pulse">
-              <div className="h-4 w-24 bg-white/10 rounded mb-3" />
-              <div className="h-5 w-1/3 bg-white/10 rounded mb-2" />
-              <div className="h-4 w-2/3 bg-white/10 rounded" />
+              <div className="h-4 w-24 bg-muted rounded mb-3" />
+              <div className="h-5 w-1/3 bg-muted rounded mb-2" />
+              <div className="h-4 w-2/3 bg-muted rounded" />
             </CardContent></Card>
           ))}
         </div>
       ) : signals.length === 0 ? (
-        <Card>
-          <CardContent className="p-8 text-center text-muted-foreground">
-            <AlertCircle className="h-8 w-8 mx-auto mb-3 opacity-50" />
-            <p>{t('empty_title')}</p>
-            <p className="text-xs mt-1">{t('empty_hint')}</p>
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={AlertCircle}
+          title={t('empty_title')}
+          description={t('empty_hint')}
+        />
       ) : (
         <div className="space-y-3">
           {signals.map((s) => {
@@ -211,8 +210,8 @@ export default function MySignalsPage() {
                     <div className={cn(
                       'shrink-0 w-10 h-10 rounded-full flex items-center justify-center border',
                       dirIsBuy
-                        ? 'bg-green-500/10 border-green-500/30 text-emerald-600 dark:text-emerald-400'
-                        : 'bg-red-500/10 border-red-500/30 text-rose-600 dark:text-rose-400',
+                        ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
+                        : 'bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-400',
                     )}>
                       <Icon className="h-5 w-5" />
                     </div>
@@ -222,20 +221,20 @@ export default function MySignalsPage() {
                         <span className="font-mono font-bold text-base">{s.pair}</span>
                         <span className={cn(
                           'text-xs font-mono px-1.5 py-0.5 rounded',
-                          dirIsBuy ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300',
+                          dirIsBuy ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'bg-rose-500/15 text-rose-700 dark:text-rose-300',
                         )}>{s.direction}</span>
                         {entryType && (
                           <span className="text-xs text-muted-foreground font-mono">{String(entryType)}</span>
                         )}
                         {confidence != null && (
-                          <span className="text-xs text-amber-400 font-mono">{t('confidence_short', { value: formatConfidence(confidence) })}</span>
+                          <span className="text-xs text-amber-600 dark:text-amber-400 font-mono">{t('confidence_short', { value: formatConfidence(confidence) })}</span>
                         )}
                         {s.outcome && s.outcome !== 'PENDING' && (
                           <span className={cn(
                             'text-[10px] uppercase font-mono px-1.5 py-0.5 rounded',
-                            s.outcome === 'WIN' ? 'bg-green-500/20 text-green-300' :
-                            s.outcome === 'LOSS' ? 'bg-red-500/20 text-red-300' :
-                            'bg-slate-500/20 text-slate-300',
+                            s.outcome === 'WIN' ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' :
+                            s.outcome === 'LOSS' ? 'bg-rose-500/15 text-rose-700 dark:text-rose-300' :
+                            'bg-slate-500/15 text-slate-700 dark:text-slate-300',
                           )}>{s.outcome}</span>
                         )}
                       </div>
@@ -247,11 +246,11 @@ export default function MySignalsPage() {
                         </div>
                         <div>
                           <div className="text-muted-foreground text-[10px] uppercase">{t('label_sl')}</div>
-                          <div className="text-red-300/80">{formatPrice(stopLoss)}</div>
+                          <div className="text-rose-600/80 dark:text-rose-300/80">{formatPrice(stopLoss)}</div>
                         </div>
                         <div>
                           <div className="text-muted-foreground text-[10px] uppercase">{t('label_tp')}</div>
-                          <div className="text-green-300/80">{formatPrice(takeProfit)}</div>
+                          <div className="text-emerald-600/80 dark:text-emerald-300/80">{formatPrice(takeProfit)}</div>
                         </div>
                       </div>
 

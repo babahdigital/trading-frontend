@@ -3,6 +3,10 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { PageHeader } from '@/components/admin/page-header';
+import { EmptyState } from '@/components/admin/empty-state';
+import { StatCard, StatCardGrid } from '@/components/admin/stat-card';
+import { formatDateTime } from '@/lib/format-locale';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth/auth-context';
 import { Activity, AlertTriangle, ArrowRight, Server, Wifi, WifiOff } from 'lucide-react';
@@ -69,14 +73,14 @@ export default function VpsFleetPage() {
   }, []);
 
   function statusDot(status: string) {
-    if (status === 'ONLINE') return 'bg-green-400';
-    if (status === 'OFFLINE') return 'bg-red-400';
-    if (status === 'PROVISIONING') return 'bg-blue-400';
-    return 'bg-yellow-400';
+    if (status === 'ONLINE') return 'bg-emerald-500 dark:bg-emerald-400';
+    if (status === 'OFFLINE') return 'bg-rose-500 dark:bg-rose-400';
+    if (status === 'PROVISIONING') return 'bg-sky-500 dark:bg-sky-400';
+    return 'bg-amber-500 dark:bg-amber-400';
   }
 
   function healthBadge(health: string | null) {
-    if (!health) return { label: 'Tidak diketahui', cls: 'bg-slate-500/20 text-slate-400' };
+    if (!health) return { label: 'Tidak diketahui', cls: 'bg-slate-500/15 text-slate-700 dark:bg-slate-500/20 dark:text-slate-300' };
     if (health === 'ok') return { label: 'Sehat', cls: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' };
     if (health === 'degraded') return { label: 'Terganggu', cls: 'bg-amber-500/15 text-amber-700 dark:text-amber-300' };
     return { label: 'Tidak terjangkau', cls: 'bg-rose-500/15 text-rose-700 dark:text-rose-300' };
@@ -84,29 +88,37 @@ export default function VpsFleetPage() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold tracking-tight">VPS Fleet</h2>
-        <p className="text-muted-foreground">Monitor kesehatan dan status semua VPS instance</p>
-      </div>
+      <PageHeader
+        title="VPS Fleet"
+        description="Monitor kesehatan dan status semua VPS instance"
+      />
 
       {/* Summary KPI Cards */}
       {summary && (
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-          <KpiCard label="Total" value={summary.total} icon={<Server className="w-4 h-4" />} />
-          <KpiCard label="Aktif" value={summary.online} icon={<Wifi className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />} color="text-emerald-600 dark:text-emerald-400" />
-          <KpiCard label="Mati" value={summary.offline} icon={<WifiOff className="w-4 h-4 text-rose-600 dark:text-rose-400" />} color="text-rose-600 dark:text-rose-400" />
-          <KpiCard label="Terganggu" value={summary.degraded} icon={<Activity className="w-4 h-4 text-yellow-400" />} color="text-yellow-400" />
+        <StatCardGrid columns={4} className="mb-6">
+          <StatCard label="Total" value={summary.total} icon={Server} />
+          <StatCard label="Aktif" value={summary.online} icon={Wifi} iconTone="success" />
+          <StatCard label="Mati" value={summary.offline} icon={WifiOff} iconTone="danger" />
+          <StatCard label="Terganggu" value={summary.degraded} icon={Activity} iconTone="warning" />
           {summary.outdated !== null && (
-            <KpiCard label="Perlu Update" value={summary.outdated} icon={<AlertTriangle className="w-4 h-4 text-orange-400" />} color="text-orange-400" />
+            <StatCard label="Perlu Update" value={summary.outdated} icon={AlertTriangle} iconTone="warning" />
           )}
-        </div>
+        </StatCardGrid>
       )}
 
       {/* Fleet Grid */}
       {loading ? (
-        <p className="text-muted-foreground text-sm">Memuat data fleet...</p>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Card key={i}><CardContent className="p-6"><div className="h-24 rounded bg-muted animate-pulse" /></CardContent></Card>
+          ))}
+        </div>
       ) : fleet.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground">Tidak ada VPS instance</div>
+        <EmptyState
+          icon={Server}
+          title="Tidak ada VPS instance"
+          description="Belum ada VPS instance yang terdaftar di fleet."
+        />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {fleet.map((vps) => {
@@ -133,9 +145,7 @@ export default function VpsFleetPage() {
                   <InfoLine label="Lisensi" value={String(vps.licenseCount)} />
                   <InfoLine
                     label="Cek Terakhir"
-                    value={vps.lastHealthCheckAt
-                      ? new Date(vps.lastHealthCheckAt).toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
-                      : 'Belum pernah'}
+                    value={vps.lastHealthCheckAt ? formatDateTime(vps.lastHealthCheckAt) : 'Belum pernah'}
                   />
                   <div className="pt-2">
                     <Link href={`/admin/vps-fleet/${vps.id}`} className="text-xs text-primary hover:underline flex items-center gap-1">
@@ -149,20 +159,6 @@ export default function VpsFleetPage() {
         </div>
       )}
     </div>
-  );
-}
-
-function KpiCard({ label, value, icon, color }: { label: string; value: number; icon: React.ReactNode; color?: string }) {
-  return (
-    <Card>
-      <CardContent className="pt-6">
-        <div className="flex items-center gap-2 mb-1">
-          {icon}
-          <span className="text-sm text-muted-foreground">{label}</span>
-        </div>
-        <p className={cn('text-2xl font-bold font-mono', color)}>{value}</p>
-      </CardContent>
-    </Card>
   );
 }
 

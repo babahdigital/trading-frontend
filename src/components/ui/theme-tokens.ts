@@ -80,7 +80,9 @@ export function useThemeTokens(): ThemeTokens {
   );
 
   useEffect(() => {
-    setTokens(readThemeTokens());
+    // useState lazy init di mount sudah evaluate readThemeTokens() — tidak
+    // perlu re-set di effect (akan trigger cascade render). Cukup pasang
+    // MutationObserver untuk theme toggle observation pasca-hydration.
     const observer = new MutationObserver(() => setTokens(readThemeTokens()));
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     return () => observer.disconnect();

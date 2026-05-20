@@ -1,11 +1,13 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { FileCode2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CmsPageHeader } from '@/components/cms/page-header';
+import { PageHeader } from '@/components/admin/page-header';
+import { EmptyState } from '@/components/admin/empty-state';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useToast } from '@/components/ui/toast';
 import { useConfirm } from '@/components/ui/confirm-dialog';
@@ -122,13 +124,16 @@ export default function CmsPagesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <CmsPageHeader title="Page Content Editor" />
-          <p className="text-muted-foreground">Manage content for platform & solution pages.</p>
-        </div>
-        <Button onClick={() => setEditing({ ...EMPTY_PAGE })}>+ Add Page</Button>
-      </div>
+      <PageHeader
+        title="Page Content Editor"
+        description="Manage content for platform & solution pages."
+        actions={
+          <Button onClick={() => setEditing({ ...EMPTY_PAGE })} className="gap-1.5">
+            <Plus className="h-4 w-4" />
+            Add Page
+          </Button>
+        }
+      />
 
       {editing && (
         <Card>
@@ -190,9 +195,18 @@ export default function CmsPagesPage() {
       )}
 
       {loading ? (
-        <div className="text-center py-8 text-muted-foreground">Loading...</div>
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}><CardContent className="p-4"><div className="h-10 rounded bg-muted animate-pulse" /></CardContent></Card>
+          ))}
+        </div>
       ) : pages.length === 0 ? (
-        <div className="text-center py-8 text-muted-foreground">No page content yet. Click &quot;+ Add Page&quot; to start.</div>
+        <EmptyState
+          icon={FileCode2}
+          title="Belum ada page content"
+          description="Tambahkan konten page pertama untuk dipublikasikan di platform/solusi."
+          actions={[{ label: 'Add Page', onClick: () => setEditing({ ...EMPTY_PAGE }), icon: Plus }]}
+        />
       ) : (
         <div className="space-y-3">
           {pages.map((p) => (

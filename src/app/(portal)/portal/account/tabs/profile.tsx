@@ -2,11 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useLocale } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth/auth-context';
 import { CloseAccountSection } from '@/components/portal/close-account-section';
+import { formatDate, formatDateTime } from '@/lib/format-locale';
+import type { Locale } from '@/lib/format-locale';
 
 interface Profile {
   id: string;
@@ -23,6 +26,7 @@ interface Profile {
 export function ProfileTab() {
   const { getAuthHeaders } = useAuth();
   const router = useRouter();
+  const locale = useLocale() as Locale;
   const [profile, setProfile] = useState<Profile | null>(null);
   const [name, setName] = useState('');
   const [telegram, setTelegram] = useState('');
@@ -127,8 +131,8 @@ export function ProfileTab() {
           <ReadonlyRow label="Email" value={profile.email} />
           <ReadonlyRow label="Role" value={profile.role} />
           <ReadonlyRow label="MT5 account" value={profile.mt5Account ?? '—'} />
-          <ReadonlyRow label="Anggota sejak" value={new Date(profile.createdAt).toLocaleDateString('id-ID')} />
-          <ReadonlyRow label="Login terakhir" value={profile.lastLoginAt ? new Date(profile.lastLoginAt).toLocaleString('id-ID') : '—'} />
+          <ReadonlyRow label="Anggota sejak" value={formatDate(profile.createdAt, locale)} />
+          <ReadonlyRow label="Login terakhir" value={profile.lastLoginAt ? formatDateTime(profile.lastLoginAt, locale) : '—'} />
         </CardContent>
       </Card>
 
@@ -209,12 +213,12 @@ export function ProfileTab() {
             </div>
 
             {pwError && (
-              <div className="text-sm text-rose-600 dark:text-rose-400 bg-red-400/10 p-3 rounded-md" role="alert">
+              <div className="text-sm text-rose-700 dark:text-rose-300 bg-rose-500/10 border border-rose-500/30 p-3 rounded-md" role="alert">
                 {pwError}
               </div>
             )}
             {pwMessage && (
-              <div className="text-sm text-emerald-400 bg-emerald-400/10 p-3 rounded-md" role="status">
+              <div className="text-sm text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 p-3 rounded-md" role="status">
                 {pwMessage}
               </div>
             )}

@@ -5,10 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CmsPageHeader } from '@/components/cms/page-header';
+import { PageHeader } from '@/components/admin/page-header';
+import { EmptyState } from '@/components/admin/empty-state';
+import { FilterBar } from '@/components/admin/filter-bar';
+import { formatDate } from '@/lib/format-locale';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useToast } from '@/components/ui/toast';
-import { Search, Mail, Phone, MapPin, Megaphone, RefreshCw, MessageCircle, BellRing } from 'lucide-react';
+import { Mail, Phone, MapPin, Megaphone, RefreshCw, MessageCircle, BellRing, MessageSquare } from 'lucide-react';
 import { buildWhatsAppLink, tryNormalizePhone } from '@/lib/phone';
 
 const POLL_INTERVAL_MS = 30_000;
@@ -164,15 +167,13 @@ export default function CmsChatLeadsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
-          <CmsPageHeader
-            title="Chat Leads"
-            description="Live feed lead dari chat AI. Auto-refresh tiap 30 detik. Newsletter consent otomatis terhubung ke tabel Subscriber."
-          />
-          <div className="flex items-center gap-2 shrink-0">
+      <PageHeader
+        title="Chat Leads"
+        description="Live feed lead dari chat AI. Auto-refresh tiap 30 detik. Newsletter consent otomatis terhubung ke tabel Subscriber."
+        actions={
+          <>
             <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-              <span className={`relative flex h-2 w-2`}>
+              <span className="relative flex h-2 w-2">
                 <span className={`${refreshing ? 'animate-ping' : ''} absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75`} />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
               </span>
@@ -182,51 +183,39 @@ export default function CmsChatLeadsPage() {
               <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${refreshing ? 'animate-spin' : ''}`} strokeWidth={2} />
               Refresh
             </Button>
-          </div>
-        </div>
-        <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
-          <span>
-            Total: <span className="font-semibold text-foreground">{total}</span>
-          </span>
-          {STATUS_OPTIONS.map((s) => {
-            const count = counts[s] ?? 0;
-            const isNewWithCount = s === 'NEW' && count > 0;
-            return (
-              <span key={s} className={isNewWithCount ? 'inline-flex items-center gap-1' : undefined}>
-                {isNewWithCount && <BellRing className="h-3 w-3 text-amber-500 dark:text-amber-400" aria-hidden />}
-                {s}: <span className={`font-semibold ${isNewWithCount ? 'text-amber-600 dark:text-amber-300' : 'text-foreground'}`}>{count}</span>
-              </span>
-            );
-          })}
-          <span>
-            Newsletter consent (page): <span className="font-semibold text-foreground">{consentCount}</span>
-          </span>
-        </div>
+          </>
+        }
+      />
+      <div className="flex flex-wrap gap-3 text-sm text-muted-foreground -mt-3">
+        <span>
+          Total: <span className="font-semibold text-foreground">{total}</span>
+        </span>
+        {STATUS_OPTIONS.map((s) => {
+          const count = counts[s] ?? 0;
+          const isNewWithCount = s === 'NEW' && count > 0;
+          return (
+            <span key={s} className={isNewWithCount ? 'inline-flex items-center gap-1' : undefined}>
+              {isNewWithCount && <BellRing className="h-3 w-3 text-amber-500 dark:text-amber-400" aria-hidden />}
+              {s}: <span className={`font-semibold ${isNewWithCount ? 'text-amber-600 dark:text-amber-300' : 'text-foreground'}`}>{count}</span>
+            </span>
+          );
+        })}
+        <span>
+          Newsletter consent (page): <span className="font-semibold text-foreground">{consentCount}</span>
+        </span>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-3 items-center">
-        <div className="relative flex-1 min-w-[240px] max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Cari nama / email / telpon…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-          />
-        </div>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-        >
-          <option value="">Semua Status</option>
-          {STATUS_OPTIONS.map((s) => (
-            <option key={s} value={s}>{s}</option>
-          ))}
-        </select>
-      </div>
+      <FilterBar
+        search={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Cari nama / email / telpon…"
+        filters={[
+          { value: '', label: 'Semua' },
+          ...STATUS_OPTIONS.map((s) => ({ value: s, label: s, count: counts[s] ?? 0 })),
+        ]}
+        activeFilter={statusFilter}
+        onFilterChange={setStatusFilter}
+      />
 
       {/* Detail panel */}
       {selected && (
@@ -397,11 +386,17 @@ export default function CmsChatLeadsPage() {
 
       {/* List */}
       {loading ? (
-        <div className="text-center py-8 text-muted-foreground">Memuat...</div>
-      ) : leads.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground border border-dashed border-border rounded-lg">
-          Belum ada chat lead yang masuk dengan filter ini.
+        <div className="space-y-2">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Card key={i}><CardContent className="p-4"><div className="h-12 rounded bg-muted animate-pulse" /></CardContent></Card>
+          ))}
         </div>
+      ) : leads.length === 0 ? (
+        <EmptyState
+          icon={MessageSquare}
+          title="Belum ada chat lead"
+          description="Belum ada chat lead yang masuk dengan filter saat ini."
+        />
       ) : (
         <div className="space-y-2">
           {leads.map((lead) => (
@@ -433,7 +428,7 @@ export default function CmsChatLeadsPage() {
                   </div>
                 </div>
                 <span className="text-xs text-muted-foreground whitespace-nowrap">
-                  {new Date(lead.createdAt).toLocaleDateString()}
+                  {formatDate(lead.createdAt)}
                 </span>
               </CardContent>
             </Card>

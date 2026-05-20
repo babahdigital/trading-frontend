@@ -4,9 +4,12 @@ import { useEffect, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CmsPageHeader } from '@/components/cms/page-header';
+import { PageHeader } from '@/components/admin/page-header';
+import { EmptyState } from '@/components/admin/empty-state';
+import { FilterBar } from '@/components/admin/filter-bar';
+import { formatDate } from '@/lib/format-locale';
 import { useAuth } from '@/lib/auth/auth-context';
-import { Search, Download } from 'lucide-react';
+import { Download, Mail } from 'lucide-react';
 
 interface Subscriber {
   id: string;
@@ -101,78 +104,71 @@ export default function CmsSubscribersPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <CmsPageHeader
-          title="Newsletter Subscribers"
-          description="Daftar subscriber riset & update produk. Source membantu attribution kanal akuisisi."
-        />
-        <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
-          <span>
-            Total: <span className="font-semibold text-foreground">{total}</span>
+      <PageHeader
+        title="Newsletter Subscribers"
+        description="Daftar subscriber riset & update produk. Source membantu attribution kanal akuisisi."
+        actions={
+          <Button onClick={downloadCsv} variant="outline" size="sm">
+            <Download className="h-4 w-4 mr-2" /> Export CSV
+          </Button>
+        }
+      />
+      <div className="flex flex-wrap gap-3 text-sm text-muted-foreground -mt-3">
+        <span>
+          Total: <span className="font-semibold text-foreground">{total}</span>
+        </span>
+        {STATUSES.map((s) => (
+          <span key={s}>
+            {s}: <span className="font-semibold text-foreground">{counts.byStatus?.[s] ?? 0}</span>
           </span>
-          {STATUSES.map((s) => (
-            <span key={s}>
-              {s}: <span className="font-semibold text-foreground">{counts.byStatus?.[s] ?? 0}</span>
-            </span>
-          ))}
-        </div>
-        <div className="flex flex-wrap gap-3 text-sm text-muted-foreground mt-1">
-          {SOURCES.map((s) => (
-            <span key={s}>
-              {s}: <span className="font-semibold text-foreground">{counts.bySource?.[s] ?? 0}</span>
-            </span>
-          ))}
-        </div>
+        ))}
+      </div>
+      <div className="flex flex-wrap gap-3 text-sm text-muted-foreground -mt-3">
+        {SOURCES.map((s) => (
+          <span key={s}>
+            {s}: <span className="font-semibold text-foreground">{counts.bySource?.[s] ?? 0}</span>
+          </span>
+        ))}
       </div>
 
-      {/* Filters + export */}
-      <div className="flex flex-wrap gap-3 items-center">
-        <div className="relative flex-1 min-w-[240px] max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Cari email / nama…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-          />
-        </div>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-        >
-          <option value="">Semua Status</option>
-          {STATUSES.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
-        <select
-          value={sourceFilter}
-          onChange={(e) => setSourceFilter(e.target.value)}
-          className="rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-        >
-          <option value="">Semua Source</option>
-          {SOURCES.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
-        <Button onClick={downloadCsv} variant="outline" size="sm">
-          <Download className="h-4 w-4 mr-2" /> Export CSV
-        </Button>
-      </div>
+      <FilterBar
+        search={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Cari email / nama…"
+        filters={[
+          { value: '', label: 'Semua Status' },
+          ...STATUSES.map((s) => ({ value: s, label: s, count: counts.byStatus?.[s] ?? 0 })),
+        ]}
+        activeFilter={statusFilter}
+        onFilterChange={setStatusFilter}
+        actions={
+          <select
+            value={sourceFilter}
+            onChange={(e) => setSourceFilter(e.target.value)}
+            className="rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring h-9"
+            aria-label="Filter sumber"
+          >
+            <option value="">Semua Source</option>
+            {SOURCES.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+        }
+      />
 
       {/* List */}
       {loading ? (
-        <div className="text-center py-8 text-muted-foreground">Memuat...</div>
-      ) : subscribers.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground border border-dashed border-border rounded-lg">
-          Belum ada subscriber dengan filter ini.
+        <div className="space-y-2">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Card key={i}><CardContent className="p-4"><div className="h-12 rounded bg-muted animate-pulse" /></CardContent></Card>
+          ))}
         </div>
+      ) : subscribers.length === 0 ? (
+        <EmptyState
+          icon={Mail}
+          title="Belum ada subscriber"
+          description="Belum ada subscriber yang cocok dengan filter saat ini."
+        />
       ) : (
         <div className="space-y-2">
           {subscribers.map((sub) => (
@@ -189,13 +185,13 @@ export default function CmsSubscribersPage() {
                     {sub.name && <span>{sub.name}</span>}
                     {sub.phone && <span>{sub.phone}</span>}
                     {sub.lastSentAt && (
-                      <span>· Last sent: {new Date(sub.lastSentAt).toLocaleDateString()}</span>
+                      <span>· Last sent: {formatDate(sub.lastSentAt)}</span>
                     )}
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <span className="text-xs text-muted-foreground whitespace-nowrap">
-                    {new Date(sub.createdAt).toLocaleDateString()}
+                    {formatDate(sub.createdAt)}
                   </span>
                   {sub.status === 'ACTIVE' ? (
                     <Button size="sm" variant="ghost" onClick={() => setStatus(sub.id, 'UNSUBSCRIBED')}>

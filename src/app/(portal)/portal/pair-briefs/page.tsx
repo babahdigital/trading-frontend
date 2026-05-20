@@ -2,7 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
+import { PageHeader } from '@/components/admin/page-header';
+import { EmptyState } from '@/components/admin/empty-state';
+import { formatDateTime } from '@/lib/format-locale';
+import type { Locale } from '@/lib/format-locale';
+import { BookOpen } from 'lucide-react';
 
 interface Brief {
   id: string;
@@ -26,6 +31,7 @@ function formatPrice(n: number): string {
 
 export default function PortalPairBriefsPage() {
   const t = useTranslations('portal.pair_briefs');
+  const locale = useLocale() as Locale;
   const [briefs, setBriefs] = useState<Brief[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -55,17 +61,12 @@ export default function PortalPairBriefsPage() {
   }, []);
 
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold">{t('title')}</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          {t('subtitle')}
-        </p>
-      </div>
+    <div className="portal-page-stack">
+      <PageHeader title={t('title')} description={t('subtitle')} />
 
       {loading ? (
         <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
+          {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="border rounded-lg p-4 animate-pulse">
               <div className="h-5 w-1/3 bg-muted rounded mb-2" />
               <div className="h-4 w-2/3 bg-muted rounded" />
@@ -73,9 +74,7 @@ export default function PortalPairBriefsPage() {
           ))}
         </div>
       ) : briefs.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground">
-          {t('empty')}
-        </div>
+        <EmptyState icon={BookOpen} title={t('empty')} />
       ) : (
         <div className="space-y-4">
           {briefs.map((brief) => (
@@ -84,22 +83,22 @@ export default function PortalPairBriefsPage() {
               href={`/research/briefs/${brief.slug}`}
               className="block border rounded-lg p-4 hover:border-primary/30 transition-colors"
             >
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-3">
+              <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
+                <div className="flex items-center gap-3 flex-wrap">
                   <span className="font-bold text-lg">{brief.pair}</span>
                   <span className="text-xs px-2 py-0.5 rounded bg-muted">{sessionBadge(brief.session)}</span>
                   {brief.validationStatus && (
-                    <span className={`text-xs px-2 py-0.5 rounded ${brief.validationStatus === 'PASSED' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'}`}>
+                    <span className={`text-xs px-2 py-0.5 rounded ${brief.validationStatus === 'PASSED' ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'bg-amber-500/15 text-amber-700 dark:text-amber-300'}`}>
                       {brief.validationStatus}
                     </span>
                   )}
                 </div>
-                <span className={`text-sm font-medium ${brief.fundamentalBias === 'BULLISH' ? 'text-emerald-500' : brief.fundamentalBias === 'BEARISH' ? 'text-rose-600 dark:text-rose-400' : 'text-muted-foreground'}`}>
+                <span className={`text-sm font-medium ${brief.fundamentalBias === 'BULLISH' ? 'text-emerald-600 dark:text-emerald-400' : brief.fundamentalBias === 'BEARISH' ? 'text-rose-600 dark:text-rose-400' : 'text-muted-foreground'}`}>
                   {brief.fundamentalBias || t('bias_neutral')}
                 </span>
               </div>
 
-              <div className="flex gap-6 text-sm text-muted-foreground">
+              <div className="flex gap-6 text-sm text-muted-foreground flex-wrap">
                 {brief.supportLevels.length > 0 && (
                   <span>S: {brief.supportLevels.slice(0, 3).map(formatPrice).join(' | ')}</span>
                 )}
@@ -109,9 +108,9 @@ export default function PortalPairBriefsPage() {
               </div>
 
               {brief.tradeIdeas && brief.tradeIdeas.length > 0 && (
-                <div className="mt-2 flex gap-2">
+                <div className="mt-2 flex gap-2 flex-wrap">
                   {brief.tradeIdeas.map((idea, i) => (
-                    <span key={i} className={`text-xs px-2 py-0.5 rounded ${idea.direction === 'BUY' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-rose-600 dark:text-rose-400'}`}>
+                    <span key={i} className={`text-xs px-2 py-0.5 rounded ${idea.direction === 'BUY' ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'bg-rose-500/15 text-rose-700 dark:text-rose-300'}`}>
                       {idea.direction} @ {formatPrice(idea.entry)}
                     </span>
                   ))}
@@ -119,7 +118,7 @@ export default function PortalPairBriefsPage() {
               )}
 
               <div className="mt-2 text-xs text-muted-foreground">
-                {brief.publishedAt ? new Date(brief.publishedAt).toLocaleString() : brief.date}
+                {brief.publishedAt ? formatDateTime(brief.publishedAt, locale) : brief.date}
               </div>
             </Link>
           ))}

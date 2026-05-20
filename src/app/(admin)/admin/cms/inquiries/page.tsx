@@ -1,11 +1,14 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { Inbox } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CmsPageHeader } from '@/components/cms/page-header';
+import { PageHeader } from '@/components/admin/page-header';
+import { EmptyState } from '@/components/admin/empty-state';
+import { formatDate } from '@/lib/format-locale';
 import { useAuth } from '@/lib/auth/auth-context';
 
 interface InquiryItem {
@@ -61,10 +64,10 @@ export default function CmsInquiriesPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <CmsPageHeader title="Inquiries" description="Kelola inquiry/konsultasi dari calon pelanggan." />
-        <p className="text-muted-foreground">Total: {total} permintaan konsultasi dari calon klien.</p>
-      </div>
+      <PageHeader
+        title="Inquiries"
+        description={`Kelola inquiry/konsultasi dari calon pelanggan. Total: ${total} permintaan dari calon klien.`}
+      />
 
       {selected && (
         <Card>
@@ -93,20 +96,32 @@ export default function CmsInquiriesPage() {
         </Card>
       )}
 
-      {loading ? <div className="text-center py-8 text-muted-foreground">Loading...</div> : (
+      {loading ? (
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}><CardContent className="p-4"><div className="h-12 rounded bg-muted animate-pulse" /></CardContent></Card>
+          ))}
+        </div>
+      ) : inquiries.length === 0 ? (
+        <EmptyState
+          icon={Inbox}
+          title="Belum ada inquiry masuk"
+          description="Permintaan konsultasi dari calon klien akan muncul di sini."
+        />
+      ) : (
         <div className="space-y-3">
           {inquiries.map((inq) => (
             <Card key={inq.id} className="cursor-pointer hover:border-primary/50 transition-colors" onClick={() => { setSelected(inq); setNotes(inq.notes || ''); }}>
               <CardContent className="p-4 flex items-center justify-between">
                 <div>
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <span className="font-semibold">{inq.name}</span>
                     <Badge variant={STATUS_COLORS[inq.status] || 'secondary'}>{inq.status}</Badge>
                     <span className="text-xs text-muted-foreground">{inq.package}</span>
                   </div>
                   <p className="text-sm text-muted-foreground truncate max-w-lg">{inq.message}</p>
                 </div>
-                <span className="text-xs text-muted-foreground whitespace-nowrap">{new Date(inq.createdAt).toLocaleDateString()}</span>
+                <span className="text-xs text-muted-foreground whitespace-nowrap">{formatDate(inq.createdAt)}</span>
               </CardContent>
             </Card>
           ))}

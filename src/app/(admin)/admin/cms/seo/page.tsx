@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CmsPageHeader } from '@/components/cms/page-header';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useToast } from '@/components/ui/toast';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 
 interface PageMetaItem {
   id: string;
@@ -26,6 +27,7 @@ interface PageMetaItem {
 export default function CmsSeoPage() {
   const { getAuthHeaders } = useAuth();
   const toast = useToast();
+  const confirm = useConfirm();
   const [pages, setPages] = useState<PageMetaItem[]>([]);
   const [editing, setEditing] = useState<PageMetaItem | null>(null);
   const [translatingId, setTranslatingId] = useState<string | null>(null);
@@ -48,7 +50,13 @@ export default function CmsSeoPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Hapus page meta ini?')) return;
+    const ok = await confirm({
+      title: 'Hapus page meta?',
+      description: 'Halaman akan kembali ke meta default (title fallback).',
+      confirmLabel: 'Hapus',
+      tone: 'destructive',
+    });
+    if (!ok) return;
     await fetch(`/api/admin/cms/seo?id=${id}`, { method: 'DELETE', headers: getAuthHeaders() });
     fetchPages();
   }

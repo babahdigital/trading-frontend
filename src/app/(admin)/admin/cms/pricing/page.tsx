@@ -9,6 +9,7 @@ import { CmsPageHeader } from '@/components/cms/page-header';
 import { GenerateEnglishButton } from '@/components/cms/generate-english-button';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useToast } from '@/components/ui/toast';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 
 interface PricingTier {
   id: string;
@@ -32,6 +33,7 @@ interface PricingTier {
 export default function CmsPricingPage() {
   const { getAuthHeaders } = useAuth();
   const { push } = useToast();
+  const confirm = useConfirm();
   const [tiers, setTiers] = useState<PricingTier[]>([]);
   const [editing, setEditing] = useState<PricingTier | null>(null);
   const [translatingId, setTranslatingId] = useState<string | null>(null);
@@ -85,7 +87,13 @@ export default function CmsPricingPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Hapus tier ini? Tindakan tidak bisa dibatalkan.')) return;
+    const ok = await confirm({
+      title: 'Hapus tier pricing?',
+      description: 'Tier akan hilang dari pricing page publik dan tidak bisa di-restore.',
+      confirmLabel: 'Hapus tier',
+      tone: 'destructive',
+    });
+    if (!ok) return;
     try {
       const res = await fetch(`/api/admin/cms/pricing?id=${id}`, {
         method: 'DELETE',

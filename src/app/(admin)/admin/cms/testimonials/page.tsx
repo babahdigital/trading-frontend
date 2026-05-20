@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CmsPageHeader } from '@/components/cms/page-header';
 import { useAuth } from '@/lib/auth/auth-context';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 
 interface TestimonialItem {
   id: string;
@@ -21,6 +22,7 @@ interface TestimonialItem {
 
 export default function CmsTestimonialsPage() {
   const { getAuthHeaders } = useAuth();
+  const confirm = useConfirm();
   const [items, setItems] = useState<TestimonialItem[]>([]);
   const [editing, setEditing] = useState<TestimonialItem | null>(null);
   const [loading, setLoading] = useState(true);
@@ -42,7 +44,13 @@ export default function CmsTestimonialsPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Hapus testimonial ini?')) return;
+    const ok = await confirm({
+      title: 'Hapus testimonial?',
+      description: 'Testimonial akan hilang dari landing page.',
+      confirmLabel: 'Hapus',
+      tone: 'destructive',
+    });
+    if (!ok) return;
     await fetch(`/api/admin/cms/testimonials?id=${id}`, { method: 'DELETE', headers: getAuthHeaders() });
     fetchItems();
   }

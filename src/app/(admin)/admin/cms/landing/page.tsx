@@ -10,6 +10,7 @@ import { ReorderButtons } from '@/components/cms/reorder-buttons';
 import { GenerateEnglishButton } from '@/components/cms/generate-english-button';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useToast } from '@/components/ui/toast';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 
 interface LandingSection {
   id: string;
@@ -24,6 +25,7 @@ interface LandingSection {
 export default function CmsLandingPage() {
   const { getAuthHeaders } = useAuth();
   const { push } = useToast();
+  const confirm = useConfirm();
   const [sections, setSections] = useState<LandingSection[]>([]);
   const [editing, setEditing] = useState<LandingSection | null>(null);
   const [loading, setLoading] = useState(true);
@@ -80,7 +82,13 @@ export default function CmsLandingPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Hapus section ini? Tindakan tidak bisa dibatalkan.')) return;
+    const ok = await confirm({
+      title: 'Hapus section landing?',
+      description: 'Section akan dihapus permanen.',
+      confirmLabel: 'Hapus',
+      tone: 'destructive',
+    });
+    if (!ok) return;
     try {
       const res = await fetch(`/api/admin/cms/landing-sections?id=${id}`, {
         method: 'DELETE',

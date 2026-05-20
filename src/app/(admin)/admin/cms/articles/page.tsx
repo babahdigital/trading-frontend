@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CmsPageHeader } from '@/components/cms/page-header';
 import { useAuth } from '@/lib/auth/auth-context';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 
 interface Article {
   id: string;
@@ -35,6 +36,7 @@ const CATEGORIES = ['RESEARCH', 'STRATEGY', 'EXECUTION', 'RISK', 'OPERATIONS', '
 
 export default function CmsArticlesPage() {
   const { getAuthHeaders } = useAuth();
+  const confirm = useConfirm();
   const [articles, setArticles] = useState<Article[]>([]);
   const [editing, setEditing] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
@@ -60,7 +62,13 @@ export default function CmsArticlesPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Delete this article?')) return;
+    const ok = await confirm({
+      title: 'Hapus article?',
+      description: 'Article akan dihapus permanen dari research surface.',
+      confirmLabel: 'Hapus',
+      tone: 'destructive',
+    });
+    if (!ok) return;
     await fetch(`/api/admin/cms/articles?id=${id}`, { method: 'DELETE', headers: getAuthHeaders() });
     fetchArticles();
   }

@@ -5,9 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth/auth-context';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 
 export function TwoFaTab() {
   const { getAuthHeaders } = useAuth();
+  const confirm = useConfirm();
   const [enabled, setEnabled] = useState(false);
   const [email, setEmail] = useState<string | null>(null);
   const [setupSecret, setSetupSecret] = useState<string | null>(null);
@@ -67,7 +69,14 @@ export function TwoFaTab() {
   }
 
   async function disable() {
-    if (!confirm('Yakin matikan 2FA? Akun akan lebih rentan.')) return;
+    const ok = await confirm({
+      title: 'Matikan Two-Factor Authentication?',
+      description: 'Akun Anda akan lebih rentan terhadap akses tidak sah. Pastikan Anda menggunakan password yang kuat.',
+      confirmLabel: 'Matikan 2FA',
+      cancelLabel: 'Tetap aktif',
+      tone: 'destructive',
+    });
+    if (!ok) return;
     const res = await fetch('/api/client/2fa', {
       method: 'POST',
       headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },

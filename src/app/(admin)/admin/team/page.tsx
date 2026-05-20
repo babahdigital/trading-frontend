@@ -8,6 +8,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useToast } from '@/components/ui/toast';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 import { cn } from '@/lib/utils';
 
 interface TeamMember {
@@ -42,6 +43,7 @@ function formatRelative(iso: string | null): string {
 export default function AdminTeamPage() {
   const { getAuthHeaders } = useAuth();
   const toast = useToast();
+  const confirm = useConfirm();
   const [users, setUsers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -72,7 +74,13 @@ export default function AdminTeamPage() {
 
   async function toggleActive(user: TeamMember) {
     if (user.role === 'SUPER_ADMIN') return;
-    if (!confirm(user.isActive ? `Deaktifkan ${user.email}?` : `Aktifkan ${user.email}?`)) return;
+    const ok = await confirm({
+      title: user.isActive ? 'Deaktifkan akun?' : 'Aktifkan akun?',
+      description: user.email,
+      confirmLabel: user.isActive ? 'Deaktifkan' : 'Aktifkan',
+      tone: user.isActive ? 'warning' : 'default',
+    });
+    if (!ok) return;
     setBusy(user.id);
     try {
       const res = user.isActive

@@ -12,6 +12,7 @@ import {
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { ChatLeadForm } from './chat-lead-form';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 
 const LEAD_STORAGE_KEY = 'babah.chat.lead';
 
@@ -179,6 +180,7 @@ export function ChatWidget() {
   const pathname = usePathname();
   const locale = useLocale() as 'id' | 'en';
   const copy = COPY[locale === 'id' ? 'id' : 'en'];
+  const confirm = useConfirm();
 
   const [isOpen, setIsOpen] = useState(false);
   const [hasNewMessage, setHasNewMessage] = useState(false);
@@ -524,8 +526,15 @@ export function ChatWidget() {
                 {messages.length > 1 && (
                   <button
                     type="button"
-                    onClick={() => {
-                      if (typeof window !== 'undefined' && !window.confirm(copy.clear_confirm)) return;
+                    onClick={async () => {
+                      const ok = await confirm({
+                        title: locale === 'id' ? 'Hapus riwayat chat?' : 'Clear chat history?',
+                        description: copy.clear_confirm,
+                        confirmLabel: locale === 'id' ? 'Hapus' : 'Clear',
+                        cancelLabel: locale === 'id' ? 'Batal' : 'Cancel',
+                        tone: 'destructive',
+                      });
+                      if (!ok) return;
                       clearHistory();
                       setMessages(initialMessages);
                     }}

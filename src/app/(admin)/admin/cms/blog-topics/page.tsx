@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CmsPageHeader } from '@/components/cms/page-header';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useToast } from '@/components/ui/toast';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 
 interface BlogTopic {
   id: string;
@@ -59,6 +60,7 @@ const ASSET_CLASS_COLORS: Record<string, string> = {
 export default function BlogTopicsPage() {
   const { getAuthHeaders } = useAuth();
   const toast = useToast();
+  const confirm = useConfirm();
   const [topics, setTopics] = useState<BlogTopic[]>([]);
   const [editing, setEditing] = useState<BlogTopic | null>(null);
   const [loading, setLoading] = useState(true);
@@ -80,7 +82,13 @@ export default function BlogTopicsPage() {
   }, [fetchTopics]);
 
   async function handleRegenerate(topic: BlogTopic) {
-    if (!confirm(`Regenerate "${topic.titleId}" via OpenRouter? This will consume AI tokens.`)) return;
+    const ok = await confirm({
+      title: 'Regenerate artikel via OpenRouter?',
+      description: `${topic.titleId}\n\nProses ini akan menggunakan AI tokens.`,
+      confirmLabel: 'Regenerate',
+      tone: 'warning',
+    });
+    if (!ok) return;
     setRegeneratingId(topic.id);
     try {
       const res = await fetch(`/api/admin/blog-topics/${topic.id}/regenerate`, {
@@ -149,7 +157,13 @@ export default function BlogTopicsPage() {
   }
 
   async function handleDelete(topic: BlogTopic) {
-    if (!confirm(`Delete topic "${topic.slug}"? This does NOT delete the generated article.`)) return;
+    const ok = await confirm({
+      title: 'Hapus topic?',
+      description: `"${topic.slug}"\n\nCatatan: artikel yang sudah ter-generate tidak ikut terhapus.`,
+      confirmLabel: 'Hapus topic',
+      tone: 'destructive',
+    });
+    if (!ok) return;
     await fetch(`/api/admin/blog-topics/${topic.id}`, {
       method: 'DELETE',
       headers: getAuthHeaders(),

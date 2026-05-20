@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Plus, X, Trash2, Power } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useToast } from '@/components/ui/toast';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 
 interface User {
   id: string;
@@ -34,6 +35,7 @@ function roleColor(role: string): string {
 export default function UsersPage() {
   const { getAuthHeaders } = useAuth();
   const toast = useToast();
+  const confirm = useConfirm();
   const [users, setUsers] = useState<User[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -105,9 +107,14 @@ export default function UsersPage() {
   }
 
   async function handleDelete(user: User) {
-    if (!confirm(`Delete user ${user.email}? This cannot be undone.\n\nLicenses akan ikut terhapus. Only CLIENT users can be deleted.`)) {
-      return;
-    }
+    const ok = await confirm({
+      title: `Hapus user ${user.email}?`,
+      description: 'Tindakan ini tidak bisa dibatalkan. Semua license user akan ikut terhapus. Hanya user dengan role CLIENT yang bisa dihapus.',
+      confirmLabel: 'Hapus',
+      cancelLabel: 'Batal',
+      tone: 'destructive',
+    });
+    if (!ok) return;
     try {
       const res = await fetch(`/api/admin/users?id=${user.id}`, {
         method: 'DELETE',
@@ -126,9 +133,13 @@ export default function UsersPage() {
 
   async function handleChangeRole(user: User, newRole: string) {
     if (newRole === user.role) return;
-    if (!confirm(`Change role for ${user.email} from ${user.role} to ${newRole}?`)) {
-      return;
-    }
+    const ok = await confirm({
+      title: 'Ubah role user?',
+      description: `${user.email}\nDari: ${user.role} → ${newRole}`,
+      confirmLabel: 'Ubah role',
+      tone: 'warning',
+    });
+    if (!ok) return;
     try {
       const res = await fetch('/api/admin/users', {
         method: 'PATCH',
@@ -148,10 +159,14 @@ export default function UsersPage() {
 
   async function handleToggleActive(user: User) {
     const next = !(user.isActive ?? true);
-    const action = next ? 'reaktivasi' : 'nonaktifkan';
-    if (!confirm(`${action.charAt(0).toUpperCase() + action.slice(1)} ${user.email}?`)) {
-      return;
-    }
+    const action = next ? 'Reaktivasi' : 'Nonaktifkan';
+    const ok = await confirm({
+      title: `${action} user?`,
+      description: user.email,
+      confirmLabel: action,
+      tone: next ? 'default' : 'warning',
+    });
+    if (!ok) return;
     try {
       const res = await fetch('/api/admin/users', {
         method: 'PATCH',

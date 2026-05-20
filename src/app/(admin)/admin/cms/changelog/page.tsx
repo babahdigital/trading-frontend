@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CmsPageHeader } from '@/components/cms/page-header';
 import { useAuth } from '@/lib/auth/auth-context';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 
 interface ChangelogEntry {
   id: string;
@@ -29,6 +30,7 @@ const CATEGORIES = ['FEATURE', 'IMPROVEMENT', 'FIX', 'SECURITY', 'BREAKING'] as 
 
 export default function CmsChangelogPage() {
   const { getAuthHeaders } = useAuth();
+  const confirm = useConfirm();
   const [entries, setEntries] = useState<ChangelogEntry[]>([]);
   const [editing, setEditing] = useState<ChangelogEntry | null>(null);
   const [loading, setLoading] = useState(true);
@@ -70,7 +72,13 @@ export default function CmsChangelogPage() {
   }
 
   async function remove(id: string) {
-    if (!confirm('Hapus entri ini?')) return;
+    const ok = await confirm({
+      title: 'Hapus entri changelog?',
+      description: 'Entri akan dihapus permanen.',
+      confirmLabel: 'Hapus',
+      tone: 'destructive',
+    });
+    if (!ok) return;
     const res = await fetch(`/api/admin/cms/changelog/${id}`, {
       method: 'DELETE',
       headers: getAuthHeaders(),

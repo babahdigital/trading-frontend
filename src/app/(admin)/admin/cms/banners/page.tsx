@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CmsPageHeader } from '@/components/cms/page-header';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useToast } from '@/components/ui/toast';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 
 interface BannerItem {
   id: string;
@@ -26,6 +27,7 @@ interface BannerItem {
 export default function CmsBannersPage() {
   const { getAuthHeaders } = useAuth();
   const { push } = useToast();
+  const confirm = useConfirm();
   const [banners, setBanners] = useState<BannerItem[]>([]);
   const [editing, setEditing] = useState<BannerItem | null>(null);
   const [loading, setLoading] = useState(true);
@@ -82,7 +84,13 @@ export default function CmsBannersPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Hapus banner ini?')) return;
+    const ok = await confirm({
+      title: 'Hapus banner?',
+      description: 'Banner akan hilang dari halaman publik.',
+      confirmLabel: 'Hapus',
+      tone: 'destructive',
+    });
+    if (!ok) return;
     try {
       const res = await fetch(`/api/admin/cms/banners?id=${id}`, {
         method: 'DELETE',

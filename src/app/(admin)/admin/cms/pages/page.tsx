@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CmsPageHeader } from '@/components/cms/page-header';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useToast } from '@/components/ui/toast';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 
 interface PageContent {
   id: string;
@@ -30,6 +31,7 @@ const EMPTY_PAGE: PageContent = {
 export default function CmsPagesPage() {
   const { getAuthHeaders } = useAuth();
   const { push } = useToast();
+  const confirm = useConfirm();
   const [pages, setPages] = useState<PageContent[]>([]);
   const [editing, setEditing] = useState<PageContent | null>(null);
   const [loading, setLoading] = useState(true);
@@ -86,7 +88,13 @@ export default function CmsPagesPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Hapus page ini? Tindakan tidak bisa dibatalkan.')) return;
+    const ok = await confirm({
+      title: 'Hapus page?',
+      description: 'Halaman akan hilang dari sitemap dan tidak bisa diakses publik.',
+      confirmLabel: 'Hapus',
+      tone: 'destructive',
+    });
+    if (!ok) return;
     try {
       const res = await fetch(`/api/admin/cms/pages?id=${id}`, {
         method: 'DELETE',

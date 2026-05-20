@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { ChatWidgetMount } from '@/components/chat/chat-widget-mount';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import { ToastProvider } from '@/components/ui/toast';
+import { ConfirmProvider } from '@/components/ui/confirm-dialog';
 import { PageviewTracker } from '@/components/analytics/pageview-tracker';
 import { WebVitalsReporter } from '@/components/analytics/web-vitals';
 import './globals.css';
@@ -82,13 +83,15 @@ export default async function RootLayout({
         <NextIntlClientProvider locale={locale} messages={messages}>
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
             <ToastProvider>
-              <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:bg-amber-500 focus:text-black focus:px-4 focus:py-2 focus:rounded-md focus:text-sm">
-                Skip to main content
-              </a>
-              {children}
-              <ChatWidgetMount />
-              <PageviewTracker />
-              <WebVitalsReporter />
+              <ConfirmProvider>
+                <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:bg-amber-500 focus:text-black focus:px-4 focus:py-2 focus:rounded-md focus:text-sm">
+                  Skip to main content
+                </a>
+                {children}
+                <ChatWidgetMount />
+                <PageviewTracker />
+                <WebVitalsReporter />
+              </ConfirmProvider>
             </ToastProvider>
           </ThemeProvider>
         </NextIntlClientProvider>

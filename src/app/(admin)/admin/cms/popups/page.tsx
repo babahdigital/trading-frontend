@@ -9,6 +9,7 @@ import { CmsPageHeader } from '@/components/cms/page-header';
 import { ImageUploadField } from '@/components/admin/image-upload-field';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useToast } from '@/components/ui/toast';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 
 interface PopupItem {
   id: string;
@@ -25,6 +26,7 @@ interface PopupItem {
 export default function CmsPopupsPage() {
   const { getAuthHeaders } = useAuth();
   const { push } = useToast();
+  const confirm = useConfirm();
   const [popups, setPopups] = useState<PopupItem[]>([]);
   const [editing, setEditing] = useState<PopupItem | null>(null);
   const [loading, setLoading] = useState(true);
@@ -81,7 +83,13 @@ export default function CmsPopupsPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Hapus popup ini?')) return;
+    const ok = await confirm({
+      title: 'Hapus popup?',
+      description: 'Popup tidak akan muncul lagi untuk pengunjung.',
+      confirmLabel: 'Hapus',
+      tone: 'destructive',
+    });
+    if (!ok) return;
     try {
       const res = await fetch(`/api/admin/cms/popups?id=${id}`, {
         method: 'DELETE',

@@ -9,6 +9,7 @@ import { CmsPageHeader } from '@/components/cms/page-header';
 import { GenerateEnglishButton } from '@/components/cms/generate-english-button';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useToast } from '@/components/ui/toast';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 
 interface FaqItem {
   id: string;
@@ -24,6 +25,7 @@ interface FaqItem {
 export default function CmsFaqPage() {
   const { getAuthHeaders } = useAuth();
   const { push } = useToast();
+  const confirm = useConfirm();
   const [faqs, setFaqs] = useState<FaqItem[]>([]);
   const [editing, setEditing] = useState<FaqItem | null>(null);
   const [translatingId, setTranslatingId] = useState<string | null>(null);
@@ -81,7 +83,13 @@ export default function CmsFaqPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Hapus FAQ ini? Tindakan tidak bisa dibatalkan.')) return;
+    const ok = await confirm({
+      title: 'Hapus FAQ?',
+      description: 'Tindakan ini tidak bisa dibatalkan.',
+      confirmLabel: 'Hapus',
+      tone: 'destructive',
+    });
+    if (!ok) return;
     try {
       const res = await fetch(`/api/admin/cms/faq?id=${id}`, {
         method: 'DELETE',

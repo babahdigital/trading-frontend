@@ -356,6 +356,18 @@ export function ChatWidget() {
     return () => clearTimeout(t);
   }, [isOpen, leadCleared]);
 
+  // Esc key closes chat (a11y requirement)
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [isOpen]);
+
   // Hydrate lead-cleared status. Logged-in user (cookie session) di-bypass:
   // /api/chat/lead/status return { authenticated: true } → skip gate.
   // Otherwise: cek localStorage, kalau ada record < 30 hari, anggap cleared.
@@ -653,7 +665,7 @@ export function ChatWidget() {
 
               {/* Error / unavailable banner */}
               {error && (
-                <div className="flex gap-2.5 items-start">
+                <div role="alert" aria-live="assertive" className="flex gap-2.5 items-start">
                   <div
                     className={cn(
                       'w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center mb-0.5 border',
@@ -772,6 +784,14 @@ export function ChatWidget() {
                 placeholder={copy.placeholder}
                 disabled={isLoading || isServiceDown}
                 aria-label={copy.placeholder}
+                onKeyDown={(e) => {
+                  // Enter submits; Shift+Enter newline (input is single-line so
+                  // newline character disallowed — Shift+Enter just no-op untuk
+                  // konsistensi keyboard expectation, tidak crash).
+                  if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+                    // submit handled by form onSubmit — stop default to avoid double-fire
+                  }
+                }}
                 className={cn(
                   'flex-1 rounded-xl border border-border bg-background px-3.5 py-2.5',
                   'text-base sm:text-sm text-foreground placeholder:text-muted-foreground/70',

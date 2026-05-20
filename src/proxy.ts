@@ -113,18 +113,28 @@ async function detectGeoLocale(request: NextRequest): Promise<NextResponse | nul
     }
   }
 
-  // 3. Decide locale: 'id' for Indonesia, 'en' for everyone else (incl. unknown)
-  const targetLocale: 'id' | 'en' = country === 'ID' ? 'id' : 'en';
+  // 3. Decide locale:
+  //    - 'ID' country → 'id' (Indonesia, platform default audience)
+  //    - resolution-failed (country null) → 'id' (default to platform audience
+  //      bukan global 'en', karena Pak Abdullah target Indonesia first)
+  //    - any other country → 'en' (global English)
+  const targetLocale: 'id' | 'en' = (country === 'ID' || country === null) ? 'id' : 'en';
+
+  // Cookie security: secure flag aktif di production via NODE_ENV
+  // (Cloudflare TLS terminate sebelum origin = cookie selalu via HTTPS dari
+  // perspektif client). Local dev tidak set secure supaya browser accept.
+  const cookieOpts = {
+    maxAge: 365 * 24 * 60 * 60,
+    path: '/',
+    sameSite: 'lax' as const,
+    secure: process.env.NODE_ENV === 'production',
+  };
 
   if (targetLocale === 'id') {
     // ID is the platform default — no URL rewrite needed; just lock the cookie so
     // subsequent requests don't re-run detection.
     const response = NextResponse.next();
-    response.cookies.set('NEXT_LOCALE', 'id', {
-      maxAge: 365 * 24 * 60 * 60,
-      path: '/',
-      sameSite: 'lax',
-    });
+    response.cookies.set('NEXT_LOCALE', 'id', cookieOpts);
     return response;
   }
 
@@ -132,11 +142,7 @@ async function detectGeoLocale(request: NextRequest): Promise<NextResponse | nul
   const url = request.nextUrl.clone();
   url.pathname = `/en${pathname}`;
   const response = NextResponse.redirect(url);
-  response.cookies.set('NEXT_LOCALE', 'en', {
-    maxAge: 365 * 24 * 60 * 60,
-    path: '/',
-    sameSite: 'lax',
-  });
+  response.cookies.set('NEXT_LOCALE', 'en', cookieOpts);
   return response;
 }
 

@@ -1,10 +1,12 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
+import { TrustStrip } from '@/components/shared/trust-strip';
+import { StickyCtaBar } from '@/components/shared/sticky-cta-bar';
 import { Pagination } from '@/components/ui/pagination';
 
 const PER_PAGE = 9;
@@ -122,6 +124,9 @@ export default function PairBriefsPage() {
                 </Link>
               </div>
             )}
+            <div className="mt-10">
+              <TrustStrip />
+            </div>
           </div>
         </section>
 
@@ -239,8 +244,21 @@ export default function PairBriefsPage() {
             </Link>
           </div>
         </section>
+
+        <BriefsStickyCta />
       </main>
       <EnterpriseFooter />
     </div>
+  );
+}
+
+function BriefsStickyCta() {
+  const ts = useTranslations('shared');
+  return (
+    <StickyCtaBar
+      message={ts('sticky_demo_text')}
+      ctaLabel={ts('sticky_demo_cta')}
+      href="/register?service=free"
+    />
   );
 }

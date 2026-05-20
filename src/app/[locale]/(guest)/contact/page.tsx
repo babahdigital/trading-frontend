@@ -8,6 +8,7 @@ import {
   CalendarCheck, ShieldCheck, FileSignature, MessagesSquare,
 } from 'lucide-react';
 import { getPageMetadata } from '@/lib/seo';
+import { TrustStrip } from '@/components/shared/trust-strip';
 
 export const dynamic = 'force-dynamic';
 
@@ -57,6 +58,9 @@ export default async function ContactPage() {
                 <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-400" />
               </span>
               {t('hero_pill')}
+            </div>
+            <div className="mt-10">
+              <TrustStrip />
             </div>
           </div>
         </section>

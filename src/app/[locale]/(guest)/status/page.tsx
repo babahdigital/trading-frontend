@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { ChevronDown, Activity, Check, X as XIcon, Server, Database, Cpu, RefreshCw } from 'lucide-react';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
+import { StickyCtaBar } from '@/components/shared/sticky-cta-bar';
 import { cn } from '@/lib/utils';
 
 type StatusEnum = 'operational' | 'degraded' | 'outage';
@@ -593,8 +594,22 @@ export default function StatusPage() {
             </div>
           </section>
         )}
+
+        <StatusStickyCta />
       </main>
       <EnterpriseFooter />
     </div>
+  );
+}
+
+function StatusStickyCta() {
+  const ts = useTranslations('shared');
+  return (
+    <StickyCtaBar
+      message={ts('sticky_contact_text')}
+      ctaLabel={ts('sticky_contact_cta')}
+      href="/contact?subject=status-issue"
+      tone="emerald"
+    />
   );
 }

@@ -105,8 +105,14 @@ async function generateViaOpenRouter(prompt: string, signal?: AbortSignal): Prom
         'X-Title': 'BabahAlgo Promo Image',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.0-flash-exp:free',
-        messages: [{ role: 'user', content: `Generate a 16:9 promotional banner image: ${prompt}` }],
+        // Upgraded 2026-05-21 (Pak Abdullah verify): 2.0-flash-exp:free →
+        // 2.5-flash-image. STABLE production (not preview), $0.0000003 per
+        // request — cheaper than 3.1-flash-image-preview. Tested real call:
+        // returns image data:image/png base64 reliably. Better than FLUX
+        // (Pollinations) untuk respecting "no text/letters" instruction.
+        // Catatan: x-ai/grok-imagine-image-quality TIDAK tersedia di OpenRouter.
+        model: 'google/gemini-2.5-flash-image',
+        messages: [{ role: 'user', content: `Generate a 16:9 promotional banner image. CRITICAL: NO text, NO letters, NO words, NO writing anywhere in the image. Pure visual atmospheric only. ${prompt}` }],
         modalities: ['image', 'text'],
       }),
       signal: signal ?? AbortSignal.timeout(90_000),

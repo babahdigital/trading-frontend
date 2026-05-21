@@ -218,14 +218,12 @@ export function PromoPopup() {
         ref={dialogRef}
         tabIndex={-1}
         className={cn(
-          // Responsive max-width per breakpoint:
-          // - Mobile: 100% width minus container padding (auto via w-full)
-          // - sm (≥640): max-w-md (~448px) compact
-          // - md (≥768): max-w-2xl (~672px) side-by-side starts
-          // - lg (≥1024): max-w-4xl (~896px) editorial
-          // - xl (≥1280): max-w-5xl (~1024px) wide editorial
+          // Responsive max-width per breakpoint
           'relative w-full max-w-md sm:max-w-lg md:max-w-2xl lg:max-w-4xl xl:max-w-5xl',
-          'max-h-[90vh] overflow-hidden overflow-y-auto rounded-2xl bg-card shadow-2xl',
+          // Max height tighter + overflow HIDDEN (bukan auto) — image + content
+          // total harus fit di viewport. Sebelumnya overflow-y-auto bikin
+          // scroll vertikal di mobile karena image 4:3 + content combined > 90vh.
+          'max-h-[88vh] overflow-hidden rounded-2xl bg-card shadow-2xl',
           'border border-amber-500/20 ring-1 ring-white/5',
           'animate-in zoom-in-95 slide-in-from-bottom-4 duration-500',
           'focus:outline-none',
@@ -254,14 +252,14 @@ export function PromoPopup() {
         <div className="grid md:grid-cols-[5fr_4fr] lg:grid-cols-[6fr_5fr]">
           {/* ─── HERO IMAGE COLUMN ─── */}
           {/*
-            Responsive aspect ratios per device:
-            - Phone portrait (< 640px): 16:9 wide (compact)
-            - Tablet (640-768px): 4:3 (balanced)
-            - Desktop md+ (768-1024px): full-height column (auto)
-            - Desktop lg+ (≥1024px): full-height column (auto, less dominant)
+            Responsive aspect ratios per device — tighter di mobile portrait
+            supaya total dialog (image+content) fit di 88vh tanpa scroll:
+            - Phone portrait (< 640px): 21:9 ultra-wide (image short, content room)
+            - Tablet (640-768px): 16:9 balanced
+            - Desktop md+ (768px+): full-height side column
             Image gen aspect 16:9 (1024x576) → object-cover crop sesuai container.
           */}
-          <div className="relative aspect-[16/9] sm:aspect-[4/3] md:aspect-auto md:min-h-[440px] lg:min-h-[480px] bg-gradient-to-br from-amber-900/20 via-amber-500/10 to-transparent overflow-hidden">
+          <div className="relative aspect-[21/9] sm:aspect-video md:aspect-auto md:min-h-[400px] lg:min-h-[440px] bg-gradient-to-br from-amber-900/20 via-amber-500/10 to-transparent overflow-hidden">
             {heroImage ? (
               <>
                 {!imageLoaded && (
@@ -321,7 +319,10 @@ export function PromoPopup() {
           </div>
 
           {/* ─── CONTENT COLUMN ─── */}
-          <div className="relative flex flex-col p-5 sm:p-6 md:p-7 lg:p-8 xl:p-9 md:min-h-[440px] lg:min-h-[480px]">
+          {/* Content area scrollable independent kalau memang content terlalu
+              panjang (mis. body very long). Padding compact di mobile supaya
+              tidak terlalu memakan ruang. */}
+          <div className="relative flex flex-col p-4 sm:p-5 md:p-6 lg:p-8 xl:p-9 md:min-h-[400px] lg:min-h-[440px] overflow-y-auto">
             {/* Eyebrow */}
             <div className="flex items-center gap-2 mb-3">
               <Sparkles className="h-4 w-4 text-amber-500" aria-hidden />

@@ -277,7 +277,10 @@ Output ONLY raw JSON (tanpa code fence, tanpa explanation).`;
         'X-Title': 'BabahAlgo Promo Copy',
       },
       body: JSON.stringify({
-        model: 'anthropic/claude-opus-4-1',
+        // Migrated 2026-05-21 (Pak Abdullah directive): Claude Opus 4.1 → Gemini
+        // 3.5 Flash. Consolidate ke Gemini stack — lebih murah, 1M context,
+        // reasoning cukup untuk promo copy + decision matrix.
+        model: 'google/gemini-3.5-flash',
         messages: [
           { role: 'system', content: 'You are a senior marketing copywriter for institutional fintech. Output JSON only.' },
           { role: 'user', content: userPrompt },

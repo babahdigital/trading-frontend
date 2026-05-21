@@ -50,8 +50,10 @@ interface ModelDescriptor {
 //     untuk tail-risk events).
 const CATALOG: readonly ModelDescriptor[] = [
   {
-    id: 'google/gemini-2.5-flash-lite',
-    label: 'Gemini 2.5 Flash Lite',
+    // Upgraded 2026-05-21: 2.5 → 3.1 flash-lite. Same low cost, instruction
+    // following improved, 1M context preserved.
+    id: 'google/gemini-3.1-flash-lite',
+    label: 'Gemini 3.1 Flash Lite',
     provider: 'Google',
     context_window: 1_000_000,
     cost_tier: 'low',
@@ -59,8 +61,10 @@ const CATALOG: readonly ModelDescriptor[] = [
     min_tier: 'STARTER',
   },
   {
-    id: 'google/gemini-2.5-flash',
-    label: 'Gemini 2.5 Flash · Reasoning',
+    // Upgraded 2026-05-21: 2.5 → 3.5 flash. Better multi-step reasoning untuk
+    // signal advisor + research narrative + edge-case detection.
+    id: 'google/gemini-3.5-flash',
+    label: 'Gemini 3.5 Flash · Reasoning',
     provider: 'Google',
     context_window: 1_000_000,
     cost_tier: 'low',

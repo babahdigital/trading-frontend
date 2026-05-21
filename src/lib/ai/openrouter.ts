@@ -23,5 +23,12 @@ export function getOpenRouter(): OpenAIProvider | null {
   return cached;
 }
 
-/** Default model for narration, translation, and content tasks. Cheap + fast. */
-export const DEFAULT_MODEL = 'google/gemini-2.5-flash-lite';
+/** Default model untuk narration, translation, content tasks. Cheap + fast.
+ *  Upgraded 2026-05-21 (Pak Abdullah directive): Gemini 2.5 → 3.1 flash-lite,
+ *  1M context, improved instruction following + cheaper inference cost. */
+export const DEFAULT_MODEL = 'google/gemini-3.1-flash-lite';
+
+/** Premium reasoning model untuk signal advisor, research narrative, edge-case
+ *  detection. Upgraded 2026-05-21: Gemini 2.5 → 3.5 flash, lebih baik untuk
+ *  multi-step reasoning + long-context analysis. */
+export const REASONING_MODEL = 'google/gemini-3.5-flash';

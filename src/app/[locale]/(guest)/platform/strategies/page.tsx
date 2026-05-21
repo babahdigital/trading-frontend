@@ -67,18 +67,20 @@ export default async function StrategiesPage() {
         {/* Hero */}
         <section className="section-padding border-b border-white/8">
           <div className="layout-container">
-            <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
-            <h1 className="t-display-page mb-6">
-              {t('hero_title')}
-            </h1>
-            <p className="text-foreground/60 leading-relaxed mb-3 max-w-2xl">
-              {t('hero_lead')}
-            </p>
-            <p className="text-xs text-foreground/50 italic max-w-2xl mb-8">
-              {t('hero_disclaimer')}
-            </p>
-            <div className="mb-2">
-              <TrustStrip />
+            <div className="hero-section-header">
+              <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
+              <h1 className="t-display-page mb-6">
+                {t('hero_title')}
+              </h1>
+              <p className="text-foreground/60 leading-relaxed mb-3">
+                {t('hero_lead')}
+              </p>
+              <p className="text-xs text-foreground/50 italic mb-8">
+                {t('hero_disclaimer')}
+              </p>
+              <div className="mb-2">
+                <TrustStrip />
+              </div>
             </div>
           </div>
         </section>

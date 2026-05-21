@@ -41,15 +41,17 @@ export default async function TechnologyPage() {
             >
               <ArrowLeft className="w-3.5 h-3.5" /> {t('back_link')}
             </Link>
-            <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
-            <h1 className="t-display-page mb-6">
-              {t('hero_title')}
-            </h1>
-            <p className="text-foreground/60 leading-relaxed mb-8 max-w-2xl">
-              {t('hero_lead')}
-            </p>
-            <div className="mb-8">
-              <TrustStrip />
+            <div className="hero-section-header">
+              <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
+              <h1 className="t-display-page mb-6">
+                {t('hero_title')}
+              </h1>
+              <p className="text-foreground/60 leading-relaxed mb-8">
+                {t('hero_lead')}
+              </p>
+              <div className="mb-8">
+                <TrustStrip />
+              </div>
             </div>
             {/* Architecture Diagram */}
             <div className="card-enterprise">

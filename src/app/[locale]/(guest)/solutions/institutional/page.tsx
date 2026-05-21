@@ -94,24 +94,26 @@ export default async function InstitutionalPage({ params }: { params: Promise<{ 
         {/* Hero — tier badge "B2B Custom" untuk differentiate dari VPS License. */}
         <section className="section-padding border-b border-border/60">
           <div className="layout-container">
-            <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
+            <div className="hero-section-header">
+              <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
 
-            {/* Tier identifier — B2B managed engagement (vs VPS License self-host) */}
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sky-500/10 border border-sky-500/30 mb-5">
-              <Building2 className="w-3.5 h-3.5 text-sky-400" />
-              <span className="text-xs font-mono uppercase tracking-wider text-sky-300">
-                {t('hero_tier_badge')}
-              </span>
-            </div>
+              {/* Tier identifier — B2B managed engagement (vs VPS License self-host) */}
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sky-500/10 border border-sky-500/30 mb-5">
+                <Building2 className="w-3.5 h-3.5 text-sky-400" />
+                <span className="text-xs font-mono uppercase tracking-wider text-sky-300">
+                  {t('hero_tier_badge')}
+                </span>
+              </div>
 
-            <h1 className="t-display-page mb-6 max-w-4xl">
-              {t('hero_title')}
-            </h1>
-            <p className="t-lead text-foreground/60 max-w-3xl">
-              {t('hero_subtitle')}
-            </p>
-            <div className="mt-10">
-              <TrustStrip />
+              <h1 className="t-display-page mb-6">
+                {t('hero_title')}
+              </h1>
+              <p className="t-lead text-foreground/60">
+                {t('hero_subtitle')}
+              </p>
+              <div className="mt-10">
+                <TrustStrip />
+              </div>
             </div>
           </div>
         </section>

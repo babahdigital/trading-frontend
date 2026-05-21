@@ -105,27 +105,29 @@ export default function PairBriefsPage() {
         {/* Hero */}
         <section className="section-padding border-b border-white/8">
           <div className="layout-container">
-            <p className="t-eyebrow mb-4">Pair Intelligence</p>
-            <h1 className="t-display-page mb-6">
-              {isEn ? 'Pair Intelligence Briefs' : 'Laporan Intelijen Per Pair'}
-            </h1>
-            <p className="t-lead text-foreground/60 max-w-2xl">
-              {isEn
-                ? 'Actionable per-pair analysis with S/R levels, SND zones, patterns, and trade ideas — powered by real-time data.'
-                : 'Analisis per pair yang actionable dengan level S/R, zona SND, pola, dan ide trading — didukung data real-time.'}
-            </p>
-            {access === 'preview' && (
-              <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm">
+            <div className="hero-section-header">
+              <p className="t-eyebrow mb-4">Pair Intelligence</p>
+              <h1 className="t-display-page mb-6">
+                {isEn ? 'Pair Intelligence Briefs' : 'Laporan Intelijen Per Pair'}
+              </h1>
+              <p className="t-lead text-foreground/60">
                 {isEn
-                  ? 'You are viewing preview mode. Subscribe for full analysis.'
-                  : 'Anda melihat mode preview. Berlangganan untuk analisis lengkap.'}
-                <Link href="/register?service=signal" className="underline font-medium">
-                  {isEn ? 'Subscribe' : 'Berlangganan'}
-                </Link>
+                  ? 'Actionable per-pair analysis with S/R levels, SND zones, patterns, and trade ideas — powered by real-time data.'
+                  : 'Analisis per pair yang actionable dengan level S/R, zona SND, pola, dan ide trading — didukung data real-time.'}
+              </p>
+              {access === 'preview' && (
+                <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm">
+                  {isEn
+                    ? 'You are viewing preview mode. Subscribe for full analysis.'
+                    : 'Anda melihat mode preview. Berlangganan untuk analisis lengkap.'}
+                  <Link href="/register?service=signal" className="underline font-medium">
+                    {isEn ? 'Subscribe' : 'Berlangganan'}
+                  </Link>
+                </div>
+              )}
+              <div className="mt-10">
+                <TrustStrip />
               </div>
-            )}
-            <div className="mt-10">
-              <TrustStrip />
             </div>
           </div>
         </section>

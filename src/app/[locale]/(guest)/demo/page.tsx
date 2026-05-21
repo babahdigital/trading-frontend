@@ -103,15 +103,15 @@ export default async function DemoPage() {
         {/* Hero */}
         <section className="section-padding border-b border-border/60">
           <div className="layout-container">
-            <div className="max-w-3xl">
+            <div className="hero-section-header">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-xs font-mono uppercase tracking-wider text-amber-300 mb-6">
                 <Sparkles className="w-3.5 h-3.5" />
                 {t('hero_pill')}
               </div>
               <h1 className="t-display-page mb-5">
-                {t('hero_title_l1')}<br className="hidden sm:block" /> {t('hero_title_l2')}
+                {t('hero_title_l1')} {t('hero_title_l2')}
               </h1>
-              <p className="t-lead text-foreground/70 mb-8 max-w-xl sm:max-w-2xl">
+              <p className="t-lead text-foreground/70 mb-8">
                 {t('hero_subtitle')}
               </p>
               <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">

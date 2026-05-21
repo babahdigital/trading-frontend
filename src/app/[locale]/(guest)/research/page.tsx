@@ -98,15 +98,17 @@ export default function ResearchPage() {
         {/* Hero */}
         <section className="section-padding border-b border-white/8">
           <div className="layout-container">
-            <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
-            <h1 className="t-display-page mb-6">
-              {t('hero_title')}
-            </h1>
-            <p className="t-lead text-foreground/60 max-w-2xl">
-              {t('hero_lead')}
-            </p>
-            <div className="mt-10">
-              <TrustStrip />
+            <div className="hero-section-header">
+              <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
+              <h1 className="t-display-page mb-6">
+                {t('hero_title')}
+              </h1>
+              <p className="t-lead text-foreground/60">
+                {t('hero_lead')}
+              </p>
+              <div className="mt-10">
+                <TrustStrip />
+              </div>
             </div>
           </div>
         </section>

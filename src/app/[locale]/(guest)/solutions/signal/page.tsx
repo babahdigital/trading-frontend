@@ -152,29 +152,31 @@ export default function SignalPage() {
         {/* Hero */}
         <section className="section-padding border-b border-border/60">
           <div className="layout-container">
-            <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
-            <h1 className="t-display-page mb-6">
-              {t('hero_title_l1')}<br className="hidden sm:block" /> {t('hero_title_l2')}
-            </h1>
-            <p className="t-lead text-foreground/60 max-w-xl sm:max-w-2xl">
-              {t('hero_subtitle')}
-            </p>
-            <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4 mt-8 sm:mt-10">
-              <Link href="/register?service=signal&tier=scalping" className="btn-primary justify-center">
-                {t('hero_cta_register')} <ArrowRight className="w-4 h-4" />
-              </Link>
-              <Link href="/demo?product=robot-meta" className="btn-secondary justify-center">
-                {t('hero_cta_demo')}
-              </Link>
-              <Link href="/performance" className="btn-tertiary justify-center">
-                {t('hero_cta_track')}
-              </Link>
-            </div>
-            <p className="text-xs text-foreground/50 mt-6 max-w-xl sm:max-w-2xl">
-              {t('hero_beta_note')}
-            </p>
-            <div className="mt-10">
-              <TrustStrip />
+            <div className="hero-section-header">
+              <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
+              <h1 className="t-display-page mb-6">
+                {t('hero_title_l1')} {t('hero_title_l2')}
+              </h1>
+              <p className="t-lead text-foreground/60">
+                {t('hero_subtitle')}
+              </p>
+              <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4 mt-8 sm:mt-10">
+                <Link href="/register?service=signal&tier=scalping" className="btn-primary justify-center">
+                  {t('hero_cta_register')} <ArrowRight className="w-4 h-4" />
+                </Link>
+                <Link href="/demo?product=robot-meta" className="btn-secondary justify-center">
+                  {t('hero_cta_demo')}
+                </Link>
+                <Link href="/performance" className="btn-tertiary justify-center">
+                  {t('hero_cta_track')}
+                </Link>
+              </div>
+              <p className="text-xs text-foreground/50 mt-6">
+                {t('hero_beta_note')}
+              </p>
+              <div className="mt-10">
+                <TrustStrip />
+              </div>
             </div>
           </div>
         </section>

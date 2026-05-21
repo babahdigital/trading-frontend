@@ -127,12 +127,14 @@ export default async function RiskFrameworkPage() {
             >
               <ArrowLeft className="w-3.5 h-3.5" strokeWidth={2.25} /> {t('back_link')}
             </Link>
-            <p className="t-eyebrow mb-4 text-[hsl(var(--primary))]">{t('hero_eyebrow')}</p>
-            <h1 className="t-display-page mb-6 max-w-3xl">{t('hero_title')}</h1>
-            <p className="t-lead text-muted-foreground max-w-3xl">{t('hero_lead')}</p>
+            <div className="hero-section-header">
+              <p className="t-eyebrow mb-4 text-[hsl(var(--primary))]">{t('hero_eyebrow')}</p>
+              <h1 className="t-display-page mb-6">{t('hero_title')}</h1>
+              <p className="t-lead text-muted-foreground">{t('hero_lead')}</p>
 
-            <div className="mt-10">
-              <TrustStrip />
+              <div className="mt-10">
+                <TrustStrip />
+              </div>
             </div>
 
             {/* Quick anchor strip */}

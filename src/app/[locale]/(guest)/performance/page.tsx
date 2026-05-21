@@ -101,48 +101,48 @@ export default function PerformancePage() {
             top) so the data section reads as the focal point, not the hero */}
         <section className="section-padding border-b border-border/60 page-stamp-rule">
           <div className="layout-container">
-            <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
-            <h1 className="t-display-page mb-6">
-              {hasLiveData ? (
-                <>{t('hero_title_live_l1')}<br className="hidden sm:block" /> {t('hero_title_live_l2')}</>
-              ) : (
-                <>{t('hero_title_beta_l1')}<br className="hidden sm:block" /> {t('hero_title_beta_l2')}</>
-              )}
-            </h1>
-            <p className="t-lead text-muted-foreground max-w-2xl">
-              {hasLiveData ? t('hero_subtitle_live') : t('hero_subtitle_beta')}
-            </p>
+            <div className="hero-section-header">
+              <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
+              <h1 className="t-display-page mb-6">
+                {hasLiveData
+                  ? `${t('hero_title_live_l1')} ${t('hero_title_live_l2')}`
+                  : `${t('hero_title_beta_l1')} ${t('hero_title_beta_l2')}`}
+              </h1>
+              <p className="t-lead text-muted-foreground">
+                {hasLiveData ? t('hero_subtitle_live') : t('hero_subtitle_beta')}
+              </p>
 
-            {/* Live equity stamp — surfaced dari master tenant Exness broker
-                via /api/forex/accounts. Real number, refresh per page load.
-                Hidden saat data tidak available (currentEquity null/0). */}
-            {currentEquity !== null && (
-              <div className="mt-8 inline-flex items-center gap-4 rounded-lg border border-border/60 bg-card/60 px-5 py-3 backdrop-blur">
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" aria-hidden />
-                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-mono">
-                    {t('hero_equity_label')}
+              {/* Live equity stamp — surfaced dari master tenant Exness broker
+                  via /api/forex/accounts. Real number, refresh per page load.
+                  Hidden saat data tidak available (currentEquity null/0). */}
+              {currentEquity !== null && (
+                <div className="mt-8 inline-flex items-center gap-4 rounded-lg border border-border/60 bg-card/60 px-5 py-3 backdrop-blur">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" aria-hidden />
+                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-mono">
+                      {t('hero_equity_label')}
+                    </span>
+                  </div>
+                  <span className="text-xl font-mono font-semibold tabular-nums tracking-tight">
+                    ${currentEquity.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground/70 hidden sm:inline">
+                    {t('hero_equity_source')}
                   </span>
                 </div>
-                <span className="text-xl font-mono font-semibold tabular-nums tracking-tight">
-                  ${currentEquity.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </span>
-                <span className="text-[10px] text-muted-foreground/70 hidden sm:inline">
-                  {t('hero_equity_source')}
-                </span>
-              </div>
-            )}
+              )}
 
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/contact" className="btn-primary">
-                {t('hero_cta_briefing')} <ArrowRight className="w-4 h-4" />
-              </Link>
-              <Link href="/demo" className="btn-secondary">
-                {t('hero_cta_demo')}
-              </Link>
-            </div>
-            <div className="mt-10">
-              <TrustStrip />
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Link href="/contact" className="btn-primary">
+                  {t('hero_cta_briefing')} <ArrowRight className="w-4 h-4" />
+                </Link>
+                <Link href="/demo" className="btn-secondary">
+                  {t('hero_cta_demo')}
+                </Link>
+              </div>
+              <div className="mt-10">
+                <TrustStrip />
+              </div>
             </div>
           </div>
         </section>

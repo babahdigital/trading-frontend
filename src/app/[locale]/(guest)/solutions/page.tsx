@@ -112,14 +112,16 @@ export default async function SolutionsPage({ params }: { params: Promise<{ loca
 
         {/* Hero */}
         <section className="section-padding border-b border-white/8">
-          <div className="layout-container text-center">
-            <p className="t-eyebrow mb-4">{t('eyebrow')}</p>
-            <h1 className="t-display-page mb-6">{t('hero_title')}</h1>
-            <p className="t-lead text-foreground/60 max-w-2xl mx-auto">
-              {t('hero_subtitle')}
-            </p>
-            <div className="mt-10">
-              <TrustStrip />
+          <div className="layout-container">
+            <div className="hero-section-header hero-section-header--center">
+              <p className="t-eyebrow mb-4">{t('eyebrow')}</p>
+              <h1 className="t-display-page mb-6">{t('hero_title')}</h1>
+              <p className="t-lead text-foreground/60">
+                {t('hero_subtitle')}
+              </p>
+              <div className="mt-10">
+                <TrustStrip />
+              </div>
             </div>
           </div>
         </section>

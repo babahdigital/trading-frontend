@@ -164,33 +164,35 @@ export default async function LicensePage() {
             di bawah subtitle supaya user tidak bingung antara 2 produk. */}
         <section className="section-padding border-b border-border/60">
           <div className="layout-container">
-            <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
+            <div className="hero-section-header">
+              <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
 
-            {/* Tier identifier badge — visual cue ini retail product, bukan B2B */}
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 mb-5">
-              <Server className="w-3.5 h-3.5 text-amber-400" />
-              <span className="text-xs font-mono uppercase tracking-wider text-amber-300">
-                {t('hero_tier_badge')}
-              </span>
-            </div>
-
-            <h1 className="t-display-page mb-6 max-w-4xl">
-              {t('hero_title')}
-            </h1>
-            <p className="t-lead text-foreground/60 max-w-3xl mb-8">
-              {t('hero_subtitle')}
-            </p>
-
-            {/* Differentiation hint — link ke comparison section bottom */}
-            <div className="inline-flex items-start gap-3 p-4 rounded-lg border border-border/60 bg-muted/30 max-w-2xl">
-              <Info className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold mb-1">{t('hero_diff_label')}</p>
-                <p className="text-xs text-foreground/60 leading-relaxed">{t('hero_diff_body')}</p>
+              {/* Tier identifier badge — visual cue ini retail product, bukan B2B */}
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 mb-5">
+                <Server className="w-3.5 h-3.5 text-amber-400" />
+                <span className="text-xs font-mono uppercase tracking-wider text-amber-300">
+                  {t('hero_tier_badge')}
+                </span>
               </div>
-            </div>
-            <div className="mt-10">
-              <TrustStrip />
+
+              <h1 className="t-display-page mb-6">
+                {t('hero_title')}
+              </h1>
+              <p className="t-lead text-foreground/60 mb-8">
+                {t('hero_subtitle')}
+              </p>
+
+              {/* Differentiation hint — link ke comparison section bottom */}
+              <div className="inline-flex items-start gap-3 p-4 rounded-lg border border-border/60 bg-muted/30">
+                <Info className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold mb-1">{t('hero_diff_label')}</p>
+                  <p className="text-xs text-foreground/60 leading-relaxed">{t('hero_diff_body')}</p>
+                </div>
+              </div>
+              <div className="mt-10">
+                <TrustStrip />
+              </div>
             </div>
           </div>
         </section>

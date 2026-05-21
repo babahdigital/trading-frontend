@@ -205,6 +205,10 @@ export async function POST(req: NextRequest) {
         customerName: user.name || user.email,
         customerEmail: user.email,
         description: localizedDescription,
+        // Locale-aware payment channel: EN=CC only (international),
+        // ID=full Indonesian channels. Sebelumnya semua ditampilkan ke
+        // semua customer — international customer bingung lihat OVO/Dana.
+        locale,
       });
     } catch (err) {
       // Cleanup orphan invoice supaya idempotency key tidak ke-stuck dengan

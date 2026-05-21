@@ -9,7 +9,28 @@ interface CreateInvoiceParams {
   customerEmail: string;
   description: string;
   successRedirectUrl?: string;
+  /** Locale-aware payment channel filter (Pak Abdullah 2026-05-21):
+   *  - 'en': hanya Credit Card (international customer)
+   *  - 'id': full Indonesian channels (VA bank + e-wallet + QRIS + CC)
+   *  Kalau tidak di-set, fallback ke full default (backward-compat). */
+  locale?: 'id' | 'en';
 }
+
+const PAYMENT_METHODS_ID = [
+  // Bank Virtual Account
+  'BCA', 'BNI', 'BSI', 'BRI', 'MANDIRI', 'PERMATA',
+  // Retail outlets
+  'ALFAMART', 'INDOMARET',
+  // E-Wallet
+  'OVO', 'DANA', 'SHOPEEPAY', 'LINKAJA',
+  // QR + Card
+  'QRIS', 'CREDIT_CARD',
+];
+
+const PAYMENT_METHODS_EN = [
+  // International customer → Credit Card only
+  'CREDIT_CARD',
+];
 
 interface XenditInvoiceResponse {
   id: string;
@@ -41,22 +62,9 @@ export async function createXenditInvoice(params: CreateInvoiceParams) {
       given_names: params.customerName,
       email: params.customerEmail,
     },
-    payment_methods: [
-      'BCA',
-      'BNI',
-      'BSI',
-      'BRI',
-      'MANDIRI',
-      'PERMATA',
-      'ALFAMART',
-      'INDOMARET',
-      'OVO',
-      'DANA',
-      'SHOPEEPAY',
-      'LINKAJA',
-      'QRIS',
-      'CREDIT_CARD',
-    ],
+    payment_methods: params.locale === 'en' ? PAYMENT_METHODS_EN : PAYMENT_METHODS_ID,
+    // Force Xendit page bahasa sesuai locale customer
+    locale: params.locale === 'en' ? 'en' : 'id',
   };
 
   // DNS retry — VPS3 container kadang hit EAI_AGAIN intermittent ke

@@ -223,8 +223,32 @@ jobs:
             docker compose -f docker-compose.yml down --remove-orphans || true
           fi
 
-          echo "== docker compose pull =="
-          docker compose -f docker-compose.prod.yml pull
+          # Pull APP image dengan retry — sumber failure umum: VPS3
+          # systemd-resolved hiccup saat lookup docker.io. 3x retry +
+          # exponential backoff handle transient DNS / network blip.
+          # Base images (postgres, rclone) di-skip kalau gagal — biasanya
+          # sudah ada local + jarang berubah; kalau perlu update, pull
+          # manual di VPS3 (jangan blokir deploy app).
+          echo "== docker compose pull app (with retry) =="
+          PULL_OK=0
+          for attempt in 1 2 3; do
+            if docker compose -f docker-compose.prod.yml pull app; then
+              echo "✓ app image pulled (attempt $attempt)"
+              PULL_OK=1
+              break
+            fi
+            echo "⚠ pull attempt $attempt failed, retry in $((attempt * 10))s"
+            sleep $((attempt * 10))
+          done
+          if [ "$PULL_OK" != "1" ]; then
+            echo "::error::App image pull gagal setelah 3 retry — cek konektivitas VPS3 → docker.io / DNS"
+            exit 1
+          fi
+
+          # Opportunistic base image refresh — fail-soft
+          echo "== compose pull base images (best-effort) =="
+          docker compose -f docker-compose.prod.yml pull postgres rclone 2>&1 | tail -10 || \
+            echo "⚠ base images skipped (will use local cache)"
 
           echo "== docker compose up -d =="
           docker compose -f docker-compose.prod.yml up -d --force-recreate

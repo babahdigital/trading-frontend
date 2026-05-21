@@ -10,6 +10,7 @@ import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { Menu, X, ChevronDown, ArrowRight, BookOpen, Users, FileCheck, ShieldCheck, Scale, Library, FileText, Bitcoin, TrendingUp, Sparkles, LayoutDashboard, LogOut } from 'lucide-react';
 import Image from 'next/image';
 import { STRATEGY_ICONS } from '@/components/icons/strategy-icons';
+import { TickerBar } from '@/components/layout/ticker-bar';
 
 // ─── Mega Menu Data — labels/descs are i18n keys, resolved via t() at render ───
 const PLATFORM_MENU = {
@@ -186,6 +187,8 @@ export function EnterpriseNav() {
 
   return (
     <>
+      {/* Live market ticker — sticky atas nav, refresh tiap 60s */}
+      <TickerBar />
       <nav
         ref={menuRef}
         role="navigation"

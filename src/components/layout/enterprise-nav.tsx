@@ -3,10 +3,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { Menu, X, ChevronDown, ArrowRight, BookOpen, Users, FileCheck, ShieldCheck, Scale, Library, FileText, Bitcoin, TrendingUp, Sparkles } from 'lucide-react';
+import { Menu, X, ChevronDown, ArrowRight, BookOpen, Users, FileCheck, ShieldCheck, Scale, Library, FileText, Bitcoin, TrendingUp, Sparkles, LayoutDashboard, LogOut } from 'lucide-react';
 import Image from 'next/image';
 import { STRATEGY_ICONS } from '@/components/icons/strategy-icons';
 
@@ -77,13 +78,20 @@ const COMPANY_MENU = {
   ],
 };
 
+interface AuthState {
+  loggedIn: boolean;
+  role: 'ADMIN' | 'CLIENT' | null;
+}
+
 export function EnterpriseNav() {
   const t = useTranslations('nav');
   const tm = useTranslations('nav.mega');
+  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [scrolled, setScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [auth, setAuth] = useState<AuthState>({ loggedIn: false, role: null });
   const menuRef = useRef<HTMLDivElement>(null);
   const lockedScrollY = useRef(0);
 
@@ -91,7 +99,31 @@ export function EnterpriseNav() {
     // SSR hydration guard — flip mounted setelah mount untuk gate client-only UI.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
+
+    // Resolve auth state via /api/auth/me (lightweight session check).
+    // HttpOnly cookie sent automatically; endpoint returns user info atau 401.
+    (async () => {
+      try {
+        const res = await fetch('/api/auth/me', { credentials: 'same-origin', cache: 'no-store' });
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.user?.id) {
+            setAuth({ loggedIn: true, role: data.user.role ?? 'CLIENT' });
+          }
+        }
+      } catch {
+        // silent — not logged in, default state preserved
+      }
+    })();
   }, []);
+
+  const handleLogout = useCallback(async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' });
+    } catch { /* ignore */ }
+    setAuth({ loggedIn: false, role: null });
+    router.push('/login');
+  }, [router]);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
@@ -211,19 +243,41 @@ export function EnterpriseNav() {
             </Link>
           </div>
 
-          {/* Right side */}
+          {/* Right side — auth state aware */}
           <div className="hidden lg:flex items-center gap-2">
             <ThemeToggle />
             <LanguageSwitcher />
-            <Link href="/login" className="nav-link">
-              {t('login')}
-            </Link>
-            <Link
-              href="/register"
-              className="btn-primary px-5 py-2.5 rounded-md text-sm font-medium"
-            >
-              {t('register')}
-            </Link>
+            {mounted && auth.loggedIn ? (
+              <>
+                <Link
+                  href={auth.role === 'ADMIN' ? '/admin' : '/portal'}
+                  className="nav-link inline-flex items-center gap-1.5"
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  {t('portal')}
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="btn-primary px-5 py-2.5 rounded-md text-sm font-medium inline-flex items-center gap-1.5"
+                >
+                  <LogOut className="w-4 h-4" />
+                  {t('logout')}
+                </button>
+              </>
+            ) : (
+              <>
+                <Link href="/login" className="nav-link">
+                  {t('login')}
+                </Link>
+                <Link
+                  href="/register"
+                  className="btn-primary px-5 py-2.5 rounded-md text-sm font-medium"
+                >
+                  {t('register')}
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile toggle (always reachable — nav is fixed) */}

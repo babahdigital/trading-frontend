@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { verifyXenditWebhook } from '@/lib/payment/xendit';
-import { activateSubscription } from '@/lib/subscription/lifecycle';
+import { activateSubscription, cancelSubscription } from '@/lib/subscription/lifecycle';
 import { createLogger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
@@ -41,6 +41,19 @@ export async function POST(req: NextRequest) {
       where: { id: external_id },
       data: { status: 'CANCELLED' },
     });
+
+    // Propagate cancellation ke subscription user (backend rc37 sync)
+    const tier = (invoice.metadata as Record<string, unknown>)?.tier as string | undefined;
+    try {
+      await cancelSubscription(invoice.userId, {
+        tier,
+        reason: 'xendit_expired',
+        source: 'xendit',
+      });
+    } catch (err) {
+      log.warn(`Cancel propagation failed for ${external_id}: ${err}`);
+    }
+
     log.info(`Xendit invoice expired: ${external_id}`);
   }
 

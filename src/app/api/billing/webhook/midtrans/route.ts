@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { createHash } from 'crypto';
-import { activateSubscription } from '@/lib/subscription/lifecycle';
+import { activateSubscription, cancelSubscription } from '@/lib/subscription/lifecycle';
 import { createLogger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
@@ -64,6 +64,21 @@ export async function POST(req: NextRequest) {
       where: { id: order_id },
       data: { status: 'CANCELLED' },
     });
+
+    // Cancellation event — propagate ke active subscription user supaya
+    // sinkron dengan backend rc37 cancel handler. Subscription status flip
+    // ke CANCELLED + email user.
+    const tier = (invoice.metadata as Record<string, unknown>)?.tier as string | undefined;
+    try {
+      await cancelSubscription(invoice.userId, {
+        tier,
+        reason: `midtrans_${transaction_status}`,
+        source: 'midtrans',
+      });
+    } catch (err) {
+      log.warn(`Cancel propagation failed for ${order_id}: ${err}`);
+    }
+
     log.info(`Payment ${transaction_status}: ${order_id}`);
   }
 

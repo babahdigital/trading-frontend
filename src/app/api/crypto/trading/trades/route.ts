@@ -9,14 +9,20 @@ import { createLogger } from '@/lib/logger';
 
 const log = createLogger('api/crypto/trading/trades');
 
+/**
+ * Trades history — backend rc37 RLS via SET LOCAL app.tenant_id requires
+ * tenant-scoped path `/api/tenants/{id}/trades`. Generic /api/trades was
+ * rejected dengan 403 oleh RLS gate.
+ */
 export async function GET(request: NextRequest) {
   const gate = await requireCryptoEligible(request, { allowPaused: true });
   if (!gate.ok) return gate.response;
 
   const limit = Math.min(Math.max(parseInt(request.nextUrl.searchParams.get('limit') ?? '50', 10) || 50, 1), 500);
   const symbol = request.nextUrl.searchParams.get('symbol') ?? '';
+  const tenantId = gate.subscription.cryptoTenantId;
 
-  if (!cryptoBackendConfigured()) {
+  if (!cryptoBackendConfigured() || !tenantId) {
     const items = mockTrades().slice(0, limit);
     return NextResponse.json({ source: 'mock', items, count: items.length });
   }
@@ -27,7 +33,7 @@ export async function GET(request: NextRequest) {
     if (symbol) qs.set('symbol', symbol);
     const res = await proxyToCryptoBackend({
       scope: 'trades',
-      path: `/api/trades?${qs}`,
+      path: `/api/tenants/${encodeURIComponent(tenantId)}/trades?${qs}`,
       forwardUserId: gate.userId,
     });
     if (!res.ok) {

@@ -144,6 +144,7 @@ enum LicenseStatus {
   EXPIRED
   REVOKED
   SUSPENDED
+  CANCELLED
 }
 
 model VpsInstance {

@@ -341,6 +341,10 @@ jobs:
         run: |
           set -e
           BASE="https://babahalgo.com"
+          # Cloudflare bot management kadang flag default curl UA → 403 challenge.
+          # Pakai browser-like UA + Accept header supaya pass bot filter.
+          UA="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 BabahAlgo-CI"
+          CURL_OPTS=(-sS -L -m 15 -A "$UA" -H "Accept: text/html,application/json,*/*" --retry 2 --retry-delay 2)
 
           # Probe table — semua public page hit middleware locale redirect (root →
           # /id/* atau /en/* via next-intl). curl tanpa -L return 307 dulu, lalu
@@ -429,7 +433,7 @@ jobs:
             # -L: follow redirect (locale redirect via next-intl). %{http_code}
             # report FINAL response code di chain — supaya /register hit 307→200.
             # Untuk /api/* yang gak ada redirect, behavior sama (200/401 langsung).
-            CODE=$(curl -sS -L -o /dev/null -m 15 -X "$METHOD" -w "%{http_code}" "$BASE$PATH_PART" || echo "ERR")
+            CODE=$(curl "${CURL_OPTS[@]}" -o /dev/null -X "$METHOD" -w "%{http_code}" "$BASE$PATH_PART" || echo "ERR")
             if echo ",$ALLOWED," | grep -q ",$CODE,"; then
               PASS=$((PASS + 1))
               echo "✓ $METHOD $PATH_PART → $CODE (expected: $ALLOWED)"
@@ -444,7 +448,7 @@ jobs:
           # Pakai -L supaya curl follow locale redirect lalu fetch HTML body real.
           echo ""
           echo "== body sanity check =="
-          BODY_LEN=$(curl -sS -L -m 15 "$BASE/" | wc -c)
+          BODY_LEN=$(curl "${CURL_OPTS[@]}" "$BASE/" | wc -c)
           echo "Landing body bytes: $BODY_LEN"
           if [ "$BODY_LEN" -lt 5000 ]; then
             FAIL=$((FAIL + 1))
@@ -455,7 +459,7 @@ jobs:
           # Content marker check — pastikan key strings ada di HTML render
           echo ""
           echo "== content marker check =="
-          HTML=$(curl -sS -L -m 15 "$BASE/")
+          HTML=$(curl "${CURL_OPTS[@]}" "$BASE/")
           MARKERS=("BabahAlgo" "Robot")
           for marker in "${MARKERS[@]}"; do
             if echo "$HTML" | grep -q "$marker"; then

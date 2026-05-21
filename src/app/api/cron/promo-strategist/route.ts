@@ -188,10 +188,151 @@ function decideStrategy(
   };
 }
 
+/** Auto-cleanup expired promos sebelum analyze new cycle.
+ *  Pak Abdullah directive 2026-05-21: hapus 1-3 hari setelah event selesai
+ *  (pilih 3 hari = grace untuk late-converts + customer follow-up).
+ *
+ *  Flow:
+ *    1. ACTIVE yang endsAt < now → status EXPIRED (langsung, supaya popup
+ *       berhenti tampil)
+ *    2. EXPIRED yang endsAt < now - 3 days → DELETE (DB hygiene, no
+ *       accumulation supaya admin queue tidak menumpuk)
+ *
+ *  Image file di /public/uploads/promotions/ tidak ikut di-purge (kept untuk
+ *  audit + bisa di-restore manual kalau perlu). Separate sweep cron untuk
+ *  orphan image deletion bisa di-tambah nanti kalau disk usage masalah.
+ */
+const POST_EVENT_GRACE_DAYS = 3;
+
+async function cleanupExpiredPromos(): Promise<{ expired: number; purged: number }> {
+  const now = new Date();
+  const expiredResult = await prisma.promotion.updateMany({
+    where: { status: 'ACTIVE', endsAt: { lt: now } },
+    data: { status: 'EXPIRED' },
+  });
+  const purgeBefore = new Date(now.getTime() - POST_EVENT_GRACE_DAYS * 24 * 60 * 60 * 1000);
+  const purgedResult = await prisma.promotion.deleteMany({
+    where: { status: 'EXPIRED', endsAt: { lt: purgeBefore } },
+  });
+  return { expired: expiredResult.count, purged: purgedResult.count };
+}
+
+/** AI-powered copy generator via Claude Opus 4.7 (per Pak Abdullah:
+ *  pakai AI terbaik, low frequency event-based). Fallback template kalau
+ *  LLM unavailable. */
+interface PromoCopy {
+  popupTitle: string; popupTitle_en: string;
+  popupBody: string; popupBody_en: string;
+  ctaLabel: string; ctaLabel_en: string;
+}
+
+async function generatePromoCopy(args: {
+  eventName?: string;
+  eventTemplateKey?: string;
+  action: 'greeting-only' | 'greeting-with-discount' | 'flash-sale';
+  discountPercent?: number;
+  applicableTiers: string[];
+}): Promise<PromoCopy> {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) return fallbackCopy(args);
+
+  const tierList = args.applicableTiers.length > 0 ? args.applicableTiers.join(', ') : 'semua tier';
+  const discountLine = args.discountPercent ? `Diskon ${args.discountPercent}% untuk ${tierList}.` : 'No discount — focus brand engagement.';
+
+  const userPrompt = `Generate marketing-grade JSON popup penawaran trading fintech BabahAlgo.
+
+Konteks:
+- Event: ${args.eventName ?? 'tidak ada event'} (template: ${args.eventTemplateKey ?? 'general'})
+- Action: ${args.action}
+- ${discountLine}
+- Brand: BabahAlgo (zero-custody crypto bot, retail Indonesia + global)
+- Tone: hangat, premium, jujur, NO hype, NO janji return
+
+Output JSON:
+{
+  "popupTitle": "id, max 50 char",
+  "popupTitle_en": "en, max 50 char",
+  "popupBody": "id, max 180 char, 1-2 sentence persuasive",
+  "popupBody_en": "en, max 180 char",
+  "ctaLabel": "id, max 18 char",
+  "ctaLabel_en": "en, max 18 char"
+}
+
+Rules:
+- Greeting-only: warm wishes ONLY, NO discount mention
+- Greeting+discount: wishes + discount mention proportional
+- Flash-sale: clear urgency, real scarcity, NO toxic FOMO
+- Indonesia native phrasing (bukan terjemahan kaku)
+- NO ALL CAPS, NO excessive emoji, NO cliche
+
+Output ONLY raw JSON (tanpa code fence, tanpa explanation).`;
+
+  try {
+    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+        'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://babahalgo.com',
+        'X-Title': 'BabahAlgo Promo Copy',
+      },
+      body: JSON.stringify({
+        model: 'anthropic/claude-opus-4-1',
+        messages: [
+          { role: 'system', content: 'You are a senior marketing copywriter for institutional fintech. Output JSON only.' },
+          { role: 'user', content: userPrompt },
+        ],
+        temperature: 0.7,
+        max_tokens: 600,
+      }),
+      signal: AbortSignal.timeout(45_000),
+    });
+    if (!res.ok) { log.warn(`LLM copy HTTP ${res.status}`); return fallbackCopy(args); }
+    const body = await res.json();
+    const text: string = body.choices?.[0]?.message?.content ?? '';
+    const cleaned = text.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim();
+    const parsed = JSON.parse(cleaned) as PromoCopy;
+    if (!parsed.popupTitle || !parsed.popupBody) throw new Error('Missing fields');
+    log.info(`Copy gen OK: "${parsed.popupTitle}"`);
+    return parsed;
+  } catch (err) {
+    log.warn(`Copy gen failed: ${err instanceof Error ? err.message : 'unknown'}`);
+    return fallbackCopy(args);
+  }
+}
+
+function fallbackCopy(args: { eventName?: string; action: string; discountPercent?: number }): PromoCopy {
+  if (args.action === 'greeting-only' && args.eventName) {
+    return {
+      popupTitle: `Selamat ${args.eventName}`, popupTitle_en: `Happy ${args.eventName}`,
+      popupBody: `Dari keluarga BabahAlgo, semoga ${args.eventName} membawa berkah untuk Anda.`,
+      popupBody_en: `From the BabahAlgo family, may ${args.eventName} bring blessings to you.`,
+      ctaLabel: 'Selamat Merayakan', ctaLabel_en: 'Celebrate',
+    };
+  }
+  if (args.eventName) {
+    return {
+      popupTitle: `Spesial ${args.eventName}`, popupTitle_en: `${args.eventName} Special`,
+      popupBody: `Diskon ${args.discountPercent ?? 15}% untuk tier crypto. Berkah ${args.eventName}.`,
+      popupBody_en: `${args.discountPercent ?? 15}% off crypto tiers. ${args.eventName} blessing.`,
+      ctaLabel: 'Lihat Penawaran', ctaLabel_en: 'See Offer',
+    };
+  }
+  return {
+    popupTitle: 'Flash Sale Terbatas', popupTitle_en: 'Limited Flash Sale',
+    popupBody: `Diskon ${args.discountPercent ?? 20}% subscription crypto. Berlaku 48 jam.`,
+    popupBody_en: `${args.discountPercent ?? 20}% off crypto subscription. 48 hours only.`,
+    ctaLabel: 'Klaim Sekarang', ctaLabel_en: 'Claim Now',
+  };
+}
+
 export async function POST(request: NextRequest) {
   if (!authorize(request)) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
+
+  // 0. Auto-cleanup expired (status flip + DB purge > 90 days)
+  const cleanup = await cleanupExpiredPromos();
 
   // 1. Compute revenue health + write snapshot (1 row per day)
   const health = await computeRevenueHealth();
@@ -254,14 +395,26 @@ export async function POST(request: NextRequest) {
       ? `${linkedEvent.slug}-auto-${Date.now()}`
       : `flash-${Date.now()}`;
 
-    // Schedule window — start now, end at event date + 1 day, atau 7 days kalau flash
+    // Schedule window (Pak Abdullah directive 2026-05-21):
+    //   - Lead window: 7 days SEBELUM event (atau per-event leadDays kalau lebih)
+    //   - Promo endsAt: event_date + 3 days (grace post-event untuk late-converts)
+    //   - Flash sale (no event): 7 days dari sekarang
     const startsAt = new Date();
     const endsAt = linkedEvent
-      ? new Date(linkedEvent.eventDate.getTime() + 24 * 60 * 60 * 1000)
+      ? new Date(linkedEvent.eventDate.getTime() + POST_EVENT_GRACE_DAYS * 24 * 60 * 60 * 1000)
       : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
     // Auto-activate kalau confidence high
     const status = decision.confidence >= 80 ? 'ACTIVE' : 'DRAFT';
+
+    // AI-generated copy (Claude Opus, bilingual, marketing-grade)
+    const copy = await generatePromoCopy({
+      eventName: linkedEvent?.name,
+      eventTemplateKey: linkedEvent?.templateKey,
+      action: decision.action as 'greeting-only' | 'greeting-with-discount' | 'flash-sale',
+      discountPercent: decision.discountPercent,
+      applicableTiers: decision.applicableTiers,
+    });
 
     try {
       const promo = await prisma.promotion.create({
@@ -272,8 +425,9 @@ export async function POST(request: NextRequest) {
             : decision.action === 'flash-sale'
               ? `Flash Sale ${new Date().toLocaleDateString('id-ID', { month: 'short', day: 'numeric' })}`
               : 'AI Auto-Promo',
+          name_en: linkedEvent?.name_en ?? null,
           description: decision.reason,
-          discountType: decision.discountPercent ? 'PERCENT' : 'PERCENT',
+          discountType: 'PERCENT',
           discountValue: new Prisma.Decimal(decision.discountPercent ?? 0),
           applicableTiers: decision.applicableTiers,
           startsAt,
@@ -293,12 +447,13 @@ export async function POST(request: NextRequest) {
           } as Prisma.InputJsonValue,
           confidence: decision.confidence,
           calendarEventId: linkedEvent?.id ?? null,
-          // Popup defaults — admin can edit before publish
-          popupTitle: linkedEvent ? `Selamat ${linkedEvent.name}` : 'Penawaran Spesial',
-          popupBody: decision.action === 'greeting-only'
-            ? `Dari keluarga BabahAlgo, kami ucapkan ${linkedEvent?.name ?? 'salam'} — semoga tradin Anda berkah dan profitable.`
-            : `Spesial ${linkedEvent?.name ?? 'penawaran'}: diskon ${decision.discountPercent}% untuk berlangganan tier crypto. Berlaku terbatas hingga ${endsAt.toLocaleDateString('id-ID')}.`,
-          ctaLabel: 'Lihat Penawaran',
+          // LLM-generated copy (bilingual, marketing-grade)
+          popupTitle: copy.popupTitle,
+          popupTitle_en: copy.popupTitle_en,
+          popupBody: copy.popupBody,
+          popupBody_en: copy.popupBody_en,
+          ctaLabel: copy.ctaLabel,
+          ctaLabel_en: copy.ctaLabel_en,
           ctaLink: '/pricing',
         },
       });

@@ -477,7 +477,12 @@ model Promotion {
   popupBody       String?         @db.Text
   popupBody_en    String?         @db.Text
   /// AI-generated atau manual upload (URL relatif /uploads/promotions/X.png)
+  /// Bilingual: heroImageUrl = id version, heroImageUrl_en = en version
+  /// (Pak Abdullah directive 2026-05-21: image juga ikut multi-bahasa).
+  /// FE PromoPopup pick berdasarkan locale runtime, fallback ke heroImageUrl
+  /// kalau _en belum di-generate.
   heroImageUrl    String?
+  heroImageUrl_en String?
   ctaLabel        String?
   ctaLabel_en     String?
   /// Default /pricing atau /checkout?tier=X&promo=slug

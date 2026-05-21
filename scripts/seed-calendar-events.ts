@@ -45,7 +45,7 @@ const EVENTS: EventSeed[] = [
     slug: 'nyepi', templateKey: 'nyepi',
     name: 'Hari Raya Nyepi', name_en: 'Day of Silence (Nyepi)',
     dates: { 2026: '2026-03-19', 2027: '2027-03-09' },
-    leadDays: 5, country: 'ID',
+    leadDays: 7, country: 'ID',
   },
   {
     slug: 'lebaran', templateKey: 'lebaran',
@@ -58,13 +58,13 @@ const EVENTS: EventSeed[] = [
     slug: 'waisak', templateKey: 'waisak',
     name: 'Hari Raya Waisak', name_en: 'Vesak Day',
     dates: { 2026: '2026-05-23', 2027: '2027-05-12' },
-    leadDays: 5, country: 'ID',
+    leadDays: 7, country: 'ID',
   },
   {
     slug: 'pancasila', templateKey: 'pancasila',
     name: 'Hari Lahir Pancasila', name_en: 'Pancasila Day',
     dates: { 2026: '2026-06-01', 2027: '2027-06-01' },
-    leadDays: 3, country: 'ID',
+    leadDays: 7, country: 'ID',
   },
   {
     slug: 'idul-adha', templateKey: 'idul-adha',
@@ -96,7 +96,7 @@ const EVENTS: EventSeed[] = [
     slug: 'cyber-monday', templateKey: 'cyber-monday',
     name: 'Cyber Monday', name_en: 'Cyber Monday',
     dates: { 2026: '2026-11-30', 2027: '2027-11-29' },
-    leadDays: 5, country: 'INTL',
+    leadDays: 7, country: 'INTL',
   },
   {
     slug: 'singles-day', templateKey: 'singles-day',
@@ -108,7 +108,7 @@ const EVENTS: EventSeed[] = [
     slug: 'hari-belanja-online-1212', templateKey: 'harbolnas-1212',
     name: 'Harbolnas 12.12', name_en: 'Online Shopping Day 12.12',
     dates: { 2026: '2026-12-12', 2027: '2027-12-12' },
-    leadDays: 5, country: 'ID',
+    leadDays: 7, country: 'ID',
   },
 
   // ─── Trading milestone events ───────────────────────────────────────
@@ -116,7 +116,7 @@ const EVENTS: EventSeed[] = [
     slug: 'tahun-baru-fiskal', templateKey: 'fiscal-year',
     name: 'Tahun Baru Fiskal', name_en: 'New Fiscal Year',
     dates: { 2026: '2026-04-01', 2027: '2027-04-01' },
-    leadDays: 3, country: 'INTL',
+    leadDays: 7, country: 'INTL',
   },
 ];
 

@@ -33,6 +33,7 @@ interface ActivePromo {
   popupBody: string | null;
   popupBody_en: string | null;
   heroImageUrl: string | null;
+  heroImageUrl_en: string | null;
   ctaLabel: string | null;
   ctaLabel_en: string | null;
   ctaLink: string | null;
@@ -84,7 +85,10 @@ export function PromoPopup() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch('/api/cms/promotions/active', { cache: 'no-store' });
+        // Locale-aware fetch (Pak Abdullah directive 2026-05-21):
+        // - id customer melihat all event national Indonesia + international
+        // - en customer cuma international events + flash-sale (no event link)
+        const res = await fetch(`/api/cms/promotions/active?locale=${locale}`, { cache: 'no-store' });
         if (!res.ok) return;
         const data = await res.json();
         const list: ActivePromo[] = data.promotions ?? [];
@@ -98,7 +102,7 @@ export function PromoPopup() {
       }
     })();
     return () => { cancelled = true; };
-  }, [skipRoute]);
+  }, [skipRoute, locale]);
 
   // Trigger logic
   useEffect(() => {
@@ -149,6 +153,12 @@ export function PromoPopup() {
   const body = isEn && promo.popupBody_en ? promo.popupBody_en : promo.popupBody ?? promo.description;
   const ctaLabel = isEn && promo.ctaLabel_en ? promo.ctaLabel_en : promo.ctaLabel ?? (isEn ? 'See offer' : 'Lihat penawaran');
   const ctaLink = promo.ctaLink ?? '/pricing';
+  // Bilingual image (Pak Abdullah directive 2026-05-21):
+  // - en: prefer heroImageUrl_en, fallback heroImageUrl
+  // - id: prefer heroImageUrl, fallback heroImageUrl_en
+  const heroImage = isEn
+    ? (promo.heroImageUrl_en ?? promo.heroImageUrl)
+    : (promo.heroImageUrl ?? promo.heroImageUrl_en);
 
   const discountText = promo.discountValue > 0
     ? promo.discountType === 'PERCENT'
@@ -177,11 +187,11 @@ export function PromoPopup() {
           <X className="w-4 h-4" />
         </button>
 
-        {/* Hero image */}
-        {promo.heroImageUrl && (
+        {/* Hero image — bilingual (locale-aware pick) */}
+        {heroImage && (
           <div className="relative w-full aspect-[16/9] bg-muted">
             <Image
-              src={promo.heroImageUrl}
+              src={heroImage}
               alt={title}
               fill
               unoptimized

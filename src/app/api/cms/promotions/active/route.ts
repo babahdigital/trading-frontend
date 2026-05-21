@@ -17,6 +17,9 @@ import { prisma } from '@/lib/db/prisma';
 
 export async function GET(request: NextRequest) {
   const tierFilter = request.nextUrl.searchParams.get('tier')?.toLowerCase();
+  const localeParam = request.nextUrl.searchParams.get('locale')?.toLowerCase();
+  // Default locale = id (Indonesia is primary market)
+  const locale: 'id' | 'en' = localeParam === 'en' ? 'en' : 'id';
 
   const now = new Date();
   const promos = await prisma.promotion.findMany({
@@ -43,6 +46,7 @@ export async function GET(request: NextRequest) {
       popupBody: true,
       popupBody_en: true,
       heroImageUrl: true,
+      heroImageUrl_en: true,
       ctaLabel: true,
       ctaLabel_en: true,
       ctaLink: true,
@@ -51,20 +55,32 @@ export async function GET(request: NextRequest) {
       startsAt: true,
       endsAt: true,
       aiGenerated: true,
-      calendarEvent: { select: { slug: true, templateKey: true, name: true } },
+      calendarEventId: true,
+      calendarEvent: { select: { slug: true, templateKey: true, name: true, country: true } },
     },
   });
 
-  // Filter by tier kalau provided
-  const filtered = tierFilter
-    ? promos.filter((p) => {
+  // Locale-aware event filter (Pak Abdullah directive 2026-05-21):
+  //   - id locale: show all (national Indonesia + international)
+  //   - en locale: hide ID-only events, show INTL + flash-sale (no event link)
+  //   - Flash-sale (calendarEventId=null) = bilingual mandatory, always shown
+  const localeFiltered = promos.filter((p) => {
+    if (!p.calendarEventId) return true; // flash-sale, bilingual mandatory
+    const country = p.calendarEvent?.country ?? 'ID';
+    if (country === 'ID' && locale === 'en') return false;
+    return true;
+  });
+
+  // Tier filter
+  const tierFiltered = tierFilter
+    ? localeFiltered.filter((p) => {
         const tiers = Array.isArray(p.applicableTiers) ? (p.applicableTiers as string[]) : [];
         return tiers.length === 0 || tiers.includes(tierFilter);
       })
-    : promos;
+    : localeFiltered;
 
   // Respect maxUsage
-  const eligible = filtered.filter((p) => p.maxUsage === 0 || p.currentUsage < p.maxUsage);
+  const eligible = tierFiltered.filter((p) => p.maxUsage === 0 || p.currentUsage < p.maxUsage);
 
   return NextResponse.json({
     promotions: eligible.map((p) => ({

@@ -441,6 +441,8 @@ export function EnterpriseNav() {
               t={t}
               tm={tm}
               onClose={() => setMobileOpen(false)}
+              auth={auth}
+              onLogout={handleLogout}
             />,
             document.body,
           )
@@ -455,10 +457,14 @@ function MobileMenu({
   t,
   tm,
   onClose,
+  auth,
+  onLogout,
 }: {
   t: ReturnType<typeof useTranslations>;
   tm: ReturnType<typeof useTranslations>;
   onClose: () => void;
+  auth: AuthState;
+  onLogout: () => void;
 }) {
   return (
     <div
@@ -585,20 +591,43 @@ function MobileMenu({
           <LanguageSwitcher />
         </div>
         <div className="grid grid-cols-2 gap-2">
-          <Link
-            href="/login"
-            className="inline-flex items-center justify-center py-3 text-sm font-medium border border-border rounded-md text-foreground hover:bg-muted/60 transition-colors"
-            onClick={onClose}
-          >
-            {t('login')}
-          </Link>
-          <Link
-            href="/register"
-            className="btn-primary justify-center py-3 text-sm font-medium rounded-md"
-            onClick={onClose}
-          >
-            {t('register')}
-          </Link>
+          {auth.loggedIn ? (
+            <>
+              <Link
+                href={auth.role === 'ADMIN' ? '/admin' : '/portal'}
+                className="inline-flex items-center justify-center gap-1.5 py-3 text-sm font-medium border border-border rounded-md text-foreground hover:bg-muted/60 transition-colors"
+                onClick={onClose}
+              >
+                <LayoutDashboard className="w-4 h-4" />
+                {t('portal')}
+              </Link>
+              <button
+                type="button"
+                onClick={() => { onLogout(); onClose(); }}
+                className="btn-primary justify-center py-3 text-sm font-medium rounded-md inline-flex items-center gap-1.5"
+              >
+                <LogOut className="w-4 h-4" />
+                {t('logout')}
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="inline-flex items-center justify-center py-3 text-sm font-medium border border-border rounded-md text-foreground hover:bg-muted/60 transition-colors"
+                onClick={onClose}
+              >
+                {t('login')}
+              </Link>
+              <Link
+                href="/register"
+                className="btn-primary justify-center py-3 text-sm font-medium rounded-md"
+                onClick={onClose}
+              >
+                {t('register')}
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </div>

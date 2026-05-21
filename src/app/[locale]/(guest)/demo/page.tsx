@@ -2,6 +2,7 @@ import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
+import { DemoCtaButton } from '@/components/demo/demo-cta-button';
 import {
   ArrowRight, ShieldCheck, Bitcoin, TrendingUp, Sparkles,
   AlertTriangle, Check,
@@ -115,12 +116,19 @@ export default async function DemoPage() {
                 {t('hero_subtitle')}
               </p>
               <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
-                <Link href="/register?service=signal&mode=demo" className="btn-primary inline-flex items-center justify-center gap-2 px-6 py-3 rounded-md text-sm font-medium">
-                  {t('hero_cta_meta')} <ArrowRight className="w-4 h-4" />
-                </Link>
-                <Link href="/register?service=crypto&mode=demo" className="btn-secondary inline-flex items-center justify-center gap-2 px-6 py-3 rounded-md text-sm font-medium">
+                <DemoCtaButton
+                  service="signal"
+                  className="btn-primary px-6 py-3 rounded-md text-sm font-medium"
+                  trailingIcon={ArrowRight}
+                >
+                  {t('hero_cta_meta')}
+                </DemoCtaButton>
+                <DemoCtaButton
+                  service="crypto"
+                  className="btn-secondary px-6 py-3 rounded-md text-sm font-medium"
+                >
                   {t('hero_cta_crypto')}
-                </Link>
+                </DemoCtaButton>
                 <Link href="/contact?subject=indicator-beta" className="btn-tertiary inline-flex items-center justify-center gap-2 px-6 py-3 rounded-md text-sm font-medium">
                   {t('hero_cta_indicator')}
                 </Link>
@@ -271,9 +279,13 @@ export default async function DemoPage() {
               {t('cta_body')}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link href="/register?service=signal&mode=demo" className="btn-primary inline-flex items-center justify-center gap-2 px-6 py-3 rounded-md text-sm font-medium">
-                {t('cta_primary')} <ArrowRight className="w-4 h-4" />
-              </Link>
+              <DemoCtaButton
+                service="signal"
+                className="btn-primary px-6 py-3 rounded-md text-sm font-medium"
+                trailingIcon={ArrowRight}
+              >
+                {t('cta_primary')}
+              </DemoCtaButton>
               <Link href="/pricing" className="btn-secondary inline-flex items-center justify-center gap-2 px-6 py-3 rounded-md text-sm font-medium">
                 {t('cta_secondary')}
               </Link>

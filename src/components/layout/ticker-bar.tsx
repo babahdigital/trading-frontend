@@ -31,47 +31,14 @@ interface Ticker {
   currency: 'USD' | 'IDR';
 }
 
-const GROUP_ICON: Record<Ticker['group'], string> = {
-  commodity: '🪙',
-  crypto:    '₿',
-  forex:     '💱',
-  index:     '📊',
-};
-
-const LABEL_ICON: Record<string, string> = {
-  // Commodities
-  XAU: '🥇',
-  XAG: '🥈',
-  WTI: '🛢️',
-  NATGAS: '🔥',
-  COPPER: '🟫',
-  // Crypto
-  BTC: '₿',
-  ETH: 'Ξ',
-  XRP: '✕',
-  SOL: '◎',
-  BNB: '🟡',
-  ADA: '⚡',
-  DOGE: '🐕',
-  AVAX: '🔺',
-  // Forex
-  EUR: '€',
-  GBP: '£',
-  JPY: '¥',
-  AUD: '🇦🇺',
-  CAD: '🇨🇦',
-  CHF: '🇨🇭',
-  IDR: '🇮🇩',
-  DXY: '$',
-  // Index
-  'S&P500': '📈',
-  NASDAQ: '💻',
-  IHSG: '🇮🇩',
-  // Indonesian blue-chip stocks — bank icon + telco/automotive
-  BBCA: '🏦',
-  BBRI: '🏦',
-  TLKM: '📡',
-  ASII: '🚗',
+// Color coding per asset group — tidak pakai emoji (Pak Abdullah 2026-05-22:
+// "icon gak perlu, terlihat murahan"). Institusional feel pakai color accent
+// di label text saja.
+const GROUP_COLOR: Record<Ticker['group'], string> = {
+  commodity: 'text-amber-400',
+  crypto:    'text-orange-400',
+  forex:     'text-sky-400',
+  index:     'text-violet-400',
 };
 
 function formatPrice(n: number, group: Ticker['group'], symbol: string, currency: Ticker['currency']): string {
@@ -251,26 +218,30 @@ export function TickerBar() {
         >
           {repeated.map((t, i) => {
             const isUp = t.change24hPct >= 0;
-            const icon = LABEL_ICON[t.label] ?? GROUP_ICON[t.group];
             return (
               <div
                 key={`${t.symbol}-${i}`}
-                className="inline-flex items-center gap-2 px-4 sm:px-5 text-xs font-mono shrink-0"
+                className="inline-flex items-center gap-2.5 px-4 sm:px-5 text-xs font-mono shrink-0"
               >
-                <span className="text-sm leading-none" aria-hidden>{icon}</span>
-                <span className="font-semibold tracking-wider text-amber-300/90">{t.label}</span>
-                <span className="text-foreground tabular-nums">{formatPrice(t.last, t.group, t.symbol, t.currency)}</span>
+                {/* Label — color-coded per group (amber commodity, orange crypto,
+                    sky forex, violet index), tracking wider untuk readability */}
+                <span className={cn('font-bold tracking-[0.05em]', GROUP_COLOR[t.group])}>
+                  {t.label}
+                </span>
+                <span className="text-foreground/95 tabular-nums">
+                  {formatPrice(t.last, t.group, t.symbol, t.currency)}
+                </span>
                 <span
                   className={cn(
                     'tabular-nums px-1.5 py-0.5 rounded text-[10px] font-bold',
                     isUp
-                      ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20'
-                      : 'bg-rose-500/15 text-rose-400 border border-rose-500/20',
+                      ? 'bg-emerald-500/15 text-emerald-400'
+                      : 'bg-rose-500/15 text-rose-400',
                   )}
                 >
                   {isUp ? '▲' : '▼'} {formatPct(t.change24hPct)}
                 </span>
-                <span className="text-foreground/20 mx-1" aria-hidden>•</span>
+                <span className="text-foreground/15" aria-hidden>│</span>
               </div>
             );
           })}

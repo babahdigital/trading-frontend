@@ -39,7 +39,11 @@ const registerSchema = z.object({
     'SIGNAL_BASIC',
     'SIGNAL_PRO',
     'SIGNAL_VIP',
+    // Crypto rc29 5-tier (2026-05-21): demo + starter + active + pro + hnwi.
+    // CRYPTO_BASIC retained sebagai legacy alias (grandfathered).
     'CRYPTO_BASIC',
+    'CRYPTO_STARTER',
+    'CRYPTO_ACTIVE',
     'CRYPTO_PRO',
     'CRYPTO_HNWI',
   ]),
@@ -189,12 +193,22 @@ export async function POST(request: NextRequest) {
       }).catch(() => {});
     }
 
-    // Kirim welcome email ke user (fire-and-forget) — locale-aware template
-    // berdasarkan NEXT_LOCALE cookie / accept-language header dari registrasi.
     const locale = detectRequestLocale(request);
-    const welcomeContent = renderWelcomeEmail(locale, { name, tier });
-    sendEmail(email, welcomeContent.subject, welcomeContent.html)
-      .catch((err) => log.warn(`Welcome email failed for ${email}: ${err}`));
+
+    // Welcome email TIDAK dikirim di sini.
+    // 2026-05-21 (per directive Pak Abdullah) — welcome email dipindah ke
+    // /api/auth/verify-email handler supaya hanya fire SETELAH user benar-
+    // benar verify email. Pre-verify, customer cuma terima 1 email = magic
+    // link verifikasi. Welcome email = onboarding cue → fire setelah trust
+    // established (email verified).
+    //
+    // Free/Demo tier: tidak ada verification step (skip), jadi welcome
+    // dikirim langsung di register flow untuk path itu.
+    if (tier === 'DEMO' || tier === 'FREE') {
+      const welcomeContent = renderWelcomeEmail(locale, { name, tier });
+      sendEmail(email, welcomeContent.subject, welcomeContent.html)
+        .catch((err) => log.warn(`Welcome email failed for ${email}: ${err}`));
+    }
 
     // Email verification (Phase A polish 2026-05-20) — best-effort.
     // Generate token, store hashed, send magic link via email.

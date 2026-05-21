@@ -212,12 +212,15 @@ enum SubscriptionTier {
   SIGNAL_PRO
   SIGNAL_VIP
   // Added 2026-05-20 — unified /register?service=X refactor.
-  // FREE = zero-cost beta tier (signal view + shadow AI brain).
+  // FREE = zero-cost beta tier (signal view + shadow risk engine).
   // CRYPTO_* = Robot Crypto Binance Futures tiers (flat monthly).
   FREE
   CRYPTO_BASIC
   CRYPTO_PRO
   CRYPTO_HNWI
+  // Added 2026-05-21 — rc29 5-tier crypto (starter $9 + active $19).
+  CRYPTO_STARTER
+  CRYPTO_ACTIVE
   // Legacy — retained for existing rows; new registrations should use canonical above
   SIGNAL_BASIC
   PAMM_BASIC

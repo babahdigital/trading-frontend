@@ -370,13 +370,22 @@ export async function proxy(request: NextRequest) {
         return NextResponse.redirect(new URL('/login', request.url));
       }
 
-      // For CLIENT role, verify license is still valid via licenseId in JWT
-      if (payload.role === 'CLIENT') {
+      // 2026-05-21 — license/subscription gate REMOVED dari /portal root +
+      // billing/account routes. Sebelumnya customer baru register (belum
+      // subscribe) di-loop redirect ke /login terus karena tidak punya
+      // licenseId/subscriptionId. Fix: portal accessible untuk authenticated
+      // CLIENT/ADMIN; specific feature routes (signals/crypto/positions)
+      // gate di page-level via useSubscription hook + render upgrade prompt
+      // kalau belum subscribe.
+      //
+      // /api/client/* TETAP require subscription (data access endpoint —
+      // tidak make sense kalau belum subscribe).
+      if (pathname.startsWith('/api/client') && payload.role === 'CLIENT') {
         if (!payload.licenseId && !payload.subscriptionId) {
-          if (pathname.startsWith('/api/')) {
-            return NextResponse.json({ code: 'no_active_subscription', error: 'No active license or subscription' }, { status: 403 });
-          }
-          return NextResponse.redirect(new URL('/login', request.url));
+          return NextResponse.json(
+            { code: 'no_active_subscription', error: 'No active license or subscription' },
+            { status: 403 },
+          );
         }
       }
     }

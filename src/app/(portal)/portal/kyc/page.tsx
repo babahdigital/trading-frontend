@@ -71,7 +71,7 @@ interface FormData {
   province: string;
   postalCode: string;
   country: string;
-  documentType: 'KTP' | 'PASSPORT' | 'SIM' | 'NPWP';
+  documentType: 'KTP' | 'PASSPORT' | 'SIM' | 'NPWP' | 'NATIONAL_ID' | 'DRIVER_LICENSE';
   documentNumber: string;
   investmentExperience: 'novice' | 'intermediate' | 'advanced' | 'professional';
   riskTolerance: 'conservative' | 'moderate' | 'aggressive';
@@ -168,6 +168,20 @@ const DOC_NUMBER_PATTERN: Record<FormData['documentType'], { pattern: RegExp; hi
     pattern: /^\d{15,16}$/,
     hintId: '15-16 digit NPWP (boleh tanpa tanda hubung)',
     hintEn: '15-16 digit NPWP (no dashes)',
+  },
+  // Foreign National ID — pattern relaxed karena format bervariasi per negara
+  // (US SSN 9-digit, India Aadhaar 12-digit, EU eID 8-12 alfanumerik,
+  // Japanese zairyu 12-char alfanumerik, dst). Tetap require min 5 char +
+  // safe alphanumerik + dash supaya tidak ada injection / whitespace abuse.
+  NATIONAL_ID: {
+    pattern: /^[A-Z0-9-]{5,30}$/,
+    hintId: '5-30 karakter (huruf besar, angka, atau tanda hubung)',
+    hintEn: '5-30 characters (uppercase letters, digits, or dashes)',
+  },
+  DRIVER_LICENSE: {
+    pattern: /^[A-Z0-9-]{5,25}$/,
+    hintId: 'Nomor SIM internasional — 5-25 karakter alfanumerik',
+    hintEn: 'International driver license — 5-25 alphanumeric characters',
   },
 };
 
@@ -593,9 +607,11 @@ export default function KycPage() {
                     onChange={(v) => setForm({ ...form, documentType: v as FormData['documentType'], documentNumber: '' })}
                     options={[
                       { value: 'KTP', label: t('doc_ktp') },
-                      { value: 'PASSPORT', label: t('doc_passport') },
                       { value: 'SIM', label: t('doc_sim') },
                       { value: 'NPWP', label: t('doc_npwp') },
+                      { value: 'PASSPORT', label: t('doc_passport') },
+                      { value: 'NATIONAL_ID', label: isEn ? 'National ID (foreign)' : 'Kartu Identitas Nasional (asing)' },
+                      { value: 'DRIVER_LICENSE', label: isEn ? 'Driver License (international)' : 'SIM Internasional' },
                     ]}
                   />
                   <Field

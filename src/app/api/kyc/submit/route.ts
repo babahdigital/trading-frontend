@@ -19,7 +19,7 @@ const SubmitBody = z.object({
   postalCode: z.string().min(4).max(12),
   country: z.string().min(2).max(3).default('ID'),
 
-  documentType: z.enum(['KTP', 'PASSPORT', 'SIM', 'NPWP']),
+  documentType: z.enum(['KTP', 'PASSPORT', 'SIM', 'NPWP', 'NATIONAL_ID', 'DRIVER_LICENSE']),
   documentNumber: z.string().min(5).max(40),
 
   investmentExperience: z.enum(['novice', 'intermediate', 'advanced', 'professional']),
@@ -75,6 +75,8 @@ export async function POST(request: NextRequest) {
       { status: 400 },
     );
   }
+  // 2-sided docs that have info on the back (NIK, address, etc).
+  // Passport, NPWP, foreign National ID/DL = single-side common pattern.
   const needsBack = body.documentType === 'KTP' || body.documentType === 'SIM';
   if (needsBack && !existing?.documentBackUrl) {
     return NextResponse.json(

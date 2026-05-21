@@ -1075,6 +1075,8 @@ enum KycDocumentType {
   PASSPORT
   SIM
   NPWP
+  NATIONAL_ID      // Generic foreign national ID card (US REAL ID, EU eID, India Aadhaar, Japanese 在留 card, etc)
+  DRIVER_LICENSE   // International driver license (non-Indonesia)
 }
 
 model UserKyc {

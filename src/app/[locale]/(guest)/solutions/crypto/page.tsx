@@ -55,6 +55,7 @@ interface CryptoTierMeta {
   slot: number;
   leverage: string;
   riskPerTrade: string;
+  notionalCap: string;
   cta: { id: string; en: string };
   ctaHref: string;
   desc: { id: string; en: string };
@@ -74,6 +75,7 @@ const CRYPTO_TIERS_META: CryptoTierMeta[] = [
     slot: 1,
     leverage: '2x',
     riskPerTrade: '0.5%',
+    notionalCap: '30%',
     cta: { id: 'Mulai Trial 30 Hari', en: 'Start 30-day Trial' },
     ctaHref: '/register?service=crypto&tier=demo',
     desc: {
@@ -107,6 +109,7 @@ const CRYPTO_TIERS_META: CryptoTierMeta[] = [
     slot: 2,
     leverage: '3x',
     riskPerTrade: '1.0%',
+    notionalCap: '40%',
     cta: { id: 'Mulai Starter', en: 'Start Starter' },
     ctaHref: '/register?service=crypto&tier=starter',
     desc: {
@@ -140,6 +143,7 @@ const CRYPTO_TIERS_META: CryptoTierMeta[] = [
     slot: 3,
     leverage: '7x',
     riskPerTrade: '1.25%',
+    notionalCap: '55%',
     cta: { id: 'Mulai Active', en: 'Start Active' },
     ctaHref: '/register?service=crypto&tier=active',
     desc: {
@@ -174,6 +178,7 @@ const CRYPTO_TIERS_META: CryptoTierMeta[] = [
     slot: 5,
     leverage: '12x',
     riskPerTrade: '1.5%',
+    notionalCap: '60%',
     cta: { id: 'Mulai Pro', en: 'Start Pro' },
     ctaHref: '/register?service=crypto&tier=pro',
     desc: {
@@ -207,6 +212,7 @@ const CRYPTO_TIERS_META: CryptoTierMeta[] = [
     slot: 7,
     leverage: '20x',
     riskPerTrade: '2.0%',
+    notionalCap: '75%',
     cta: { id: 'Konsultasi HNWI', en: 'HNWI Consultation' },
     ctaHref: '/contact?subject=crypto-hnwi',
     desc: {
@@ -234,14 +240,119 @@ const CRYPTO_TIERS_META: CryptoTierMeta[] = [
   },
 ];
 
-const STRATEGY_META = [
-  { nameKey: 'strat1_name', descKey: 'strat1_desc', timeframe: 'M5/M15', market: 'Futures' },
-  { nameKey: 'strat2_name', descKey: 'strat2_desc', timeframe: 'H1/H4', market: 'Spot + Futures' },
-  { nameKey: 'strat3_name', descKey: 'strat3_desc', timeframe: 'H4', market: 'Spot + Futures' },
-  { nameKey: 'strat4_name', descKey: 'strat4_desc', timeframe: 'M15', market: 'Futures' },
-  { nameKey: 'strat5_name', descKey: 'strat5_desc', timeframe: 'H4', market: 'Spot' },
-  { nameKey: 'strat6_name', descKey: 'strat6_desc', timeframe: 'H4', market: 'Spot' },
-] as const;
+// Crypto strategies LIVE di backend rc29 — audit 2026-05-21 confirmed 3 active.
+// Bilingual inline supaya cepat maintain seiring backend tier/strategy update.
+// File reference: trading-crypto/src/strategy/{spot_dca_trend,spot_swing_trend,smart_money_confluence}.py
+interface CryptoStrategySpec {
+  slug: 'spot_dca' | 'spot_swing' | 'smc_confluence';
+  name: { id: string; en: string };
+  shortName: string; // ASCII safe
+  timeframe: string;
+  market: string;
+  tierAccess: { id: string; en: string };
+  tagline: { id: string; en: string };
+  description: { id: string; en: string };
+  highlights: { id: string[]; en: string[] };
+}
+
+const CRYPTO_STRATEGIES: CryptoStrategySpec[] = [
+  {
+    slug: 'spot_dca',
+    name: { id: 'Spot DCA Trend', en: 'Spot DCA Trend' },
+    shortName: 'DCA Trend',
+    timeframe: '1H · 4H · 1D · 1W',
+    market: 'Spot',
+    tierAccess: { id: 'Semua tier', en: 'All tiers' },
+    tagline: {
+      id: 'Dollar-Cost Averaging dengan trend filter',
+      en: 'Dollar-Cost Averaging with trend filter',
+    },
+    description: {
+      id: 'Strategi spot-only paling konservatif. Akumulasi posisi long di bull regime saat pullback ke 20-EMA, dengan SMA-200 sebagai konfirmasi tren utama. Long-only, no shorting, no funding bleed.',
+      en: 'Most conservative spot-only strategy. Accumulates long positions in bull regime on pullback to 20-EMA, with SMA-200 confirming primary trend. Long-only, no shorting, no funding bleed.',
+    },
+    highlights: {
+      id: [
+        'Long-only · bull regime confirmed',
+        'Pullback entry ≤1.2× ATR dari 20-EMA',
+        'RSI gate: oversold = discount opportunity (post Sprint A4)',
+        'Risk-reward floor 1.5× enforced',
+        'Multi-TF alignment (Sprint L3): reject kalau HTF bear',
+      ],
+      en: [
+        'Long-only · bull regime confirmed',
+        'Pullback entry ≤1.2× ATR from 20-EMA',
+        'RSI gate: oversold = discount opportunity (post Sprint A4)',
+        'Risk-reward floor 1.5× enforced',
+        'Multi-TF alignment (Sprint L3): reject if HTF bear',
+      ],
+    },
+  },
+  {
+    slug: 'spot_swing',
+    name: { id: 'Spot Swing Trend', en: 'Spot Swing Trend' },
+    shortName: 'Swing Trend',
+    timeframe: '4H · 1D · 1W',
+    market: 'Spot',
+    tierAccess: { id: 'Active tier ke atas', en: 'Active tier and above' },
+    tagline: {
+      id: 'Swing trading multi-day dengan MACD + Awesome Oscillator',
+      en: 'Multi-day swing trading with MACD + Awesome Oscillator',
+    },
+    description: {
+      id: 'Horizon hold multi-day hingga multi-week. Bull regime longs only, SMA(20/50) value area entry dengan konfirmasi MACD cross / AO saucer. Risk-reward floor 1.8× — quality over quantity.',
+      en: 'Multi-day to multi-week hold horizon. Bull regime longs only, SMA(20/50) value area entry with MACD cross / AO saucer confirmation. RR floor 1.8× — quality over quantity.',
+    },
+    highlights: {
+      id: [
+        'Hold 4H/1D/1W timeframe',
+        'MACD cross + AO saucer confluence',
+        'RSI regime alignment (Brown rules)',
+        'Risk-reward floor 1.8× enforced',
+        'Horizon scaled 2× (zero funding bleed spot)',
+      ],
+      en: [
+        'Hold 4H/1D/1W timeframes',
+        'MACD cross + AO saucer confluence',
+        'RSI regime alignment (Brown rules)',
+        'Risk-reward floor 1.8× enforced',
+        'Horizon scaled 2× (zero funding bleed spot)',
+      ],
+    },
+  },
+  {
+    slug: 'smc_confluence',
+    name: { id: 'Smart Money Confluence', en: 'Smart Money Confluence' },
+    shortName: 'Smart Money',
+    timeframe: '15M · 30M · 1H · 4H · 1D',
+    market: 'Spot + Futures',
+    tierAccess: { id: 'Pro tier ke atas', en: 'Pro tier and above' },
+    tagline: {
+      id: 'Flagship institutional — 8-component scoring',
+      en: 'Flagship institutional — 8-component scoring',
+    },
+    description: {
+      id: 'Strategi flagship bi-directional (long bull, short bear). Confluence scoring 8 komponen: Regime Alignment, SMC Structure (OB+FVG), Liquidity Sweep, Premium/Discount Zone, CVD Divergence, VWAP, Funding Bias, OI Confluence. Confidence floor 0.50, RR floor 1.8×.',
+      en: 'Flagship bi-directional strategy (bull longs, bear shorts). 8-component confluence scoring: Regime Alignment, SMC Structure (OB+FVG), Liquidity Sweep, Premium/Discount Zone, CVD Divergence, VWAP, Funding Bias, OI Confluence. Confidence floor 0.50, RR floor 1.8×.',
+    },
+    highlights: {
+      id: [
+        'Bi-directional · spot + futures',
+        '8 komponen confluence scoring (regime, OB/FVG, liquidity, P/D, CVD, VWAP, funding, OI)',
+        'Hard min stop 0.8% spot / 1.5% futures',
+        'Confidence floor 0.50 (sesi rc29)',
+        'Range regime skip — anti-whipsaw guard',
+      ],
+      en: [
+        'Bi-directional · spot + futures',
+        '8-component confluence scoring (regime, OB/FVG, liquidity, P/D, CVD, VWAP, funding, OI)',
+        'Hard min stop 0.8% spot / 1.5% futures',
+        'Confidence floor 0.50 (rc29)',
+        'Range regime skip — anti-whipsaw guard',
+      ],
+    },
+  },
+];
 
 const STEP_META = [
   { step: '01', titleKey: 'step1_title', descKey: 'step1_desc' },
@@ -278,18 +389,20 @@ export default async function CryptoBotSolutionPage({ params }: { params: Promis
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(faq) }} />
       <EnterpriseNav />
       <main id="main-content">
-        {/* Hero */}
+        {/* Hero — pakai layout-container default 1280px + `.hero-section-header`
+            global utility untuk konsistensi cross-page. `<br/>` hardcoded
+            di title dihapus (fragile di responsive); biarkan natural reflow. */}
         <section className="section-padding border-b border-border/60">
           <div className="layout-container">
-            <div className="max-w-3xl">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-xs font-mono uppercase tracking-wider text-amber-300 mb-6">
+            <div className="hero-section-header">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-xs font-mono uppercase tracking-wider text-amber-700 dark:text-amber-300 mb-6">
                 <Bitcoin className="w-3.5 h-3.5" />
                 {t('hero_pill')}
               </div>
               <h1 className="t-display-page mb-5">
-                {t('hero_title_l1')}<br />{t('hero_title_l2')}
+                {t('hero_title_l1')} {t('hero_title_l2')}
               </h1>
-              <p className="t-lead text-foreground/70 mb-8 max-w-xl sm:max-w-2xl">
+              <p className="t-lead text-foreground/70 mb-8">
                 {t('hero_subtitle')}
               </p>
               <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
@@ -303,7 +416,7 @@ export default async function CryptoBotSolutionPage({ params }: { params: Promis
                   {t('hero_cta_consult')}
                 </Link>
               </div>
-              <p className="text-xs text-foreground/50 mt-6 max-w-xl sm:max-w-2xl">
+              <p className="text-xs text-foreground/50 mt-6">
                 {t('hero_beta_note')}
               </p>
               <div className="mt-8 sm:mt-10 grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 text-sm">
@@ -340,7 +453,7 @@ export default async function CryptoBotSolutionPage({ params }: { params: Promis
           </div>
         </section>
 
-        {/* Strategies */}
+        {/* Strategies — 3 LIVE rc29 (Spot DCA · Spot Swing · Smart Money Confluence) */}
         <section className="section-padding border-b border-border/60">
           <div className="layout-container">
             <p className="t-eyebrow mb-3">{t('strat_eyebrow')}</p>
@@ -348,25 +461,42 @@ export default async function CryptoBotSolutionPage({ params }: { params: Promis
             <p className="t-body text-foreground/60 max-w-xl sm:max-w-2xl mb-8 sm:mb-12">
               {t('strat_subtitle')}
             </p>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {STRATEGY_META.map((s) => (
-                <div key={s.nameKey} className="card-enterprise group">
+            <div className="grid md:grid-cols-3 gap-5">
+              {CRYPTO_STRATEGIES.map((s) => (
+                <div key={s.slug} className="card-enterprise group">
                   <div className="flex items-start justify-between mb-3 gap-2">
-                    <h3 className="text-base font-semibold">{t(s.nameKey)}</h3>
-                    <TrendingUp className="w-4 h-4 text-amber-400 shrink-0" />
+                    <h3 className="text-base font-semibold leading-snug">{s.name[localeKey]}</h3>
+                    <TrendingUp className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
                   </div>
-                  <div className="flex items-center gap-2 mb-3">
+                  <p className="text-xs text-foreground/55 mb-3 leading-snug italic">{s.tagline[localeKey]}</p>
+                  <div className="flex flex-wrap items-center gap-1.5 mb-4">
                     <span className="text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded border border-border bg-muted/40 text-muted-foreground">
                       {s.timeframe}
                     </span>
                     <span className="text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded border border-border bg-muted/40 text-muted-foreground">
                       {s.market}
                     </span>
+                    <span className="text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded border border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300">
+                      {s.tierAccess[localeKey]}
+                    </span>
                   </div>
-                  <p className="t-body-sm text-foreground/65 leading-relaxed">{t(s.descKey)}</p>
+                  <p className="t-body-sm text-foreground/65 leading-relaxed mb-4">{s.description[localeKey]}</p>
+                  <ul className="space-y-1.5 pt-3 border-t border-border/40">
+                    {s.highlights[localeKey].map((h, i) => (
+                      <li key={i} className="flex items-start gap-1.5 text-xs text-foreground/70 leading-snug">
+                        <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                        <span>{h}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               ))}
             </div>
+            <p className="text-xs text-foreground/50 mt-6 max-w-2xl">
+              {localeKey === 'id'
+                ? 'Akses strategi gated per tier: Demo + Starter pakai Spot DCA · Active dapat tambah Spot Swing · Pro/HNWI dapat penuh termasuk Smart Money Confluence (futures support).'
+                : 'Strategy access gated per tier: Demo + Starter use Spot DCA · Active adds Spot Swing · Pro/HNWI get all including Smart Money Confluence (futures support).'}
+            </p>
           </div>
         </section>
 
@@ -378,10 +508,43 @@ export default async function CryptoBotSolutionPage({ params }: { params: Promis
             <p className="t-body text-foreground/60 max-w-xl sm:max-w-2xl mb-8 sm:mb-12">
               {t('pricing_subtitle')}
             </p>
-            {/* 5-tier rc29 grid — responsive 1/2/3/5 cols. Demo highlighted
-                sebagai entry point + Pro sebagai popular. HNWI dedicated CTA. */}
-            <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-              {CRYPTO_TIERS_META.map((tier) => (
+            {/* Demo Banner — entry point sebelum 4 paid tier grid */}
+            {(() => {
+              const demoTier = CRYPTO_TIERS_META.find((tt) => tt.id === 'demo')!;
+              const isEn = localeKey === 'en';
+              const bannerTitle = isEn ? 'Try Robot Crypto FREE for 30 days' : 'Coba Robot Crypto GRATIS 30 hari';
+              const bannerSubtitle = isEn
+                ? 'Demo wallet $5,000 USDT · 1 concurrent slot · 2x leverage · Spot DCA Trend · No credit card.'
+                : 'Demo wallet $5.000 USDT · 1 posisi simultan · leverage 2x · Spot DCA Trend · Tanpa kartu kredit.';
+              return (
+                <div id="demo" className="mb-8 rounded-xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent p-5 sm:p-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-amber-500 text-amber-50 text-[10px] font-bold uppercase tracking-wider">
+                          {demoTier.name[localeKey]}
+                        </span>
+                        <span className="text-[10px] text-amber-700 dark:text-amber-400 font-mono uppercase tracking-wider">
+                          {isEn ? 'Zero Cost · No Commitment' : 'Tanpa Biaya · Tanpa Komitmen'}
+                        </span>
+                      </div>
+                      <h3 className="text-lg sm:text-xl font-semibold mb-1">{bannerTitle}</h3>
+                      <p className="text-sm text-foreground/70 leading-relaxed">{bannerSubtitle}</p>
+                    </div>
+                    <Link
+                      href={demoTier.ctaHref}
+                      className="btn-primary inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-md text-sm font-medium shrink-0"
+                    >
+                      {demoTier.cta[localeKey]} <ArrowRight className="w-4 h-4" />
+                    </Link>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* 4 paid tier grid — starter / active / pro / hnwi */}
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+              {CRYPTO_TIERS_META.filter((t) => t.id !== 'demo').map((tier) => (
                 <div
                   key={tier.id}
                   id={tier.id}
@@ -398,21 +561,17 @@ export default async function CryptoBotSolutionPage({ params }: { params: Promis
                   </p>
                   <p className="text-sm text-foreground/60 mb-4 leading-relaxed">{tier.desc[localeKey]}</p>
                   <div className="flex items-baseline gap-1 mb-1 flex-wrap">
-                    <span className="text-2xl sm:text-3xl font-bold break-words">{formatPrice(tier.priceKey, localeKey, { compact: false })}</span>
-                    <span className="text-xs text-foreground/50">
-                      {tier.priceKey === 'crypto_demo'
-                        ? (localeKey === 'id' ? '30 hari' : '30 days')
-                        : (localeKey === 'id' ? '/bulan' : '/mo')}
+                    <span className="text-3xl sm:text-4xl font-bold break-words">{formatPrice(tier.priceKey, localeKey, { compact: false })}</span>
+                    <span className="text-sm text-foreground/50">
+                      {localeKey === 'id' ? '/bulan' : '/mo'}
                     </span>
                   </div>
                   <p className="text-[10px] text-amber-600 dark:text-amber-400 font-mono uppercase tracking-wider mb-5">
-                    {localeKey === 'id'
-                      ? `Risk ${tier.riskPerTrade}/trade`
-                      : `Risk ${tier.riskPerTrade}/trade`}
+                    Risk {tier.riskPerTrade}/trade · {localeKey === 'id' ? 'cap notional' : 'notional cap'} {tier.notionalCap}
                   </p>
                   <ul className="space-y-2 mb-6 flex-1">
                     {tier.features[localeKey].map((f, i) => (
-                      <li key={i} className="flex items-start gap-2 text-xs sm:text-sm text-foreground/80 leading-relaxed">
+                      <li key={i} className="flex items-start gap-2 text-sm text-foreground/80 leading-relaxed">
                         <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
                         <span>{f}</span>
                       </li>
@@ -420,13 +579,13 @@ export default async function CryptoBotSolutionPage({ params }: { params: Promis
                   </ul>
                   <Link
                     href={tier.ctaHref}
-                    className={`inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md text-xs sm:text-sm font-medium transition-all ${
+                    className={`inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${
                       tier.popular
                         ? 'bg-primary text-primary-foreground hover:bg-primary/90'
                         : 'border border-border hover:bg-accent hover:border-amber-500/40'
                     }`}
                   >
-                    {tier.cta[localeKey]} <ArrowRight className="w-3.5 h-3.5" />
+                    {tier.cta[localeKey]} <ArrowRight className="w-4 h-4" />
                   </Link>
                 </div>
               ))}

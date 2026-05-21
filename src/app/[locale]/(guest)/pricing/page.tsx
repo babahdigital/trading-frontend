@@ -11,6 +11,7 @@ import { TrustStrip } from '@/components/shared/trust-strip';
 import { StickyCtaBar } from '@/components/shared/sticky-cta-bar';
 import { FaqAccordion, type FaqItem } from '@/components/shared/faq-accordion';
 import { StatsBar } from '@/components/shared/stats-bar';
+import { CryptoTierGate } from '@/components/register/crypto-tier-gate';
 import { prisma } from '@/lib/db/prisma';
 import { formatPrice, type Locale, type PriceKey } from '@/lib/pricing-format';
 import {
@@ -254,15 +255,15 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
     cta: m.cta,
     popular: m.popular,
   }));
-  // Crypto tiers — rc29 5-tier dengan modal recommendation + slot + leverage
-  // metadata. Features bilingual inline (bukan i18n key) supaya cepat
-  // maintain seiring backend tier policy update.
-  const cryptoTiers = CRYPTO_TIERS.map((t) => ({
+  // Crypto tiers — rc29 5-tier total. UI split:
+  //   - Demo (free) → banner separate di atas product section (tidak masuk grid utama)
+  //   - 4 paid tier (starter/active/pro/hnwi) → grid 4-col utama supaya
+  //     visual breathing + setiap card cukup lebar untuk feature list.
+  const cryptoDemoTier = CRYPTO_TIERS.find((t) => t.slug === 'demo')!;
+  const cryptoPaidTiers = CRYPTO_TIERS.filter((t) => t.slug !== 'demo').map((t) => ({
     name: t.name[localeKey],
     price: formatPrice(t.priceKey, localeKey, { compact: false }),
-    period: t.priceKey === 'crypto_demo'
-      ? (localeKey === 'id' ? '30 hari trial' : '30-day trial')
-      : (localeKey === 'id' ? '/bulan' : '/mo'),
+    period: localeKey === 'id' ? '/bulan' : '/mo',
     features: t.features[localeKey],
     cta: t.cta,
     popular: t.popular,
@@ -339,17 +340,68 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
         {/* Capability ladder — sourced from /v1/capabilities backend */}
         <CapabilityLadder />
 
-        {/* Robot Crypto — Binance auto-trading (5-tier rc29) */}
-        <ProductSection
-          eyebrow={tp('crypto_eyebrow')}
-          icon={Bitcoin}
-          title={tp('crypto_title')}
-          subtitle={tp('crypto_subtitle')}
-          tiers={cryptoTiers}
-          popularLabel={tp('popular_badge')}
-          selectLabel={(name) => tp('select_tier', { name })}
-          gridCols={5}
-        />
+        {/* Robot Crypto — Binance auto-trading (rc29).
+            UI: 4 paid tier grid utama + Demo banner separate di atas. */}
+        <section className="section-padding border-b border-border/60">
+          <div className="layout-container">
+            <div className="flex items-center gap-2.5 mb-3">
+              <Bitcoin className="h-4 w-4 text-amber-400" />
+              <p className="t-eyebrow !mb-0">{tp('crypto_eyebrow')}</p>
+            </div>
+            <h2 className="t-display-section mb-3 max-w-xl sm:max-w-2xl">{tp('crypto_title')}</h2>
+            <p className="t-body text-foreground/60 max-w-xl sm:max-w-2xl mb-8">{tp('crypto_subtitle')}</p>
+
+            {/* Demo Banner — entry point sebelum lihat paid tiers */}
+            <CryptoDemoBanner
+              tier={cryptoDemoTier}
+              locale={localeKey}
+            />
+
+            {/* Tier Recommendation Widget — kalkulator interaktif rc29 logic.
+                User input deposit USDT → tampil tier yang paling efisien
+                (fee % profit minimal). Embed di /pricing supaya decision-
+                making informed sebelum lihat 4 card paid tier. */}
+            <div className="mb-10">
+              <CryptoTierGate locale={localeKey} />
+            </div>
+
+            {/* 4 Paid tier card grid */}
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+              {cryptoPaidTiers.map((tier) => (
+                <div
+                  key={tier.name}
+                  className={`card-enterprise flex flex-col relative ${tier.popular ? 'border-amber-500/50 ring-2 ring-amber-500/20' : ''}`}
+                >
+                  {tier.popular && (
+                    <span className="absolute -top-3 left-6 inline-flex items-center px-2 py-0.5 rounded-full bg-amber-500 text-amber-50 text-[10px] font-bold uppercase tracking-wider">
+                      {tp('popular_badge')}
+                    </span>
+                  )}
+                  <h3 className="text-xl font-semibold mb-1">{tier.name}</h3>
+                  <p className="text-[11px] text-muted-foreground font-mono uppercase tracking-wider mb-2">{tier.sub}</p>
+                  <div className="flex items-baseline flex-wrap gap-x-1.5 gap-y-0.5 mb-1 min-w-0">
+                    <span className="text-3xl sm:text-4xl font-bold break-words">{tier.price}</span>
+                    <span className="text-sm text-foreground/50">{tier.period}</span>
+                  </div>
+                  <div className="h-px bg-border/40 my-5" />
+                  <ul className="space-y-2.5 flex-1 mb-6">
+                    {tier.features.map((f, i) => <FeatureItem key={i}>{f}</FeatureItem>)}
+                  </ul>
+                  <Link
+                    href={tier.cta}
+                    className={`inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${
+                      tier.popular
+                        ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                        : 'border border-border hover:bg-accent hover:border-amber-500/40'
+                    }`}
+                  >
+                    {tp('select_tier', { name: tier.name })} <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
 
         {/* VPS License */}
         <ProductSection
@@ -554,5 +606,51 @@ function FeatureItem({ children }: { children: React.ReactNode }) {
       <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
       <span>{children}</span>
     </li>
+  );
+}
+
+/**
+ * Demo tier banner — strip horizontal "Try Demo Free 30 days" yang surface
+ * crypto demo tier sebagai entry point sebelum 4 paid tier grid.
+ * Banner mengurangi visual noise di main grid (4 card vs 5 card) sambil
+ * tetap make demo prominent untuk acquisition funnel.
+ */
+function CryptoDemoBanner({
+  tier,
+  locale,
+}: {
+  tier: CryptoTierSpec;
+  locale: Locale;
+}) {
+  const isEn = locale === 'en';
+  const title = isEn ? 'Try Robot Crypto FREE for 30 days' : 'Coba Robot Crypto GRATIS 30 hari';
+  const subtitle = isEn
+    ? 'Demo wallet $5,000 USDT · 1 concurrent slot · 2x leverage · Spot DCA Trend · No credit card.'
+    : 'Demo wallet $5.000 USDT · 1 posisi simultan · leverage 2x · Spot DCA Trend · Tanpa kartu kredit.';
+  const ctaLabel = isEn ? 'Start Free Trial' : 'Mulai Trial Gratis';
+
+  return (
+    <div className="mb-8 rounded-xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent p-5 sm:p-6">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-amber-500 text-amber-50 text-[10px] font-bold uppercase tracking-wider">
+              {tier.name[locale]}
+            </span>
+            <span className="text-[10px] text-amber-700 dark:text-amber-400 font-mono uppercase tracking-wider">
+              {locale === 'id' ? 'Tanpa Biaya · Tanpa Komitmen' : 'Zero Cost · No Commitment'}
+            </span>
+          </div>
+          <h3 className="text-lg sm:text-xl font-semibold mb-1">{title}</h3>
+          <p className="text-sm text-foreground/70 leading-relaxed">{subtitle}</p>
+        </div>
+        <Link
+          href={tier.cta}
+          className="btn-primary inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-md text-sm font-medium shrink-0"
+        >
+          {ctaLabel} <ArrowRight className="w-4 h-4" />
+        </Link>
+      </div>
+    </div>
   );
 }

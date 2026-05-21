@@ -57,13 +57,15 @@ export default async function AboutPage() {
             so the editorial prose below feels like a magazine feature */}
         <section className="section-padding border-b border-border/60 page-stamp-rule">
           <div className="layout-container">
-            <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
-            <h1 className="t-display-page mb-6">{t('hero_title')}</h1>
-            <p className="t-lead text-muted-foreground max-w-2xl">
-              {t('hero_subtitle')}
-            </p>
-            <div className="mt-10">
-              <TrustStrip />
+            <div className="hero-section-header">
+              <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
+              <h1 className="t-display-page mb-6">{t('hero_title')}</h1>
+              <p className="t-lead text-muted-foreground">
+                {t('hero_subtitle')}
+              </p>
+              <div className="mt-10">
+                <TrustStrip />
+              </div>
             </div>
           </div>
         </section>

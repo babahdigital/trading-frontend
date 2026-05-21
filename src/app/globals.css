@@ -549,6 +549,29 @@ body.menu-open {
   .admin-page-stack  { display: flex; flex-direction: column; gap: 1.5rem; }
   .portal-page-stack { display: flex; flex-direction: column; gap: 1.5rem; }
 
+  /* ─── Hero section header — content width canonical untuk semua hero ───
+     Sebelumnya hero section pakai inline `max-w-3xl` (768px) atau `max-w-xl`
+     yang tampil terlalu tight, terutama saat h1 t-display-page clamp ke
+     desktop size (60px+). Akibat: line break ganjil dan content terlihat
+     terjepit di canvas yang lebih lebar.
+     Sekarang centralized: hero header max-width 960px (sweet spot reading
+     + display hierarchy). Edit di 1 tempat = semua hero cross-page sync. */
+  .hero-section-header {
+    width: 100%;
+    max-width: var(--layout-container-narrow-max, 960px);
+  }
+  .hero-section-header > h1,
+  .hero-section-header > p,
+  .hero-section-header > .hero-header-prose {
+    max-width: 100%;
+  }
+  /* Optional centering variant — kalau hero butuh centered (landing, demo).
+     Default `.hero-section-header` left-aligned (institutional product page). */
+  .hero-section-header--center {
+    margin-inline: auto;
+    text-align: center;
+  }
+
   /* ─── Status dot — live indicator dengan pulse animation ───
      Pakai di admin (auto-refresh badge), portal (polling indicator),
      status page. Tone variants: success/warning/danger/info. */

@@ -45,22 +45,24 @@ export default async function ContactPage() {
             feels welcoming/human after the data-heavy pricing/performance pages */}
         <section className="section-padding border-b border-border/60 page-stamp-editorial">
           <div className="layout-container">
-            <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
-            <h1 className="t-display-page mb-6">
-              {t('hero_title_l1')}<br className="hidden sm:block" /> {t('hero_title_l2')}
-            </h1>
-            <p className="t-lead text-muted-foreground max-w-2xl">
-              {t('hero_subtitle')}
-            </p>
-            <div className="mt-8 inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-mono uppercase tracking-wider bg-amber-500/10 border border-amber-500/30 text-amber-300">
-              <span className="relative flex h-1.5 w-1.5">
-                <span className="absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-60 animate-ping" />
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-400" />
-              </span>
-              {t('hero_pill')}
-            </div>
-            <div className="mt-10">
-              <TrustStrip />
+            <div className="hero-section-header">
+              <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
+              <h1 className="t-display-page mb-6">
+                {t('hero_title_l1')} {t('hero_title_l2')}
+              </h1>
+              <p className="t-lead text-muted-foreground">
+                {t('hero_subtitle')}
+              </p>
+              <div className="mt-8 inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-mono uppercase tracking-wider bg-amber-500/10 border border-amber-500/30 text-amber-300">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-60 animate-ping" />
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-400" />
+                </span>
+                {t('hero_pill')}
+              </div>
+              <div className="mt-10">
+                <TrustStrip />
+              </div>
             </div>
           </div>
         </section>

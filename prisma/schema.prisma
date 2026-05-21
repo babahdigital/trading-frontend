@@ -345,19 +345,32 @@ model LandingSection {
 
 model PricingTier {
   id           String    @id @default(cuid())
-  slug         String    @unique // signal-basic, signal-vip, pamm-basic, pamm-pro, vps-license
+  slug         String    @unique // crypto-starter, crypto-pro, signal-vip, etc
   name         String
   name_en      String?
+  /// Display price string ("Rp 149.000", "$9/mo") — render-ready
   price        String
+  /// Numeric price untuk checkout calculation (rc29 centralization 2026-05-21)
+  priceIdr     Int?
+  priceUsd     Int?
+  /// Product category — drive UI grouping + checkout tier validation
+  category     PricingCategory @default(CRYPTO)
+  /// Product slug (signal, crypto, vps) — secondary group filter
+  productSlug  String?         @default("crypto")
   subtitle     String?
   subtitle_en  String?
   features     Json      @default("[]") // string[]
   features_en  Json?
   excluded     Json      @default("[]") // string[]
+  /// Per-tier metadata: slot, leverage, riskPerTrade, notionalCap, modalMin, etc.
+  /// Free-form JSON supaya tier-specific props (crypto: slot/lev/risk; signal:
+  /// strategy_count; vps: setup_includes) bisa ditambah tanpa migration.
+  metadata     Json      @default("{}")
   note         String?
   ctaLabel     String    @default("Daftar")
   ctaLabel_en  String?
   ctaLink      String    @default("/register")
+  popular      Boolean   @default(false)
   sortOrder    Int       @default(0)
   isVisible    Boolean   @default(true)
   // Zero-touch i18n staleness tracking
@@ -366,7 +379,16 @@ model PricingTier {
   createdAt    DateTime  @default(now())
 
   @@index([sortOrder])
+  @@index([category, isVisible])
   @@index([en_synced_at])
+}
+
+enum PricingCategory {
+  SIGNAL
+  CRYPTO
+  VPS
+  DEMO
+  INSTITUTIONAL
 }
 
 model Banner {
@@ -416,6 +438,139 @@ enum PopupTrigger {
   EXIT_INTENT
   SCROLL
   PAGE_LOAD
+}
+
+// ==========================================================================
+// AI Promo Strategist (2026-05-21) — autonomous promo decision engine
+// ==========================================================================
+//
+// Flow: cron daily → RevenueSnapshot (MRR + active sub + delta) → check
+// CalendarEvent (upcoming 14 days) → LLM strategist decide (greeting-only /
+// greeting+discount / flash-sale / no-action) → auto-create Promotion DRAFT
+// → admin review atau auto-publish (confidence threshold) → public popup +
+// checkout discount engine.
+
+model Promotion {
+  id              String          @id @default(cuid())
+  slug            String          @unique // christmas-2026, lebaran-2026, flash-q4-2026
+  /// Display name (bilingual)
+  name            String
+  name_en         String?
+  description     String          @db.Text
+  description_en  String?         @db.Text
+
+  // ─── Discount logic ─────────────────────────────────────────────────
+  /// PERCENT (0-100) atau FIXED_IDR (Rupiah nominal)
+  discountType    DiscountType    @default(PERCENT)
+  /// Percent: 0-100 (e.g. 20 = 20%) atau IDR nominal (e.g. 50000 = Rp 50K off)
+  discountValue   Decimal         @default(0) @db.Decimal(10, 2)
+  /// Applicable tier slugs (PricingTier.slug) — array. Empty = all tier.
+  applicableTiers Json            @default("[]")
+  /// Max usage count (0 = unlimited). Decremented per checkout apply.
+  maxUsage        Int             @default(0)
+  /// Current usage counter
+  currentUsage    Int             @default(0)
+
+  // ─── Display (popup + landing banner) ───────────────────────────────
+  popupTitle      String?
+  popupTitle_en   String?
+  popupBody       String?         @db.Text
+  popupBody_en    String?         @db.Text
+  /// AI-generated atau manual upload (URL relatif /uploads/promotions/X.png)
+  heroImageUrl    String?
+  ctaLabel        String?
+  ctaLabel_en     String?
+  /// Default /pricing atau /checkout?tier=X&promo=slug
+  ctaLink         String?         @default("/pricing")
+  /// Popup trigger behavior
+  popupTrigger    PopupTrigger    @default(DELAY)
+  popupDelayMs    Int             @default(3000)
+
+  // ─── Schedule ───────────────────────────────────────────────────────
+  startsAt        DateTime
+  endsAt          DateTime
+  status          PromoStatus     @default(DRAFT)
+
+  // ─── AI strategist metadata ─────────────────────────────────────────
+  aiGenerated     Boolean         @default(false)
+  /// Strategist context yang generate ini (revenue score, event linked, dll)
+  aiContext       Json?
+  /// AI image gen prompt yang dipakai (kalau heroImageUrl AI-generated)
+  aiImagePrompt   String?         @db.Text
+  /// Confidence score 0-100 dari strategist — auto-publish kalau >= 80
+  confidence      Int             @default(0)
+
+  // ─── Event link (optional) ──────────────────────────────────────────
+  calendarEventId String?
+  calendarEvent   CalendarEvent?  @relation(fields: [calendarEventId], references: [id], onDelete: SetNull)
+
+  createdById     String?
+  updatedAt       DateTime        @updatedAt
+  createdAt       DateTime        @default(now())
+
+  @@index([status, startsAt, endsAt])
+  @@index([calendarEventId])
+}
+
+enum DiscountType {
+  PERCENT
+  FIXED_IDR
+}
+
+enum PromoStatus {
+  DRAFT
+  SCHEDULED
+  ACTIVE
+  EXPIRED
+  PAUSED
+  REJECTED
+}
+
+/// Indonesia + international calendar event seed untuk AI strategist context.
+/// Strategist query upcoming events (next 14 days) untuk decide greeting/promo.
+model CalendarEvent {
+  id             String          @id @default(cuid())
+  slug           String          @unique // lebaran-2026, natal-2026, hut-ri-2026
+  /// Greeting key untuk i18n template (lebaran, natal, tahun-baru, dll)
+  templateKey    String
+  name           String
+  name_en        String?
+  /// Event date (per tahun). Untuk Lebaran/Natal, regenerate per tahun via cron.
+  eventDate      DateTime
+  /// Days before event saat strategist mulai consider promo (default 7)
+  leadDays       Int             @default(7)
+  /// Country code (ID/INTL) — strategist filter sesuai customer base
+  country        String          @default("ID")
+  isActive       Boolean         @default(true)
+  promotions     Promotion[]
+  updatedAt      DateTime        @updatedAt
+  createdAt      DateTime        @default(now())
+
+  @@index([eventDate, isActive])
+  @@index([country])
+}
+
+/// Daily revenue snapshot untuk strategist baseline.
+/// Tracked: MRR, active subscriber count, new signups, churn delta.
+/// Cron writes 1 row per day; strategist query last 30 days untuk trend.
+model RevenueSnapshot {
+  id                  String   @id @default(cuid())
+  snapshotDate        DateTime @unique @db.Date
+  /// Monthly recurring revenue (sum dari ACTIVE subscriptions, IDR)
+  mrrIdr              BigInt
+  /// Total ACTIVE subscriber count
+  activeSubscribers   Int
+  /// New signups in last 24h
+  newSignups24h       Int      @default(0)
+  /// Cancelled/expired subscriptions in last 24h
+  churned24h          Int      @default(0)
+  /// Revenue health score 0-100 computed dari trend (strategist input)
+  healthScore         Int      @default(50)
+  /// Strategist notes (JSON: { trend_7d, trend_30d, anomalies, etc })
+  notes               Json     @default("{}")
+  createdAt           DateTime @default(now())
+
+  @@index([snapshotDate])
 }
 
 model Faq {

@@ -2679,6 +2679,21 @@
       "weekly_pnl_empty": "Daily P&L data will appear when connected",
       "fetch_status_failed": "Failed to fetch status"
     },
+    "shop_products": {
+      "title": "Shop Products",
+      "subtitle": "Add another product subscription — Signal, Crypto, or VPS.",
+      "see_all": "See all on /pricing",
+      "category_signal": "MT5 Signal Robot",
+      "category_crypto": "Binance Crypto Robot",
+      "category_vps": "VPS License",
+      "active_badge": "Active",
+      "badge_popular": "Popular",
+      "badge_active": "Active",
+      "cta_subscribe": "Subscribe",
+      "cta_current": "Currently Active",
+      "per_month": "/month",
+      "per_setup": "/setup"
+    },
     "account": {
       "title": "Account",
       "subtitle": "Manage your profile, security, notifications, and billing.",

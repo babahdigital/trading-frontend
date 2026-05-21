@@ -2699,6 +2699,21 @@
       "weekly_pnl_empty": "Data P&L harian akan muncul saat terhubung",
       "fetch_status_failed": "Gagal memuat status"
     },
+    "shop_products": {
+      "title": "Belanja Produk",
+      "subtitle": "Tambah langganan produk lain — Signal, Crypto, atau VPS.",
+      "see_all": "Lihat semua di /pricing",
+      "category_signal": "Robot Signal MT5",
+      "category_crypto": "Robot Crypto Binance",
+      "category_vps": "VPS License",
+      "active_badge": "Aktif",
+      "badge_popular": "Populer",
+      "badge_active": "Aktif",
+      "cta_subscribe": "Berlangganan",
+      "cta_current": "Sedang Aktif",
+      "per_month": "/bulan",
+      "per_setup": "/setup"
+    },
     "account": {
       "title": "Akun",
       "subtitle": "Kelola profil, keamanan, notifikasi, dan billing Anda.",

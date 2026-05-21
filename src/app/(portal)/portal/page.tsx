@@ -9,6 +9,7 @@ import { PnlBarChart } from '@/components/charts/pnl-bar-chart';
 import { SkeletonCard, SkeletonChart, SkeletonTable } from '@/components/ui/skeleton';
 import { useAuth } from '@/lib/auth/auth-context';
 import { DiscoveryBanner } from '@/components/portal/discovery-banner';
+import { ShopProductsSection } from '@/components/portal/shop-products-section';
 import { OnboardingChecklist } from '@/components/portal/onboarding-checklist';
 import { VerifyEmailBanner } from '@/components/portal/verify-email-banner';
 import { SubscriptionExpiryBanner } from '@/components/portal/subscription-expiry-banner';
@@ -231,6 +232,7 @@ export default function PortalDashboard() {
       <VerifyEmailBanner initialVerified={emailVerified} />
       <OnboardingChecklist locale={locale === 'en' ? 'en' : 'id'} />
       <DiscoveryBanner />
+      <ShopProductsSection />
 
       {/* KPI Row */}
       <StatCardGrid columns={4}>

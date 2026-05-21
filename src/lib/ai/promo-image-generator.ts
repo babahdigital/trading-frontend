@@ -15,7 +15,6 @@
 import { mkdir, writeFile } from 'fs/promises';
 import { randomBytes } from 'crypto';
 import path from 'path';
-import sharp from 'sharp';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('ai/promo-image');
@@ -176,27 +175,11 @@ export async function generatePromoHeroImage(
     throw new Error('All image gen providers failed');
   }
 
-  // Post-process: enforce 16:9 banner (1024×576). Pak Abdullah 2026-05-22:
-  // "gambar wide sehingga kotak gambar gak terisi penuh di popup". Gemini 2.5
-  // Flash Image default 1024×1024 square — sharp .resize(cover,center) crop ke
-  // 16:9. Pollinations FLUX sudah natively 1024×576 dari URL param tapi tidak
-  // harm kalau di-resize lagi (idempotent).
-  try {
-    const sharpInput = sharp(buffer);
-    const meta = await sharpInput.metadata();
-    const targetW = 1024;
-    const targetH = 576;
-    if (meta.width !== targetW || meta.height !== targetH) {
-      const resized = await sharpInput
-        .resize(targetW, targetH, { fit: 'cover', position: 'attention' })
-        .jpeg({ quality: 88, mozjpeg: true })
-        .toBuffer();
-      buffer = resized;
-      log.info(`Image resized ${meta.width}×${meta.height} → ${targetW}×${targetH} (provider=${provider})`);
-    }
-  } catch (err) {
-    log.warn(`Sharp resize failed (keeping original): ${err instanceof Error ? err.message : 'unknown'}`);
-  }
+  // Image preserved native (Gemini 2.5 Flash Image 1024×1024 square; Pollinations
+  // FLUX 1024×576). NO crop — Pak Abdullah 2026-05-22 concerned about content
+  // loss bila crop 1024×1024 → 1024×576 (lotus/temple bisa terpotong). Popup
+  // layout adapt ke aspect natural via md:aspect-square (Gemini) atau md:aspect-
+  // video (Pollinations 16:9).
 
   await mkdir(UPLOAD_DIR, { recursive: true });
   const ext = detectExt(buffer);

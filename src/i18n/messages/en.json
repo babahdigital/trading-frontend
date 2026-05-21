@@ -3015,15 +3015,32 @@
     "crypto": {
       "layout": {
         "tab_overview": "Overview",
+        "tab_performance": "Performance",
         "tab_connect": "Connect",
         "tab_strategy": "Strategy",
         "tab_positions": "Positions",
         "tab_trades": "Trades",
         "tab_risk": "Risk"
       },
+      "performance": {
+        "title": "Crypto Performance",
+        "subtitle": "Equity, PnL, and performance metrics per period — real-time data from your Binance bot tenant.",
+        "kpi_equity": "Equity",
+        "kpi_pnl_period": "PnL {period}",
+        "kpi_open_positions": "Position opened",
+        "kpi_total_margin": "Total margin",
+        "equity_curve_title": "Equity Curve",
+        "equity_curve_caption": "5-min snapshot · {period} window",
+        "analytics_title": "Aggregate statistics",
+        "analytics_total_pnl": "Cumulative PnL",
+        "analytics_win_rate": "Win rate",
+        "analytics_profit_factor": "Profit factor",
+        "analytics_max_drawdown": "Max drawdown",
+        "analytics_pending_backend": "Aggregate analytics (daily PnL + win rate trend) is not yet available for this tenant — the equity curve above remains real-time."
+      },
       "dashboard": {
         "heading": "Crypto Bot",
-        "tagline": "Binance Futures bot — SMC Scalper + SMC Swing + AI risk overlay, 24/7.",
+        "tagline": "Binance Futures bot — SMC Scalper + SMC Swing + adaptive risk overlay, 24/7.",
         "load_failed_prefix": "Failed to fetch status",
         "data_preview_badge": "data preview",
         "backend_unavailable": "Crypto backend is not active in this environment — showing mock fallback data.",

@@ -291,3 +291,45 @@ export function mockTelegram(): MockTelegram {
     chat_id: null,
   };
 }
+
+export interface MockAnalyticsDailyPoint {
+  date: string;
+  pnl_usdt: number;
+  trades_count: number;
+  win_rate: number;
+}
+
+export interface MockAnalytics {
+  daily: MockAnalyticsDailyPoint[];
+  summary: {
+    total_pnl_usdt: number;
+    win_rate: number;
+    profit_factor: number;
+    sharpe: number;
+    max_drawdown_pct: number;
+  };
+}
+
+export function mockAnalytics(days = 30): MockAnalytics {
+  const cap = Math.min(Math.max(days, 1), 365);
+  const daily: MockAnalyticsDailyPoint[] = Array.from({ length: cap }, (_, i) => {
+    const pnl = Math.round((Math.sin(i / 3) + 0.3) * 50 * 100) / 100;
+    return {
+      date: new Date(Date.now() - (cap - i) * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+      pnl_usdt: pnl,
+      trades_count: 3 + (i % 5),
+      win_rate: 52 + (i % 10),
+    };
+  });
+  const totalPnl = daily.reduce((s, d) => s + d.pnl_usdt, 0);
+  return {
+    daily,
+    summary: {
+      total_pnl_usdt: Math.round(totalPnl * 100) / 100,
+      win_rate: 58.5,
+      profit_factor: 1.74,
+      sharpe: 1.85,
+      max_drawdown_pct: 8.2,
+    },
+  };
+}

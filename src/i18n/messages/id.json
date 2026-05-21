@@ -3035,15 +3035,32 @@
     "crypto": {
       "layout": {
         "tab_overview": "Overview",
+        "tab_performance": "Performa",
         "tab_connect": "Connect",
         "tab_strategy": "Strategy",
         "tab_positions": "Positions",
         "tab_trades": "Trades",
         "tab_risk": "Risk"
       },
+      "performance": {
+        "title": "Performa Crypto",
+        "subtitle": "Ekuitas, PnL, dan metrik performa per periode — data real-time dari Binance bot tenant Anda.",
+        "kpi_equity": "Ekuitas",
+        "kpi_pnl_period": "PnL {period}",
+        "kpi_open_positions": "Posisi terbuka",
+        "kpi_total_margin": "Total margin",
+        "equity_curve_title": "Kurva Ekuitas",
+        "equity_curve_caption": "Snapshot 5 menit · {period} window",
+        "analytics_title": "Statistik agregat",
+        "analytics_total_pnl": "PnL kumulatif",
+        "analytics_win_rate": "Win rate",
+        "analytics_profit_factor": "Profit factor",
+        "analytics_max_drawdown": "Max drawdown",
+        "analytics_pending_backend": "Analytics agregat (daily PnL + win rate trend) belum tersedia di backend tenant ini — equity curve di atas tetap real-time."
+      },
       "dashboard": {
         "heading": "Crypto Bot",
-        "tagline": "Bot Binance Futures — SMC Scalper + SMC Swing + AI risk overlay, 24/7.",
+        "tagline": "Bot Binance Futures — SMC Scalper + SMC Swing + adaptive risk overlay, 24/7.",
         "load_failed_prefix": "Gagal memuat status",
         "data_preview_badge": "data preview",
         "backend_unavailable": "Crypto backend belum aktif di environment ini — data ditampilkan dari mock fallback.",

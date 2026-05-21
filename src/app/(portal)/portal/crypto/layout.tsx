@@ -3,18 +3,19 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { LayoutDashboard, KeyRound, Cpu, Activity, History, Shield } from 'lucide-react';
+import { LayoutDashboard, KeyRound, Cpu, Activity, History, Shield, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface CryptoTab {
   href: string;
-  labelKey: 'tab_overview' | 'tab_connect' | 'tab_strategy' | 'tab_positions' | 'tab_trades' | 'tab_risk';
+  labelKey: 'tab_overview' | 'tab_connect' | 'tab_strategy' | 'tab_positions' | 'tab_trades' | 'tab_risk' | 'tab_performance';
   icon: typeof LayoutDashboard;
   exact?: boolean;
 }
 
 const TABS: CryptoTab[] = [
   { href: '/portal/crypto', labelKey: 'tab_overview', icon: LayoutDashboard, exact: true },
+  { href: '/portal/crypto/performance', labelKey: 'tab_performance', icon: TrendingUp },
   { href: '/portal/crypto/connect', labelKey: 'tab_connect', icon: KeyRound },
   { href: '/portal/crypto/strategy', labelKey: 'tab_strategy', icon: Cpu },
   { href: '/portal/crypto/positions', labelKey: 'tab_positions', icon: Activity },

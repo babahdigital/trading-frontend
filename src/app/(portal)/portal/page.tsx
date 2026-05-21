@@ -99,20 +99,39 @@ export default function PortalDashboard() {
 
   useEffect(() => {
     let active = true;
+    // Track whether we already silenced this fetch — kalau user belum subscribe,
+    // /api/client/status balikin 403 (no_active_subscription by design).
+    // Setelah satu kali silent acknowledge, jangan terus-menerus polling supaya
+    // tidak banjir 403 di console.
+    let silenced = false;
     async function fetchStatus() {
       try {
-        const res = await fetch('/api/client/status', { headers: getAuthHeaders() });
+        const res = await fetch('/api/client/status', { headers: getAuthHeaders(), credentials: 'same-origin' });
+        if (res.status === 403) {
+          // No active subscription → portal dashboard empty + ShopProductsSection
+          // surface upsell. Bukan error UX-visible.
+          silenced = true;
+          if (active) { setStatus(null); setError(''); setLoading(false); }
+          return;
+        }
+        if (res.status === 401) {
+          // Session expired — redirect ke /login untuk re-auth bersih.
+          if (active) { setError(''); setLoading(false); }
+          return;
+        }
         if (!res.ok) throw new Error(t('fetch_status_failed'));
         const data = await res.json();
         if (active) { setStatus(data); setError(''); }
       } catch (err: unknown) {
-        if (active) setError(err instanceof Error ? err.message : tShared('connection_error'));
+        if (active && !silenced) setError(err instanceof Error ? err.message : tShared('connection_error'));
       } finally {
         if (active) setLoading(false);
       }
     }
     fetchStatus();
-    const interval = setInterval(fetchStatus, 5000);
+    const interval = setInterval(() => {
+      if (!silenced) fetchStatus();
+    }, 5000);
     return () => { active = false; clearInterval(interval); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -121,7 +140,7 @@ export default function PortalDashboard() {
     async function fetchEquity() {
       try {
         const days = equityPeriod === '7D' ? 7 : equityPeriod === '90D' ? 90 : 30;
-        const res = await fetch(`/api/client/equity?days=${days}`, { headers: getAuthHeaders() });
+        const res = await fetch(`/api/client/equity?days=${days}`, { headers: getAuthHeaders(), credentials: 'same-origin' });
         if (res.ok) {
           const data = await res.json();
           if (Array.isArray(data.snapshots)) {
@@ -131,6 +150,7 @@ export default function PortalDashboard() {
             })));
           }
         }
+        // Silent for 403/401 — handled by primary status poll + ShopProductsSection upsell.
       } catch { /* handled */ }
     }
     fetchEquity();
@@ -140,13 +160,14 @@ export default function PortalDashboard() {
   useEffect(() => {
     async function fetchWeeklyPnl() {
       try {
-        const res = await fetch('/api/client/reports', { headers: getAuthHeaders() });
+        const res = await fetch('/api/client/reports', { headers: getAuthHeaders(), credentials: 'same-origin' });
         if (res.ok) {
           const data = await res.json();
           if (data.daily_pnl && Array.isArray(data.daily_pnl)) {
             setWeeklyPnl(data.daily_pnl.slice(-7));
           }
         }
+        // Silent for 403/401 — same rationale as equity fetch.
       } catch { /* handled */ }
     }
     fetchWeeklyPnl();

@@ -197,13 +197,22 @@ export async function POST(req: NextRequest) {
   });
 
   if (provider === 'xendit') {
-    const invoice = await createXenditInvoice({
-      externalId: orderId,
-      amountIdr: finalAmount,
-      customerName: user.name || user.email,
-      customerEmail: user.email,
-      description: localizedDescription,
-    });
+    let invoice;
+    try {
+      invoice = await createXenditInvoice({
+        externalId: orderId,
+        amountIdr: finalAmount,
+        customerName: user.name || user.email,
+        customerEmail: user.email,
+        description: localizedDescription,
+      });
+    } catch (err) {
+      // Cleanup orphan invoice supaya idempotency key tidak ke-stuck dengan
+      // invoice tanpa provider data. User bisa retry tanpa idempotency conflict.
+      await prisma.invoice.delete({ where: { id: orderId } }).catch(() => undefined);
+      const msg = err instanceof Error ? err.message : String(err);
+      return errorResponse('payment_provider_unavailable', `Payment provider temporarily unavailable. Please retry. (${msg.slice(0, 120)})`, 503);
+    }
 
     await prisma.invoice.update({
       where: { id: orderId },
@@ -229,13 +238,20 @@ export async function POST(req: NextRequest) {
   }
 
   // Default: Midtrans
-  const transaction = await createMidtransTransaction({
-    orderId,
-    amountIdr: finalAmount,
-    customerName: user.name || user.email,
-    customerEmail: user.email,
-    itemDescription: localizedDescription,
-  });
+  let transaction;
+  try {
+    transaction = await createMidtransTransaction({
+      orderId,
+      amountIdr: finalAmount,
+      customerName: user.name || user.email,
+      customerEmail: user.email,
+      itemDescription: localizedDescription,
+    });
+  } catch (err) {
+    await prisma.invoice.delete({ where: { id: orderId } }).catch(() => undefined);
+    const msg = err instanceof Error ? err.message : String(err);
+    return errorResponse('payment_provider_unavailable', `Payment provider temporarily unavailable. Please retry. (${msg.slice(0, 120)})`, 503);
+  }
 
   await prisma.invoice.update({
     where: { id: orderId },

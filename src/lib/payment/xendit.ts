@@ -59,15 +59,40 @@ export async function createXenditInvoice(params: CreateInvoiceParams) {
     ],
   };
 
-  const response = await fetch('https://api.xendit.co/v2/invoices', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Basic ${auth}`,
-    },
-    body: JSON.stringify(payload),
-    signal: AbortSignal.timeout(15_000),
-  });
+  // DNS retry — VPS3 container kadang hit EAI_AGAIN intermittent ke
+  // api.xendit.co (Cloudflare-fronted, DNS occasionally hiccup). Retry 2x
+  // dengan exponential backoff 500ms→1500ms supaya checkout tidak 500
+  // karena masalah jaringan transient.
+  async function xenditFetchWithRetry(): Promise<Response> {
+    const maxAttempts = 3;
+    let lastErr: unknown;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        return await fetch('https://api.xendit.co/v2/invoices', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Basic ${auth}`,
+          },
+          body: JSON.stringify(payload),
+          signal: AbortSignal.timeout(15_000),
+        });
+      } catch (err) {
+        lastErr = err;
+        const msg = err instanceof Error ? err.message : String(err);
+        const isTransient = msg.includes('EAI_AGAIN')
+          || msg.includes('ENOTFOUND')
+          || msg.includes('ECONNRESET')
+          || msg.includes('fetch failed');
+        if (!isTransient || attempt === maxAttempts) throw err;
+        log.warn(`Xendit fetch attempt ${attempt} failed (${msg}); retrying...`);
+        await new Promise((r) => setTimeout(r, 500 * attempt));
+      }
+    }
+    throw lastErr;
+  }
+
+  const response = await xenditFetchWithRetry();
 
   if (!response.ok) {
     const body = await response.text();

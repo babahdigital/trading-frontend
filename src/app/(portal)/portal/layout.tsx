@@ -129,8 +129,19 @@ function PortalLayoutInner({ children }: { children: React.ReactNode }) {
               )}
               <div className="space-y-0.5">
                 {section.items.map((item) => {
-                  const isActive = item.href === '/portal'
-                    ? pathname === '/portal'
+                  // Active state semantics:
+                  //   - /portal: exact-match only (parent dashboard tidak di-claim child pages)
+                  //   - Parent item dengan child item sibling lebih spesifik (mis. /portal/crypto
+                  //     vs /portal/crypto/connect): exact-match only — child item own their state.
+                  //     Tanpa fix ini, BOTH overview + child link active simultaneously (double active).
+                  //   - Item tanpa child sibling: prefix match boleh — child route (mis.
+                  //     /portal/my-vps/settings) menyala-kan parent nav item.
+                  const hasMoreSpecificSibling = section.items.some(
+                    (other) => other.href !== item.href && other.href.startsWith(item.href + '/'),
+                  );
+                  const exactOnly = item.href === '/portal' || hasMoreSpecificSibling;
+                  const isActive = exactOnly
+                    ? pathname === item.href
                     : pathname === item.href || pathname.startsWith(item.href + '/');
                   return (
                     <Link

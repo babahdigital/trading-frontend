@@ -42,7 +42,11 @@ const nextConfig = {
   async headers() {
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://app.cal.com https://embed.cal.com",
+      // Cloudflare Web Analytics auto-injected beacon (static.cloudflareinsights.com)
+      // dan post analytics endpoint cloudflareinsights.com. Cal.com embed butuh script
+      // dari domain mereka. 'unsafe-inline' + 'unsafe-eval' diperlukan untuk Next 16 hydration.
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://app.cal.com https://embed.cal.com https://static.cloudflareinsights.com",
+      "script-src-elem 'self' 'unsafe-inline' https://app.cal.com https://embed.cal.com https://static.cloudflareinsights.com",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",

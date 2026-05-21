@@ -249,20 +249,18 @@ export function PromoPopup() {
           <X className="h-4 w-4" />
         </button>
 
-        {/* Grid 1:1 di desktop supaya image square (Gemini 2.5 Flash Image default
-            1024×1024) fill kolom kiri sempurna tanpa crop. Content sebelah kanan
-            mengikuti tinggi image. */}
-        <div className="grid md:grid-cols-2">
+        {/* Grid template untuk side-by-side: image kiri lebih dominant (image
+            sekarang 16:9 wide post-processed via sharp, fill kolom natural). */}
+        <div className="grid md:grid-cols-[5fr_4fr]">
           {/* ─── HERO IMAGE COLUMN ─── */}
           {/*
-            Responsive untuk match Gemini 2.5 Flash Image output 1024×1024 square:
-            - Mobile (<768px): aspect-[5/3] = 1.67:1, image di-crop horizontal
-              tipis supaya tidak makan 100% viewport height saat stacked di atas
-              content. Tinggi terkontrol.
-            - md+ (≥768px): aspect-square, image fill kolom kiri sempurna,
-              content kolom kanan height match.
+            Image sekarang fixed 1024×576 (16:9) post-process sharp cover crop.
+            Responsive aspect:
+            - Mobile (<768px): aspect-video (16:9 native, match image natural)
+            - md+ (≥768px): aspect-auto + min-height supaya kolom kiri ikut
+              tinggi content kolom kanan, image cover-fit fill kolom.
           */}
-          <div className="relative aspect-[5/3] md:aspect-square bg-gradient-to-br from-amber-900/20 via-amber-500/10 to-transparent overflow-hidden">
+          <div className="relative aspect-video md:aspect-auto md:min-h-[380px] lg:min-h-[420px] bg-gradient-to-br from-amber-900/20 via-amber-500/10 to-transparent overflow-hidden">
             {heroImage ? (
               <>
                 {!imageLoaded && (

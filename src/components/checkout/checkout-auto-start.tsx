@@ -63,7 +63,16 @@ export function CheckoutAutoStart({ tier, provider, service, locale }: CheckoutA
           return;
         }
 
-        const body = await res.json();
+        // Defensive JSON parsing — kalau backend return non-JSON (500 HTML
+        // error page, network blip, dll) → kasih error message yang readable
+        // bukan "Unexpected end of JSON input"
+        const rawText = await res.text();
+        let body: { message?: string; error?: string; invoiceUrl?: string; redirectUrl?: string } = {};
+        try {
+          body = rawText ? JSON.parse(rawText) : {};
+        } catch {
+          body = { error: 'server_error', message: rawText.slice(0, 200) || `HTTP ${res.status}` };
+        }
         if (!res.ok) {
           throw new Error(body.message || body.error || `HTTP ${res.status}`);
         }
@@ -158,9 +167,7 @@ export function CheckoutAutoStart({ tier, provider, service, locale }: CheckoutA
           {status === 'redirecting' ? t('redirect_payment') : t('processing')}
         </h1>
         <p className="text-sm text-muted-foreground">
-          {isEn
-            ? `Preparing your secure checkout via ${provider === 'xendit' ? 'Xendit' : 'Midtrans'}…`
-            : `Menyiapkan checkout aman via ${provider === 'xendit' ? 'Xendit' : 'Midtrans'}…`}
+          {isEn ? 'Preparing your secure checkout…' : 'Menyiapkan pembayaran aman…'}
         </p>
         <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground pt-2 border-t border-border/60">
           <ShieldCheck className="w-3.5 h-3.5" />

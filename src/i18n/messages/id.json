@@ -999,7 +999,7 @@
     "step1_title": "Daftar & KYC",
     "step1_desc": "Registrasi email + verifikasi identitas (KYC) sesuai standar institusional. Selesai dalam 1-2 hari kerja.",
     "step2_title": "Pilih tier & bayar",
-    "step2_desc": "Pilih Basic / Pro / HNWI di /pricing. Pembayaran via Midtrans (kartu kredit, transfer, e-wallet) atau Xendit.",
+    "step2_desc": "Pilih Basic / Pro / HNWI di /pricing. Pembayaran aman: QRIS, kartu kredit/debit, transfer bank, atau e-wallet.",
     "step3_title": "Hubungkan Binance",
     "step3_desc": "Buat API key di Binance dengan permission Read + Futures Trade (TANPA Withdraw). Submit di portal — verifikasi 5 detik.",
     "step4_title": "Bot aktif",
@@ -1678,8 +1678,8 @@
     "invalid_response": "Respons checkout tidak valid",
     "network_error": "Gangguan jaringan saat checkout",
     "redirect_payment": "Mengarahkan ke halaman pembayaran…",
-    "provider_xendit": "Xendit (default — multi-mata uang)",
-    "provider_midtrans": "Midtrans (settlement lebih cepat)",
+    "payment_secure_default": "Pembayaran aman terenkripsi",
+    "payment_secure_alt": "Pembayaran alternatif",
     "secure_checkout": "Pembayaran aman via gateway pilihan",
     "no_card_required_demo": "Demo gratis 30 hari · tanpa kartu kredit"
   },
@@ -2598,7 +2598,7 @@
   },
   "portal_upgrade": {
     "heading": "Upgrade paket Anda",
-    "subheading": "Pilih tier yang sesuai dengan kebutuhan trading Anda. Pembayaran aman via Midtrans (Snap) dengan invoice tertanda audit. Anda dapat menggunakan QRIS, kartu kredit/debit, virtual account, atau e-wallet.",
+    "subheading": "Pilih tier yang sesuai dengan kebutuhan trading Anda. Pembayaran aman terenkripsi dengan invoice tertanda audit. Anda dapat menggunakan QRIS, kartu kredit/debit, virtual account, atau e-wallet.",
     "current_tier": "Tier saat ini · {tier}",
     "loading": "Memuat tier saat ini…",
     "me_load_failed": "Gagal memuat data tier. Coba refresh halaman.",

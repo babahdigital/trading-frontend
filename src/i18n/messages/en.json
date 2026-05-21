@@ -998,7 +998,7 @@
     "step1_title": "Register & KYC",
     "step1_desc": "Email registration + identity verification (KYC) per institutional standards. Done within 1-2 business days.",
     "step2_title": "Choose tier & pay",
-    "step2_desc": "Pick Basic / Pro / HNWI on /pricing. Payment via Midtrans (credit card, bank transfer, e-wallet) or Xendit.",
+    "step2_desc": "Pick Basic / Pro / HNWI on /pricing. Secure payment via credit/debit card, QRIS, bank transfer, or e-wallet.",
     "step3_title": "Connect Binance",
     "step3_desc": "Create a Binance API key with Read + Futures Trade permissions (NO Withdraw). Submit it in the portal — verification in 5 seconds.",
     "step4_title": "Bot active",
@@ -1864,8 +1864,8 @@
     "invalid_response": "Invalid checkout response",
     "network_error": "Network error during checkout",
     "redirect_payment": "Redirecting to payment page…",
-    "provider_xendit": "Xendit (default — multi-currency)",
-    "provider_midtrans": "Midtrans (faster settlement)",
+    "payment_secure_default": "Secure encrypted payment",
+    "payment_secure_alt": "Alternative payment",
     "secure_checkout": "Secure payment via selected gateway",
     "no_card_required_demo": "Free 30-day demo · no credit card required"
   },
@@ -2578,7 +2578,7 @@
   },
   "portal_upgrade": {
     "heading": "Upgrade your plan",
-    "subheading": "Pick the tier that matches your trading needs. Payments are processed by Midtrans (Snap) with audit-stamped invoices. QRIS, cards, virtual accounts and e-wallets supported.",
+    "subheading": "Pick the tier that matches your trading needs. Secure encrypted payment with audit-stamped invoices. QRIS, cards, virtual accounts and e-wallets supported.",
     "current_tier": "Current tier · {tier}",
     "loading": "Loading current tier…",
     "me_load_failed": "Failed to load tier data. Try refreshing.",

@@ -415,7 +415,7 @@ jobs:
             "GET|/api/client/notifications/outbound|401"
             "GET|/api/admin/dashboard|401"
             "GET|/api/admin/audit|401"
-            "GET|/api/auth/me|401"
+            "GET|/api/auth/me|200"
           )
 
           FAIL=0

@@ -33,7 +33,7 @@ PRODUK
 TIER + HARGA (flat monthly subscription, tanpa profit share, tanpa lock-in)
 - Tier Basic ${tBasic} — 3 pair otomatis, leverage 5x, strategi scalping_momentum, notif Telegram + dashboard.
 - Tier Pro ${tPro} (POPULAR) — 8 pair + 1 manual whitelist, leverage 10x, 3 strategi (SMC Scalper + SMC Swing + Pivot Mean Reversion), Telegram VIP + custom alerts, priority support.
-- Tier HNWI ${tHnwi} — 12 pair custom whitelist/blacklist, leverage 15x, semua 3 strategi inti + AI Brain orchestration + custom tuning, priority technical support + SLA 99.9%, monthly review call.
+- Tier HNWI ${tHnwi} — 12 pair custom whitelist/blacklist, leverage 15x, semua 3 strategi inti + adaptive risk engine (rule-based) + custom parameter tuning, priority technical support + SLA 99.9%, monthly review call.
 
 VALUE PROGRESSION (kenapa tier mahal lebih bayar):
 - Lebih banyak pair simultan = lebih banyak diversifikasi

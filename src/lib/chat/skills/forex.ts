@@ -46,7 +46,7 @@ AI BRAIN (modul pembelajaran adaptif — kerja di belakang layar, tidak perlu us
 TIER + HARGA (bulanan, tanpa lock-in)
 - Tier 1 Swing ${t1} — 3 pair major, swing only (4-24 jam hold), notif Email + Dashboard.
 - Tier 2 Scalping ${t2} (POPULAR) — 8 pair (Major + Cross + Gold + Silver), swing + scalping, notif WhatsApp + Telegram + Email.
-- Tier 3 All-In ${t3} — unlimited pair, semua 3 strategi inti + AI Brain orchestration paralel, premium AI advisor, dedicated support 24/7, custom backtest sweep + Payout API.
+- Tier 3 All-In ${t3} — unlimited pair, semua 3 strategi inti + adaptive risk engine paralel (rule-based, deterministic), premium research advisor (riset & daily brief), dedicated support 24/7, custom backtest sweep + Payout API.
 
 CIRCUIT BREAKER / RISK PROTECTION (Anda set thresholds, sistem enforce)
 - Anda configure 3 threshold di /portal/kill-switch: DAILY_LOSS (max rugi harian dalam %), LOSS_STREAK (jumlah loss berturut), EQUITY_DRAWDOWN (drawdown intraday %).

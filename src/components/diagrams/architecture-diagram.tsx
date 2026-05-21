@@ -28,9 +28,9 @@ export function ArchitectureDiagram({ className }: { className?: string }) {
 
         {/* Box 2: AI Engine */}
         <rect x="255" y="40" width="175" height="140" rx="8" className="stroke-accent" strokeWidth="1.5" fill="none" />
-        <text x="342" y="80" textAnchor="middle" className="fill-foreground text-[13px] font-semibold" fontFamily="var(--font-display)">AI Engine</text>
-        <text x="342" y="102" textAnchor="middle" className="fill-muted-foreground text-[11px]" fontFamily="var(--font-body)">Gemini 2.5 Advisor</text>
-        <text x="342" y="120" textAnchor="middle" className="fill-muted-foreground text-[11px]" fontFamily="var(--font-body)">3 Core Strategies + AI Brain</text>
+        <text x="342" y="80" textAnchor="middle" className="fill-foreground text-[13px] font-semibold" fontFamily="var(--font-display)">Decision Engine</text>
+        <text x="342" y="102" textAnchor="middle" className="fill-muted-foreground text-[11px]" fontFamily="var(--font-body)">Deterministic · Rule-based</text>
+        <text x="342" y="120" textAnchor="middle" className="fill-muted-foreground text-[11px]" fontFamily="var(--font-body)">3 Core Strategies + Math Engine</text>
         <text x="342" y="138" textAnchor="middle" className="fill-muted-foreground text-[11px]" fontFamily="var(--font-body)">SMC Scalper · SMC Swing · Pivot</text>
         <circle cx="342" cy="158" r="4" className="fill-accent" />
 

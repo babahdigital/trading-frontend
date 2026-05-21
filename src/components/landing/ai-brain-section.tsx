@@ -1,21 +1,27 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { Brain, GitBranch, Calculator, Compass, Filter, Wand2, Scale } from 'lucide-react';
+import { Sigma, GitBranch, Calculator, Compass, Filter, Wand2, Scale } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 /**
- * AI Brain section — public-facing display untuk 6 modul learning/adaptive
- * yang berjalan di belakang strategi inti. Bahasa user-friendly (bukan
- * jargon ML), SEO-aware copy lewat namespace `landing.ai_brain.*`.
+ * Adaptive Math Engine section — public-facing display untuk 6 modul
+ * matematis & statistik yang menjalankan setiap eksekusi.
+ *
+ * Repositioning 2026-05-21: dulunya branded "AI Brain", sekarang positioned
+ * sebagai deterministic decision engine — Math = production, AI = marketing.
+ * Setiap modul rule-based + traceable di SQL, BUKAN model AI black-box.
  *
  * Modul:
- *   1. Bandit Routing  — A/B testing pilih konfluensi terbaik per regime
- *   2. Kelly Sizing    — formula matematis untuk porsi modal optimal
- *   3. Markov TP       — exit decision probabilistic per state transition
- *   4. Winprob Filter  — ML score per signal sebelum eksekusi
- *   5. Adaptive Exit   — postmortem otomatis tune TP/SL dari equity curve
- *   6. Isotonic Calibration — kalibrasi confidence supaya match win-rate real
+ *   1. Strategy Router       — Thompson Sampling statistik per regime
+ *   2. Kelly Sizing          — formula matematis John Kelly (1956)
+ *   3. Markov TP             — exit timing via state transition matrix
+ *   4. Pre-trade Filter      — historical winrate per setup (statistik)
+ *   5. Adaptive Stop Engine  — ATR + time-decay rule deterministic
+ *   6. Isotonic Calibration  — confidence kalibrasi via scipy isotonic regression
+ *
+ * AI advisor adalah layer informational TERPISAH (chat, riset, daily brief),
+ * bukan bagian dari path eksekusi order.
  */
 
 interface BrainModule {
@@ -43,7 +49,7 @@ export function AiBrainSection() {
       <div className="layout-container relative">
         <div className="max-w-3xl mb-10 sm:mb-12">
           <p className="t-eyebrow mb-3 inline-flex items-center gap-2 text-amber-600 dark:text-amber-400">
-            <Brain className="h-3.5 w-3.5" strokeWidth={2.25} aria-hidden />
+            <Sigma className="h-3.5 w-3.5" strokeWidth={2.25} aria-hidden />
             {t('eyebrow')}
           </p>
           <h2 className="t-display-section text-foreground leading-tight mb-4">{t('title')}</h2>

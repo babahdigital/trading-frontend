@@ -17,8 +17,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     {
       title: 'Platform Overview — Quantitative Trading Infrastructure | BabahAlgo',
       description: isEn
-        ? 'Three BabahAlgo pillars: Strategy Framework (SMC Scalper, SMC Swing, Pivot Mean Reversion), Sub-2ms ZeroMQ Bridge, Institutional Risk Framework (vol-target + 6-layer exit + multi-stage kill-switch). Forex + Crypto with AI Brain orchestration.'
-        : 'Tiga pilar BabahAlgo: Strategy Framework (SMC Scalper, SMC Swing, Pivot Mean Reversion), Sub-2ms ZeroMQ Bridge, Kerangka Risiko Institusional (vol-target + 6-layer exit + multi-stage kill-switch). Forex + Crypto dengan orkestrasi AI Brain.',
+        ? 'Three BabahAlgo pillars: Strategy Framework (SMC Scalper, SMC Swing, Pivot Mean Reversion), Sub-2ms ZeroMQ Bridge, Institutional Risk Framework (vol-target + 6-layer exit + multi-stage kill-switch). Forex + Crypto with deterministic math decision engine — every trade traceable in SQL.'
+        : 'Tiga pilar BabahAlgo: Strategy Framework (SMC Scalper, SMC Swing, Pivot Mean Reversion), Sub-2ms ZeroMQ Bridge, Kerangka Risiko Institusional (vol-target + 6-layer exit + multi-stage kill-switch). Forex + Crypto dengan deterministic math decision engine — setiap trade traceable di SQL.',
     },
     locale === 'en' ? 'en' : 'id',
   );

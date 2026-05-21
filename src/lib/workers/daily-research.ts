@@ -490,7 +490,7 @@ WAJIB tabel pair-bias di tengah artikel:
 - Validasi konfirmasi (confluence yang harus hit: structure shift / liquidity sweep / news context).
 - Multi-timeframe context: H4 bias → H1 structure → M15 entry → M5 execution.
 - 3-5 common mistakes retail trader saat trade pattern ini.
-- Bagaimana BabahAlgo bot eksekusi setup ini secara otomatis (AI Brain modules: Bandit Routing pilih confluence, Kelly Sizing untuk lot, Markov TP).
+- Bagaimana BabahAlgo bot eksekusi setup ini secara otomatis (deterministic decision engine: rule-based strategy router pilih confluence, Kelly Sizing matematis untuk lot, Markov TP via state transition matrix).
 - Internal link ke /platform/strategies/${pick.slug} (strategy page) dan /platform/execution (technical bridge).${COMMON_TAIL}`.replace('{{DATA_JSON}}', '{}'),
       };
     },

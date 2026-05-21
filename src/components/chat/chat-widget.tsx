@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useLocale } from 'next-intl';
 import {
   MessageCircle, X, Send, Bot, User as UserIcon, AlertTriangle, RotateCcw, ArrowDown,
-  Sparkles, ShieldCheck, Trash2,
+  Sparkles, ShieldCheck, Trash2, Minus,
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -88,6 +88,7 @@ interface CopyBundle {
   placeholder: string;
   send_aria: string;
   close_aria: string;
+  minimize_aria: string;
   clear_aria: string;
   clear_confirm: string;
   open_aria: string;
@@ -113,7 +114,8 @@ const COPY: Record<'id' | 'en', CopyBundle> = {
       'Halo! Saya Babah — asisten AI BabahAlgo. Saya bisa bantu jelaskan layanan Robot Meta (Forex MT5), Robot Crypto (Binance), pricing tier, konsep SMC Scalper / SMC Swing / Pivot Mean Reversion, kerangka risiko institusional (vol-target + 6-layer exit + multi-stage kill-switch), atau alur onboarding KYC. Ada yang ingin ditanyakan?',
     placeholder: 'Tulis pertanyaan…',
     send_aria: 'Kirim pesan',
-    close_aria: 'Tutup chat',
+    close_aria: 'Tutup chat (hapus sesi)',
+    minimize_aria: 'Kecilkan ke ikon',
     clear_aria: 'Bersihkan riwayat chat',
     clear_confirm: 'Hapus riwayat chat? Aksi ini tidak bisa dibatalkan.',
     open_aria: 'Buka asisten Babah AI',
@@ -144,7 +146,8 @@ const COPY: Record<'id' | 'en', CopyBundle> = {
       "Hi! I'm Babah — BabahAlgo's AI assistant. I can walk you through Robot Meta (Forex MT5), Robot Crypto (Binance), pricing tiers, SMC Scalper / SMC Swing / Pivot Mean Reversion concepts, the institutional risk framework (vol-target sizing + 6-layer exit + multi-stage kill-switch), or our KYC onboarding flow. What would you like to know?",
     placeholder: 'Type a question…',
     send_aria: 'Send message',
-    close_aria: 'Close chat',
+    close_aria: 'Close chat (clear session)',
+    minimize_aria: 'Minimize to icon',
     clear_aria: 'Clear chat history',
     clear_confirm: 'Clear chat history? This action cannot be undone.',
     open_aria: 'Open Babah AI assistant',
@@ -176,13 +179,30 @@ function getTextContent(msg: UIMessage): string {
 
 const SCROLL_THRESHOLD_PX = 80;
 
-export function ChatWidget() {
+interface ChatWidgetProps {
+  /** Controlled open state. Kalau undefined, widget pakai internal state. */
+  open?: boolean;
+  /** Callback saat user mengubah open state. `reason` indicates intent:
+   *  - 'close': user click X — parent typically clear history + hide entry
+   *  - 'minimize': user click −. Parent keep entry (icon stays visible)
+   *  - 'user-toggle': user click FAB / event trigger */
+  onOpenChange?: (open: boolean, reason: 'close' | 'minimize' | 'user-toggle') => void;
+  /** Hide internal floating button — ChatWidgetMount kontrol entry visibility */
+  hideFab?: boolean;
+}
+
+export function ChatWidget({ open, onOpenChange, hideFab = false }: ChatWidgetProps = {}) {
   const pathname = usePathname();
   const locale = useLocale() as 'id' | 'en';
   const copy = COPY[locale === 'id' ? 'id' : 'en'];
   const confirm = useConfirm();
 
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isOpen = open !== undefined ? open : internalOpen;
+  const setIsOpen = (next: boolean, reason: 'close' | 'minimize' | 'user-toggle' = 'user-toggle') => {
+    if (onOpenChange) onOpenChange(next, reason);
+    if (open === undefined) setInternalOpen(next);
+  };
   const [hasNewMessage, setHasNewMessage] = useState(false);
   // Hide chat bubble saat mobile nav menu open — supaya tidak overlap dengan
   // last menu items di bottom. Observe DOM untuk #mobile-nav-panel presence.
@@ -459,9 +479,10 @@ export function ChatWidget() {
 
   return (
     <>
-      {/* Bubble button — hide saat mobile nav menu open supaya tidak overlap. */}
+      {/* Bubble button — hide saat mobile nav menu open supaya tidak overlap.
+          hideFab=true → parent (ChatWidgetMount) yang kontrol entry visibility. */}
       <AnimatePresence>
-        {!isOpen && !navMenuOpen && (
+        {!isOpen && !navMenuOpen && !hideFab && (
           <motion.button
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -576,20 +597,38 @@ export function ChatWidget() {
                     <Trash2 className="h-4 w-4" strokeWidth={2.25} />
                   </button>
                 )}
+                {/* Minimize — close panel tapi keep entry icon supaya user
+                    bisa expand lagi tanpa clear session. */}
                 <button
                   type="button"
-                  onClick={() => setIsOpen(false)}
+                  onClick={() => setIsOpen(false, 'minimize')}
                   className={cn(
-                    // Close button harus selalu kontras: di mobile fullscreen
-                    // sering miss-tap kalau cuma h-9. h-11 = 44px (Apple HIG)
-                    // dengan ring + bg-muted untuk kontras tinggi.
                     'inline-flex items-center justify-center h-11 w-11 shrink-0',
                     'rounded-full border border-border bg-muted/60',
                     'text-foreground hover:bg-muted hover:border-foreground/40',
                     'active:scale-95 transition-all',
                     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                   )}
+                  aria-label={copy.minimize_aria}
+                  title={copy.minimize_aria}
+                >
+                  <Minus className="h-5 w-5" strokeWidth={2.5} />
+                </button>
+                {/* Close — clear session + remove entry. Parent panggil onClose
+                    callback yang bertanggung jawab clear history + sembunyikan
+                    floating icon. */}
+                <button
+                  type="button"
+                  onClick={() => setIsOpen(false, 'close')}
+                  className={cn(
+                    'inline-flex items-center justify-center h-11 w-11 shrink-0',
+                    'rounded-full border border-rose-500/30 bg-rose-500/10',
+                    'text-rose-500 hover:bg-rose-500/20 hover:border-rose-500/50',
+                    'active:scale-95 transition-all',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500',
+                  )}
                   aria-label={copy.close_aria}
+                  title={copy.close_aria}
                 >
                   <X className="h-5 w-5" strokeWidth={2.5} />
                 </button>

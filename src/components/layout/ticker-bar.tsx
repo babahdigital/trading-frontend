@@ -146,29 +146,33 @@ export function TickerBar() {
   return (
     <div
       className={cn(
-        'relative w-full overflow-hidden border-b border-amber-500/15',
+        // z-[90] supaya STACK di atas nav (z-80). Hindari ketutup header.
+        'relative w-full overflow-hidden border-b border-amber-500/15 z-[90]',
         'bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950',
-        'text-foreground',
+        'text-foreground isolate',
       )}
       role="region"
       aria-label="Live market ticker"
     >
-      {/* Live indicator pill — anchored top-left, fixed background gradient */}
-      <div className="absolute left-0 top-0 bottom-0 z-10 flex items-center pl-3 pr-4 pointer-events-none">
-        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-rose-500/20 border border-rose-500/40 backdrop-blur-md">
+      {/* Live indicator pill — z-20 di atas marquee (z-0), absolute left+bottom-aligned */}
+      <div className="absolute left-0 top-0 bottom-0 z-20 flex items-center pl-3 pr-2 pointer-events-none">
+        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-rose-500/25 border border-rose-500/50 backdrop-blur-md">
           <span className="relative flex h-1.5 w-1.5">
             <span className="absolute inset-0 rounded-full bg-rose-400 animate-ping opacity-75" />
             <span className="relative inline-block h-1.5 w-1.5 rounded-full bg-rose-500" />
           </span>
           <span className="text-[10px] font-mono uppercase tracking-wider font-bold text-rose-300">LIVE</span>
         </span>
-        {/* Fade gradient ke kanan supaya LIVE pill blend ke ticker scroll */}
-        <span aria-hidden className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-r from-slate-950 to-transparent" />
       </div>
 
-      {/* Marquee track — padded left supaya tidak overlap LIVE pill */}
-      <div className="pl-20 sm:pl-24">
-        <div className="ticker-marquee flex whitespace-nowrap py-2 will-change-transform">
+      {/* Marquee track — padded left supaya tidak overlap LIVE pill. Use inline
+          style untuk animation duration (styled-jsx dynamic var kadang stuck di
+          hydration). Keyframes defined inline via <style>. */}
+      <div className="pl-20 sm:pl-24 relative z-0">
+        <div
+          className="ticker-marquee flex whitespace-nowrap py-2 will-change-transform"
+          style={{ animation: `ticker-scroll ${animDuration}s linear infinite` }}
+        >
           {repeated.map((t, i) => {
             const isUp = t.change24hPct >= 0;
             const icon = LABEL_ICON[t.label] ?? GROUP_ICON[t.group];
@@ -203,20 +207,20 @@ export function TickerBar() {
         className="pointer-events-none absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-slate-950 to-transparent"
       />
 
-      <style jsx>{`
-        .ticker-marquee {
-          animation: ticker-scroll ${animDuration}s linear infinite;
-        }
-        .ticker-marquee:hover {
-          animation-play-state: paused;
-        }
+      {/* Keyframe global — di-define via standard <style> (bukan styled-jsx
+          dynamic) supaya tidak stuck saat hydration. Animation duration di-pass
+          via inline style di marquee div. */}
+      <style>{`
         @keyframes ticker-scroll {
           0%   { transform: translateX(0); }
           100% { transform: translateX(-50%); }
         }
+        .ticker-marquee:hover {
+          animation-play-state: paused !important;
+        }
         @media (prefers-reduced-motion: reduce) {
           .ticker-marquee {
-            animation: none;
+            animation: none !important;
           }
         }
       `}</style>

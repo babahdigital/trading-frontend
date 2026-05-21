@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback } from 'react';
 import { useLocale } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import Image from 'next/image';
-import { Mail, MessageCircle, Send } from 'lucide-react';
 import { RegionPreferences } from '@/components/layout/region-preferences';
 import { NewsletterForm } from '@/components/layout/newsletter-form';
 import { cn } from '@/lib/utils';
@@ -214,23 +213,11 @@ export function EnterpriseFooter() {
   );
 }
 
-// ─── Flat contact icon row — Pak Abdullah 2026-05-21 ─────────────────────
-// Replace text-based contact links dengan icon buttons compact. Email + WA
-// + Telegram + Chat AI semua jadi flat icon dengan hover tooltip. WhatsApp
-// number editable via /admin/cms/company-settings (CompanySettings.whatsappDigits).
-//
+// ─── Footer contact row — Pak Abdullah 2026-05-21 ────────────────────────
+// Text-based separator-delimited links (Email · WhatsApp · Telegram · Chat AI).
 // Chat AI trigger pakai custom event `babahalgo:open-chat` — ChatWidget listen
-// dan auto-open panel. Decoupled architecture supaya footer tidak import
-// ChatWidget langsung.
-
-// WhatsApp brand SVG (lucide tidak punya brand icon).
-function WhatsAppIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden className={className}>
-      <path d="M17.6 6.32A7.85 7.85 0 0 0 12.05 4a7.94 7.94 0 0 0-6.88 11.9L4 20l4.21-1.1a7.9 7.9 0 0 0 3.84.98h.01c4.37 0 7.93-3.56 7.93-7.93 0-2.12-.82-4.11-2.39-5.63zm-5.55 12.2a6.59 6.59 0 0 1-3.36-.92l-.24-.14-2.5.66.67-2.44-.16-.25a6.59 6.59 0 0 1-1.01-3.52c0-3.65 2.97-6.62 6.62-6.62a6.62 6.62 0 0 1 6.62 6.62c0 3.65-2.97 6.61-6.64 6.61zm3.62-4.95c-.2-.1-1.18-.58-1.36-.65-.18-.07-.31-.1-.45.1-.13.2-.51.65-.62.78-.12.13-.23.15-.42.05a5.4 5.4 0 0 1-1.6-.99 6 6 0 0 1-1.11-1.38c-.12-.2 0-.31.09-.41.09-.09.2-.23.3-.35.1-.12.13-.2.2-.33.07-.13.03-.25-.02-.35-.05-.1-.45-1.08-.62-1.48-.16-.39-.33-.34-.45-.34h-.39c-.13 0-.35.05-.53.25s-.7.69-.7 1.67c0 .98.72 1.93.82 2.06.1.14 1.41 2.16 3.42 3.03.48.2.85.33 1.14.42.48.15.91.13 1.26.08.38-.06 1.18-.48 1.35-.95.17-.46.17-.86.12-.95-.05-.09-.18-.14-.38-.24z" />
-    </svg>
-  );
-}
+// dan auto-open panel sekali klik (no intermediate icon). WhatsApp number set
+// admin via /admin/cms/company-settings.
 
 interface FooterContactIconsProps {
   contact: ContactInfo;
@@ -244,69 +231,50 @@ function FooterContactIcons({ contact, locale }: FooterContactIconsProps) {
     }
   }, []);
 
+  const linkClass = 'hover:text-amber-400 transition-colors';
+
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      {/* Email — primary */}
-      <a
-        href={`mailto:${contact.email}`}
-        className={iconBtnClass()}
-        aria-label={locale === 'id' ? `Email ${contact.email}` : `Email ${contact.email}`}
-        title={contact.email}
-      >
-        <Mail className="h-4 w-4" aria-hidden />
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 t-body-sm text-muted-foreground">
+      <a href={`mailto:${contact.email}`} className={linkClass}>
+        {contact.email}
       </a>
-
-      {/* WhatsApp — set di /admin/cms/company-settings */}
       {contact.whatsappUrl && (
-        <a
-          href={contact.whatsappUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={iconBtnClass('whatsapp')}
-          aria-label="WhatsApp"
-          title="WhatsApp"
-        >
-          <WhatsAppIcon className="h-4 w-4" />
-        </a>
+        <>
+          <span aria-hidden className="w-px h-3 bg-border" />
+          <a
+            href={contact.whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={linkClass}
+          >
+            WhatsApp
+          </a>
+        </>
       )}
-
-      {/* Telegram */}
       {contact.telegramUrl && (
-        <a
-          href={contact.telegramUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={iconBtnClass('telegram')}
-          aria-label="Telegram"
-          title="Telegram @babahalgo"
-        >
-          <Send className="h-4 w-4" aria-hidden />
-        </a>
+        <>
+          <span aria-hidden className="w-px h-3 bg-border" />
+          <a
+            href={contact.telegramUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={linkClass}
+          >
+            Telegram
+          </a>
+        </>
       )}
-
-      {/* Chat AI — dispatch event ke ChatWidget */}
+      <span aria-hidden className="w-px h-3 bg-border" />
       <button
         type="button"
         onClick={openChat}
-        className={iconBtnClass('chat')}
+        className={cn(linkClass, 'cursor-pointer text-left')}
         aria-label={locale === 'id' ? 'Buka chat asisten' : 'Open chat assistant'}
-        title={locale === 'id' ? 'Chat AI Assistant' : 'AI Chat Assistant'}
       >
-        <MessageCircle className="h-4 w-4" aria-hidden />
+        {locale === 'id' ? 'Chat AI' : 'AI Chat'}
       </button>
     </div>
   );
-}
-
-function iconBtnClass(variant: 'default' | 'whatsapp' | 'telegram' | 'chat' = 'default'): string {
-  const base = 'inline-flex h-9 w-9 items-center justify-center rounded-full border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1';
-  const variants = {
-    default: 'border-border/60 text-muted-foreground hover:text-amber-400 hover:border-amber-400/40 hover:bg-amber-500/5 focus-visible:ring-amber-500',
-    whatsapp: 'border-emerald-500/30 text-emerald-500 hover:text-emerald-400 hover:bg-emerald-500/10 hover:border-emerald-500/50 focus-visible:ring-emerald-500',
-    telegram: 'border-sky-500/30 text-sky-500 hover:text-sky-400 hover:bg-sky-500/10 hover:border-sky-500/50 focus-visible:ring-sky-500',
-    chat: 'border-amber-500/30 text-amber-500 hover:text-amber-400 hover:bg-amber-500/10 hover:border-amber-500/50 focus-visible:ring-amber-500',
-  };
-  return cn(base, variants[variant]);
 }
 
 function FooterColumn({ title, links, locale }: { title: string; links: Array<{ href: string; label: LocaleStr }>; locale: 'id' | 'en' }) {

@@ -73,6 +73,9 @@ export default async function RootLayout({
         <meta name="theme-color" content="#0B1220" media="(prefers-color-scheme: dark)" />
         <meta name="theme-color" content="#FAFAF7" media="(prefers-color-scheme: light)" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
+        {/* mobile-web-app-capable — modern W3C replacement, tetap pakai
+            apple-mobile-web-app-capable untuk iOS backward-compat. */}
+        <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="BabahAlgo" />
         <script

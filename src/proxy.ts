@@ -15,7 +15,10 @@ const publicPaths = ['/login', '/admin/login', '/forgot-password', '/reset-passw
   // (untuk EnterpriseNav check login state di public pages). Route handler
   // self-handle JWT cookie + return 200 dengan {user:null} kalau guest.
   '/api/auth/me',
-  '/api/health', '/api/public/', '/api/client/inquiries', '/api/chat', '/api/cron/', '/api/billing/webhook/', '/api/license/check', '/api/notifications/push/', '/api/analytics/track', '/manifest.json', '/sw.js',
+  '/api/health', '/api/public/', '/api/client/inquiries', '/api/chat', '/api/cron/', '/api/billing/webhook/', '/api/license/check', '/api/notifications/push/', '/api/analytics/track',
+  // Chat summary endpoint — accepts guest user (chat lead) + logged-in via cookie
+  '/api/chat/email-summary',
+  '/manifest.json', '/sw.js',
   // /api/uploads/promotions/* — runtime-served promo hero images (Next.js
   // standalone cache `public/` listing saat startup, so files yang dibuat
   // post-startup tidak ter-detect via static path; API route bypass cache).

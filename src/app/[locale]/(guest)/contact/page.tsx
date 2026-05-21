@@ -9,6 +9,8 @@ import {
 } from 'lucide-react';
 import { getPageMetadata } from '@/lib/seo';
 import { TrustStrip } from '@/components/shared/trust-strip';
+import { ChatOpenButton } from '@/components/chat/chat-open-button';
+import { Sparkles } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -148,6 +150,13 @@ export default async function ContactPage() {
                     title={t('channel_tg_title')}
                     href="https://t.me/babahalgo"
                     value="@babahalgo"
+                  />
+                  {/* Chat AI Assistant — instant response, kontextual ke topik
+                      yang user sedang baca. Dispatch event ke ChatWidget global. */}
+                  <ChatOpenButton
+                    icon={<Sparkles className="w-5 h-5" />}
+                    title={t('channel_chat_title')}
+                    value={t('channel_chat_value')}
                   />
 
                   <div className="border-t border-border/60 mt-6 pt-6 space-y-5">

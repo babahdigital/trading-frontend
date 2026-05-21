@@ -241,6 +241,15 @@ export function ChatWidget() {
 
   const isLoading = status === 'streaming' || status === 'submitted';
 
+  // External open trigger — listen `babahalgo:open-chat` event dispatched dari
+  // footer/contact page chat icon. Allow opening dari anywhere di app tanpa
+  // tight coupling ke ChatWidget instance.
+  useEffect(() => {
+    const handleOpen = () => setIsOpen(true);
+    window.addEventListener('babahalgo:open-chat', handleOpen);
+    return () => window.removeEventListener('babahalgo:open-chat', handleOpen);
+  }, []);
+
   // Hydrate persisted history on mount (per locale). Falls back to
   // greeting-only when storage is empty / expired / different locale.
   useEffect(() => {

@@ -68,7 +68,11 @@ export async function POST(req: NextRequest) {
   const { key: idempotencyKey, clientSupplied } = resolveIdempotencyKey(req.headers, 'checkout');
 
   const body = await req.json();
-  const { tier, provider = 'midtrans' } = body as { tier: string; provider?: PaymentProvider };
+  // Default provider: Xendit (2026-05-21 — Pak Abdullah direction).
+  // Multi-currency display di invoice page (USD + IDR), API + dokumentasi
+  // lebih clean, dan forex backend juga akan migrate ke Xendit eventually.
+  // Midtrans tetap available kalau customer prefer atau Xendit down.
+  const { tier, provider = 'xendit' } = body as { tier: string; provider?: PaymentProvider };
   const pricing = TIER_PRICES[tier];
   if (!pricing) return errorResponse('invalid_tier', 'Invalid tier', 400);
   if (pricing.amountIdr === 0) {

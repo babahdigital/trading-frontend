@@ -1672,6 +1672,17 @@
     "category_case_study": "Studi Kasus",
     "category_compliance": "Kepatuhan"
   },
+  "checkout": {
+    "subscribe": "Berlangganan",
+    "processing": "Memproses…",
+    "invalid_response": "Respons checkout tidak valid",
+    "network_error": "Gangguan jaringan saat checkout",
+    "redirect_payment": "Mengarahkan ke halaman pembayaran…",
+    "provider_xendit": "Xendit (default — multi-mata uang)",
+    "provider_midtrans": "Midtrans (settlement lebih cepat)",
+    "secure_checkout": "Pembayaran aman via gateway pilihan",
+    "no_card_required_demo": "Demo gratis 30 hari · tanpa kartu kredit"
+  },
   "errors": {
     "auth": {
       "invalid_token": "Sesi Anda telah habis. Silakan login ulang.",

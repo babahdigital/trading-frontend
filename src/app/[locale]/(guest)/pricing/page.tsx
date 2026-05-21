@@ -46,9 +46,9 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 // Prices are PriceKey references resolved locale-aware via formatPrice() di
 // render function. Names + features + periods resolved from i18n.
 const SIGNAL_TIER_META: Array<{ slug: 't1' | 't2' | 't3'; name: string; priceKey: PriceKey; cta: string; popular?: boolean }> = [
-  { slug: 't1', name: 'Tier 1 · Swing', priceKey: 'signal_starter', cta: '/register?service=signal&tier=swing' },
-  { slug: 't2', name: 'Tier 2 · Scalping', priceKey: 'signal_pro', popular: true, cta: '/register?service=signal&tier=scalping' },
-  { slug: 't3', name: 'Tier 3 · All-In', priceKey: 'signal_vip', cta: '/register?service=signal&tier=all' },
+  { slug: 't1', name: 'Tier 1 · Swing', priceKey: 'signal_starter', cta: '/checkout?tier=SIGNAL_STARTER&provider=xendit' },
+  { slug: 't2', name: 'Tier 2 · Scalping', priceKey: 'signal_pro', popular: true, cta: '/checkout?tier=SIGNAL_PRO&provider=xendit' },
+  { slug: 't3', name: 'Tier 3 · All-In', priceKey: 'signal_vip', cta: '/checkout?tier=SIGNAL_VIP&provider=xendit' },
 ];
 
 // Crypto tier meta — rc29 (2026-05-21): 5-tier dengan equity bracket +
@@ -106,7 +106,7 @@ const CRYPTO_TIERS: CryptoTierSpec[] = [
     leverage: '3x',
     riskPerTrade: '1.0%',
     notionalCap: '40%',
-    cta: '/register?service=crypto&tier=starter',
+    cta: '/checkout?tier=CRYPTO_STARTER&provider=xendit',
     features: {
       id: [
         '2 posisi simultan · leverage 3x maks',
@@ -133,7 +133,7 @@ const CRYPTO_TIERS: CryptoTierSpec[] = [
     leverage: '7x',
     riskPerTrade: '1.25%',
     notionalCap: '55%',
-    cta: '/register?service=crypto&tier=active',
+    cta: '/checkout?tier=CRYPTO_ACTIVE&provider=xendit',
     features: {
       id: [
         '3 posisi simultan · leverage 7x maks',
@@ -160,7 +160,7 @@ const CRYPTO_TIERS: CryptoTierSpec[] = [
     leverage: '12x',
     riskPerTrade: '1.5%',
     notionalCap: '60%',
-    cta: '/register?service=crypto&tier=pro',
+    cta: '/checkout?tier=CRYPTO_PRO&provider=xendit',
     popular: true,
     features: {
       id: [

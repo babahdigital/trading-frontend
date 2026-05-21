@@ -1858,6 +1858,17 @@
     "category_case_study": "Case Studies",
     "category_compliance": "Compliance"
   },
+  "checkout": {
+    "subscribe": "Subscribe",
+    "processing": "Processing…",
+    "invalid_response": "Invalid checkout response",
+    "network_error": "Network error during checkout",
+    "redirect_payment": "Redirecting to payment page…",
+    "provider_xendit": "Xendit (default — multi-currency)",
+    "provider_midtrans": "Midtrans (faster settlement)",
+    "secure_checkout": "Secure payment via selected gateway",
+    "no_card_required_demo": "Free 30-day demo · no credit card required"
+  },
   "errors": {
     "auth": {
       "invalid_token": "Your session has expired. Please log in again.",

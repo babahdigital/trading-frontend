@@ -94,12 +94,16 @@ export function activeBadge(isActive?: boolean | null): BadgeMeta {
 // ─── KYC status ───────────────────────────────────────────────────────────
 export function kycStatusBadge(status?: string | null): BadgeMeta {
   switch (status) {
-    case 'APPROVED':    return build('Disetujui', 'success');
-    case 'REJECTED':    return build('Ditolak', 'danger');
-    case 'PENDING':     return build('Menunggu', 'info');
-    case 'SUBMITTED':   return build('Diajukan', 'warning');
-    case 'NOT_STARTED': return build('Belum dimulai', 'neutral');
-    default:            return build(status || 'N/A', 'neutral');
+    case 'APPROVED':                  return build('Disetujui', 'success');
+    case 'REJECTED':                  return build('Ditolak', 'danger');
+    case 'PENDING':                   return build('Menunggu', 'info');
+    case 'PENDING_REVIEW':            return build('Menunggu review', 'info');
+    case 'ADDITIONAL_INFO_REQUIRED':  return build('Info tambahan', 'warning');
+    case 'SUBMITTED':                 return build('Diajukan', 'warning');
+    case 'DRAFT':                     return build('Draft', 'neutral');
+    case 'NOT_STARTED':
+    case 'NOT_SUBMITTED':             return build('Belum dimulai', 'neutral');
+    default:                          return build(status || 'N/A', 'neutral');
   }
 }
 

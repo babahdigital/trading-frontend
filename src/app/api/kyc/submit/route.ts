@@ -60,6 +60,29 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'review_in_progress', message: 'KYC sedang ditinjau, mohon tunggu.' }, { status: 409 });
   }
 
+  // Validasi dokumen wajib (upload-before-submit flow).
+  // Front + selfie selalu wajib. Back required hanya untuk KTP/SIM yang
+  // punya 2 sisi. Passport + NPWP cuma 1 halaman.
+  if (!existing?.documentFrontUrl) {
+    return NextResponse.json(
+      { error: 'document_front_required', message: 'Upload foto dokumen (depan) terlebih dahulu di step Dokumen.' },
+      { status: 400 },
+    );
+  }
+  if (!existing?.selfieUrl) {
+    return NextResponse.json(
+      { error: 'selfie_required', message: 'Upload foto selfie sambil memegang dokumen terlebih dahulu.' },
+      { status: 400 },
+    );
+  }
+  const needsBack = body.documentType === 'KTP' || body.documentType === 'SIM';
+  if (needsBack && !existing?.documentBackUrl) {
+    return NextResponse.json(
+      { error: 'document_back_required', message: `${body.documentType} memerlukan foto depan + belakang.` },
+      { status: 400 },
+    );
+  }
+
   const data = {
     userId,
     status: 'PENDING_REVIEW' as const,

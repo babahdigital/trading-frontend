@@ -32,7 +32,7 @@ import {
   Zap, Settings, LogOut, FileText, DollarSign, HelpCircle, Image as ImageIcon,
   MessageSquare, Mail, Star, Globe, Inbox, BookOpen, Layers, Sparkles, User, Crown,
   Building2, ChevronDown, ChevronRight, Menu, X, Cog, MonitorSmartphone, Activity,
-  PanelLeftClose, PanelLeftOpen, Search as SearchIcon,
+  PanelLeftClose, PanelLeftOpen, Search as SearchIcon, ShieldCheck,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -55,6 +55,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
       { href: '/admin/customers', label: 'Customers', icon: UserCheck },
+      { href: '/admin/kyc', label: 'KYC Review', icon: ShieldCheck },
       { href: '/admin/licenses', label: 'Licenses', icon: KeyRound },
       { href: '/admin/kill-switch', label: 'Kill Switch', icon: Zap },
     ],

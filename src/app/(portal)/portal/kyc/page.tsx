@@ -20,11 +20,13 @@
  * - Pasca submit: render "Submitted info" card untuk verifikasi customer
  * - Loading skeleton match final layout (no jank)
  */
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
+import Image from 'next/image';
 import {
   ShieldCheck, FileCheck, AlertCircle, Clock, XCircle, Loader2, IdCard,
   CheckCircle2, ArrowRight, ArrowLeft, User, MapPin, FileText, BarChart3,
+  Upload, Camera, Trash2,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
 import { Button } from '@/components/ui/button';
@@ -42,6 +44,19 @@ interface KycSummary {
   submittedAt?: string;
   reviewedAt?: string;
   rejectionReason?: string;
+  hasFront?: boolean;
+  hasBack?: boolean;
+  hasSelfie?: boolean;
+  /** Cache-bust key — bumps saat user re-upload dokumen */
+  docVersion?: string;
+}
+
+type DocKind = 'front' | 'back' | 'selfie';
+
+interface DocUploadState {
+  uploading: boolean;
+  uploaded: boolean;
+  error: string | null;
 }
 
 interface FormData {
@@ -189,8 +204,14 @@ function computeAge(dob: string): number | null {
   return age;
 }
 
-function validateStep(step: number, form: FormData): { valid: boolean; errors: Partial<Record<keyof FormData, string>> } {
-  const errors: Partial<Record<keyof FormData, string>> = {};
+type StepErrors = Partial<Record<keyof FormData | 'docFront' | 'docBack' | 'docSelfie', string>>;
+
+function validateStep(
+  step: number,
+  form: FormData,
+  docFlags?: { hasFront: boolean; hasBack: boolean; hasSelfie: boolean },
+): { valid: boolean; errors: StepErrors } {
+  const errors: StepErrors = {};
   if (step === 0) {
     if (form.fullName.trim().length < 3) errors.fullName = 'Min 3 karakter';
     const age = computeAge(form.dateOfBirth);
@@ -209,6 +230,12 @@ function validateStep(step: number, form: FormData): { valid: boolean; errors: P
     if (!docMeta.pattern.test(form.documentNumber.replace(/[-\s]/g, ''))) {
       errors.documentNumber = 'Format tidak sesuai';
     }
+    if (docFlags) {
+      const needsBack = form.documentType === 'KTP' || form.documentType === 'SIM';
+      if (!docFlags.hasFront) errors.docFront = 'Wajib upload foto depan';
+      if (needsBack && !docFlags.hasBack) errors.docBack = 'Wajib upload foto belakang';
+      if (!docFlags.hasSelfie) errors.docSelfie = 'Wajib upload selfie';
+    }
   }
   return { valid: Object.keys(errors).length === 0, errors };
 }
@@ -226,6 +253,11 @@ export default function KycPage() {
   const [error, setError] = useState<string | null>(null);
   const [draftRestored, setDraftRestored] = useState(false);
   const [showErrors, setShowErrors] = useState(false);
+  const [docState, setDocState] = useState<Record<DocKind, DocUploadState>>({
+    front: { uploading: false, uploaded: false, error: null },
+    back: { uploading: false, uploaded: false, error: null },
+    selfie: { uploading: false, uploaded: false, error: null },
+  });
 
   // Restore draft on mount — sync state dari localStorage (external storage).
   useEffect(() => {
@@ -257,6 +289,13 @@ export default function KycPage() {
         if (res.ok) {
           const body = await res.json();
           setSummary(body.kyc);
+          // Reflect doc uploads yang tersimpan di server ke local state.
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setDocState((prev) => ({
+            front: { ...prev.front, uploaded: Boolean(body.kyc?.hasFront) },
+            back: { ...prev.back, uploaded: Boolean(body.kyc?.hasBack) },
+            selfie: { ...prev.selfie, uploaded: Boolean(body.kyc?.hasSelfie) },
+          }));
         }
       } finally {
         setLoading(false);
@@ -264,7 +303,35 @@ export default function KycPage() {
     })();
   }, [getAuthHeaders]);
 
-  const stepValidation = useMemo(() => validateStep(step, form), [step, form]);
+  const docFlags = useMemo(() => ({
+    hasFront: docState.front.uploaded,
+    hasBack: docState.back.uploaded,
+    hasSelfie: docState.selfie.uploaded,
+  }), [docState]);
+
+  const stepValidation = useMemo(() => validateStep(step, form, docFlags), [step, form, docFlags]);
+
+  async function uploadDoc(kind: DocKind, file: File) {
+    setDocState((s) => ({ ...s, [kind]: { uploading: true, uploaded: false, error: null } }));
+    try {
+      const fd = new FormData();
+      fd.append('kind', kind);
+      fd.append('file', file);
+      const res = await fetch('/api/kyc/upload', { method: 'POST', body: fd, credentials: 'same-origin' });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.message ?? body.error ?? `HTTP ${res.status}`);
+      // Bump docVersion locally so <Image> cache-busts
+      setSummary((s) => ({
+        ...(s ?? { status: 'NOT_SUBMITTED' as const }),
+        docVersion: `${Date.now()}`,
+        [kind === 'front' ? 'hasFront' : kind === 'back' ? 'hasBack' : 'hasSelfie']: true,
+      }));
+      setDocState((s) => ({ ...s, [kind]: { uploading: false, uploaded: true, error: null } }));
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'upload_failed';
+      setDocState((s) => ({ ...s, [kind]: { uploading: false, uploaded: false, error: message } }));
+    }
+  }
 
   async function submit() {
     setSubmitting(true);
@@ -272,7 +339,7 @@ export default function KycPage() {
     try {
       // Validate all steps
       for (let i = 0; i < TOTAL_STEPS - 1; i++) {
-        const v = validateStep(i, form);
+        const v = validateStep(i, form, docFlags);
         if (!v.valid) {
           setStep(i);
           setShowErrors(true);
@@ -517,7 +584,7 @@ export default function KycPage() {
 
           {step === 2 && (
             <Card>
-              <CardContent className="p-5 space-y-4">
+              <CardContent className="p-5 space-y-5">
                 <h2 className="font-semibold flex items-center gap-2"><FileText className="w-4 h-4 text-amber-600 dark:text-amber-400" /> {t('section_document')}</h2>
                 <div className="grid sm:grid-cols-2 gap-4">
                   <Select
@@ -541,7 +608,58 @@ export default function KycPage() {
                     mono
                   />
                 </div>
-                <p className="text-xs text-muted-foreground">{t('doc_upload_note')}</p>
+
+                {/* Doc photo uploads */}
+                <div className="pt-4 mt-2 border-t border-border/60 space-y-4">
+                  <div>
+                    <p className="font-medium text-sm flex items-center gap-2 mb-1">
+                      <Upload className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                      {isEn ? 'Document photos' : 'Foto dokumen'}
+                    </p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      {isEn
+                        ? 'JPEG, PNG, or WebP. Max 8MB each. All photos are encrypted and only accessible by you and authorized reviewers.'
+                        : 'JPEG, PNG, atau WebP. Maks 8MB per file. Semua foto disimpan terenkripsi dan hanya dapat diakses Anda dan tim reviewer.'}
+                    </p>
+                  </div>
+
+                  <UploadField
+                    kind="front"
+                    label={isEn ? `${form.documentType} — front side` : `${form.documentType} — sisi depan`}
+                    hint={isEn ? 'Take a clear photo of the front side. All four corners must be visible.' : 'Foto jelas sisi depan. Pastikan keempat sudut terlihat.'}
+                    state={docState.front}
+                    summary={summary}
+                    onUpload={(file) => uploadDoc('front', file)}
+                    showError={showErrors ? stepValidation.errors.docFront : undefined}
+                    locale={locale}
+                  />
+
+                  {(form.documentType === 'KTP' || form.documentType === 'SIM') && (
+                    <UploadField
+                      kind="back"
+                      label={isEn ? `${form.documentType} — back side` : `${form.documentType} — sisi belakang`}
+                      hint={isEn ? 'Photo of the back side (NIK / address info).' : 'Foto sisi belakang (NIK / info alamat).'}
+                      state={docState.back}
+                      summary={summary}
+                      onUpload={(file) => uploadDoc('back', file)}
+                      showError={showErrors ? stepValidation.errors.docBack : undefined}
+                      locale={locale}
+                    />
+                  )}
+
+                  <UploadField
+                    kind="selfie"
+                    label={isEn ? 'Selfie holding the document' : 'Selfie sambil memegang dokumen'}
+                    hint={isEn
+                      ? 'Hold your document next to your face. Face and document number must both be readable.'
+                      : 'Pegang dokumen di samping wajah. Wajah dan nomor dokumen harus terbaca.'}
+                    state={docState.selfie}
+                    summary={summary}
+                    onUpload={(file) => uploadDoc('selfie', file)}
+                    showError={showErrors ? stepValidation.errors.docSelfie : undefined}
+                    locale={locale}
+                  />
+                </div>
               </CardContent>
             </Card>
           )}
@@ -753,6 +871,117 @@ function Field({
       ) : hint ? (
         <p className="text-xs text-muted-foreground mt-1">{hint}</p>
       ) : null}
+    </div>
+  );
+}
+
+function UploadField({
+  kind, label, hint, state, summary, onUpload, showError, locale,
+}: {
+  kind: DocKind;
+  label: string;
+  hint: string;
+  state: DocUploadState;
+  summary: KycSummary | null;
+  onUpload: (file: File) => Promise<void>;
+  showError?: string;
+  locale: Locale;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const isEn = locale === 'en';
+  const previewSrc = state.uploaded && summary?.docVersion
+    ? `/api/kyc/document?kind=${kind}&v=${encodeURIComponent(summary.docVersion)}`
+    : null;
+
+  function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    void onUpload(file);
+    // Reset input so user bisa re-upload file dengan nama sama
+    e.target.value = '';
+  }
+
+  const showErr = showError ?? state.error;
+
+  return (
+    <div className="rounded-md border border-input bg-background/50 p-4">
+      <div className="flex items-start gap-4">
+        {/* Preview thumbnail */}
+        <div className="shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded border border-border/60 bg-muted/40 overflow-hidden flex items-center justify-center relative">
+          {previewSrc ? (
+            // Use unoptimized untuk authenticated stream — Image optimizer
+            // fetch tidak include cookie, jadi sub-request akan 401.
+            <Image
+              src={previewSrc}
+              alt={label}
+              fill
+              unoptimized
+              className="object-cover"
+              sizes="96px"
+            />
+          ) : kind === 'selfie' ? (
+            <Camera className="w-8 h-8 text-muted-foreground/40" />
+          ) : (
+            <FileText className="w-8 h-8 text-muted-foreground/40" />
+          )}
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium">{label}</p>
+          <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{hint}</p>
+
+          <div className="mt-3 flex items-center gap-2 flex-wrap">
+            <input
+              ref={inputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              capture={kind === 'selfie' ? 'user' : undefined}
+              onChange={handleFile}
+              className="hidden"
+            />
+            <Button
+              type="button"
+              variant={state.uploaded ? 'outline' : 'default'}
+              size="sm"
+              onClick={() => inputRef.current?.click()}
+              disabled={state.uploading}
+            >
+              {state.uploading ? (
+                <><Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> {isEn ? 'Uploading…' : 'Mengupload…'}</>
+              ) : state.uploaded ? (
+                <><CheckCircle2 className="w-4 h-4 mr-1.5 text-emerald-600 dark:text-emerald-400" /> {isEn ? 'Replace' : 'Ganti foto'}</>
+              ) : (
+                <><Upload className="w-4 h-4 mr-1.5" /> {isEn ? 'Choose file' : 'Pilih file'}</>
+              )}
+            </Button>
+            {state.uploaded && (
+              <span className="text-xs text-emerald-600 dark:text-emerald-400 inline-flex items-center gap-1">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                {isEn ? 'Uploaded' : 'Terupload'}
+              </span>
+            )}
+          </div>
+
+          {showErr && (
+            <p className="text-xs text-rose-600 dark:text-rose-400 mt-2 flex items-center gap-1">
+              <AlertCircle className="w-3 h-3 shrink-0" />
+              <span className="break-words">{showErr}</span>
+            </p>
+          )}
+        </div>
+
+        {state.uploaded && (
+          <button
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            className="shrink-0 p-1.5 rounded text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+            aria-label={isEn ? 'Replace photo' : 'Ganti foto'}
+            title={isEn ? 'Replace photo' : 'Ganti foto'}
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        )}
+      </div>
     </div>
   );
 }

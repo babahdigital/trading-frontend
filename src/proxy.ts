@@ -11,6 +11,9 @@ const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 // di-redirect ke /login. Kita whitelist `/admin/login` eksplisit di sini
 // supaya operator bisa akses operator console login tanpa session.
 const publicPaths = ['/login', '/admin/login', '/forgot-password', '/reset-password', '/api/auth/login', '/api/auth/register', '/api/auth/refresh', '/api/auth/forgot-password', '/api/auth/reset-password', '/api/auth/verify-email', '/api/auth/ws-token', '/api/health', '/api/public/', '/api/client/inquiries', '/api/chat', '/api/cron/', '/api/billing/webhook/', '/api/license/check', '/api/notifications/push/', '/api/analytics/track', '/manifest.json', '/sw.js',
+  // /api/cms/* — public read-only endpoints (pricing tiers, active promotions).
+  // Admin write endpoints di /api/admin/cms/* tetap require admin role.
+  '/api/cms/',
   // Admin smoke test endpoints — pakai own Bearer CRON_SECRET auth di route handler,
   // tidak butuh JWT admin session. Bypass middleware JWT check.
   '/api/admin/sentry-test', '/api/admin/fonnte-test', '/api/admin/brevo-test',

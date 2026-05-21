@@ -36,6 +36,7 @@ import { AuthProvider, useAuth } from '@/lib/auth/auth-context';
 import { KillSwitchBanner } from '@/components/portal/kill-switch-banner';
 import { NotificationBellCount } from '@/components/portal/notification-bell-count';
 import { KycAdvisoryBanner } from '@/components/portal/kyc-advisory-banner';
+import { NotificationDispatcher } from '@/components/portal/notification-dispatcher';
 
 interface NavItem {
   href: string;
@@ -174,6 +175,9 @@ function PortalLayoutInner({ children }: { children: React.ReactNode }) {
           {children}
         </div>
       </main>
+      {/* No-render dispatcher — subscribes ke notification log + push toast
+          + auto mark-read. Mount sekali per portal session. */}
+      <NotificationDispatcher />
     </div>
   );
 }

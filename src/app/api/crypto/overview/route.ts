@@ -23,10 +23,15 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    // Scope 'keys' per backend rc24+ audit P1 fix (dashboard endpoint
+    // require RequireKeys, bukan RequireSignals/Trades).
+    // tenantId explicit = Binance-side tenant id (cryptoTenantId), beda
+    // dari gate.userId (FE customer id). Backend pakai untuk RLS gate.
     const res = await proxyToCryptoBackend({
-      scope: 'trades',
+      scope: 'keys',
       path: `/api/tenants/${encodeURIComponent(tenantId)}/overview`,
       forwardUserId: gate.userId,
+      tenantId,
     });
     if (!res.ok) {
       log.warn(`Overview backend HTTP ${res.status}`);

@@ -1,9 +1,15 @@
 /**
  * useUnreadNotifications — polling hook untuk count notifikasi unread.
  *
- * Source: /api/client/notifications/recent (limit=50). Filter items dengan
- * `read_at` null = unread. Poll setiap 60s; pause saat tab hidden untuk
- * hemat battery + backend load.
+ * Source dual-path:
+ *   1. Crypto rc26: /api/crypto/notifications/log returns items dengan
+ *      proper `read_at` field. Filter `read_at == null` = real unread.
+ *   2. Forex outbound_log: /api/client/notifications/recent — backend
+ *      forex sudah punya read_at field per audit 2026-05-21.
+ *
+ * Phase 1 (sesi ini): pakai /api/client/notifications/recent yang merge
+ * forex sources. Bila backend forex outbound_log juga return read_at,
+ * filter benar-benar unread.
  *
  * Returns:
  *   { count, loading, error }
@@ -11,12 +17,6 @@
  * Usage:
  *   const { count } = useUnreadNotifications();
  *   {count > 0 && <BadgeCount n={count} />}
- *
- * Backend response shape (lihat /api/client/notifications/recent/route.ts):
- *   { source, items: BackendNotification[], count, next_cursor }
- * BackendNotification tidak punya `read_at` field standard, jadi sementara
- * count semua items recent (last 50) yang occurred dalam 7 hari terakhir.
- * Phase 2: backend add /read endpoint + read_at column → benar-benar unread.
  */
 'use client';
 
@@ -24,7 +24,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useAuth } from '@/lib/auth/auth-context';
 
 const POLL_INTERVAL_MS = 60_000;
-const RECENT_WINDOW_MS = 7 * 24 * 60 * 60 * 1000; // 7 hari
+const RECENT_WINDOW_MS = 7 * 24 * 60 * 60 * 1000; // 7 hari (fallback bila read_at tidak ada)
 
 interface UseUnreadNotificationsResult {
   count: number;
@@ -63,18 +63,17 @@ export function useUnreadNotifications(): UseUnreadNotificationsResult {
           }
           throw new Error(`HTTP ${res.status}`);
         }
-        const data = (await res.json()) as { items?: Array<{ occurred_at?: string; read_at?: string | null }> };
+        const data = (await res.json()) as { items?: Array<{ occurred_at?: string; created_at?: string; read_at?: string | null }> };
         const items = data.items ?? [];
         const now = Date.now();
-        // Filter recent (7d) yang belum dibaca. Backend belum tracking read_at,
-        // jadi semua items dalam 7d = "unread" sementara. Saat backend siap,
-        // tambah filter `r.read_at == null`.
+        // Filter unread: prefer real `read_at` field (backend rc26+ + forex).
+        // Fallback ke recent-7d window kalau read_at tidak ada (legacy items).
         const unread = items.filter((i) => {
-          if (!i.occurred_at) return false;
-          const age = now - new Date(i.occurred_at).getTime();
-          if (age > RECENT_WINDOW_MS) return false;
-          if (i.read_at) return false;
-          return true;
+          if (i.read_at) return false; // sudah dibaca explicit
+          const ts = i.occurred_at ?? i.created_at;
+          if (!ts) return true; // tanpa timestamp = anggap unread
+          const age = now - new Date(ts).getTime();
+          return age <= RECENT_WINDOW_MS;
         });
         if (isMounted.current) {
           setCount(unread.length);

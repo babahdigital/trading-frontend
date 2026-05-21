@@ -1,32 +1,25 @@
 /**
- * useNotificationLog — polling hook untuk backend crypto notification_event_log.
+ * useNotificationLog — polling hook untuk backend crypto notification_event_log
+ * (rc26+).
  *
- * Backend rc25+ source: /api/tenants/{id}/notifications/log dengan since_id
- * cursor. FE poll setiap 5s (atau jika has_more=true, langsung re-poll
- * tanpa delay untuk drain backlog).
+ * Backend rc26 fields per item:
+ *   - id (bigint cursor)
+ *   - event_type (string)
+ *   - severity ('info'|'warning'|'critical')
+ *   - message (pre-rendered locale-aware)
+ *   - subject (optional, email title)
+ *   - payload (raw data — symbol/side/price etc.)
+ *   - channel_hint (CSV: "telegram,whatsapp,email" / "in_app")
+ *   - locale ('id'|'en') — auto-fetched dari tenant.notification_lang
+ *   - idempotency_key (string)
+ *   - read_at (ISO timestamp atau null = unread)
+ *   - created_at (ISO timestamp)
  *
- * Cursor persisted di localStorage `babah.notif.last_id.v1` — cross-tab
- * shared, survive refresh. Reset cursor bila user logout (cleanup) via
- * resetNotificationCursor() helper.
+ * Polling 5s. Drain mode 100ms saat has_more=true. Pause saat tab hidden.
+ * Cursor persisted di localStorage `babah.notif.last_id.v1`.
  *
- * Event types yang FE handle (sample):
- *   - position.opened (info) — entry trade
- *   - position.reconcile_close (warning) — exit trade
- *   - position.reconcile_tighten (info) — SL ratchet
- *   - kill_switch.activated (critical) — emergency stop
- *   - risk.daily_loss_cap (critical) — daily cap hit
- *   - tenant.auto_paused (critical) — balance guard trip
- *   - tenant.resumed (info) — admin resume
- *   - signal.advisor_rejected (info) — AI veto signal
- *
- * Severity drives FE UI:
- *   - info → Telegram only (backend), no FE toast
- *   - warning → Telegram + WA + yellow toast
- *   - critical → Telegram + WA + Email + red toast modal
- *
- * Phase 1 (sesi ini): hook returns events; FE caller decide rendering.
- * Phase 2: dispatcher component yang auto-render toast + trigger channel
- *          adapter (Fonnte WhatsApp, Brevo Email) berdasarkan user prefs.
+ * Mark-as-read via POST /api/crypto/notifications/log/{id}/read (idempotent,
+ * backend preserve first read_at).
  */
 'use client';
 
@@ -34,17 +27,24 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 
 const CURSOR_STORAGE_KEY = 'babah.notif.last_id.v1';
 const POLL_INTERVAL_MS = 5_000;
-const FAST_POLL_INTERVAL_MS = 100; // saat has_more=true, drain cepat
+const FAST_POLL_INTERVAL_MS = 100;
 
 export type NotificationSeverity = 'info' | 'warning' | 'critical';
+export type NotificationChannel = 'in_app' | 'telegram' | 'whatsapp' | 'email';
 
 export interface NotificationLogItem {
   id: number;
   event_type: string;
   severity: NotificationSeverity;
   message: string;
-  payload?: Record<string, unknown>;
   subject?: string;
+  payload?: Record<string, unknown>;
+  /** CSV: "telegram,whatsapp,email" atau "in_app". Default critical → all,
+   *  warning → telegram,whatsapp,in_app, info → in_app. */
+  channel_hint?: string;
+  locale?: 'id' | 'en';
+  idempotency_key?: string;
+  read_at?: string | null;
   created_at: string;
 }
 
@@ -54,6 +54,7 @@ interface UseNotificationLogResult {
   error: string | null;
   lastId: number;
   reset: () => void;
+  markAsRead: (id: number) => Promise<void>;
 }
 
 function loadCursor(): number {
@@ -71,7 +72,7 @@ function saveCursor(id: number): void {
   try {
     localStorage.setItem(CURSOR_STORAGE_KEY, String(id));
   } catch {
-    // localStorage disabled — non-fatal
+    /* localStorage disabled */
   }
 }
 
@@ -82,6 +83,21 @@ export function resetNotificationCursor(): void {
   } catch {
     /* ignore */
   }
+}
+
+export function parseChannelHint(hint: string | undefined, severity: NotificationSeverity): NotificationChannel[] {
+  if (!hint) {
+    // Fallback per severity bila backend tidak provide hint
+    if (severity === 'critical') return ['telegram', 'whatsapp', 'email', 'in_app'];
+    if (severity === 'warning') return ['telegram', 'whatsapp', 'in_app'];
+    return ['in_app'];
+  }
+  return hint
+    .split(',')
+    .map((s) => s.trim().toLowerCase())
+    .filter((s): s is NotificationChannel =>
+      s === 'in_app' || s === 'telegram' || s === 'whatsapp' || s === 'email',
+    );
 }
 
 export function useNotificationLog(): UseNotificationLogResult {
@@ -116,7 +132,8 @@ export function useNotificationLog(): UseNotificationLogResult {
       };
       if (!isMounted.current) return { hasMore: false };
       if (data.items.length > 0) {
-        setEvents((prev) => [...data.items, ...prev].slice(0, 200)); // cap buffer 200
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setEvents((prev) => [...data.items, ...prev].slice(0, 200));
         const newCursor = data.next_since_id ?? data.items[data.items.length - 1].id;
         setLastId(newCursor);
         lastIdRef.current = newCursor;
@@ -135,6 +152,22 @@ export function useNotificationLog(): UseNotificationLogResult {
     }
   }, []);
 
+  const markAsRead = useCallback(async (id: number): Promise<void> => {
+    // Optimistic update — set read_at locally immediately, backend fire-forget.
+    setEvents((prev) =>
+      prev.map((e) => (e.id === id ? { ...e, read_at: e.read_at ?? new Date().toISOString() } : e)),
+    );
+    try {
+      await fetch(`/api/crypto/notifications/log/${id}/read`, {
+        method: 'POST',
+        credentials: 'same-origin',
+      });
+      // Backend response idempotent — no need to update state again.
+    } catch {
+      // Network glitch — leave optimistic state. Next poll will reconcile.
+    }
+  }, []);
+
   useEffect(() => {
     isMounted.current = true;
     const ctrl = new AbortController();
@@ -142,14 +175,12 @@ export function useNotificationLog(): UseNotificationLogResult {
 
     const loop = async () => {
       while (isMounted.current && !ctrl.signal.aborted) {
-        // Skip kalau tab hidden — hemat backend load + battery
         if (typeof document !== 'undefined' && document.visibilityState !== 'visible') {
           await new Promise((r) => { timer = setTimeout(r, POLL_INTERVAL_MS); });
           continue;
         }
         const { hasMore } = await pollOnce(ctrl.signal);
         if (ctrl.signal.aborted) break;
-        // Drain mode: backlog ada → poll cepat. Normal: 5s interval.
         const wait = hasMore ? FAST_POLL_INTERVAL_MS : POLL_INTERVAL_MS;
         await new Promise((r) => { timer = setTimeout(r, wait); });
       }
@@ -184,5 +215,5 @@ export function useNotificationLog(): UseNotificationLogResult {
     setEvents([]);
   }, []);
 
-  return { events, loading, error, lastId, reset };
+  return { events, loading, error, lastId, reset, markAsRead };
 }

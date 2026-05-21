@@ -50,10 +50,161 @@ const SIGNAL_TIER_META: Array<{ slug: 't1' | 't2' | 't3'; name: string; priceKey
   { slug: 't3', name: 'Tier 3 · All-In', priceKey: 'signal_vip', cta: '/register?service=signal&tier=all' },
 ];
 
-const CRYPTO_TIER_META: Array<{ slug: 't1' | 't2' | 't3'; name: string; priceKey: PriceKey; periodKey: 'crypto_period_t1' | 'crypto_period_t2' | 'crypto_period_t3'; cta: string; popular?: boolean }> = [
-  { slug: 't1', name: 'Tier Basic', priceKey: 'crypto_basic', periodKey: 'crypto_period_t1', cta: '/register?service=crypto&tier=basic' },
-  { slug: 't2', name: 'Tier Pro', priceKey: 'crypto_pro', periodKey: 'crypto_period_t2', popular: true, cta: '/register?service=crypto&tier=pro' },
-  { slug: 't3', name: 'Tier HNWI', priceKey: 'crypto_hnwi', periodKey: 'crypto_period_t3', cta: '/contact?subject=crypto-hnwi' },
+// Crypto tier meta — rc29 (2026-05-21): 5-tier dengan equity bracket +
+// slot + leverage + risk per tier. Onboarding wizard auto-recommend tier
+// berdasarkan deposit (<$500 → free_demo, <$1.5K → starter, etc.).
+interface CryptoTierSpec {
+  slug: 'demo' | 'starter' | 'active' | 'pro' | 'hnwi';
+  name: { id: string; en: string };
+  priceKey: PriceKey;
+  modalMin: { id: string; en: string };
+  slot: number;
+  leverage: string;
+  riskPerTrade: string;
+  notionalCap: string;
+  cta: string;
+  popular?: boolean;
+  /** Features array — bilingual, max 5 untuk fit card */
+  features: { id: string[]; en: string[] };
+}
+
+const CRYPTO_TIERS: CryptoTierSpec[] = [
+  {
+    slug: 'demo',
+    name: { id: 'Demo Free', en: 'Demo Free' },
+    priceKey: 'crypto_demo',
+    modalMin: { id: 'Demo $5.000', en: 'Demo $5,000' },
+    slot: 1,
+    leverage: '2x',
+    riskPerTrade: '0.5%',
+    notionalCap: '30%',
+    cta: '/register?service=crypto&tier=demo',
+    features: {
+      id: [
+        'Trial 30 hari dengan demo wallet $5.000 USDT',
+        '1 posisi simultan, leverage maks 2x',
+        'Strategi spot DCA Trend (paling konservatif)',
+        'Telegram alert sinyal real-time',
+        'Tanpa kartu kredit — auto-stop hari ke-30',
+      ],
+      en: [
+        '30-day trial with $5,000 USDT demo wallet',
+        '1 concurrent slot, max 2x leverage',
+        'Spot DCA Trend strategy (most conservative)',
+        'Real-time Telegram signal alerts',
+        'No credit card — auto-stop on day 30',
+      ],
+    },
+  },
+  {
+    slug: 'starter',
+    name: { id: 'Starter', en: 'Starter' },
+    priceKey: 'crypto_starter',
+    modalMin: { id: 'Modal ≥ $500', en: 'Min ≥ $500' },
+    slot: 2,
+    leverage: '3x',
+    riskPerTrade: '1.0%',
+    notionalCap: '40%',
+    cta: '/register?service=crypto&tier=starter',
+    features: {
+      id: [
+        '2 posisi simultan · leverage 3x maks',
+        'Strategi: Spot DCA Trend',
+        'Risk per trade 1.0% · notional cap 40%',
+        'Kill-switch otomatis (loss harian)',
+        'Sweet spot: modal $1.000-1.500',
+      ],
+      en: [
+        '2 concurrent slots · max 3x leverage',
+        'Strategy: Spot DCA Trend',
+        '1.0% risk per trade · 40% notional cap',
+        'Automatic kill-switch (daily loss)',
+        'Sweet spot: $1,000-1,500 capital',
+      ],
+    },
+  },
+  {
+    slug: 'active',
+    name: { id: 'Active', en: 'Active' },
+    priceKey: 'crypto_active',
+    modalMin: { id: 'Modal ≥ $1.500', en: 'Min ≥ $1,500' },
+    slot: 3,
+    leverage: '7x',
+    riskPerTrade: '1.25%',
+    notionalCap: '55%',
+    cta: '/register?service=crypto&tier=active',
+    features: {
+      id: [
+        '3 posisi simultan · leverage 7x maks',
+        'Strategi: Spot DCA + Spot Swing Trend',
+        'Risk per trade 1.25% · notional cap 55%',
+        'Multi-stage kill-switch',
+        'Sweet spot: modal $2.500',
+      ],
+      en: [
+        '3 concurrent slots · max 7x leverage',
+        'Strategies: Spot DCA + Spot Swing Trend',
+        '1.25% risk per trade · 55% notional cap',
+        'Multi-stage kill-switch',
+        'Sweet spot: $2,500 capital',
+      ],
+    },
+  },
+  {
+    slug: 'pro',
+    name: { id: 'Pro', en: 'Pro' },
+    priceKey: 'crypto_pro',
+    modalMin: { id: 'Modal ≥ $5.000', en: 'Min ≥ $5,000' },
+    slot: 5,
+    leverage: '12x',
+    riskPerTrade: '1.5%',
+    notionalCap: '60%',
+    cta: '/register?service=crypto&tier=pro',
+    popular: true,
+    features: {
+      id: [
+        '5 posisi simultan · leverage 12x maks',
+        'Semua strategi: Smart Money + Spot DCA + Spot Swing',
+        'Risk per trade 1.5% · notional cap 60%',
+        'Full reconciliation engine + audit trail',
+        'Sweet spot: modal $10.000 (fee 0.5%/profit)',
+      ],
+      en: [
+        '5 concurrent slots · max 12x leverage',
+        'All strategies: Smart Money + Spot DCA + Spot Swing',
+        '1.5% risk per trade · 60% notional cap',
+        'Full reconciliation engine + audit trail',
+        'Sweet spot: $10,000 capital (0.5%/profit fee)',
+      ],
+    },
+  },
+  {
+    slug: 'hnwi',
+    name: { id: 'HNWI', en: 'HNWI' },
+    priceKey: 'crypto_hnwi',
+    modalMin: { id: 'Modal ≥ $25.000', en: 'Min ≥ $25,000' },
+    slot: 7,
+    leverage: '20x',
+    riskPerTrade: '2.0%',
+    notionalCap: '75%',
+    cta: '/contact?subject=crypto-hnwi',
+    features: {
+      id: [
+        '7 posisi simultan · leverage 20x maks',
+        'Semua strategi + custom override leverage/risk',
+        'Risk per trade 2.0% · notional cap 75%',
+        'Dedicated account manager + priority support',
+        'Sweet spot: modal $50.000 (fee 0.4%/profit)',
+      ],
+      en: [
+        '7 concurrent slots · max 20x leverage',
+        'All strategies + custom leverage/risk override',
+        '2.0% risk per trade · 75% notional cap',
+        'Dedicated account manager + priority support',
+        'Sweet spot: $50,000 capital (0.4%/profit fee)',
+      ],
+    },
+  },
 ];
 
 // 2026-05-18 — realigned to canonical 3-tier (License Only / Hybrid / Turnkey).
@@ -103,13 +254,19 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
     cta: m.cta,
     popular: m.popular,
   }));
-  const cryptoTiers = CRYPTO_TIER_META.map((m) => ({
-    name: m.name,
-    price: formatPrice(m.priceKey, localeKey, { compact: false }),
-    period: tp(m.periodKey),
-    features: tp.raw(`crypto_${m.slug}_features`) as string[],
-    cta: m.cta,
-    popular: m.popular,
+  // Crypto tiers — rc29 5-tier dengan modal recommendation + slot + leverage
+  // metadata. Features bilingual inline (bukan i18n key) supaya cepat
+  // maintain seiring backend tier policy update.
+  const cryptoTiers = CRYPTO_TIERS.map((t) => ({
+    name: t.name[localeKey],
+    price: formatPrice(t.priceKey, localeKey, { compact: false }),
+    period: t.priceKey === 'crypto_demo'
+      ? (localeKey === 'id' ? '30 hari trial' : '30-day trial')
+      : (localeKey === 'id' ? '/bulan' : '/mo'),
+    features: t.features[localeKey],
+    cta: t.cta,
+    popular: t.popular,
+    sub: `${t.modalMin[localeKey]} · ${t.slot} slot · ${t.leverage}`,
   }));
   const vpsTiers = VPS_TIER_META.map((m) => ({
     name: m.name,
@@ -182,7 +339,7 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
         {/* Capability ladder — sourced from /v1/capabilities backend */}
         <CapabilityLadder />
 
-        {/* Robot Crypto — Binance auto-trading */}
+        {/* Robot Crypto — Binance auto-trading (5-tier rc29) */}
         <ProductSection
           eyebrow={tp('crypto_eyebrow')}
           icon={Bitcoin}
@@ -191,6 +348,7 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
           tiers={cryptoTiers}
           popularLabel={tp('popular_badge')}
           selectLabel={(name) => tp('select_tier', { name })}
+          gridCols={5}
         />
 
         {/* VPS License */}
@@ -312,6 +470,8 @@ interface PricingTier {
   features: string[];
   cta: string;
   popular?: boolean;
+  /** Optional sub-text under name (e.g. "Modal ≥ $500 · 2 slot · 3x") */
+  sub?: string;
 }
 
 function ProductSection({
@@ -322,6 +482,7 @@ function ProductSection({
   tiers,
   popularLabel,
   selectLabel,
+  gridCols = 3,
 }: {
   eyebrow: string;
   icon: React.ComponentType<{ className?: string }>;
@@ -330,7 +491,13 @@ function ProductSection({
   tiers: PricingTier[];
   popularLabel: string;
   selectLabel: (name: string) => string;
+  /** Card grid columns at lg breakpoint (default 3, 5 for crypto rc29). */
+  gridCols?: 3 | 5;
 }) {
+  // Grid responsive: 1 col mobile, 2 col sm, 3 col md, fullCols at lg+.
+  const gridClass = gridCols === 5
+    ? 'grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-5'
+    : 'grid md:grid-cols-3 gap-5 sm:gap-6';
   return (
     <section className="section-padding border-b border-border/60">
       <div className="layout-container">
@@ -340,7 +507,7 @@ function ProductSection({
         </div>
         <h2 className="t-display-section mb-3 max-w-xl sm:max-w-2xl">{title}</h2>
         <p className="t-body text-foreground/60 max-w-xl sm:max-w-2xl mb-8 sm:mb-12">{subtitle}</p>
-        <div className="grid md:grid-cols-3 gap-5 sm:gap-6">
+        <div className={gridClass}>
           {tiers.map((tier) => (
             <div
               key={tier.name}
@@ -352,9 +519,12 @@ function ProductSection({
                 </span>
               )}
               <h3 className="text-xl font-semibold mb-1">{tier.name}</h3>
+              {tier.sub ? (
+                <p className="text-[11px] text-muted-foreground font-mono uppercase tracking-wider mb-2">{tier.sub}</p>
+              ) : null}
               <div className="flex items-baseline flex-wrap gap-x-1.5 gap-y-0.5 mb-1 min-w-0">
-                <span className="text-2xl sm:text-3xl lg:text-4xl font-bold break-words">{tier.price}</span>
-                <span className="text-sm text-foreground/50">{tier.period}</span>
+                <span className={`font-bold break-words ${gridCols === 5 ? 'text-2xl sm:text-3xl' : 'text-2xl sm:text-3xl lg:text-4xl'}`}>{tier.price}</span>
+                <span className="text-xs sm:text-sm text-foreground/50">{tier.period}</span>
               </div>
               <div className="h-px bg-border/40 my-5" />
               <ul className="space-y-2.5 flex-1 mb-6">
@@ -381,7 +551,7 @@ function ProductSection({
 function FeatureItem({ children }: { children: React.ReactNode }) {
   return (
     <li className="flex items-start gap-2.5 text-sm text-foreground/70">
-      <Check className="h-4 w-4 text-green-400 shrink-0 mt-0.5" />
+      <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
       <span>{children}</span>
     </li>
   );

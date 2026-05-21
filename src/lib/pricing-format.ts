@@ -25,10 +25,20 @@ export const PRICE_TABLE = {
   signal_pro: { usd: 79, idr: 1_290_000 },
   signal_vip: { usd: 299, idr: 4_900_000 },
 
-  // Crypto tiers
-  crypto_basic: { usd: 49, idr: 799_000 },
-  crypto_pro: { usd: 199, idr: 3_290_000 },
-  crypto_hnwi: { usd: 499, idr: 8_200_000 },
+  // Crypto tiers — rc29 (2026-05-21):
+  // 5-tier dengan equity bracket + slot + leverage + risk per tier.
+  // Math break-even: 5% monthly avg profit @ tier sweet spot = fee ≤ 18%.
+  // Modal recommended: free_demo $0 (demo $5K) / starter ≥$500 / active
+  // ≥$1.5K / pro ≥$5K (sweet @$10K) / hnwi ≥$25K (sweet @$50K).
+  // Klien $100 → block ke free_demo only (fee $9 = 180% profit, churn).
+  crypto_demo:    { usd: 0,   idr: 0 },        // FREE 30 hari, demo wallet $5K
+  crypto_starter: { usd: 9,   idr: 149_000 },  // 2 slot, 3x lev, 1.0% risk
+  crypto_active:  { usd: 19,  idr: 299_000 },  // 3 slot, 7x lev, 1.25% risk
+  crypto_pro:     { usd: 49,  idr: 799_000 },  // 5 slot, 12x lev, 1.5% risk
+  crypto_hnwi:    { usd: 199, idr: 3_290_000 }, // 7 slot, 20x lev, 2.0% risk
+  // Legacy aliases — kept for backward compat sampai semua surface migrate
+  // ke 5-tier rc29. crypto_basic = lama $49 (sekarang map ke crypto_pro).
+  crypto_basic:   { usd: 49,  idr: 799_000 },
 
   // VPS License — 3 tier mapping ke 3 model arsitektur (License-Only / Hybrid /
   // Full Turnkey). Recalibrate 2026-05-15 berdasarkan riset VPS market:

@@ -1016,9 +1016,11 @@ model AiCallLog {
 // ─────────────────────────────────────────────────────────────────────
 
 enum CryptoSubscriptionTier {
-  CRYPTO_BASIC
-  CRYPTO_PRO
-  CRYPTO_HNWI
+  CRYPTO_BASIC      // legacy alias (pre-rc29) — preserved untuk backward compat
+  CRYPTO_STARTER    // rc29: $9/mo, 2 slot, 3x lev
+  CRYPTO_ACTIVE     // rc29: $19/mo, 3 slot, 7x lev
+  CRYPTO_PRO        // rc29: $49/mo, 5 slot, 12x lev
+  CRYPTO_HNWI       // rc29: $199/mo, 7 slot, 20x lev
 }
 
 enum CryptoSubscriptionStatus {

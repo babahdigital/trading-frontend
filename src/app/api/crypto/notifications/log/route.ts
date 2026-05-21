@@ -18,6 +18,7 @@ export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { proxyToCryptoBackend, cryptoBackendConfigured } from '@/lib/proxy/crypto-client';
+import { prisma } from '@/lib/db/prisma';
 
 export async function GET(request: NextRequest) {
   const userId = request.headers.get('x-user-id');
@@ -33,6 +34,22 @@ export async function GET(request: NextRequest) {
     });
   }
 
+  // Resolve cryptoTenantId — backend rc37 path-scoped tenant validation.
+  // Tanpa subscription crypto, tidak ada notif crypto-side untuk poll.
+  const sub = await prisma.cryptoBotSubscription.findUnique({
+    where: { userId },
+    select: { cryptoTenantId: true },
+  });
+  if (!sub?.cryptoTenantId) {
+    return NextResponse.json({
+      items: [],
+      next_since_id: 0,
+      has_more: false,
+      source: 'no_subscription',
+    });
+  }
+  const tenantId = sub.cryptoTenantId;
+
   // Forward query params apa adanya (since_id, limit, event_type filter, severity).
   const params = new URLSearchParams();
   const sinceId = request.nextUrl.searchParams.get('since_id');
@@ -46,7 +63,7 @@ export async function GET(request: NextRequest) {
 
   const res = await proxyToCryptoBackend({
     scope: 'keys',
-    path: `/api/tenants/${encodeURIComponent(userId)}/notifications/log?${params}`,
+    path: `/api/tenants/${encodeURIComponent(tenantId)}/notifications/log?${params}`,
     method: 'GET',
     forwardUserId: userId,
     tenantId: userId,

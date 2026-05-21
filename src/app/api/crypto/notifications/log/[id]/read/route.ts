@@ -11,6 +11,7 @@ export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { proxyToCryptoBackend, cryptoBackendConfigured } from '@/lib/proxy/crypto-client';
+import { prisma } from '@/lib/db/prisma';
 
 export async function POST(
   request: NextRequest,
@@ -28,12 +29,22 @@ export async function POST(
     return NextResponse.json({ ok: true, source: 'unconfigured' }, { status: 200 });
   }
 
+  // Resolve cryptoTenantId — backend rc37 require path-scoped tenant
+  const sub = await prisma.cryptoBotSubscription.findUnique({
+    where: { userId },
+    select: { cryptoTenantId: true },
+  });
+  if (!sub?.cryptoTenantId) {
+    return NextResponse.json({ ok: true, source: 'no_subscription' }, { status: 200 });
+  }
+  const tenantId = sub.cryptoTenantId;
+
   const res = await proxyToCryptoBackend({
     scope: 'keys',
-    path: `/api/tenants/${encodeURIComponent(userId)}/notifications/log/${encodeURIComponent(logId)}/read`,
+    path: `/api/tenants/${encodeURIComponent(tenantId)}/notifications/log/${encodeURIComponent(logId)}/read`,
     method: 'POST',
     forwardUserId: userId,
-    tenantId: userId,
+    tenantId,
     timeoutMs: 5_000,
   });
 

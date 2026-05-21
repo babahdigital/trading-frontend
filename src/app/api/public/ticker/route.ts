@@ -29,24 +29,49 @@ const log = createLogger('api/public/ticker');
 interface Ticker {
   symbol: string;
   label: string;
-  group: 'crypto' | 'commodity' | 'forex';
+  group: 'crypto' | 'commodity' | 'forex' | 'index';
   last: number;
   change24hPct: number;
   currency: 'USD';
 }
 
+// Expanded ticker universe — Pak Abdullah directive 2026-05-21 "tambahkan lagi
+// terlalu sedikit perkaya lagi". 8 → 24 symbols mencakup:
+//   - Commodity (5): Gold, Silver, Oil, NatGas, Copper
+//   - Forex major (8): EUR, GBP, JPY, AUD, CAD, CHF, NZD, USDIDR (Indonesia)
+//   - Crypto major (8): BTC, ETH, XRP, SOL, BNB, ADA, DOGE, AVAX
+//   - Index (3): SPX, NASDAQ, JKSE (Indonesia Composite)
 const CRYPTO_MAP: Array<{ id: string; symbol: string; label: string }> = [
-  { id: 'bitcoin',  symbol: 'BTCUSDT', label: 'BTC' },
-  { id: 'ethereum', symbol: 'ETHUSDT', label: 'ETH' },
-  { id: 'ripple',   symbol: 'XRPUSDT', label: 'XRP' },
-  { id: 'solana',   symbol: 'SOLUSDT', label: 'SOL' },
+  { id: 'bitcoin',      symbol: 'BTCUSDT', label: 'BTC' },
+  { id: 'ethereum',     symbol: 'ETHUSDT', label: 'ETH' },
+  { id: 'ripple',       symbol: 'XRPUSDT', label: 'XRP' },
+  { id: 'solana',       symbol: 'SOLUSDT', label: 'SOL' },
+  { id: 'binancecoin',  symbol: 'BNBUSDT', label: 'BNB' },
+  { id: 'cardano',      symbol: 'ADAUSDT', label: 'ADA' },
+  { id: 'dogecoin',     symbol: 'DOGEUSDT', label: 'DOGE' },
+  { id: 'avalanche-2',  symbol: 'AVAXUSDT', label: 'AVAX' },
 ];
 
-const YAHOO_MAP: Array<{ ticker: string; symbol: string; label: string; group: 'commodity' | 'forex' }> = [
-  { ticker: 'GC=F',   symbol: 'XAUUSD',  label: 'XAU',   group: 'commodity' },
-  { ticker: 'CL=F',   symbol: 'USOIL',   label: 'USOIL', group: 'commodity' },
-  { ticker: 'EURUSD=X', symbol: 'EURUSD', label: 'EUR',  group: 'forex' },
-  { ticker: 'DX=F',   symbol: 'DXY',     label: 'DXY',   group: 'forex' },
+const YAHOO_MAP: Array<{ ticker: string; symbol: string; label: string; group: 'commodity' | 'forex' | 'index' }> = [
+  // Commodities
+  { ticker: 'GC=F',      symbol: 'XAUUSD',  label: 'XAU',     group: 'commodity' },
+  { ticker: 'SI=F',      symbol: 'XAGUSD',  label: 'XAG',     group: 'commodity' },
+  { ticker: 'CL=F',      symbol: 'USOIL',   label: 'WTI',     group: 'commodity' },
+  { ticker: 'NG=F',      symbol: 'NATGAS',  label: 'NATGAS',  group: 'commodity' },
+  { ticker: 'HG=F',      symbol: 'COPPER',  label: 'COPPER',  group: 'commodity' },
+  // Forex majors
+  { ticker: 'EURUSD=X',  symbol: 'EURUSD',  label: 'EUR',    group: 'forex' },
+  { ticker: 'GBPUSD=X',  symbol: 'GBPUSD',  label: 'GBP',    group: 'forex' },
+  { ticker: 'USDJPY=X',  symbol: 'USDJPY',  label: 'JPY',    group: 'forex' },
+  { ticker: 'AUDUSD=X',  symbol: 'AUDUSD',  label: 'AUD',    group: 'forex' },
+  { ticker: 'USDCAD=X',  symbol: 'USDCAD',  label: 'CAD',    group: 'forex' },
+  { ticker: 'USDCHF=X',  symbol: 'USDCHF',  label: 'CHF',    group: 'forex' },
+  { ticker: 'USDIDR=X',  symbol: 'USDIDR',  label: 'IDR',    group: 'forex' },
+  { ticker: 'DX=F',      symbol: 'DXY',     label: 'DXY',    group: 'forex' },
+  // Index
+  { ticker: '^GSPC',     symbol: 'SPX',     label: 'S&P500', group: 'index' },
+  { ticker: '^IXIC',     symbol: 'NDX',     label: 'NASDAQ', group: 'index' },
+  { ticker: '^JKSE',     symbol: 'JKSE',    label: 'JKSE',   group: 'index' },
 ];
 
 async function fetchCrypto(): Promise<Ticker[]> {

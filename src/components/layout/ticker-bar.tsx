@@ -25,7 +25,7 @@ import { cn } from '@/lib/utils';
 interface Ticker {
   symbol: string;
   label: string;
-  group: 'crypto' | 'commodity' | 'forex';
+  group: 'crypto' | 'commodity' | 'forex' | 'index';
   last: number;
   change24hPct: number;
   currency: 'USD';
@@ -35,32 +35,55 @@ const GROUP_ICON: Record<Ticker['group'], string> = {
   commodity: '🪙',
   crypto:    '₿',
   forex:     '💱',
+  index:     '📊',
 };
 
 const LABEL_ICON: Record<string, string> = {
+  // Commodities
   XAU: '🥇',
-  USOIL: '🛢️',
+  XAG: '🥈',
+  WTI: '🛢️',
+  NATGAS: '🔥',
+  COPPER: '🟫',
+  // Crypto
   BTC: '₿',
   ETH: 'Ξ',
   XRP: '✕',
   SOL: '◎',
+  BNB: '🟡',
+  ADA: '⚡',
+  DOGE: '🐕',
+  AVAX: '🔺',
+  // Forex
   EUR: '€',
+  GBP: '£',
+  JPY: '¥',
+  AUD: '🇦🇺',
+  CAD: '🇨🇦',
+  CHF: '🇨🇭',
+  IDR: '🇮🇩',
   DXY: '$',
+  // Index
+  'S&P500': '📈',
+  NASDAQ: '💻',
+  JKSE: '🇮🇩',
 };
 
-function formatPrice(n: number, group: Ticker['group']): string {
+function formatPrice(n: number, group: Ticker['group'], symbol: string): string {
+  // USDIDR shown as Rp integer (e.g. 16,250) for Indonesian audience clarity
+  if (symbol === 'USDIDR') {
+    return n.toLocaleString('id-ID', { maximumFractionDigits: 0 });
+  }
   if (group === 'forex') {
-    return n.toFixed(4);
+    // JPY pairs typically 3 decimals (e.g. 154.235), others 4 decimals
+    return symbol === 'USDJPY' ? n.toFixed(3) : n.toFixed(4);
   }
-  if (n >= 1000) {
+  if (group === 'index') {
     return n.toLocaleString('en-US', { maximumFractionDigits: 2 });
   }
-  if (n >= 100) {
-    return n.toLocaleString('en-US', { maximumFractionDigits: 2 });
-  }
-  if (n >= 1) {
-    return n.toLocaleString('en-US', { maximumFractionDigits: 3 });
-  }
+  if (n >= 1000) return n.toLocaleString('en-US', { maximumFractionDigits: 2 });
+  if (n >= 100)  return n.toLocaleString('en-US', { maximumFractionDigits: 2 });
+  if (n >= 1)    return n.toLocaleString('en-US', { maximumFractionDigits: 3 });
   return n.toLocaleString('en-US', { maximumFractionDigits: 6 });
 }
 
@@ -103,46 +126,75 @@ export function TickerBar() {
   // Duplicate tickers untuk seamless marquee loop
   const repeated = [...tickers, ...tickers];
 
+  // Animation duration scales dengan jumlah tickers supaya speed konstan
+  // (~5s per item). 24 items × 5s = 120s loop. Smaller = faster scroll,
+  // bigger = lambat. 5s/item adalah sweet spot — slow enough to read,
+  // fast enough untuk feel live.
+  const animDuration = Math.max(60, tickers.length * 5);
+
   return (
     <div
       className={cn(
-        'relative w-full overflow-hidden border-b border-border/40',
-        'bg-gradient-to-r from-slate-950/95 via-slate-900/95 to-slate-950/95',
+        'relative w-full overflow-hidden border-b border-amber-500/15',
+        'bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950',
         'text-foreground',
       )}
       role="region"
       aria-label="Live market ticker"
     >
-      <div className="ticker-marquee flex whitespace-nowrap py-1.5 will-change-transform">
-        {repeated.map((t, i) => {
-          const isUp = t.change24hPct >= 0;
-          const icon = LABEL_ICON[t.label] ?? GROUP_ICON[t.group];
-          return (
-            <div
-              key={`${t.symbol}-${i}`}
-              className="inline-flex items-center gap-2 px-4 sm:px-5 text-xs font-mono shrink-0"
-            >
-              <span className="text-amber-400/80 text-sm" aria-hidden>{icon}</span>
-              <span className="font-semibold tracking-wider text-foreground/90">{t.label}</span>
-              <span className="text-foreground tabular-nums">{formatPrice(t.last, t.group)}</span>
-              <span
-                className={cn(
-                  'tabular-nums px-1.5 py-0.5 rounded text-[10px] font-semibold',
-                  isUp
-                    ? 'bg-emerald-500/15 text-emerald-400'
-                    : 'bg-rose-500/15 text-rose-400',
-                )}
-              >
-                {formatPct(t.change24hPct)}
-              </span>
-              <span className="text-foreground/30" aria-hidden>·</span>
-            </div>
-          );
-        })}
+      {/* Live indicator pill — anchored top-left, fixed background gradient */}
+      <div className="absolute left-0 top-0 bottom-0 z-10 flex items-center pl-3 pr-4 pointer-events-none">
+        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-rose-500/20 border border-rose-500/40 backdrop-blur-md">
+          <span className="relative flex h-1.5 w-1.5">
+            <span className="absolute inset-0 rounded-full bg-rose-400 animate-ping opacity-75" />
+            <span className="relative inline-block h-1.5 w-1.5 rounded-full bg-rose-500" />
+          </span>
+          <span className="text-[10px] font-mono uppercase tracking-wider font-bold text-rose-300">LIVE</span>
+        </span>
+        {/* Fade gradient ke kanan supaya LIVE pill blend ke ticker scroll */}
+        <span aria-hidden className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-r from-slate-950 to-transparent" />
       </div>
+
+      {/* Marquee track — padded left supaya tidak overlap LIVE pill */}
+      <div className="pl-20 sm:pl-24">
+        <div className="ticker-marquee flex whitespace-nowrap py-2 will-change-transform">
+          {repeated.map((t, i) => {
+            const isUp = t.change24hPct >= 0;
+            const icon = LABEL_ICON[t.label] ?? GROUP_ICON[t.group];
+            return (
+              <div
+                key={`${t.symbol}-${i}`}
+                className="inline-flex items-center gap-2 px-4 sm:px-5 text-xs font-mono shrink-0"
+              >
+                <span className="text-sm leading-none" aria-hidden>{icon}</span>
+                <span className="font-semibold tracking-wider text-amber-300/90">{t.label}</span>
+                <span className="text-foreground tabular-nums">{formatPrice(t.last, t.group, t.symbol)}</span>
+                <span
+                  className={cn(
+                    'tabular-nums px-1.5 py-0.5 rounded text-[10px] font-bold',
+                    isUp
+                      ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20'
+                      : 'bg-rose-500/15 text-rose-400 border border-rose-500/20',
+                  )}
+                >
+                  {isUp ? '▲' : '▼'} {formatPct(t.change24hPct)}
+                </span>
+                <span className="text-foreground/20 mx-1" aria-hidden>•</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Right edge fade — smooth visual exit untuk scrolling content */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-slate-950 to-transparent"
+      />
+
       <style jsx>{`
         .ticker-marquee {
-          animation: ticker-scroll 60s linear infinite;
+          animation: ticker-scroll ${animDuration}s linear infinite;
         }
         .ticker-marquee:hover {
           animation-play-state: paused;

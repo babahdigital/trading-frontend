@@ -3575,10 +3575,22 @@
     }
   },
   "cookie_consent": {
-    "body_pre": "We use cookies to improve your experience. By continuing, you agree to our",
-    "body_link": "Privacy Policy",
-    "body_post": ".",
-    "accept": "I Agree"
+    "title": "Privacy & Cookies",
+    "eyebrow": "Your consent matters",
+    "body": "BabahAlgo uses essential cookies for login, billing, and security. Optional analytics cookies help us understand platform usage.",
+    "essential_label": "Essential",
+    "essential_desc": "Login, billing, security, and fraud prevention. Cannot be disabled — the platform won't function without these.",
+    "analytics_label": "Analytics",
+    "analytics_desc": "Understand which pages are visited most + traffic referrers (anonymized, aggregated). Helps us prioritize features.",
+    "marketing_label": "Marketing",
+    "marketing_desc": "Personalize promos & messaging based on the products you view. We never sell data to third parties.",
+    "always_on": "Always on",
+    "accept_all": "Accept all",
+    "essential_only": "Essential only",
+    "customize": "Customize",
+    "save_preferences": "Save preferences",
+    "learn_more": "Learn more",
+    "policy_link": "Cookie Policy"
   },
   "legal_terms_body": {
     "s1_h": "1. Acceptance of Terms",

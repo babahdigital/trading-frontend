@@ -3595,10 +3595,22 @@
     }
   },
   "cookie_consent": {
-    "body_pre": "Kami menggunakan cookies untuk meningkatkan pengalaman Anda. Dengan melanjutkan, Anda menyetujui",
-    "body_link": "Kebijakan Privasi",
-    "body_post": "kami.",
-    "accept": "Saya Setuju"
+    "title": "Privasi & Cookies",
+    "eyebrow": "Persetujuan Anda penting",
+    "body": "BabahAlgo menggunakan cookies esensial untuk login, billing, dan keamanan. Cookies analytics opsional membantu kami pahami penggunaan platform.",
+    "essential_label": "Esensial",
+    "essential_desc": "Login, billing, keamanan, dan pencegahan fraud. Tidak bisa dimatikan karena platform tidak berjalan tanpanya.",
+    "analytics_label": "Analytics",
+    "analytics_desc": "Mengerti page mana yang sering dikunjungi + traffic referrer (anonim, agregat). Membantu kami prioritaskan fitur.",
+    "marketing_label": "Marketing",
+    "marketing_desc": "Personalisasi promo & pesan ke pengunjung sesuai produk yang dilihat. Tidak ada penjualan data pihak ketiga.",
+    "always_on": "Selalu aktif",
+    "accept_all": "Terima semua",
+    "essential_only": "Esensial saja",
+    "customize": "Sesuaikan",
+    "save_preferences": "Simpan preferensi",
+    "learn_more": "Pelajari lebih lanjut",
+    "policy_link": "Kebijakan Cookies"
   },
   "legal_terms_body": {
     "s1_h": "1. Penerimaan Syarat",

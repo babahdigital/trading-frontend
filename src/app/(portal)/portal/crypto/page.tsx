@@ -20,6 +20,7 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { ShopProductsSection } from '@/components/portal/shop-products-section';
 
 interface CryptoSubscription {
   id: string;
@@ -156,6 +157,7 @@ export default function CryptoOverviewPage() {
 
   return (
     <div className="space-y-6">
+      <ShopProductsSection scope="CRYPTO" />
       <div className="flex items-end justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-3">

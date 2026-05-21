@@ -48,11 +48,25 @@ const THEME_HINTS: Record<string, string> = {
   default: 'Modern fintech promotional banner, professional gold and black palette, abstract trading elements',
 };
 
+// Strict no-text rules — FLUX models kadang tetap render garbled text walaupun
+// hint negative ringan. Perlu eksplisit + redundant supaya hampir tidak ada
+// text artifact. Pak Abdullah feedback 2026-05-21: text di gambar terlihat
+// "tulisannya gak jelas" — lebih baik visual murni tanpa teks sama sekali.
 const BRAND_SUFFIX =
   'BabahAlgo trading platform branding, institutional fintech aesthetic, '
   + 'magazine cover quality, marketing-grade composition, '
   + '16:9 horizontal banner, 1024x576 resolution, '
-  + 'NO text overlay (text added in code separately), NO numbers, NO logos';
+  + 'pure visual atmospheric photography, abstract decorative composition, '
+  + 'STRICTLY NO text, NO letters, NO words, NO writing, NO typography, '
+  + 'NO calligraphy, NO inscription, NO signage, NO numbers, NO digits, '
+  + 'NO logos, NO watermark, NO captions, clean visual only';
+
+// Negative prompt eksplisit untuk Pollinations FLUX — banyak parameter
+// "negative" diperlakukan sebagai exclude hints.
+const NEGATIVE_PROMPT = 'text, letters, words, typography, writing, '
+  + 'calligraphy, signage, inscription, watermark, numbers, digits, '
+  + 'logos, captions, subtitles, garbled text, gibberish text, '
+  + 'poor anatomy, low quality, blurry, distorted';
 
 function buildPrompt(ctx: PromoImageContext): string {
   const themeHint = THEME_HINTS[ctx.templateKey] ?? THEME_HINTS.default;
@@ -66,8 +80,12 @@ function buildPrompt(ctx: PromoImageContext): string {
 }
 
 async function generateViaPollinations(prompt: string, signal?: AbortSignal): Promise<Buffer> {
-  const encoded = encodeURIComponent(prompt);
-  const url = `${POLLINATIONS_BASE}/${encoded}?width=1024&height=576&nologo=true&model=flux&private=true`;
+  // Append negative prompt langsung ke main prompt — Pollinations tidak punya
+  // formal negative parameter, jadi kita instructive negative inline. Tambah
+  // `enhance=true` supaya prompt diperbaiki + nofeed untuk private generation.
+  const fullPrompt = `${prompt}. AVOID: ${NEGATIVE_PROMPT}`;
+  const encoded = encodeURIComponent(fullPrompt);
+  const url = `${POLLINATIONS_BASE}/${encoded}?width=1024&height=576&nologo=true&model=flux&private=true&enhance=true&safe=true`;
   const res = await fetch(url, { signal: signal ?? AbortSignal.timeout(90_000) });
   if (!res.ok) throw new Error(`Pollinations HTTP ${res.status}`);
   return Buffer.from(await res.arrayBuffer());

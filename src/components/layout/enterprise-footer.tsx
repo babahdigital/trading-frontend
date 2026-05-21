@@ -100,7 +100,7 @@ export function EnterpriseFooter() {
   }, []);
 
   return (
-    <footer className="border-t border-border/60 bg-card/40">
+    <footer id="enterprise-footer" className="border-t border-border/60 bg-card/40">
       <div className="layout-container pt-12 sm:pt-16 pb-8">
         {/* Subscribe band — prominent full-width banner di atas link columns.
             Sebelumnya newsletter tersembunyi di brand column kecil; sekarang

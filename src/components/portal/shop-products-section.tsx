@@ -91,7 +91,13 @@ function isActiveTier(row: PricingTierRow, active: ActiveSubscription | null): b
   return row.slug === normalizedTier;
 }
 
-export function ShopProductsSection() {
+interface ShopProductsSectionProps {
+  /** Filter ke kategori tertentu saja (mis. /portal/crypto pakai 'CRYPTO').
+   *  Default: semua kategori (SIGNAL+CRYPTO+VPS) collapsible. */
+  scope?: CategoryKey;
+}
+
+export function ShopProductsSection({ scope }: ShopProductsSectionProps = {}) {
   const t = useTranslations('portal.shop_products');
   const locale = useLocale();
   const [tiers, setTiers] = useState<PricingTierRow[]>([]);
@@ -126,11 +132,14 @@ export function ShopProductsSection() {
     const out: Record<CategoryKey, PricingTierRow[]> = { SIGNAL: [], CRYPTO: [], VPS: [] };
     for (const tier of tiers) {
       if (tier.category === 'SIGNAL' || tier.category === 'CRYPTO' || tier.category === 'VPS') {
+        // Kalau scope di-set, skip kategori lain — supaya /portal/crypto cuma
+        // tampilkan crypto products, /portal/signals cuma signal, dll.
+        if (scope && tier.category !== scope) continue;
         out[tier.category as CategoryKey].push(tier);
       }
     }
     return out;
-  }, [tiers]);
+  }, [tiers, scope]);
 
   const toggleCategory = useCallback((cat: CategoryKey) => {
     setExpanded(prev => {
@@ -146,12 +155,18 @@ export function ShopProductsSection() {
   // state with derived data fetch result (one-time hydration).
   useEffect(() => {
     if (loading || tiers.length === 0) return;
+    // Kalau ada scope (mis. /portal/crypto), auto-expand scope itu langsung.
+    if (scope) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setExpanded(new Set<CategoryKey>([scope]));
+      return;
+    }
     if (!active) {
       // No active sub → expand SIGNAL (default upsell entry)
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setExpanded(new Set<CategoryKey>(['SIGNAL']));
     }
-  }, [loading, tiers.length, active]);
+  }, [loading, tiers.length, active, scope]);
 
   if (loading || tiers.length === 0) return null;
 

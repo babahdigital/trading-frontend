@@ -1,20 +1,14 @@
 'use client';
 
 /**
- * Defer mount untuk ChatWidget — load setelah idle / first interaction.
+ * Defer mount + smart hide untuk ChatWidget.
  *
- * Sebelumnya: ChatWidget di-eager-load di root layout → 798 LOC client
- * bundle + @ai-sdk/react + framer-motion masuk initial JS untuk SETIAP
- * page (termasuk SEO landing yang biasanya bounce sebelum chat used).
- *
- * Sekarang: render placeholder ringan saja, lazy-mount real widget
- * saat:
- *   - browser idle (requestIdleCallback) ATAU
- *   - user hover/touch sekitar bottom-right area ATAU
- *   - 5 detik berlalu (fallback supaya tetap available)
- *
- * Hasil: -45KB initial JS (gzipped) di first paint, no LCP impact,
- * chat tetap available within idle window.
+ * - Lazy mount: render placeholder ringan, load full widget saat idle / hover /
+ *   5s elapsed. -45KB initial JS gzipped.
+ * - Footer-aware fade (Pak Abdullah 2026-05-21): saat #enterprise-footer masuk
+ *   viewport, chat fade-out supaya tidak overlap footer links. Re-appear saat
+ *   scroll naik (footer keluar viewport). UX paling natural — chat tetap di
+ *   bottom-right yang familiar tanpa mengganggu link footer.
  */
 import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
@@ -27,6 +21,7 @@ const ChatWidget = dynamic(
 
 export function ChatWidgetMount() {
   const [mount, setMount] = useState(false);
+  const [hidden, setHidden] = useState(false);
 
   useEffect(() => {
     if (mount) return;
@@ -48,22 +43,54 @@ export function ChatWidgetMount() {
     };
   }, [mount]);
 
-  // Render lightweight placeholder kalau real widget belum mount.
-  // User klik → trigger eager mount.
+  // Observe #enterprise-footer — fade chat saat footer dalam viewport.
+  // IntersectionObserver is best-effort; jika footer tidak ada (mis. portal
+  // pages tidak punya footer), chat tetap visible normal.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const footer = document.getElementById('enterprise-footer');
+    if (!footer) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          setHidden(entry.isIntersecting);
+        }
+      },
+      // Trigger sebelum footer fully visible — pas top edge masuk viewport.
+      { threshold: 0, rootMargin: '0px 0px -80px 0px' },
+    );
+    observer.observe(footer);
+    return () => observer.disconnect();
+  }, [mount]);
+
+  // Smooth opacity + translate ke bawah saat hidden — tidak unmount supaya
+  // state chat (pesan, lead, etc.) survive footer overlap.
+  const wrapperClass = hidden
+    ? 'opacity-0 translate-y-4 pointer-events-none transition-all duration-300'
+    : 'opacity-100 translate-y-0 transition-all duration-300';
+
   if (!mount) {
     return (
-      <button
-        type="button"
-        onClick={() => setMount(true)}
-        onMouseEnter={() => setMount(true)}
-        onTouchStart={() => setMount(true)}
-        aria-label="Open chat assistant"
-        className="fixed bottom-6 right-6 z-40 inline-flex h-14 w-14 items-center justify-center rounded-full bg-amber-500 text-black shadow-lg hover:bg-amber-400 transition-colors"
-      >
-        <MessageCircle className="h-6 w-6" />
-      </button>
+      <div className={wrapperClass}>
+        <button
+          type="button"
+          onClick={() => setMount(true)}
+          onMouseEnter={() => setMount(true)}
+          onTouchStart={() => setMount(true)}
+          aria-label="Open chat assistant"
+          aria-hidden={hidden}
+          tabIndex={hidden ? -1 : 0}
+          className="fixed bottom-6 right-6 z-40 inline-flex h-14 w-14 items-center justify-center rounded-full bg-amber-500 text-black shadow-lg hover:bg-amber-400 transition-colors"
+        >
+          <MessageCircle className="h-6 w-6" />
+        </button>
+      </div>
     );
   }
 
-  return <ChatWidget />;
+  return (
+    <div className={wrapperClass} aria-hidden={hidden}>
+      <ChatWidget />
+    </div>
+  );
 }

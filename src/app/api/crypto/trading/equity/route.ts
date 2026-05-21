@@ -26,7 +26,8 @@ export async function GET(request: NextRequest) {
 
   try {
     const res = await proxyToCryptoBackend({
-      scope: 'trades',
+      // Backend rc38.1 scope mapping: equity history = KEYS (dashboard read)
+      scope: 'keys',
       path: `/api/tenants/${encodeURIComponent(tenantId)}/equity/history?limit=${limit}`,
       forwardUserId: gate.userId,
     });

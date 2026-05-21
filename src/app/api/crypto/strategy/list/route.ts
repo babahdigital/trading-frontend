@@ -25,7 +25,8 @@ export async function GET(request: NextRequest) {
 
   try {
     const res = await proxyToCryptoBackend({
-      scope: 'signals',
+      // Backend rc38.1: strategies list = KEYS scope (dashboard tier)
+      scope: 'keys',
       path: `/api/tenants/${encodeURIComponent(tenantId)}/strategies`,
       forwardUserId: gate.userId,
     });

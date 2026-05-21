@@ -47,15 +47,15 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Backend phase 14W — both endpoints shipped item #6
+    // Backend rc38.1 scope mapping: analytics endpoint = KEYS (dashboard tier)
     const [pnlRes, perfRes] = await Promise.all([
       proxyToCryptoBackend({
-        scope: 'trades',
+        scope: 'keys',
         path: `/api/tenants/${encodeURIComponent(tenantId)}/analytics/pnl?days=${days}`,
         forwardUserId: gate.userId,
       }),
       proxyToCryptoBackend({
-        scope: 'trades',
+        scope: 'keys',
         path: `/api/tenants/${encodeURIComponent(tenantId)}/analytics/performance?days=${days}`,
         forwardUserId: gate.userId,
       }),

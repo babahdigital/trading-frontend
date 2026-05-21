@@ -218,7 +218,14 @@ export function PromoPopup() {
         ref={dialogRef}
         tabIndex={-1}
         className={cn(
-          'relative w-full max-w-4xl overflow-hidden rounded-2xl bg-card shadow-2xl',
+          // Responsive max-width per breakpoint:
+          // - Mobile: 100% width minus container padding (auto via w-full)
+          // - sm (≥640): max-w-md (~448px) compact
+          // - md (≥768): max-w-2xl (~672px) side-by-side starts
+          // - lg (≥1024): max-w-4xl (~896px) editorial
+          // - xl (≥1280): max-w-5xl (~1024px) wide editorial
+          'relative w-full max-w-md sm:max-w-lg md:max-w-2xl lg:max-w-4xl xl:max-w-5xl',
+          'max-h-[90vh] overflow-hidden overflow-y-auto rounded-2xl bg-card shadow-2xl',
           'border border-amber-500/20 ring-1 ring-white/5',
           'animate-in zoom-in-95 slide-in-from-bottom-4 duration-500',
           'focus:outline-none',
@@ -244,13 +251,23 @@ export function PromoPopup() {
           <X className="h-4 w-4" />
         </button>
 
-        <div className="grid md:grid-cols-2">
+        <div className="grid md:grid-cols-[5fr_4fr] lg:grid-cols-[6fr_5fr]">
           {/* ─── HERO IMAGE COLUMN ─── */}
-          <div className="relative aspect-[4/3] sm:aspect-video md:aspect-auto md:min-h-[420px] bg-gradient-to-br from-amber-900/20 via-amber-500/10 to-transparent overflow-hidden">
+          {/*
+            Responsive aspect ratios per device:
+            - Phone portrait (< 640px): 16:9 wide (compact)
+            - Tablet (640-768px): 4:3 (balanced)
+            - Desktop md+ (768-1024px): full-height column (auto)
+            - Desktop lg+ (≥1024px): full-height column (auto, less dominant)
+            Image gen aspect 16:9 (1024x576) → object-cover crop sesuai container.
+          */}
+          <div className="relative aspect-[16/9] sm:aspect-[4/3] md:aspect-auto md:min-h-[440px] lg:min-h-[480px] bg-gradient-to-br from-amber-900/20 via-amber-500/10 to-transparent overflow-hidden">
             {heroImage ? (
               <>
                 {!imageLoaded && (
-                  <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent" />
+                  <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-amber-500/15 via-amber-500/5 to-transparent flex items-center justify-center">
+                    <Sparkles className="h-8 w-8 text-amber-500/30 animate-pulse" aria-hidden />
+                  </div>
                 )}
                 <Image
                   src={heroImage}
@@ -258,18 +275,22 @@ export function PromoPopup() {
                   fill
                   unoptimized
                   className={cn(
-                    'object-cover transition-opacity duration-500',
+                    'object-cover object-center transition-opacity duration-500',
                     imageLoaded ? 'opacity-100' : 'opacity-0',
                   )}
-                  sizes="(max-width: 768px) 100vw, 50vw"
+                  // Sizes hint untuk responsive loading:
+                  // <640px: full viewport width, 640-768: full width, ≥768: ~55% of container
+                  sizes="(max-width: 640px) 100vw, (max-width: 768px) 100vw, (max-width: 1024px) 56vw, 50vw"
                   onLoad={() => setImageLoaded(true)}
                   priority
                 />
-                {/* Gradient overlay untuk readability badge */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20 pointer-events-none" />
+                {/* Gradient overlay — gradient lebih kuat di bottom untuk readability badge urgency */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/15 pointer-events-none" />
+                {/* Side gradient ke direction content (right edge) — blend transition desktop */}
+                <div className="absolute inset-0 hidden md:block bg-gradient-to-r from-transparent via-transparent to-card/50 pointer-events-none" />
               </>
             ) : (
-              // Fallback ketika image null — decorative pattern
+              // Fallback ketika image null — decorative pattern (same aspect)
               <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-amber-500/20 via-amber-500/10 to-card">
                 <Sparkles className="h-16 w-16 text-amber-500/40" aria-hidden />
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(245,158,11,0.15),transparent_50%)]" />
@@ -300,7 +321,7 @@ export function PromoPopup() {
           </div>
 
           {/* ─── CONTENT COLUMN ─── */}
-          <div className="relative flex flex-col p-6 sm:p-8 md:p-9 md:min-h-[420px]">
+          <div className="relative flex flex-col p-5 sm:p-6 md:p-7 lg:p-8 xl:p-9 md:min-h-[440px] lg:min-h-[480px]">
             {/* Eyebrow */}
             <div className="flex items-center gap-2 mb-3">
               <Sparkles className="h-4 w-4 text-amber-500" aria-hidden />
@@ -309,16 +330,16 @@ export function PromoPopup() {
               </span>
             </div>
 
-            {/* Title — larger, tighter tracking */}
+            {/* Title — scaled per breakpoint untuk responsive readability */}
             <h2
               id="promo-popup-title"
-              className="font-display text-2xl sm:text-3xl font-bold leading-[1.15] tracking-tight mb-3 text-foreground"
+              className="font-display text-xl sm:text-2xl md:text-2xl lg:text-3xl font-bold leading-[1.15] tracking-tight mb-2.5 text-foreground"
             >
               {title}
             </h2>
 
             {/* Body — generous line-height */}
-            <p className="text-sm sm:text-[15px] text-muted-foreground leading-relaxed mb-5">
+            <p className="text-[13px] sm:text-sm md:text-[15px] text-muted-foreground leading-relaxed mb-4 sm:mb-5">
               {body}
             </p>
 

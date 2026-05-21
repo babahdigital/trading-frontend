@@ -25,10 +25,14 @@ const TIER_PRICES: Record<string, { amountIdr: number; description: string }> = 
   SIGNAL_BASIC: { amountIdr: 600_000, description: 'Signal Basic (legacy alias Starter) — 1 Bulan' },
   SIGNAL_PRO: { amountIdr: 1_290_000, description: 'Signal Pro — 1 Bulan' },
   SIGNAL_VIP: { amountIdr: 4_900_000, description: 'Signal VIP — 1 Bulan' },
-  // Crypto Bot ($49 / $199 / $499 flat monthly)
-  CRYPTO_BASIC: { amountIdr: 799_000, description: 'Crypto Basic — 1 Bulan flat' },
-  CRYPTO_PRO: { amountIdr: 3_270_000, description: 'Crypto Pro — 1 Bulan flat' },
-  CRYPTO_HNWI: { amountIdr: 8_200_000, description: 'Crypto HNWI — 1 Bulan flat' },
+  // Crypto Bot rc29 5-tier (per src/lib/pricing-format.ts PRICE_TABLE)
+  // free_demo = $0 (skip checkout); starter/active/pro/hnwi = paid tiers
+  CRYPTO_STARTER: { amountIdr: 149_000, description: 'Crypto Starter — 1 Bulan flat' }, // $9/mo
+  CRYPTO_ACTIVE: { amountIdr: 299_000, description: 'Crypto Active — 1 Bulan flat' },   // $19/mo
+  CRYPTO_PRO: { amountIdr: 799_000, description: 'Crypto Pro — 1 Bulan flat' },          // $49/mo
+  CRYPTO_HNWI: { amountIdr: 3_290_000, description: 'Crypto HNWI — 1 Bulan flat' },      // $199/mo
+  // Legacy alias (pre-rc29) — grandfathered to STARTER pricing
+  CRYPTO_BASIC: { amountIdr: 149_000, description: 'Crypto Basic (legacy alias Starter) — 1 Bulan flat' },
   // Software License (License Only / Hybrid / Full Turnkey setup)
   VPS_STANDARD: { amountIdr: 5_000_000, description: 'Software License — License Only Setup' },
   VPS_PREMIUM: { amountIdr: 12_000_000, description: 'Software License — Hybrid Setup' },

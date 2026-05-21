@@ -17,18 +17,26 @@ export const runtime = 'nodejs';
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/db/prisma';
-import { requireAdmin } from '@/lib/auth/require-admin';
 import { generatePromoHeroImage } from '@/lib/ai/promo-image-generator';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('api/admin/cms/promotions/generate-image');
 
+/** Auth: admin role OR Bearer CRON_SECRET (untuk strategist auto-call) */
+function authorize(request: NextRequest): boolean {
+  if (request.headers.get('x-user-role') === 'ADMIN') return true;
+  const expected = process.env.CRON_SECRET;
+  if (!expected) return false;
+  return request.headers.get('authorization') === `Bearer ${expected}`;
+}
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const guard = requireAdmin(request);
-  if (guard) return guard;
+  if (!authorize(request)) {
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  }
 
   const { id } = await params;
 

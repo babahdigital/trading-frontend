@@ -460,6 +460,20 @@ export async function POST(request: NextRequest) {
 
       createdPromo = { id: promo.id, slug: promo.slug, status: promo.status };
       log.info(`Promotion created id=${promo.id} status=${promo.status} confidence=${decision.confidence}`);
+
+      // Auto-trigger AI image gen untuk both locale (id + en). Fire-and-forget,
+      // fail-soft — popup tetap muncul tanpa image kalau gen gagal.
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+      const cronSecret = process.env.CRON_SECRET ?? '';
+      for (const loc of ['id', 'en'] as const) {
+        fetch(`${baseUrl}/api/admin/cms/promotions/${promo.id}/generate-image?locale=${loc}`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${cronSecret}`, 'Content-Type': 'application/json' },
+          signal: AbortSignal.timeout(120_000),
+        })
+          .then((r) => r.ok ? log.info(`Auto image-gen ${loc} OK promoId=${promo.id}`) : log.warn(`Auto image-gen ${loc} HTTP ${r.status}`))
+          .catch((e) => log.warn(`Auto image-gen ${loc} error: ${e instanceof Error ? e.message : 'unknown'}`));
+      }
     } catch (err) {
       log.error(`Failed to create promotion: ${err instanceof Error ? err.message : 'unknown'}`);
     }

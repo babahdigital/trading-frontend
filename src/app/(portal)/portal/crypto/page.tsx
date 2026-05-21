@@ -149,12 +149,6 @@ export default function CryptoOverviewPage() {
   const isMock = overview?.source === 'mock';
   const pnl24 = overview?.realized_pnl_24h_usdt ? parseFloat(overview.realized_pnl_24h_usdt) : 0;
 
-  const tiers = [
-    { label: t('tier_basic_label'), price: t('tier_basic_price'), features: t('tier_basic_features') },
-    { label: t('tier_pro_label'), price: t('tier_pro_price'), features: t('tier_pro_features') },
-    { label: t('tier_hnwi_label'), price: t('tier_hnwi_price'), features: t('tier_hnwi_features') },
-  ];
-
   return (
     <div className="space-y-6">
       <ShopProductsSection scope="CRYPTO" />
@@ -201,19 +195,11 @@ export default function CryptoOverviewPage() {
             <p className="text-muted-foreground max-w-xl mx-auto">
               {t('empty_body')}
             </p>
-            <div className="grid sm:grid-cols-3 gap-3 max-w-2xl mx-auto pt-2 text-left">
-              {tiers.map((tier) => (
-                <div key={tier.label} className="rounded-lg border border-white/10 p-4 bg-white/5">
-                  <div className="text-xs text-amber-400 font-mono uppercase tracking-wider">{tier.label}</div>
-                  <div className="text-xl font-bold mt-1">{tier.price}</div>
-                  <div className="text-xs text-muted-foreground mt-2">{tier.features}</div>
-                </div>
-              ))}
-            </div>
-            <div className="flex gap-3 justify-center pt-4">
-              <Button asChild>
-                <Link href="/pricing#crypto">{t('cta_pricing')}</Link>
-              </Button>
+            {/* Tier card grid dipindah ke ShopProductsSection scope=CRYPTO di
+                bagian atas page (DB-driven, single source of truth, sync dengan
+                /admin/cms/pricing). Sebelumnya hardcoded i18n tier_*_price
+                menyimpan harga drift dari DB ($49/bln vs $9/bln actual). */}
+            <div className="flex gap-3 justify-center pt-2">
               <Button variant="outline" asChild>
                 <Link href="/contact">{t('cta_consult')}</Link>
               </Button>

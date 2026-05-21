@@ -17,30 +17,44 @@ export const runtime = 'nodejs';
 // Sebelumnya SIGNAL_STARTER IDR 315k = $19 (drift dari $39 canonical).
 //
 // `description` stored ID-canonical; locale swap on render via
-// localizeDescription() so EN payment-gateway page shows "1 Month" instead
-// of "1 Bulan".
-const TIER_PRICES: Record<string, { amountIdr: number; description: string }> = {
-  // Forex Signal (canonical $39 / $79 / $299 — match lib/pricing-format.ts)
-  SIGNAL_STARTER: { amountIdr: 600_000, description: 'Signal Starter — 1 Bulan' },
-  SIGNAL_BASIC: { amountIdr: 600_000, description: 'Signal Basic (legacy alias Starter) — 1 Bulan' },
-  SIGNAL_PRO: { amountIdr: 1_290_000, description: 'Signal Pro — 1 Bulan' },
-  SIGNAL_VIP: { amountIdr: 4_900_000, description: 'Signal VIP — 1 Bulan' },
-  // Crypto Bot rc29 5-tier (per src/lib/pricing-format.ts PRICE_TABLE)
-  // free_demo = $0 (skip checkout); starter/active/pro/hnwi = paid tiers
-  CRYPTO_STARTER: { amountIdr: 149_000, description: 'Crypto Starter — 1 Bulan flat' }, // $9/mo
-  CRYPTO_ACTIVE: { amountIdr: 299_000, description: 'Crypto Active — 1 Bulan flat' },   // $19/mo
-  CRYPTO_PRO: { amountIdr: 799_000, description: 'Crypto Pro — 1 Bulan flat' },          // $49/mo
-  CRYPTO_HNWI: { amountIdr: 3_290_000, description: 'Crypto HNWI — 1 Bulan flat' },      // $199/mo
-  // Legacy alias (pre-rc29) — grandfathered to STARTER pricing
-  CRYPTO_BASIC: { amountIdr: 149_000, description: 'Crypto Basic (legacy alias Starter) — 1 Bulan flat' },
-  // Software License (License Only / Hybrid / Full Turnkey setup)
-  VPS_STANDARD: { amountIdr: 5_000_000, description: 'Software License — License Only Setup' },
-  VPS_PREMIUM: { amountIdr: 12_000_000, description: 'Software License — Hybrid Setup' },
-  VPS_DEDICATED: { amountIdr: 25_000_000, description: 'Software License — Full Turnkey Setup' },
-  // Free + Demo (gratis — tidak boleh masuk checkout, return 400 via free_tier code)
-  FREE: { amountIdr: 0, description: 'Free tier — checkout tidak diperlukan' },
-  DEMO: { amountIdr: 0, description: 'Demo (gratis) — checkout tidak diperlukan' },
+// Tier slug mapping: checkout API uses uppercase canonical (CRYPTO_STARTER),
+// PricingTier DB uses lowercase kebab (crypto-starter). Map ke DB lookup.
+const TIER_SLUG_MAP: Record<string, string> = {
+  SIGNAL_STARTER: 'signal-starter',
+  SIGNAL_BASIC: 'signal-starter',  // legacy alias
+  SIGNAL_PRO: 'signal-pro',
+  SIGNAL_VIP: 'signal-vip',
+  CRYPTO_STARTER: 'crypto-starter',
+  CRYPTO_ACTIVE: 'crypto-active',
+  CRYPTO_PRO: 'crypto-pro',
+  CRYPTO_HNWI: 'crypto-hnwi',
+  CRYPTO_BASIC: 'crypto-starter',  // legacy alias
+  VPS_STANDARD: 'vps-license-only',
+  VPS_PREMIUM: 'vps-hybrid',
+  VPS_DEDICATED: 'vps-turnkey',
+  // FREE/DEMO tidak punya entry — handled langsung di POST handler
 };
+
+/** Lookup pricing dari DB (CMS centralization 2026-05-21). PricingTier
+ *  table = single source of truth, edit via /admin/cms/pricing language
+ *  langsung reflect ke checkout + landing + pricing page. Fallback empty
+ *  kalau slug tidak found (legacy compat). */
+async function resolveTierPricing(tier: string): Promise<{ amountIdr: number; description: string } | null> {
+  if (tier === 'FREE' || tier === 'DEMO') {
+    return { amountIdr: 0, description: 'Free tier — checkout tidak diperlukan' };
+  }
+  const slug = TIER_SLUG_MAP[tier];
+  if (!slug) return null;
+  const tierRow = await prisma.pricingTier.findUnique({
+    where: { slug },
+    select: { name: true, priceIdr: true, subtitle: true },
+  });
+  if (!tierRow || tierRow.priceIdr == null) return null;
+  return {
+    amountIdr: tierRow.priceIdr,
+    description: tierRow.subtitle ? `${tierRow.name} — ${tierRow.subtitle}` : `${tierRow.name} — 1 Bulan`,
+  };
+}
 
 function localizeDescription(text: string, locale: AppLocale): string {
   if (locale !== 'en') return text;
@@ -77,7 +91,10 @@ export async function POST(req: NextRequest) {
     provider?: PaymentProvider;
     promo?: string;  // optional promo slug (saat customer datang dari popup)
   };
-  const pricing = TIER_PRICES[tier];
+  // CMS centralization 2026-05-21: resolve pricing dari PricingTier DB
+  // bukan hardcoded TIER_PRICES. Admin edit /admin/cms/pricing → checkout
+  // langsung update tanpa redeploy.
+  const pricing = await resolveTierPricing(tier);
   if (!pricing) return errorResponse('invalid_tier', 'Invalid tier', 400);
   if (pricing.amountIdr === 0) {
     return errorResponse('free_tier', 'Free tier does not require checkout. Activate directly via /demo signup.', 400);

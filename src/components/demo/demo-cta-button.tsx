@@ -38,8 +38,11 @@ export function DemoCtaButton({ service, className, children, trailingIcon: Icon
     (async () => {
       try {
         const res = await fetch('/api/auth/me', { credentials: 'same-origin', cache: 'no-store' });
+        // /api/auth/me sekarang return 200 with {user: null} untuk guest
+        // supaya tidak clutter console 401. Cek data.user untuk derive login state.
+        const data = res.ok ? await res.json().catch(() => null) : null;
         if (!cancelled) {
-          setLoggedIn(res.ok);
+          setLoggedIn(Boolean(data?.user?.id));
           setAuthResolved(true);
         }
       } catch {

@@ -10,7 +10,16 @@ const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 // `/admin` di isNonGuestPath nanti ke-catch di token-required block dan
 // di-redirect ke /login. Kita whitelist `/admin/login` eksplisit di sini
 // supaya operator bisa akses operator console login tanpa session.
-const publicPaths = ['/login', '/admin/login', '/forgot-password', '/reset-password', '/api/auth/login', '/api/auth/register', '/api/auth/refresh', '/api/auth/forgot-password', '/api/auth/reset-password', '/api/auth/verify-email', '/api/auth/ws-token', '/api/health', '/api/public/', '/api/client/inquiries', '/api/chat', '/api/cron/', '/api/billing/webhook/', '/api/license/check', '/api/notifications/push/', '/api/analytics/track', '/manifest.json', '/sw.js',
+const publicPaths = ['/login', '/admin/login', '/forgot-password', '/reset-password', '/api/auth/login', '/api/auth/register', '/api/auth/refresh', '/api/auth/forgot-password', '/api/auth/reset-password', '/api/auth/verify-email', '/api/auth/ws-token',
+  // /api/auth/me — identity probe yang harus boleh dipanggil tanpa token
+  // (untuk EnterpriseNav check login state di public pages). Route handler
+  // self-handle JWT cookie + return 200 dengan {user:null} kalau guest.
+  '/api/auth/me',
+  '/api/health', '/api/public/', '/api/client/inquiries', '/api/chat', '/api/cron/', '/api/billing/webhook/', '/api/license/check', '/api/notifications/push/', '/api/analytics/track', '/manifest.json', '/sw.js',
+  // /api/uploads/promotions/* — runtime-served promo hero images (Next.js
+  // standalone cache `public/` listing saat startup, so files yang dibuat
+  // post-startup tidak ter-detect via static path; API route bypass cache).
+  '/api/uploads/',
   // /api/cms/* — public read-only endpoints (pricing tiers, active promotions).
   // Admin write endpoints di /api/admin/cms/* tetap require admin role.
   '/api/cms/',

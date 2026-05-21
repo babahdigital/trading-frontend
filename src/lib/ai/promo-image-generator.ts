@@ -158,7 +158,11 @@ export async function generatePromoHeroImage(
   const fullPath = path.join(UPLOAD_DIR, filename);
   await writeFile(fullPath, buffer, { mode: 0o644 });
 
-  const publicUrl = `/uploads/promotions/${filename}`;
+  // API route /api/uploads/promotions/[filename] — Next.js standalone build
+  // cache `public/` directory listing saat startup, jadi file yang dibuat
+  // runtime (mis. via image gen) tidak ter-detect via static path. API
+  // route stream langsung dari disk supaya bypass cache.
+  const publicUrl = `/api/uploads/promotions/${filename}`;
   log.info(`Generated promo image slug=${promoSlug} provider=${provider} size=${buffer.length} url=${publicUrl}`);
 
   return { url: publicUrl, filename, provider, prompt, sizeBytes: buffer.length };

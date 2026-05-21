@@ -142,11 +142,13 @@ export function ShopProductsSection() {
   }, []);
 
   // Auto-expand kategori yang user belum punya active subscription untuknya
-  // (proactive nudge). Only run once on initial load.
+  // (proactive nudge). Only run once on initial load — synchronize expanded
+  // state with derived data fetch result (one-time hydration).
   useEffect(() => {
     if (loading || tiers.length === 0) return;
     if (!active) {
       // No active sub → expand SIGNAL (default upsell entry)
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setExpanded(new Set<CategoryKey>(['SIGNAL']));
     }
   }, [loading, tiers.length, active]);

@@ -8,13 +8,12 @@
  * register/signal/page.tsx (324 lines) + register/crypto/page.tsx
  * (346 lines) — sekarang single source.
  */
-import { useEffect, useMemo, useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { formatPrice, type Locale } from '@/lib/pricing-format';
 import type { ServiceDescriptor } from '@/lib/register/service-registry';
 import { track } from '@/lib/analytics/track';
 
@@ -28,23 +27,13 @@ interface SignupWizardProps {
 export function SignupWizard({ service, initialTier, isDemoMode = false, locale }: SignupWizardProps) {
   const t = useTranslations('register');
   const router = useRouter();
-  const routeParams = useParams<{ locale?: string }>();
-  const localeForPrice: Locale = routeParams?.locale === 'en' ? 'en' : 'id';
 
-  // Pre-format tier prices per render — locale-aware
-  const tierPrices = useMemo(() => {
-    if (!service.tiers) return {};
-    return service.tiers.reduce<Record<string, string>>((acc, tier) => {
-      acc[tier.value] = formatPrice(tier.priceKey, localeForPrice, { period: 'mo', compact: false });
-      return acc;
-    }, {});
-  }, [service.tiers, localeForPrice]);
-
-  // Demo / free → skip tier step (auto-assigned)
-  const hasTierStep = !isDemoMode && (service.tiers?.length ?? 0) > 0;
-  const STEPS = hasTierStep
-    ? [t('step_account_info'), t('step_select_tier'), t('step_confirmation')]
-    : [t('step_account_info'), t('step_confirmation')];
+  // Simplified flow 2026-05-21 (Pak Abdullah directive): tier selection
+  // di-defer ke portal pasca-register. Wizard hanya account → confirm.
+  // Deep-link tier (?tier=swing) tetap di-forward sebagai metadata ke backend
+  // dan dipakai sebagai post-register redirect destination ke /checkout.
+  const STEPS = [t('step_account_info'), t('step_confirmation')];
+  const confirmStepIndex = 1;
 
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -53,23 +42,12 @@ export function SignupWizard({ service, initialTier, isDemoMode = false, locale 
     name: '',
     email: '',
     password: '',
-    tier: initialTier ?? service.tiers?.find((tt) => tt.popular)?.value ?? '',
     demoAcknowledged: false,
   });
-
-  // Re-apply initial tier kalau prop berubah (deep link refresh) — sync prop ke state.
-  useEffect(() => {
-    if (initialTier) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setForm((f) => ({ ...f, tier: initialTier }));
-    }
-  }, [initialTier]);
 
   function set<K extends keyof typeof form>(key: K, val: (typeof form)[K]) {
     setForm((f) => ({ ...f, [key]: val }));
   }
-
-  const confirmStepIndex = hasTierStep ? 2 : 1;
 
   async function handleSubmit() {
     if (!service.submitEndpoint) {
@@ -84,8 +62,10 @@ export function SignupWizard({ service, initialTier, isDemoMode = false, locale 
         email: form.email,
         password: form.password,
       };
-      if (hasTierStep && form.tier) {
-        basePayload.tier = form.tier;
+      // Forward deep-link tier (dari URL ?tier=…) sebagai metadata supaya
+      // backend tetap bisa pre-create subscription sesuai pilihan customer.
+      if (initialTier) {
+        basePayload.tier = initialTier;
       }
       if (isDemoMode) {
         basePayload.accountType = 'demo';
@@ -105,12 +85,23 @@ export function SignupWizard({ service, initialTier, isDemoMode = false, locale 
         track('register_complete', {
           metadata: {
             service: service.slug,
-            tier: form.tier || '(none)',
+            tier: initialTier || '(none)',
             is_demo: isDemoMode ? 'true' : 'false',
           },
         });
-        // Success — redirect ke portal kalau session ada cookie, atau login
-        const redirectTo = data.redirectTo || '/login';
+        // Success redirect priority:
+        //   1) Backend-specified data.redirectTo (custom flow override)
+        //   2) Deep-link tier present + paid service → langsung ke checkout
+        //   3) Default → /portal (ShopProductsSection siap untuk pick tier)
+        let redirectTo: string = data.redirectTo;
+        if (!redirectTo) {
+          if (initialTier && !isDemoMode && service.slug !== 'free') {
+            const tierToken = `${service.slug.toUpperCase()}_${initialTier.toUpperCase()}`;
+            redirectTo = `/checkout?tier=${tierToken}&provider=xendit`;
+          } else {
+            redirectTo = '/portal';
+          }
+        }
         router.push(redirectTo);
       } else {
         setError(
@@ -209,7 +200,7 @@ export function SignupWizard({ service, initialTier, isDemoMode = false, locale 
               <button
                 type="button"
                 className="btn-primary w-full h-11 rounded-md text-sm font-medium"
-                onClick={() => setStep(hasTierStep ? 1 : confirmStepIndex)}
+                onClick={() => setStep(confirmStepIndex)}
                 disabled={!form.name || !form.email || !form.password || form.password.length < 8}
               >
                 {t('btn_continue')}
@@ -217,52 +208,6 @@ export function SignupWizard({ service, initialTier, isDemoMode = false, locale 
             </>
           )}
 
-          {step === 1 && hasTierStep && (
-            <>
-              <div className="space-y-3">
-                {service.tiers!.map((tier) => (
-                  <button
-                    type="button"
-                    key={tier.value}
-                    className={`relative w-full text-left border rounded-lg p-4 transition-colors ${
-                      form.tier === tier.value
-                        ? 'border-amber-400 bg-amber-400/5 ring-1 ring-amber-400/30'
-                        : 'border-border/60 hover:border-amber-400/50'
-                    }`}
-                    onClick={() => set('tier', tier.value)}
-                  >
-                    {tier.popular && (
-                      <span className="absolute -top-2 right-3 inline-flex items-center px-2 py-0.5 rounded-full bg-amber-500 text-amber-50 text-[10px] font-bold uppercase tracking-wider">
-                        {t('badge_popular')}
-                      </span>
-                    )}
-                    <div className="flex justify-between items-baseline gap-2 flex-wrap">
-                      <span className="font-semibold">{t(tier.labelKey)}</span>
-                      <span className="text-amber-400 font-mono font-bold text-sm">{tierPrices[tier.value]}</span>
-                    </div>
-                    <p className="t-body-sm text-foreground/60 mt-1">{t(tier.descKey)}</p>
-                  </button>
-                ))}
-              </div>
-              <div className="flex gap-3">
-                <Button
-                  variant="outline"
-                  className="flex-1 border-border/60 text-foreground/50 hover:text-amber-400"
-                  onClick={() => setStep(0)}
-                >
-                  {t('btn_back')}
-                </Button>
-                <button
-                  type="button"
-                  className="btn-primary flex-1"
-                  onClick={() => setStep(confirmStepIndex)}
-                  disabled={!form.tier}
-                >
-                  {t('btn_continue')}
-                </button>
-              </div>
-            </>
-          )}
 
           {step === confirmStepIndex && (
             <>
@@ -275,13 +220,13 @@ export function SignupWizard({ service, initialTier, isDemoMode = false, locale 
                   <span className="text-foreground/60">{t('field_email')}</span>
                   <span className="font-mono text-xs sm:text-sm truncate ml-2">{form.email}</span>
                 </div>
-                {hasTierStep && (
+                {initialTier && !isDemoMode && service.slug !== 'free' && (
                   <div className="flex justify-between">
                     <span className="text-foreground/60">{t('field_plan')}</span>
-                    <span className="font-semibold text-amber-400">{planLabel(form.tier)}</span>
+                    <span className="font-semibold text-amber-400">{planLabel(initialTier)}</span>
                   </div>
                 )}
-                {(isDemoMode || service.slug === 'free') && !hasTierStep && (
+                {(isDemoMode || service.slug === 'free') && (
                   <div className="flex justify-between">
                     <span className="text-foreground/60">{t('field_plan')}</span>
                     <span className="font-semibold text-amber-400">{t('signal.plan_demo')}</span>
@@ -313,7 +258,7 @@ export function SignupWizard({ service, initialTier, isDemoMode = false, locale 
                   type="button"
                   variant="outline"
                   className="flex-1"
-                  onClick={() => setStep(hasTierStep ? 1 : 0)}
+                  onClick={() => setStep(0)}
                 >
                   {t('btn_back')}
                 </Button>

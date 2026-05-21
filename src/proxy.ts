@@ -14,6 +14,9 @@ const publicPaths = ['/login', '/admin/login', '/forgot-password', '/reset-passw
   // /api/cms/* — public read-only endpoints (pricing tiers, active promotions).
   // Admin write endpoints di /api/admin/cms/* tetap require admin role.
   '/api/cms/',
+  // /api/admin/cms/promotions/[id]/generate-image — dual auth (admin OR CRON).
+  // Middleware bypass — route handler self-authenticates.
+  '/api/admin/cms/promotions/',
   // Admin smoke test endpoints — pakai own Bearer CRON_SECRET auth di route handler,
   // tidak butuh JWT admin session. Bypass middleware JWT check.
   '/api/admin/sentry-test', '/api/admin/fonnte-test', '/api/admin/brevo-test',

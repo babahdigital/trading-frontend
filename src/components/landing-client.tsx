@@ -63,10 +63,15 @@ const PRICING_TIERS: Record<string, TierMeta[]> = {
     { id: 'forex_scalping', tier: 'TIER 2', price: '<priceKey>:signal_pro', periodKey: 'period_monthly', featureCount: 5, href: '/register?service=signal&tier=scalping', popular: true },
     { id: 'forex_allin', tier: 'TIER 3', price: '<priceKey>:signal_vip', periodKey: 'period_monthly', featureCount: 5, href: '/register?service=signal&tier=all' },
   ],
+  // Crypto rc29 — landing preview 4 paid tier (starter/active/pro/hnwi).
+  // Demo free dipisah ke /pricing sebagai banner (bukan grid card) supaya
+  // landing tetap fokus pada paid conversion path. Active = popular badge
+  // (sweet spot capital $2.5K-5K, ~70% prospect target).
   crypto: [
-    { id: 'crypto_basic', tier: 'CRYPTO', price: '<priceKey>:crypto_basic', periodKey: 'period_monthly_flat', featureCount: 5, href: '/register?service=crypto&tier=basic' },
-    { id: 'crypto_pro', tier: 'CRYPTO PRO', price: '<priceKey>:crypto_pro', periodKey: 'period_monthly_flat', featureCount: 5, href: '/register?service=crypto&tier=pro', popular: true },
-    { id: 'crypto_hnwi', tier: 'CRYPTO HNWI', price: '<priceKey>:crypto_hnwi', periodKey: 'period_monthly_flat', featureCount: 5, href: '/contact?subject=crypto-hnwi' },
+    { id: 'crypto_basic', tier: 'STARTER', price: '<priceKey>:crypto_starter', periodKey: 'period_monthly_flat', featureCount: 5, href: '/register?service=crypto&tier=starter' },
+    { id: 'crypto_active', tier: 'ACTIVE', price: '<priceKey>:crypto_active', periodKey: 'period_monthly_flat', featureCount: 5, href: '/register?service=crypto&tier=active', popular: true },
+    { id: 'crypto_pro', tier: 'PRO', price: '<priceKey>:crypto_pro', periodKey: 'period_monthly_flat', featureCount: 5, href: '/register?service=crypto&tier=pro' },
+    { id: 'crypto_hnwi', tier: 'HNWI', price: '<priceKey>:crypto_hnwi', periodKey: 'period_monthly_flat', featureCount: 5, href: '/contact?subject=crypto-hnwi' },
   ],
   // 2026-05-18 — priceKey realigned to canonical 3-tier (License Only / Hybrid
   // / Turnkey) so the landing matches solutions/license. Tier IDs (`vps_license`

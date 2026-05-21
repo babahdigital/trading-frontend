@@ -249,17 +249,20 @@ export function PromoPopup() {
           <X className="h-4 w-4" />
         </button>
 
-        <div className="grid md:grid-cols-[5fr_4fr] lg:grid-cols-[6fr_5fr]">
+        {/* Grid 1:1 di desktop supaya image square (Gemini 2.5 Flash Image default
+            1024×1024) fill kolom kiri sempurna tanpa crop. Content sebelah kanan
+            mengikuti tinggi image. */}
+        <div className="grid md:grid-cols-2">
           {/* ─── HERO IMAGE COLUMN ─── */}
           {/*
-            Responsive aspect ratios per device — tighter di mobile portrait
-            supaya total dialog (image+content) fit di 88vh tanpa scroll:
-            - Phone portrait (< 640px): 21:9 ultra-wide (image short, content room)
-            - Tablet (640-768px): 16:9 balanced
-            - Desktop md+ (768px+): full-height side column
-            Image gen aspect 16:9 (1024x576) → object-cover crop sesuai container.
+            Responsive untuk match Gemini 2.5 Flash Image output 1024×1024 square:
+            - Mobile (<768px): aspect-[5/3] = 1.67:1, image di-crop horizontal
+              tipis supaya tidak makan 100% viewport height saat stacked di atas
+              content. Tinggi terkontrol.
+            - md+ (≥768px): aspect-square, image fill kolom kiri sempurna,
+              content kolom kanan height match.
           */}
-          <div className="relative aspect-[21/9] sm:aspect-video md:aspect-auto md:min-h-[400px] lg:min-h-[440px] bg-gradient-to-br from-amber-900/20 via-amber-500/10 to-transparent overflow-hidden">
+          <div className="relative aspect-[5/3] md:aspect-square bg-gradient-to-br from-amber-900/20 via-amber-500/10 to-transparent overflow-hidden">
             {heroImage ? (
               <>
                 {!imageLoaded && (

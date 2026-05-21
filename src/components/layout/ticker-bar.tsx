@@ -28,7 +28,7 @@ interface Ticker {
   group: 'crypto' | 'commodity' | 'forex' | 'index';
   last: number;
   change24hPct: number;
-  currency: 'USD';
+  currency: 'USD' | 'IDR';
 }
 
 const GROUP_ICON: Record<Ticker['group'], string> = {
@@ -66,11 +66,22 @@ const LABEL_ICON: Record<string, string> = {
   // Index
   'S&P500': '📈',
   NASDAQ: '💻',
-  JKSE: '🇮🇩',
+  IHSG: '🇮🇩',
+  // Indonesian blue-chip stocks — bank icon + telco/automotive
+  BBCA: '🏦',
+  BBRI: '🏦',
+  TLKM: '📡',
+  ASII: '🚗',
 };
 
-function formatPrice(n: number, group: Ticker['group'], symbol: string): string {
-  // USDIDR shown as Rp integer (e.g. 16,250) for Indonesian audience clarity
+function formatPrice(n: number, group: Ticker['group'], symbol: string, currency: Ticker['currency']): string {
+  // IDR native (Indonesian stocks BBCA/BBRI/TLKM/ASII + IHSG) — format
+  // Rp dengan thousand separator id-ID, no decimals (saham Indonesia
+  // di-quote integer per lembar).
+  if (currency === 'IDR') {
+    return 'Rp ' + n.toLocaleString('id-ID', { maximumFractionDigits: 0 });
+  }
+  // USDIDR pair (forex IDR rate)
   if (symbol === 'USDIDR') {
     return n.toLocaleString('id-ID', { maximumFractionDigits: 0 });
   }
@@ -168,7 +179,7 @@ export function TickerBar() {
               >
                 <span className="text-sm leading-none" aria-hidden>{icon}</span>
                 <span className="font-semibold tracking-wider text-amber-300/90">{t.label}</span>
-                <span className="text-foreground tabular-nums">{formatPrice(t.last, t.group, t.symbol)}</span>
+                <span className="text-foreground tabular-nums">{formatPrice(t.last, t.group, t.symbol, t.currency)}</span>
                 <span
                   className={cn(
                     'tabular-nums px-1.5 py-0.5 rounded text-[10px] font-bold',

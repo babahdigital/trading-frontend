@@ -32,7 +32,7 @@ interface Ticker {
   group: 'crypto' | 'commodity' | 'forex' | 'index';
   last: number;
   change24hPct: number;
-  currency: 'USD';
+  currency: 'USD' | 'IDR';
 }
 
 // Expanded ticker universe — Pak Abdullah directive 2026-05-21 "tambahkan lagi
@@ -68,10 +68,15 @@ const YAHOO_MAP: Array<{ ticker: string; symbol: string; label: string; group: '
   { ticker: 'USDCHF=X',  symbol: 'USDCHF',  label: 'CHF',    group: 'forex' },
   { ticker: 'USDIDR=X',  symbol: 'USDIDR',  label: 'IDR',    group: 'forex' },
   { ticker: 'DX=F',      symbol: 'DXY',     label: 'DXY',    group: 'forex' },
-  // Index
+  // Index — IHSG = label native Indonesia (sebelumnya 'JKSE' English),
+  // plus BBRI/BBCA liquid Indonesian blue-chip per Pak Abdullah 2026-05-21.
   { ticker: '^GSPC',     symbol: 'SPX',     label: 'S&P500', group: 'index' },
   { ticker: '^IXIC',     symbol: 'NDX',     label: 'NASDAQ', group: 'index' },
-  { ticker: '^JKSE',     symbol: 'JKSE',    label: 'JKSE',   group: 'index' },
+  { ticker: '^JKSE',     symbol: 'IHSG',    label: 'IHSG',   group: 'index' },
+  { ticker: 'BBCA.JK',   symbol: 'BBCA',    label: 'BBCA',   group: 'index' },
+  { ticker: 'BBRI.JK',   symbol: 'BBRI',    label: 'BBRI',   group: 'index' },
+  { ticker: 'TLKM.JK',   symbol: 'TLKM',    label: 'TLKM',   group: 'index' },
+  { ticker: 'ASII.JK',   symbol: 'ASII',    label: 'ASII',   group: 'index' },
 ];
 
 async function fetchCrypto(): Promise<Ticker[]> {
@@ -118,19 +123,22 @@ async function fetchYahooSingle(item: typeof YAHOO_MAP[number]): Promise<Ticker 
       next: { revalidate: 30 },
     });
     if (!res.ok) return null;
-    const data = await res.json() as { chart?: { result?: Array<{ meta?: { regularMarketPrice?: number; chartPreviousClose?: number } }> } };
+    const data = await res.json() as { chart?: { result?: Array<{ meta?: { regularMarketPrice?: number; chartPreviousClose?: number; currency?: string } }> } };
     const meta = data.chart?.result?.[0]?.meta;
     if (!meta || typeof meta.regularMarketPrice !== 'number') return null;
     const last = meta.regularMarketPrice;
     const prev = typeof meta.chartPreviousClose === 'number' ? meta.chartPreviousClose : last;
     const pct = prev !== 0 ? ((last - prev) / prev) * 100 : 0;
+    // Yahoo Finance return currency native — Indonesian stocks (BBCA.JK, etc)
+    // return IDR. Forward currency supaya FE format Rp untuk IDR, $ untuk USD.
+    const currency: 'USD' | 'IDR' = meta.currency === 'IDR' ? 'IDR' : 'USD';
     return {
       symbol: item.symbol,
       label: item.label,
       group: item.group,
       last,
       change24hPct: pct,
-      currency: 'USD',
+      currency,
     };
   } catch {
     return null;

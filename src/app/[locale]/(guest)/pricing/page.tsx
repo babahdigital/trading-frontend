@@ -14,6 +14,7 @@ import { StatsBar } from '@/components/shared/stats-bar';
 import { CryptoTierGate } from '@/components/register/crypto-tier-gate';
 import { prisma } from '@/lib/db/prisma';
 import { formatPrice, type Locale, type PriceKey } from '@/lib/pricing-format';
+import { getPricingOverrides } from '@/lib/pricing-db';
 import {
   ArrowRight,
   Check,
@@ -232,6 +233,10 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
   const localeKey: Locale = locale === 'en' ? 'en' : 'id';
   const localeNav: 'id' | 'en' = locale === 'en' ? 'en' : 'id';
 
+  // CMS pricing overlay — admin edit /admin/cms/pricing reflects immediately
+  // without redeploy. Fail-soft → hardcoded PRICE_TABLE fallback.
+  const overrides = await getPricingOverrides();
+
   // Fetch top FAQs untuk surface decision-point — same source dengan /register.
   let faqs: FaqItem[] = [];
   try {
@@ -249,7 +254,7 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
 
   const signalTiers = SIGNAL_TIER_META.map((m) => ({
     name: m.name,
-    price: formatPrice(m.priceKey, localeKey, { compact: false }),
+    price: formatPrice(m.priceKey, localeKey, { compact: false, overrides }),
     period: tp('signal_period_monthly'),
     features: tp.raw(`signal_${m.slug}_features`) as string[],
     cta: m.cta,
@@ -262,7 +267,7 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
   const cryptoDemoTier = CRYPTO_TIERS.find((t) => t.slug === 'demo')!;
   const cryptoPaidTiers = CRYPTO_TIERS.filter((t) => t.slug !== 'demo').map((t) => ({
     name: t.name[localeKey],
-    price: formatPrice(t.priceKey, localeKey, { compact: false }),
+    price: formatPrice(t.priceKey, localeKey, { compact: false, overrides }),
     period: localeKey === 'id' ? '/bulan' : '/mo',
     features: t.features[localeKey],
     cta: t.cta,
@@ -271,7 +276,7 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
   }));
   const vpsTiers = VPS_TIER_META.map((m) => ({
     name: m.name,
-    price: formatPrice(m.priceKey, localeKey, { compact: false }),
+    price: formatPrice(m.priceKey, localeKey, { compact: false, overrides }),
     period: tp(m.periodKey),
     features: tp.raw(`vps_${m.slug}_features`) as string[],
     cta: m.cta,

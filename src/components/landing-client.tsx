@@ -9,7 +9,7 @@ import { EquityCurve } from '@/components/charts/equity-curve';
 import { AnimatedSection } from '@/components/ui/animated-section';
 import { EditorialShowcase, type ShowcaseSlide } from '@/components/landing/editorial-showcase';
 import { AiBrainSection } from '@/components/landing/ai-brain-section';
-import { formatPrice, formatUsdAuto, type Locale, type PriceKey } from '@/lib/pricing-format';
+import { formatPrice, formatUsdAuto, type Locale, type PriceKey, type PriceOverrides } from '@/lib/pricing-format';
 import {
   ArrowRight, ArrowUpRight, Shield, Zap, Brain, ChevronDown, Check,
   TrendingUp, Bitcoin, Sparkles,
@@ -21,6 +21,8 @@ interface LandingClientProps {
   pricingTiers: Array<{ id: string; slug: string; name: string; price: string; subtitle: string | null; features: unknown; excluded: unknown; note: string | null; ctaLabel: string; ctaLink: string }>;
   testimonials: Array<{ id: string; name: string; role: string | null; content: string; rating: number; avatarUrl: string | null }>;
   faqs: Array<{ id: string; question: string; answer: string; category: string }>;
+  /** CMS pricing overlay dari server — fail-soft empty kalau DB unreachable */
+  pricingOverrides?: PriceOverrides;
 }
 
 // ─── Risk Framework Layers (i18n-driven) ───
@@ -140,7 +142,7 @@ const EMPTY_KPI: PerfKpi = {
   recoveryFactor: '—',
 };
 
-export function LandingClient({ sections, testimonials, faqs }: LandingClientProps) {
+export function LandingClient({ sections, testimonials, faqs, pricingOverrides }: LandingClientProps) {
   const t = useTranslations('landing');
   const [equityData, setEquityData] = useState<{ time: string; value: number }[]>([]);
   const [equityPeriod, setEquityPeriod] = useState('90D');
@@ -199,7 +201,7 @@ export function LandingClient({ sections, testimonials, faqs }: LandingClientPro
     if (price.startsWith('tier_price_')) return t(price);
     if (price.startsWith('<priceKey>:')) {
       const key = price.slice('<priceKey>:'.length) as PriceKey;
-      return formatPrice(key, localeKey, { compact: false });
+      return formatPrice(key, localeKey, { compact: false, overrides: pricingOverrides });
     }
     // Fallback raw USD literal — try auto-convert.
     const usdMatch = price.match(/^\$([0-9,]+)$/);

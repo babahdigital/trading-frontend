@@ -4,6 +4,7 @@ import { LandingClient } from '@/components/landing-client';
 import { BannerBar } from '@/components/cms/banner-bar';
 import { PopupManager } from '@/components/cms/popup-manager';
 import { localizeLandingSection, localizePricingTier, localizeFaq } from '@/lib/i18n/localize-cms';
+import { getPricingOverrides } from '@/lib/pricing-db';
 
 export const dynamic = 'force-dynamic';
 
@@ -65,6 +66,10 @@ export default async function GuestLandingPage({ params }: { params: Promise<{ l
     // DB not available — use fallback
   }
 
+  // CMS pricing overlay — admin edit /admin/cms/pricing reflects immediately
+  // ke landing tanpa redeploy. Fail-soft → hardcoded PRICE_TABLE fallback.
+  const pricingOverrides = await getPricingOverrides();
+
   return (
     <>
       {structuredData && (
@@ -74,7 +79,7 @@ export default async function GuestLandingPage({ params }: { params: Promise<{ l
         />
       )}
       <BannerBar />
-      <LandingClient sections={sections} pricingTiers={pricingTiers} testimonials={testimonials} faqs={faqs} />
+      <LandingClient sections={sections} pricingTiers={pricingTiers} testimonials={testimonials} faqs={faqs} pricingOverrides={pricingOverrides} />
       <PopupManager />
     </>
   );

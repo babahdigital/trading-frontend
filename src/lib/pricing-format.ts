@@ -103,9 +103,26 @@ type FormatOpts = {
   compact?: boolean;
 };
 
-/** Format harga sesuai locale dengan optional period suffix. */
-export function formatPrice(key: PriceKey, locale: Locale, opts: FormatOpts = {}): string {
-  const entry = PRICE_TABLE[key];
+/**
+ * Format harga sesuai locale dengan optional period suffix.
+ *
+ * CMS centralization 2026-05-21 (Pak Abdullah directive): pass optional
+ * `dbOverrides` map untuk pakai PricingTier DB sebagai source of truth.
+ * Kalau key ada di overrides → pakai DB value; fallback ke PRICE_TABLE
+ * hardcoded (backward compat untuk pricing surfaces yang belum migrate).
+ *
+ * Server components call `getPricingOverrides()` dari `lib/pricing-db.ts`
+ * untuk get DB map, lalu pass ke formatPrice opts.
+ */
+export interface PriceOverride { usd: number; idr: number }
+export type PriceOverrides = Partial<Record<PriceKey, PriceOverride>>;
+
+export function formatPrice(
+  key: PriceKey,
+  locale: Locale,
+  opts: FormatOpts & { overrides?: PriceOverrides } = {},
+): string {
+  const entry = opts.overrides?.[key] ?? PRICE_TABLE[key];
   const { period, compact } = opts;
 
   if (locale === 'id') {

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { getLocale, getMessages } from 'next-intl/server';
 import { NextIntlClientProvider } from 'next-intl';
 import { ChatWidgetMount } from '@/components/chat/chat-widget-mount';
+import { PromoPopup } from '@/components/promo/promo-popup';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import { ToastProvider } from '@/components/ui/toast';
 import { ConfirmProvider } from '@/components/ui/confirm-dialog';
@@ -89,6 +90,7 @@ export default async function RootLayout({
                 </a>
                 {children}
                 <ChatWidgetMount />
+                <PromoPopup />
                 <PageviewTracker />
                 <WebVitalsReporter />
               </ConfirmProvider>

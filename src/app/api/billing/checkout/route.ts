@@ -72,7 +72,11 @@ export async function POST(req: NextRequest) {
   // Multi-currency display di invoice page (USD + IDR), API + dokumentasi
   // lebih clean, dan forex backend juga akan migrate ke Xendit eventually.
   // Midtrans tetap available kalau customer prefer atau Xendit down.
-  const { tier, provider = 'xendit' } = body as { tier: string; provider?: PaymentProvider };
+  const { tier, provider = 'xendit', promo: promoSlug } = body as {
+    tier: string;
+    provider?: PaymentProvider;
+    promo?: string;  // optional promo slug (saat customer datang dari popup)
+  };
   const pricing = TIER_PRICES[tier];
   if (!pricing) return errorResponse('invalid_tier', 'Invalid tier', 400);
   if (pricing.amountIdr === 0) {
@@ -86,7 +90,57 @@ export async function POST(req: NextRequest) {
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) return errorResponse('user_not_found', 'User not found', 404);
 
-  const localizedDescription = localizeDescription(pricing.description, locale);
+  // ─── Resolve discount dari Promotion active ─────────────────────────
+  // Logic: kalau promoSlug provided → lookup; ELSE pick first active promo
+  // yang applicableTiers includes current tier (atau empty = all-tiers).
+  // Discount applied ke amountIdr dengan rounding ke psychological IDR.
+  const tierSlug = tier.toLowerCase().replace(/_/g, '-');
+  let appliedPromo: { id: string; slug: string; discountPercent?: number; discountFixedIdr?: number; discountValue: number; discountType: string } | null = null;
+  let discountedAmount = pricing.amountIdr;
+
+  const now = new Date();
+  const candidatePromos = await prisma.promotion.findMany({
+    where: {
+      status: 'ACTIVE',
+      startsAt: { lte: now },
+      endsAt: { gte: now },
+      ...(promoSlug ? { slug: promoSlug } : {}),
+    },
+    orderBy: { startsAt: 'desc' },
+  });
+
+  for (const p of candidatePromos) {
+    const tiers = Array.isArray(p.applicableTiers) ? (p.applicableTiers as string[]) : [];
+    const eligible = tiers.length === 0 || tiers.includes(tierSlug);
+    const underQuota = p.maxUsage === 0 || p.currentUsage < p.maxUsage;
+    if (eligible && underQuota) {
+      const value = Number(p.discountValue);
+      const calcDiscount = p.discountType === 'PERCENT'
+        ? Math.round((pricing.amountIdr * value) / 100)
+        : Math.min(value, pricing.amountIdr);
+      // Round ke 1000 ke bawah (psychological IDR display)
+      discountedAmount = Math.max(0, Math.floor((pricing.amountIdr - calcDiscount) / 1000) * 1000);
+      appliedPromo = {
+        id: p.id,
+        slug: p.slug,
+        discountValue: value,
+        discountType: p.discountType,
+        ...(p.discountType === 'PERCENT' ? { discountPercent: value } : { discountFixedIdr: value }),
+      };
+      // Increment usage counter (best-effort, race-safe via atomic update)
+      await prisma.promotion.update({
+        where: { id: p.id },
+        data: { currentUsage: { increment: 1 } },
+      }).catch(() => undefined);
+      break; // apply first eligible only
+    }
+  }
+
+  const finalAmount = discountedAmount;
+  const baseDescription = appliedPromo
+    ? `${pricing.description} (diskon ${appliedPromo.discountValue}${appliedPromo.discountType === 'PERCENT' ? '%' : ' IDR'})`
+    : pricing.description;
+  const localizedDescription = localizeDescription(baseDescription, locale);
 
   // Idempotency: if this key already produced an invoice, return existing (no duplicate charge).
   const existing = await prisma.invoice.findFirst({
@@ -112,19 +166,23 @@ export async function POST(req: NextRequest) {
       id: orderId,
       userId,
       number: orderId,
-      amountUsd: pricing.amountIdr / 16000,
+      amountUsd: finalAmount / 16000,
       status: 'DUE',
       dueAt,
       description: localizedDescription,
       subscriptionId: null,
-      metadata: { tier, amountIdr: pricing.amountIdr, provider, idempotencyKey, clientSupplied },
+      metadata: {
+        tier, amountIdr: finalAmount, originalAmountIdr: pricing.amountIdr,
+        provider, idempotencyKey, clientSupplied,
+        promoApplied: appliedPromo ? { id: appliedPromo.id, slug: appliedPromo.slug, discountValue: appliedPromo.discountValue, discountType: appliedPromo.discountType } : null,
+      },
     },
   });
 
   if (provider === 'xendit') {
     const invoice = await createXenditInvoice({
       externalId: orderId,
-      amountIdr: pricing.amountIdr,
+      amountIdr: finalAmount,
       customerName: user.name || user.email,
       customerEmail: user.email,
       description: localizedDescription,
@@ -132,7 +190,14 @@ export async function POST(req: NextRequest) {
 
     await prisma.invoice.update({
       where: { id: orderId },
-      data: { metadata: { tier, amountIdr: pricing.amountIdr, provider, idempotencyKey, clientSupplied, invoiceUrl: invoice.invoiceUrl, invoiceId: invoice.invoiceId } },
+      data: {
+        metadata: {
+          tier, amountIdr: finalAmount, originalAmountIdr: pricing.amountIdr,
+          provider, idempotencyKey, clientSupplied,
+          invoiceUrl: invoice.invoiceUrl, invoiceId: invoice.invoiceId,
+          promoApplied: appliedPromo,
+        },
+      },
     });
 
     return NextResponse.json({
@@ -140,13 +205,16 @@ export async function POST(req: NextRequest) {
       provider: 'xendit',
       invoiceUrl: invoice.invoiceUrl,
       invoiceId: invoice.invoiceId,
+      amountIdr: finalAmount,
+      originalAmountIdr: pricing.amountIdr,
+      discount: appliedPromo,
     });
   }
 
   // Default: Midtrans
   const transaction = await createMidtransTransaction({
     orderId,
-    amountIdr: pricing.amountIdr,
+    amountIdr: finalAmount,
     customerName: user.name || user.email,
     customerEmail: user.email,
     itemDescription: localizedDescription,
@@ -154,7 +222,14 @@ export async function POST(req: NextRequest) {
 
   await prisma.invoice.update({
     where: { id: orderId },
-    data: { metadata: { tier, amountIdr: pricing.amountIdr, provider, idempotencyKey, clientSupplied, snapToken: transaction.token, redirectUrl: transaction.redirectUrl } },
+    data: {
+      metadata: {
+        tier, amountIdr: finalAmount, originalAmountIdr: pricing.amountIdr,
+        provider, idempotencyKey, clientSupplied,
+        snapToken: transaction.token, redirectUrl: transaction.redirectUrl,
+        promoApplied: appliedPromo,
+      },
+    },
   });
 
   return NextResponse.json({
@@ -162,5 +237,8 @@ export async function POST(req: NextRequest) {
     provider: 'midtrans',
     snapToken: transaction.token,
     redirectUrl: transaction.redirectUrl,
+    amountIdr: finalAmount,
+    originalAmountIdr: pricing.amountIdr,
+    discount: appliedPromo,
   });
 }

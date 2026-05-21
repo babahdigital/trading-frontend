@@ -103,9 +103,17 @@ function formatPct(n: number): string {
   return `${sign}${n.toFixed(2)}%`;
 }
 
+// Threshold scroll position (px) yang trigger ticker pindah ke bottom-fixed
+const SCROLL_THRESHOLD = 120;
+// Reserved right space saat chat icon visible (h-14 + bottom-6 area = ~80px)
+const CHAT_ICON_RESERVE_PX = 80;
+
 export function TickerBar() {
   const [tickers, setTickers] = useState<Ticker[]>([]);
   const [failCount, setFailCount] = useState(0);
+  const [scrolled, setScrolled] = useState(false);
+  const [footerVisible, setFooterVisible] = useState(false);
+  const [chatIconVisible, setChatIconVisible] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -126,9 +134,56 @@ export function TickerBar() {
     }
 
     load();
-    // Refresh tiap 60s — sesuai cache CDN
     timer = setInterval(load, 60_000);
     return () => { cancelled = true; if (timer) clearInterval(timer); };
+  }, []);
+
+  // Scroll detector — saat user scroll > 120px, ticker stick ke bottom viewport.
+  // rAF throttle untuk performance (scroll event high frequency).
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        setScrolled(window.scrollY > SCROLL_THRESHOLD);
+        ticking = false;
+      });
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll(); // initial check
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // Footer observer — saat footer masuk viewport, ticker fade-out supaya tidak
+  // overlap link footer. Footer dianggap visible kalau top edge masuk viewport
+  // (lebih awal dari fully-visible — supaya ticker hilang sebelum overlap).
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const footer = document.getElementById('enterprise-footer');
+    if (!footer) return;
+    const obs = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) setFooterVisible(e.isIntersecting);
+      },
+      { threshold: 0, rootMargin: '0px 0px -40px 0px' },
+    );
+    obs.observe(footer);
+    return () => obs.disconnect();
+  }, []);
+
+  // Chat icon visibility — sync via custom event dari ChatWidgetMount supaya
+  // ticker reserve space kanan saat icon visible (no overlap di pojok kanan
+  // bottom).
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<{ visible: boolean }>).detail;
+      setChatIconVisible(Boolean(detail?.visible));
+    };
+    window.addEventListener('babahalgo:chat-icon-state', handler as EventListener);
+    return () => window.removeEventListener('babahalgo:chat-icon-state', handler as EventListener);
   }, []);
 
   // Dismiss kalau gagal >2x berturut-turut (jangan tampilkan empty bar)
@@ -143,16 +198,37 @@ export function TickerBar() {
   // fast enough untuk feel live.
   const animDuration = Math.max(60, tickers.length * 5);
 
+  // Mode visual:
+  //   - "top": normal flow di atas nav (saat scrollY ≤ 120px atau footer visible)
+  //   - "bottom-fixed": fixed bottom viewport (saat scrollY > 120px DAN footer
+  //     belum visible) — floating ticker yang Bloomberg/TradingView style.
+  //   - "hidden": display none saat footer fully visible (jangan overlap link)
+  const mode: 'top' | 'bottom-fixed' | 'hidden' =
+    footerVisible ? 'hidden'
+    : scrolled ? 'bottom-fixed'
+    : 'top';
+
+  // Right offset reserve untuk chat icon (h-14 w-14 + safe-area bottom right).
+  // Apply hanya di bottom-fixed mode supaya tidak terpotong di top mode.
+  const rightReserveStyle = mode === 'bottom-fixed' && chatIconVisible
+    ? { right: `${CHAT_ICON_RESERVE_PX}px` }
+    : undefined;
+
   return (
     <div
       className={cn(
-        // z-[90] supaya STACK di atas nav (z-80). Hindari ketutup header.
-        'relative w-full overflow-hidden border-b border-amber-500/15 z-[90]',
+        'overflow-hidden border-amber-500/15 transition-all duration-300',
         'bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950',
         'text-foreground isolate',
+        // Per-mode positioning
+        mode === 'top' && 'relative w-full border-b z-[90]',
+        mode === 'bottom-fixed' && 'fixed left-0 right-0 bottom-0 z-[85] border-t shadow-[0_-4px_20px_rgba(0,0,0,0.4)]',
+        mode === 'hidden' && 'opacity-0 pointer-events-none',
       )}
+      style={rightReserveStyle}
       role="region"
       aria-label="Live market ticker"
+      aria-hidden={mode === 'hidden'}
     >
       {/* Live indicator pill — z-20 di atas marquee (z-0), absolute left+bottom-aligned */}
       <div className="absolute left-0 top-0 bottom-0 z-20 flex items-center pl-3 pr-2 pointer-events-none">

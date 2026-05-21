@@ -119,6 +119,16 @@ export function ChatWidgetMount() {
     return () => window.removeEventListener('babahalgo:open-chat', open);
   }, []);
 
+  // Broadcast chat icon visibility ke listener lain (TickerBar reserve space
+  // kanan saat icon visible supaya tidak overlap di mode floating-bottom).
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    // Visible kalau iconVisible=true DAN panel sedang tutup (panel buka =
+    // overlay menutupi icon, tidak perlu reserve space)
+    const visible = iconVisible && !panelOpen;
+    window.dispatchEvent(new CustomEvent('babahalgo:chat-icon-state', { detail: { visible } }));
+  }, [iconVisible, panelOpen]);
+
   // Idle-mount untuk portal/admin (icon visible default). Public pages skip
   // idle-mount — load on-demand saat user klik footer.
   useEffect(() => {

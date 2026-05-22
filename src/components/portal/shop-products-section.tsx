@@ -131,13 +131,23 @@ export function ShopProductsSection({ scope }: ShopProductsSectionProps = {}) {
   const grouped = useMemo(() => {
     const out: Record<CategoryKey, PricingTierRow[]> = { SIGNAL: [], CRYPTO: [], VPS: [] };
     for (const tier of tiers) {
+      // Defensive: skip tier yang tidak punya harga (placeholder/legacy)
+      if (tier.priceIdr == null && tier.priceUsd == null) continue;
+      // Normalize category — DEMO (crypto-demo) di-surface sebagai CRYPTO
+      // (sub-tier dari crypto product line, bukan kategori sendiri di UX).
+      // Pak Abdullah audit 2026-05-22 — kategori toggle harus clean per product.
+      let displayCategory: CategoryKey | null = null;
       if (tier.category === 'SIGNAL' || tier.category === 'CRYPTO' || tier.category === 'VPS') {
-        // Kalau scope di-set, skip kategori lain — supaya /portal/crypto cuma
-        // tampilkan crypto products, /portal/signals cuma signal, dll.
-        if (scope && tier.category !== scope) continue;
-        out[tier.category as CategoryKey].push(tier);
+        displayCategory = tier.category as CategoryKey;
+      } else if (tier.category === 'DEMO' && tier.slug.startsWith('crypto-')) {
+        displayCategory = 'CRYPTO';
       }
+      if (!displayCategory) continue;
+      // Kalau scope di-set, skip kategori lain.
+      if (scope && displayCategory !== scope) continue;
+      out[displayCategory].push(tier);
     }
+    // Sort within each category by sortOrder (DEMO first via sortOrder=10)
     return out;
   }, [tiers, scope]);
 

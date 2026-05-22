@@ -260,7 +260,7 @@ export function PromoPopup() {
               cover) supaya tidak makan viewport tinggi saat stacked.
             - md+ (≥768px): aspect-square, image fill kolom kiri sempurna.
           */}
-          <div className="relative aspect-[5/3] md:aspect-square bg-gradient-to-br from-amber-900/20 via-amber-500/10 to-transparent overflow-hidden">
+          <div className="relative aspect-[4/3] md:aspect-square bg-gradient-to-br from-amber-900/20 via-amber-500/10 to-transparent overflow-hidden">
             {heroImage ? (
               <>
                 {!imageLoaded && (

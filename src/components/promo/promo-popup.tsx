@@ -282,7 +282,7 @@ export function PromoPopup() {
               cover) supaya tidak makan viewport tinggi saat stacked.
             - md+ (≥768px): aspect-square, image fill kolom kiri sempurna.
           */}
-          <div className="relative aspect-[4/3] md:aspect-square bg-gradient-to-br from-amber-900/20 via-amber-500/10 to-transparent overflow-hidden">
+          <div className="relative aspect-[4/3] md:aspect-square bg-slate-900 overflow-hidden">
             {heroImage ? (
               <>
                 {!imageLoaded && (
@@ -290,25 +290,28 @@ export function PromoPopup() {
                     <Sparkles className="h-8 w-8 text-amber-500/30 animate-pulse" aria-hidden />
                   </div>
                 )}
+                {/* Image full-bleed — scale 105% supaya any thin edge artifact
+                    dari Gemini (1-2px edge bleed) ter-crop, fill 100% container.
+                    Pak Abdullah audit 2026-05-22: "fill images popup ada sisa
+                    putih kiri kanan atas bawah sedikit gamr 1:1". */}
                 <Image
                   src={heroImage}
                   alt={title}
                   fill
                   unoptimized
                   className={cn(
-                    'object-cover object-center transition-opacity duration-500',
+                    'object-cover object-center transition-opacity duration-500 scale-[1.04]',
                     imageLoaded ? 'opacity-100' : 'opacity-0',
                   )}
-                  // Sizes hint untuk responsive loading:
-                  // <640px: full viewport width, 640-768: full width, ≥768: ~55% of container
                   sizes="(max-width: 640px) 100vw, (max-width: 768px) 100vw, (max-width: 1024px) 56vw, 50vw"
                   onLoad={() => setImageLoaded(true)}
                   priority
                 />
-                {/* Gradient overlay — gradient lebih kuat di bottom untuk readability badge urgency */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/15 pointer-events-none" />
-                {/* Side gradient ke direction content (right edge) — blend transition desktop */}
-                <div className="absolute inset-0 hidden md:block bg-gradient-to-r from-transparent via-transparent to-card/50 pointer-events-none" />
+                {/* Bottom gradient ONLY — untuk readability urgency chip + discount badge.
+                    Sebelumnya ada side-fade `to-card/50` yang di LIGHT theme jadi white
+                    margin di right edge — Pak Abdullah audit 2026-05-22 drop entirely.
+                    Top gradient juga di-drop supaya image full-bleed atas. */}
+                <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/55 to-transparent pointer-events-none" />
               </>
             ) : (
               // Fallback ketika image null — decorative pattern (same aspect)

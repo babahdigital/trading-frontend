@@ -1921,7 +1921,8 @@
       "crypto_feature_2": "Strategi SMC Scalper (Quasimodo)",
       "crypto_feature_3": "Manajemen risiko institusional",
       "crypto_feature_4": "Kill switch ekstrem",
-      "crypto_note": "Flat monthly — tanpa profit share"
+      "crypto_note": "Flat monthly — tanpa profit share",
+      "signal_note": "Flat monthly — tanpa profit share"
     },
     "step_account": "Akun",
     "step_select_tier": "Pilih Tier",
@@ -1952,6 +1953,9 @@
     "placeholder_password_short": "Minimal 8 karakter",
     "placeholder_phone": "+628123456789",
     "placeholder_company_optional": "Opsional",
+    "placeholder_name_company": "Nama Anda atau institusi",
+    "placeholder_email_business": "anda@perusahaan.com",
+    "placeholder_company": "Nama perusahaan atau institusi",
     "error_register_failed": "Pendaftaran gagal. Silakan coba lagi.",
     "error_network": "Terjadi gangguan jaringan. Silakan coba lagi.",
     "error_generic": "Terjadi kesalahan",

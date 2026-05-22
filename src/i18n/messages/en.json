@@ -1672,7 +1672,8 @@
       "crypto_feature_2": "SMC Scalper (Quasimodo) strategy",
       "crypto_feature_3": "Institutional risk management",
       "crypto_feature_4": "Extreme kill switch",
-      "crypto_note": "Flat monthly — no profit share"
+      "crypto_note": "Flat monthly — no profit share",
+      "signal_note": "Flat monthly — no profit share"
     },
     "step_account": "Account",
     "step_select_tier": "Select Tier",
@@ -1703,6 +1704,9 @@
     "placeholder_password_short": "Minimum 8 characters",
     "placeholder_phone": "+628123456789",
     "placeholder_company_optional": "Optional",
+    "placeholder_name_company": "Your name or institution",
+    "placeholder_email_business": "you@company.com",
+    "placeholder_company": "Company or institution name",
     "error_register_failed": "Registration failed. Please try again.",
     "error_network": "Network error. Please try again.",
     "error_generic": "An error occurred",

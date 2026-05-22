@@ -2,6 +2,7 @@ import { prisma } from '@/lib/db/prisma';
 import { sendEmail } from '@/lib/notifier/email';
 import { addMonths } from 'date-fns';
 import { createLogger } from '@/lib/logger';
+import { renderEmailShell } from '@/lib/email/shell';
 
 const log = createLogger('subscription');
 
@@ -67,28 +68,42 @@ export async function activateSubscription(
     const portalUrl = `${APP_URL}/portal/account/notifications`;
     const billingUrl = `${APP_URL}/portal/billing`;
     const invoiceLink = opts?.invoiceUrl
-      ? `<p>${isEn ? 'View invoice' : 'Lihat invoice'}: <a href="${opts.invoiceUrl}">${opts.invoiceUrl}</a></p>`
+      ? `<p style="margin: 0 0 12px 0; font-size: 13px;">📄 ${isEn ? 'Invoice PDF' : 'Invoice PDF'}: <a href="${opts.invoiceUrl}" style="color: #F5B547; text-decoration: none;">${isEn ? 'Download' : 'Unduh'} →</a></p>`
       : opts?.invoiceId
-        ? `<p>${isEn ? 'Invoice' : 'Invoice'}: <strong>${opts.invoiceId}</strong> — <a href="${billingUrl}">${isEn ? 'view in portal' : 'lihat di portal'}</a></p>`
+        ? `<p style="margin: 0 0 12px 0; font-size: 13px;">${isEn ? 'Invoice' : 'Invoice'}: <strong style="color: #FAFAF7;">${opts.invoiceId}</strong> — <a href="${billingUrl}" style="color: #F5B547; text-decoration: none;">${isEn ? 'view in portal' : 'lihat di portal'} →</a></p>`
         : '';
 
     const subject = isEn
       ? `Subscription Active — BabahAlgo`
       : `Subscription Aktif — BabahAlgo`;
-    const body = isEn
-      ? `<p>Hi ${greetName},</p>
-         <p>Your <strong>${tier}</strong> subscription is now active until ${expiresStr}.</p>
-         ${invoiceLink}
-         <p>Setup notifications: <a href="${portalUrl}">Portal Settings</a></p>
-         <p>— BabahAlgo Team</p>`
-      : `<p>Halo ${greetName},</p>
-         <p>Subscription <strong>${tier}</strong> Anda sudah aktif hingga ${expiresStr}.</p>
-         ${invoiceLink}
-         <p>Setup notifikasi: <a href="${portalUrl}">Portal Settings</a></p>
-         <p>— Tim BabahAlgo</p>`;
+
+    const bodyHtml = isEn
+      ? `
+        <p style="margin: 0 0 14px 0;"><strong style="color: #FAFAF7;">Hi ${greetName},</strong></p>
+        <p style="margin: 0 0 18px 0;">Your <strong style="color: #F5B547;">${tier}</strong> subscription is now active until <strong>${expiresStr}</strong>.</p>
+        <div style="margin: 18px 0; padding: 16px; background: rgba(245,181,71,0.06); border-left: 3px solid #F5B547; border-radius: 0 8px 8px 0;">
+          ${invoiceLink}
+          <p style="margin: 4px 0 0 0; font-size: 13px;">⚙️ ${isEn ? 'Configure notifications' : 'Atur notifikasi'}: <a href="${portalUrl}" style="color: #F5B547; text-decoration: none;">Portal Settings →</a></p>
+        </div>`
+      : `
+        <p style="margin: 0 0 14px 0;"><strong style="color: #FAFAF7;">Halo ${greetName},</strong></p>
+        <p style="margin: 0 0 18px 0;">Subscription <strong style="color: #F5B547;">${tier}</strong> Anda sudah aktif hingga <strong>${expiresStr}</strong>.</p>
+        <div style="margin: 18px 0; padding: 16px; background: rgba(245,181,71,0.06); border-left: 3px solid #F5B547; border-radius: 0 8px 8px 0;">
+          ${invoiceLink}
+          <p style="margin: 4px 0 0 0; font-size: 13px;">⚙️ Atur notifikasi: <a href="${portalUrl}" style="color: #F5B547; text-decoration: none;">Portal Settings →</a></p>
+        </div>`;
+
+    const html = renderEmailShell({
+      locale,
+      subject,
+      eyebrow: isEn ? 'Subscription Active' : 'Subscription Aktif',
+      title: isEn ? `${tier} is live` : `${tier} sudah aktif`,
+      bodyHtml,
+      cta: { label: isEn ? 'Open Portal' : 'Buka Portal', href: `${APP_URL}/portal` },
+    });
 
     try {
-      await sendEmail(user.email, subject, body);
+      await sendEmail(user.email, subject, html);
     } catch (err) {
       log.warn(`Failed to send activation email to ${user.email}: ${err}`);
     }
@@ -163,17 +178,31 @@ export async function cancelSubscription(
       const locale = await resolveEmailLocale(user.email);
       const isEn = locale === 'en';
       const subject = isEn ? 'Subscription Cancelled — BabahAlgo' : 'Subscription Dibatalkan — BabahAlgo';
-      const body = isEn
-        ? `<p>Hi ${user.name || 'Trader'},</p>
-           <p>Your subscription has been cancelled${opts?.tier ? ` (tier: ${opts.tier})` : ''}.</p>
-           <p>Reason: ${reason}</p>
-           <p>Automated execution stopped. To reactivate, <a href="${APP_URL}/pricing">pick a plan</a>.</p>`
-        : `<p>Halo ${user.name || 'Trader'},</p>
-           <p>Subscription Anda telah dibatalkan${opts?.tier ? ` (tier: ${opts.tier})` : ''}.</p>
-           <p>Alasan: ${reason}</p>
-           <p>Eksekusi otomatis sudah berhenti. Untuk aktivasi kembali, <a href="${APP_URL}/pricing">pilih paket di /pricing</a>.</p>`;
+      const greetName = user.name || (isEn ? 'Trader' : 'Trader');
+      const tierLine = opts?.tier ? ` (${opts.tier})` : '';
+      const bodyHtml = isEn
+        ? `
+          <p style="margin: 0 0 14px 0;"><strong style="color: #FAFAF7;">Hi ${greetName},</strong></p>
+          <p style="margin: 0 0 18px 0;">Your subscription${tierLine} has been cancelled. Automated execution has stopped.</p>
+          <div style="margin: 18px 0; padding: 14px 18px; background: rgba(255,255,255,0.04); border-radius: 8px;">
+            <p style="margin: 0; font-size: 13px; color: rgba(250,250,247,0.75);"><strong>Reason:</strong> ${reason}</p>
+          </div>`
+        : `
+          <p style="margin: 0 0 14px 0;"><strong style="color: #FAFAF7;">Halo ${greetName},</strong></p>
+          <p style="margin: 0 0 18px 0;">Subscription${tierLine} Anda telah dibatalkan. Eksekusi otomatis sudah berhenti.</p>
+          <div style="margin: 18px 0; padding: 14px 18px; background: rgba(255,255,255,0.04); border-radius: 8px;">
+            <p style="margin: 0; font-size: 13px; color: rgba(250,250,247,0.75);"><strong>Alasan:</strong> ${reason}</p>
+          </div>`;
+      const html = renderEmailShell({
+        locale,
+        subject,
+        eyebrow: isEn ? 'Subscription Cancelled' : 'Subscription Dibatalkan',
+        title: isEn ? 'Subscription cancelled' : 'Subscription dibatalkan',
+        bodyHtml,
+        cta: { label: isEn ? 'Reactivate' : 'Aktifkan Kembali', href: `${APP_URL}/pricing` },
+      });
       try {
-        await sendEmail(user.email, subject, body);
+        await sendEmail(user.email, subject, html);
       } catch (err) {
         log.warn(`Failed to send cancellation email to ${user.email}: ${err}`);
       }
@@ -216,15 +245,24 @@ export async function expireSubscriptions() {
     const subject = isEn
       ? 'Subscription expiring in 3 days — BabahAlgo'
       : 'Subscription Akan Berakhir — 3 Hari Lagi';
-    const body = isEn
-      ? `<p>Hi ${sub.user.name || 'Trader'},</p>
-         <p>Your ${sub.tier} subscription expires on ${expiresStr}.</p>
-         <p><a href="${APP_URL}/portal/billing">Renew now</a></p>`
-      : `<p>Halo ${sub.user.name || 'Trader'},</p>
-         <p>Subscription ${sub.tier} Anda berakhir ${expiresStr}.</p>
-         <p><a href="${APP_URL}/portal/billing">Perpanjang Sekarang</a></p>`;
+    const greetName = sub.user.name || (isEn ? 'Trader' : 'Trader');
+    const bodyHtml = isEn
+      ? `
+        <p style="margin: 0 0 14px 0;"><strong style="color: #FAFAF7;">Hi ${greetName},</strong></p>
+        <p style="margin: 0 0 18px 0;">Your <strong style="color: #F5B547;">${sub.tier}</strong> subscription expires on <strong>${expiresStr}</strong>. Renew to keep automated execution running without interruption.</p>`
+      : `
+        <p style="margin: 0 0 14px 0;"><strong style="color: #FAFAF7;">Halo ${greetName},</strong></p>
+        <p style="margin: 0 0 18px 0;">Subscription <strong style="color: #F5B547;">${sub.tier}</strong> Anda berakhir <strong>${expiresStr}</strong>. Perpanjang untuk lanjutkan eksekusi otomatis tanpa terputus.</p>`;
+    const html = renderEmailShell({
+      locale,
+      subject,
+      eyebrow: isEn ? 'Renewal Reminder' : 'Pengingat Perpanjangan',
+      title: isEn ? 'Expires in 3 days' : 'Berakhir dalam 3 hari',
+      bodyHtml,
+      cta: { label: isEn ? 'Renew Now' : 'Perpanjang Sekarang', href: `${APP_URL}/portal/billing` },
+    });
     try {
-      await sendEmail(sub.user.email, subject, body);
+      await sendEmail(sub.user.email, subject, html);
     } catch (err) {
       log.warn(`Failed to send renewal reminder to ${sub.user.email}: ${err}`);
     }

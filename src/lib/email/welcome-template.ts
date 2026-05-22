@@ -1,8 +1,9 @@
 /**
- * Bilingual welcome email templates for newly registered customers.
- * Selected by locale detected from registration request (cookie / accept-language).
+ * Bilingual welcome email — institutional-grade via shared shell.
+ * Pak Abdullah audit 2026-05-22: redesign semua template institusional.
  */
 import type { AppLocale } from '@/lib/i18n/server-locale';
+import { renderEmailShell } from './shell';
 
 interface WelcomeEmailParams {
   name: string;
@@ -14,58 +15,52 @@ interface WelcomeEmailContent {
   html: string;
 }
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://babahalgo.com';
+
 export function renderWelcomeEmail(locale: AppLocale, params: WelcomeEmailParams): WelcomeEmailContent {
   const { name, tier } = params;
   const tierDisplay = tier.replace(/_/g, ' ');
+  const isEn = locale === 'en';
 
-  if (locale === 'en') {
-    return {
-      subject: 'Welcome to BabahAlgo',
-      html: `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#333">
-        <h2 style="color:#d97706">Welcome, ${name}!</h2>
-        <p>Thank you for registering with <strong>BabahAlgo</strong>.</p>
-        <p>Selected plan: <strong>${tierDisplay}</strong></p>
-        <h3>Next Steps:</h3>
-        <ol>
-          <li>Wait for account activation by our team (within 24 hours)</li>
-          <li>Set up Telegram Bot: open <a href="https://t.me/babahalgo_bot">@babahalgo_bot</a> → type /start → copy your Chat ID</li>
-          <li>Paste the Chat ID at <a href="https://babahalgo.com/portal/account">Portal &gt; Settings &gt; Notifications</a></li>
-          <li>Once active, trading signals will automatically arrive via Telegram &amp; email</li>
+  const subject = isEn ? 'Welcome to BabahAlgo' : 'Selamat Datang di BabahAlgo';
+
+  const bodyHtml = isEn
+    ? `
+      <p style="margin: 0 0 12px 0;"><strong style="color: #FAFAF7;">Hi ${name},</strong></p>
+      <p style="margin: 0 0 16px 0;">Thank you for registering with <strong style="color: #F5B547;">BabahAlgo</strong>. Your <strong>${tierDisplay}</strong> account is being set up.</p>
+      <div style="margin: 24px 0; padding: 20px; background: rgba(255,255,255,0.03); border-radius: 8px;">
+        <div style="font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(245,181,71,0.9); font-weight: 600; margin-bottom: 12px;">Next Steps</div>
+        <ol style="margin: 0; padding-left: 20px; color: rgba(250,250,247,0.85); font-size: 14px; line-height: 1.7;">
+          <li>Account activation within 24 hours</li>
+          <li>Set up Telegram notifications via portal</li>
+          <li>Verify email if you haven't yet</li>
+          <li>Trading signals delivered automatically once active</li>
         </ol>
-        <p style="margin-top:24px;padding:16px;background:#fef3c7;border-radius:8px">
-          <strong>Need help?</strong> Reply to this email or contact us at
-          <a href="mailto:hello@babahalgo.com">hello@babahalgo.com</a>
-        </p>
-        <hr style="border:none;border-top:1px solid #eee;margin:24px 0">
-        <p style="font-size:12px;color:#999">
-          <em>Disclaimer: Trading involves significant risk. Signals are not investment advice. Make sure you understand the risks before trading.</em>
-        </p>
-      </div>`,
-    };
-  }
+      </div>`
+    : `
+      <p style="margin: 0 0 12px 0;"><strong style="color: #FAFAF7;">Halo ${name},</strong></p>
+      <p style="margin: 0 0 16px 0;">Terima kasih telah mendaftar di <strong style="color: #F5B547;">BabahAlgo</strong>. Akun <strong>${tierDisplay}</strong> Anda sedang disiapkan.</p>
+      <div style="margin: 24px 0; padding: 20px; background: rgba(255,255,255,0.03); border-radius: 8px;">
+        <div style="font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(245,181,71,0.9); font-weight: 600; margin-bottom: 12px;">Langkah Selanjutnya</div>
+        <ol style="margin: 0; padding-left: 20px; color: rgba(250,250,247,0.85); font-size: 14px; line-height: 1.7;">
+          <li>Aktivasi akun dalam 24 jam</li>
+          <li>Setup notifikasi Telegram via portal</li>
+          <li>Verifikasi email jika belum</li>
+          <li>Sinyal trading otomatis terkirim setelah aktif</li>
+        </ol>
+      </div>`;
 
-  // Default: Indonesian
-  return {
-    subject: 'Selamat Datang di BabahAlgo',
-    html: `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#333">
-      <h2 style="color:#d97706">Selamat Datang, ${name}!</h2>
-      <p>Terima kasih telah mendaftar di <strong>BabahAlgo</strong>.</p>
-      <p>Paket yang dipilih: <strong>${tierDisplay}</strong></p>
-      <h3>Langkah Selanjutnya:</h3>
-      <ol>
-        <li>Tunggu aktivasi akun oleh tim kami (maks 24 jam)</li>
-        <li>Setup Telegram Bot: buka <a href="https://t.me/babahalgo_bot">@babahalgo_bot</a> → ketik /start → copy Chat ID</li>
-        <li>Paste Chat ID di <a href="https://babahalgo.com/portal/account">Portal &gt; Settings &gt; Notifications</a></li>
-        <li>Setelah aktif, sinyal trading akan otomatis masuk ke Telegram &amp; email Anda</li>
-      </ol>
-      <p style="margin-top:24px;padding:16px;background:#fef3c7;border-radius:8px">
-        <strong>Butuh bantuan?</strong> Balas email ini atau hubungi kami di
-        <a href="mailto:hello@babahalgo.com">hello@babahalgo.com</a>
-      </p>
-      <hr style="border:none;border-top:1px solid #eee;margin:24px 0">
-      <p style="font-size:12px;color:#999">
-        <em>Disclaimer: Trading berisiko tinggi. Sinyal bukan saran investasi. Pastikan memahami risiko sebelum trading.</em>
-      </p>
-    </div>`,
-  };
+  const html = renderEmailShell({
+    locale,
+    subject,
+    eyebrow: isEn ? 'Welcome' : 'Selamat Datang',
+    title: isEn ? `Welcome aboard, ${name}` : `Selamat datang, ${name}`,
+    bodyHtml,
+    cta: {
+      label: isEn ? 'Open Portal' : 'Buka Portal',
+      href: `${APP_URL}/portal/account`,
+    },
+  });
+
+  return { subject, html };
 }

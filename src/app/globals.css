@@ -742,6 +742,11 @@ body.menu-open {
     top: 64px;
     left: 0;
     right: 0;
+    /* Explicit z-index supaya mega menu dropdown SELALU di atas ticker
+       bottom-fixed + sticky-cta. Sebelumnya inherit dari nav z-80, bikin
+       ticker bottom-fixed (z-85) COVER mega menu di scroll-position dimana
+       keduanya overlap vertically (Pak Abdullah audit 2026-05-22). */
+    z-index: 85;
     background: hsl(var(--card));
     border-bottom: 1px solid hsl(var(--border));
     box-shadow: var(--shadow-md);

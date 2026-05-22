@@ -330,8 +330,13 @@ export function TickerBar() {
         'overflow-hidden border-amber-500/15 transition-all duration-300',
         'bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950',
         'text-foreground isolate',
-        mode === 'top' && 'relative w-full border-b z-[90]',
-        mode === 'bottom-fixed' && 'fixed left-0 right-0 z-[85] border-t shadow-[0_-4px_20px_rgba(0,0,0,0.4)]',
+        mode === 'top' && 'relative w-full border-b z-[40]',
+        // Ticker bottom-fixed = data display unobtrusive — z-[40] supaya
+        // BELOW: nav z-80, mega menu z-85, cookie z-90, mobile menu z-90,
+        // chat icon z-100, modals z-100, CMS banner z-50. ABOVE: sticky-cta
+        // z-30 (handled via measure offset). Pak Abdullah audit 2026-05-22:
+        // ticker tidak boleh menutupi menu/UI interaktif apapun.
+        mode === 'bottom-fixed' && 'fixed left-0 right-0 z-[40] border-t shadow-[0_-4px_20px_rgba(0,0,0,0.4)]',
         mode === 'hidden' && 'opacity-0 pointer-events-none',
         dismissed && 'opacity-0 pointer-events-none',
       )}

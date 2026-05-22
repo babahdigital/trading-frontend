@@ -77,7 +77,13 @@ export default function PortalDashboard() {
           const parsed = JSON.parse(cached);
           if (!cancelled) {
             setUserName(parsed.name || parsed.email || '');
-            setEmailVerified(!!parsed.emailVerifiedAt);
+            // Cache hanya KONFIRMASI verified=true, tidak override default
+            // ke false (Pak Abdullah audit 2026-05-22 — stale cache dengan
+            // emailVerifiedAt=null bikin banner flash padahal sudah verified).
+            // Unverified state hanya bisa diset dari /api/auth/me fresh response.
+            if (parsed.emailVerifiedAt) {
+              setEmailVerified(true);
+            }
           }
         }
       } catch { /* empty */ }
@@ -87,6 +93,8 @@ export default function PortalDashboard() {
         const data = await res.json();
         if (!cancelled && data.user) {
           setUserName(data.user.name || data.user.email || '');
+          // /api/auth/me adalah source of truth — set verified state
+          // langsung dari API response (tidak default ke true).
           setEmailVerified(!!data.user.emailVerifiedAt);
           if (data.activeSubscription) setActiveSubscription(data.activeSubscription);
           try { sessionStorage.setItem('user', JSON.stringify(data.user)); } catch { /* empty */ }

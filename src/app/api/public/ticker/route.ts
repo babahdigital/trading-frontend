@@ -141,31 +141,27 @@ async function fetchCrypto(): Promise<Ticker[]> {
   }
 }
 
-/** Fetch Yahoo single dengan 1 retry — backoff 800ms. Timeout 4s per attempt.
- *  Total worst-case latency = 4s + 800ms + 4s ≈ 9s per symbol. Tapi karena
- *  parallel via Promise.all, total = max single = 9s (jarang).
- *
- *  Untuk handle EAI_AGAIN DNS error spesifik, retry seharusnya cukup karena
- *  systemd-resolved biasanya recover dalam 1-2 detik. */
-async function fetchYahooSingleWithRetry(item: typeof YAHOO_MAP[number]): Promise<Ticker | null> {
-  for (let attempt = 0; attempt < 2; attempt++) {
-    if (attempt > 0) {
-      await new Promise((r) => setTimeout(r, 800));
-    }
+/** Fetch Yahoo single — FAST FAIL (2s timeout, no retry). Production audit
+ *  VPS3 menunjukkan Yahoo Finance fully blocked dari container (timeout 8s+
+ *  pada semua endpoint). Maintain Yahoo path untuk environment dimana akses
+ *  ada, tapi cepat fail supaya Stooq fallback langsung jalan tanpa terjegal
+ *  retry delay (sebelumnya 4s × 2 = 8s budget habis untuk nothing).
+ */
+async function fetchYahooSingle(item: typeof YAHOO_MAP[number]): Promise<Ticker | null> {
     try {
       const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(item.ticker)}`;
       const res = await fetch(url, {
-        signal: AbortSignal.timeout(4_000),
+        signal: AbortSignal.timeout(2_000),
         headers: {
           'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
           'Accept': 'application/json',
         },
         next: { revalidate: 60 },
       });
-      if (!res.ok) continue;
+      if (!res.ok) return null;
       const data = await res.json() as { chart?: { result?: Array<{ meta?: { regularMarketPrice?: number; chartPreviousClose?: number; currency?: string } }> } };
       const meta = data.chart?.result?.[0]?.meta;
-      if (!meta || typeof meta.regularMarketPrice !== 'number') continue;
+      if (!meta || typeof meta.regularMarketPrice !== 'number') return null;
       const last = meta.regularMarketPrice;
       const prev = typeof meta.chartPreviousClose === 'number' ? meta.chartPreviousClose : last;
       const pct = prev !== 0 ? ((last - prev) / prev) * 100 : 0;
@@ -181,10 +177,8 @@ async function fetchYahooSingleWithRetry(item: typeof YAHOO_MAP[number]): Promis
       putCache(t);
       return t;
     } catch {
-      // retry loop
+      return null;
     }
-  }
-  return null;
 }
 
 /**
@@ -202,17 +196,18 @@ async function fetchYahooSingleWithRetry(item: typeof YAHOO_MAP[number]): Promis
  * fallback (production prefers showing data dengan minor accuracy gap vs
  * zero data).
  */
-async function fetchStooqBatch(items: Array<typeof YAHOO_MAP[number]>): Promise<Map<string, Ticker>> {
+async function fetchStooqBatchSingle(items: Array<typeof YAHOO_MAP[number]>): Promise<Map<string, Ticker>> {
   const out = new Map<string, Ticker>();
   if (items.length === 0) return out;
   try {
-    // Stooq batch uses '+' separator (NOT comma!). Each symbol still
-    // URL-encoded individually (e.g. '^spx' → '%5Espx') tapi separator '+'
-    // dipertahankan literal di query string.
+    // Stooq batch uses '+' separator. Each symbol URL-encoded individually
+    // (e.g. '^spx' → '%5Espx') tapi separator '+' dipertahankan literal.
     const symbolsParam = items.map((i) => encodeURIComponent(i.stooq)).join('+');
     const url = `https://stooq.com/q/l/?s=${symbolsParam}&f=sd2t2ohlcv&h&e=csv`;
     const res = await fetch(url, {
-      signal: AbortSignal.timeout(8_000),
+      // 10s per batch — single batch 20 symbols ambil ~9s di VPS3 cold start.
+      // Split caller maintains 2 batch paralel = total wall-clock max 10s.
+      signal: AbortSignal.timeout(10_000),
       headers: { 'Accept': 'text/csv,text/plain' },
     });
     if (!res.ok) {
@@ -257,8 +252,25 @@ async function fetchStooqBatch(items: Array<typeof YAHOO_MAP[number]>): Promise<
   return out;
 }
 
+/** Stooq batch wrapper — split 20 symbols jadi 2 batch paralel × ~10
+ *  symbols each. Sebelumnya single batch 20 symbols ambil 9.3s di VPS3
+ *  cold-start = hit timeout. 2 paralel batch = wall-clock ~5s. */
+async function fetchStooqBatch(items: Array<typeof YAHOO_MAP[number]>): Promise<Map<string, Ticker>> {
+  if (items.length === 0) return new Map();
+  if (items.length <= 10) return fetchStooqBatchSingle(items);
+  const mid = Math.ceil(items.length / 2);
+  const [a, b] = await Promise.all([
+    fetchStooqBatchSingle(items.slice(0, mid)),
+    fetchStooqBatchSingle(items.slice(mid)),
+  ]);
+  // Merge
+  const out = new Map(a);
+  for (const [k, v] of b) out.set(k, v);
+  return out;
+}
+
 async function fetchYahoo(): Promise<Ticker[]> {
-  const results = await Promise.all(YAHOO_MAP.map(fetchYahooSingleWithRetry));
+  const results = await Promise.all(YAHOO_MAP.map(fetchYahooSingle));
   const filled = new Map<string, Ticker>();
   const missingItems: Array<typeof YAHOO_MAP[number]> = [];
   for (let i = 0; i < YAHOO_MAP.length; i++) {

@@ -224,14 +224,16 @@ function authHeader(): string {
   return 'Basic ' + Buffer.from(secretKey + ':').toString('base64');
 }
 
-/** Xendit fetch dengan retry untuk DNS transient (sama pattern Invoice API). */
+/** Xendit fetch dengan retry untuk DNS transient (sama pattern Invoice API).
+ *  Note: api-version is per-endpoint — caller passes via init.headers.
+ *  Tidak ada single global default karena each Xendit API has different
+ *  version requirement (QR Code = 2022-07-31, Cards = 2020-04-01, dst). */
 async function xenditFetch(url: string, init: RequestInit & { idempotencyKey?: string }): Promise<Response> {
   const maxAttempts = 3;
   let lastErr: unknown;
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     Authorization: authHeader(),
-    'api-version': '2020-04-01',
     ...(init.headers as Record<string, string> | undefined),
   };
   if (init.idempotencyKey) headers['Idempotency-key'] = init.idempotencyKey;
@@ -267,27 +269,33 @@ function normalizeStatus(s: string): XenditPaymentInstrument['status'] {
 }
 
 /**
- * Create QRIS payment request — returns qr_string untuk render di FE.
+ * Create QRIS payment via Xendit QR Code API v1 (api-version 2022-07-31).
+ *
  * Customer scan QR pakai any Indonesian e-wallet/mobile banking yang
- * support QRIS standard (OVO, DANA, ShopeePay, BCA Mobile, dll).
+ * support QRIS standard (GoPay, OVO, DANA, ShopeePay, BCA Mobile,
+ * Mandiri Livin, LinkAja, dst — universal Indonesian standard).
+ *
+ * Payload shape per Xendit v1 docs:
+ *   external_id (required), type=DYNAMIC|STATIC, callback_url (required),
+ *   amount, currency=IDR. DYNAMIC = amount baked in, customer can't change.
  */
 export async function createXenditQrisCharge(params: CreateQrisCharge): Promise<XenditPaymentInstrument> {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://babahalgo.com';
+  // QRIS expiry minimum 1 menit, max 24 jam. Default 30 menit.
+  const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+
   const payload = {
-    reference_id: params.externalId,
-    type: 'PAY',
-    country: 'ID',
+    external_id: params.externalId,
+    type: 'DYNAMIC',
+    callback_url: `${appUrl}/api/billing/webhook/xendit`,
+    amount: params.amountIdr,
     currency: 'IDR',
-    request_amount: params.amountIdr,
-    channel_code: 'QRIS',
-    channel_properties: {
-      // QRIS expires 30 min default; bisa di-override sampai 24h
-      expires_at: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
-    },
-    metadata: { externalId: params.externalId, customerEmail: params.customerEmail },
+    expires_at: expiresAt,
   };
 
   const res = await xenditFetch('https://api.xendit.co/qr_codes', {
     method: 'POST',
+    headers: { 'api-version': '2022-07-31' },
     body: JSON.stringify(payload),
     idempotencyKey: `qris_${params.externalId}`,
   });
@@ -299,16 +307,16 @@ export async function createXenditQrisCharge(params: CreateQrisCharge): Promise<
   }
 
   const data = await res.json() as {
-    id: string; reference_id: string; qr_string: string; status: string;
-    expires_at: string; channel_code: string;
+    id: string; external_id: string; qr_string: string;
+    status: string; expires_at?: string; type?: string;
   };
   return {
     id: data.id,
     status: normalizeStatus(data.status),
     method: 'QRIS',
     qrString: data.qr_string,
-    externalId: data.reference_id,
-    expiresAt: data.expires_at,
+    externalId: data.external_id,
+    expiresAt: data.expires_at ?? expiresAt,
     amountIdr: params.amountIdr,
   };
 }

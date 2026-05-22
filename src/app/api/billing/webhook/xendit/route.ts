@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { verifyXenditWebhook } from '@/lib/payment/xendit';
 import { activateSubscription, cancelSubscription } from '@/lib/subscription/lifecycle';
+import { generateInvoicePdf } from '@/lib/payment/pdf-invoice';
 import { createLogger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
@@ -30,24 +31,64 @@ export async function POST(req: NextRequest) {
   }
 
   if (status === 'PAID' || status === 'SETTLED') {
+    const paidAt = new Date();
     await prisma.invoice.update({
       where: { id: external_id },
-      data: { status: 'PAID', paidAt: new Date() },
+      data: { status: 'PAID', paidAt },
     });
 
     const meta = (invoice.metadata as Record<string, unknown>) ?? {};
     const tier = meta.tier as string;
     const invoiceUrl = meta.invoiceUrl as string | undefined;
     const invoiceId = (meta.invoiceId as string | undefined) ?? invoice.id;
+    const amountIdr = (meta.amountIdr as number | undefined) ?? Number(invoice.amountUsd) * 16500;
+    const originalAmountIdr = meta.originalAmountIdr as number | undefined;
+    const promoApplied = meta.promoApplied as { slug: string; discountValue: number; discountType: 'PERCENT' | 'FIXED_IDR' } | null | undefined;
     // Locale stored di metadata saat checkout (detectRequestLocale di checkout/route.ts)
     // — fallback ke ChatLead lookup di lifecycle kalau tidak ada.
     const localeMeta = meta.locale as string | undefined;
     const locale: 'id' | 'en' | undefined = localeMeta === 'en' ? 'en' : localeMeta === 'id' ? 'id' : undefined;
-    if (tier) {
-      await activateSubscription(invoice.userId, tier, { invoiceId, invoiceUrl, locale });
+
+    // Generate PDF invoice — best-effort, never block activation.
+    let pdfUrl: string | undefined;
+    try {
+      const user = await prisma.user.findUnique({ where: { id: invoice.userId } });
+      if (user) {
+        const pdf = await generateInvoicePdf({
+          invoiceId: invoice.id,
+          invoiceNumber: invoice.number,
+          issuedAt: invoice.createdAt,
+          paidAt,
+          dueAt: invoice.dueAt,
+          customer: { name: user.name || user.email, email: user.email },
+          amountIdr,
+          originalAmountIdr,
+          description: invoice.description || `${tier} subscription`,
+          tier,
+          provider: 'xendit',
+          promo: promoApplied ?? null,
+          locale: locale ?? (user.locale === 'en' ? 'en' : 'id'),
+        });
+        pdfUrl = pdf.pdfUrl;
+        // Persist pdfUrl ke invoice.metadata supaya portal billing page bisa link
+        await prisma.invoice.update({
+          where: { id: external_id },
+          data: { metadata: { ...meta, pdfUrl } },
+        });
+      }
+    } catch (err) {
+      log.warn(`PDF invoice generation failed for ${external_id}: ${err instanceof Error ? err.message : 'unknown'}`);
     }
 
-    log.info(`Xendit payment success: ${external_id} amount=${paid_amount}`);
+    if (tier) {
+      await activateSubscription(invoice.userId, tier, {
+        invoiceId,
+        invoiceUrl: pdfUrl ?? invoiceUrl, // prefer PDF link kalau ada
+        locale,
+      });
+    }
+
+    log.info(`Xendit payment success: ${external_id} amount=${paid_amount} pdf=${pdfUrl ?? 'none'}`);
   } else if (status === 'EXPIRED') {
     await prisma.invoice.update({
       where: { id: external_id },

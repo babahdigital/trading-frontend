@@ -4,19 +4,25 @@
  * Live ticker bar — sticky horizontal marquee dengan harga real-time
  * untuk commodity/crypto/forex/index majors + Indonesia liquid stocks.
  *
- * Refactor 2026-05-22 (Pak Abdullah audit):
- *   - LIVE pill dihapus (terlihat noisy, institusional pakai data saja)
- *   - localStorage cache supaya hot-refresh tidak glitch ke blank state
- *   - Skeleton placeholder selama initial fetch (no pop-in artefact)
- *   - Animation duration LOCKED (90s constant) — sebelumnya dynamic ke
- *     tickers.length × 5s yang bikin speed berubah saat data update mid-loop
- *   - Sticky-CTA bar coordination — saat #sticky-cta-bar visible di viewport,
- *     ticker bottom-fixed offset ke atas sticky bar (jangan menutupi)
+ * Smooth-update model (refactor 2026-05-22 Pak Abdullah audit):
+ *   - Outer container ALWAYS rendered (no conditional return null) — animation
+ *     instance tidak unmount/remount saat data berubah (eliminates blip)
+ *   - Inner content swaps via children (skeleton ↔ marquee) tapi marquee
+ *     keyframe animation tetap continuous
+ *   - <TickerItem> React.memo'd — price-only update hanya re-render item itu,
+ *     bukan seluruh marquee track
+ *   - Min-width tabular-nums prevent layout shift saat angka berubah width
+ *   - Symbol list stable (locked dari first successful fetch); subsequent
+ *     update hanya touch `last` + `change24hPct` (in-place price update)
  *
- * Source: /api/public/ticker (server aggregates CoinGecko + Yahoo Finance,
- * cached 60s CDN + 30s browser).
+ * Position model:
+ *   - mode="top": normal flow di atas nav (scrollY ≤ 120px)
+ *   - mode="bottom-fixed": fixed bottom viewport saat scroll → offset above
+ *     sticky-cta-bar kalau visible (presisi berdampingan, no overlap)
+ *   - mode="hidden": footer fully visible, ticker fade-out
+ *   - Always reserve 80px right untuk floating menu (chat icon/banner)
  */
-import { useEffect, useRef, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 
 interface Ticker {
@@ -28,8 +34,6 @@ interface Ticker {
   currency: 'USD' | 'IDR';
 }
 
-// Color coding per asset group — institusional feel pakai color accent
-// di label text saja (no emoji per Pak Abdullah 2026-05-22).
 const GROUP_COLOR: Record<Ticker['group'], string> = {
   commodity: 'text-amber-400',
   crypto:    'text-orange-400',
@@ -37,27 +41,11 @@ const GROUP_COLOR: Record<Ticker['group'], string> = {
   index:     'text-violet-400',
 };
 
-// Animation duration locked — constant supaya scroll speed konsisten
-// terlepas dari jumlah tickers yang berhasil di-fetch. Dengan ~22 tickers
-// × 2 (duplicated set), 120s = nyaman dibaca + feel live.
 const ANIM_DURATION_S = 120;
-
-// Threshold scroll position (px) yang trigger ticker pindah ke bottom-fixed
 const SCROLL_THRESHOLD = 120;
-
-// Reserved right space saat chat icon visible (h-14 + safe-area = ~80px).
-// Pak Abdullah audit 2026-05-22: ticker masih menutupi menu floating saat
-// scroll. Walau z-100 chat > z-85 ticker, background slate ticker visually
-// "lewat di belakang" icon = lihat aneh. Solusi: SELALU reserve 80px kanan
-// saat bottom-fixed mode (clean look + future-proof untuk floating banner).
 const CHAT_ICON_RESERVE_PX = 80;
-// Reserved bottom space minimal supaya tidak terlalu dekat dengan bottom
-// nav iOS bar atau Cookie Consent banner.
-const SAFE_BOTTOM_PX = 0;
-
-// localStorage key untuk cache tickers — survive hot refresh + offline blip
 const CACHE_KEY = 'babah.ticker.cache.v2';
-const CACHE_MAX_AGE_MS = 5 * 60 * 1000; // 5 min — beyond ini, treat as stale
+const CACHE_MAX_AGE_MS = 5 * 60 * 1000;
 
 function readCache(): Ticker[] | null {
   if (typeof window === 'undefined') return null;
@@ -106,6 +94,59 @@ function formatPct(n: number): string {
   return `${sign}${n.toFixed(2)}%`;
 }
 
+// Per-item component memoized — only re-renders saat ticker DATA (last/change)
+// berubah, tidak tiap parent re-render. Cegah cascade re-render seluruh marquee
+// saat satu price bergerak.
+const TickerItem = memo(function TickerItem({ t }: { t: Ticker }) {
+  const isUp = t.change24hPct >= 0;
+  return (
+    <div className="inline-flex items-center gap-2.5 px-4 sm:px-5 text-xs font-mono shrink-0">
+      <span className={cn('font-bold tracking-[0.05em] min-w-[36px]', GROUP_COLOR[t.group])}>
+        {t.label}
+      </span>
+      {/* min-w lock prevents layout shift saat angka berubah width
+          (mis. 120.50 → 1200.00 atau 4546.20 → 99.99). */}
+      <span className="text-foreground/95 tabular-nums min-w-[64px] text-right">
+        {formatPrice(t.last, t.group, t.symbol, t.currency)}
+      </span>
+      <span
+        className={cn(
+          'tabular-nums px-1.5 py-0.5 rounded text-[10px] font-bold min-w-[56px] text-center',
+          isUp
+            ? 'bg-emerald-500/15 text-emerald-400'
+            : 'bg-rose-500/15 text-rose-400',
+        )}
+      >
+        {isUp ? '▲' : '▼'} {formatPct(t.change24hPct)}
+      </span>
+      <span className="text-foreground/15" aria-hidden>│</span>
+    </div>
+  );
+}, (prev, next) => {
+  // Custom comparator — re-render hanya kalau last/change/currency actually berubah
+  const a = prev.t, b = next.t;
+  return a.symbol === b.symbol
+    && a.last === b.last
+    && a.change24hPct === b.change24hPct
+    && a.currency === b.currency;
+});
+
+// Skeleton items — 8 placeholder, same outer container supaya transition
+// dari skeleton ke real marquee tidak unmount outer animation host.
+function SkeletonItems() {
+  return (
+    <>
+      {Array.from({ length: 8 }).map((_, i) => (
+        <div key={`skel-${i}`} className="inline-flex items-center gap-2.5 px-4 sm:px-5 shrink-0">
+          <span className="inline-block h-3 w-10 rounded bg-slate-800/60 animate-pulse" />
+          <span className="inline-block h-3 w-16 rounded bg-slate-800/40 animate-pulse" />
+          <span className="inline-block h-3 w-12 rounded bg-slate-800/30 animate-pulse" />
+        </div>
+      ))}
+    </>
+  );
+}
+
 export function TickerBar() {
   const [tickers, setTickers] = useState<Ticker[]>(() => readCache() ?? []);
   const [failCount, setFailCount] = useState(0);
@@ -115,12 +156,11 @@ export function TickerBar() {
   const [stickyCtaHeight, setStickyCtaHeight] = useState(0);
   const tickerRef = useRef<HTMLDivElement>(null);
 
-  // Mark hydrated AFTER mount supaya SSR/hydration mismatch tidak warning
-  // (cache hanya di-read di client).
   useEffect(() => {
     setHydrated(true);
   }, []);
 
+  // Data fetcher — in-place update: kalau symbols sama, hanya replace value.
   useEffect(() => {
     let cancelled = false;
     let timer: ReturnType<typeof setInterval> | null = null;
@@ -131,15 +171,27 @@ export function TickerBar() {
         if (!res.ok) throw new Error('ticker fetch failed');
         const data = await res.json() as { ok: boolean; tickers: Ticker[] };
         if (!cancelled && Array.isArray(data.tickers) && data.tickers.length > 0) {
-          // Only replace state kalau jumlah baru ≥ minimum threshold supaya
-          // partial fetch (mis. 8 dari 22) tidak gegerkan UI dengan jumlah
-          // berkurang. Threshold = 80% dari current count atau 10 (whichever
-          // lower) — tetap update kalau memang upgrade.
           setTickers((prev) => {
-            const minAcceptable = Math.max(10, Math.floor(prev.length * 0.8));
+            const minAcceptable = Math.max(8, Math.floor(prev.length * 0.7));
             if (prev.length > 0 && data.tickers.length < minAcceptable) {
-              // Sub-threshold response — keep current data, treat as fail
-              return prev;
+              return prev; // sub-threshold response — keep stable structure
+            }
+            // Stable order via merge — preserve prev symbol order kalau symbols
+            // sama (cuma value update), supaya marquee position tidak loncat.
+            // Kalau symbol berubah (new fetch returns different set), fall back
+            // ke order baru.
+            const sameSymbols = prev.length === data.tickers.length
+              && prev.every((p, i) => p.symbol === data.tickers[i]?.symbol);
+            if (sameSymbols) {
+              // In-place value update — return new array dengan reference baru
+              // (supaya React tahu update), tapi struktur identik. TickerItem
+              // memo hanya re-render item yang value-nya berubah.
+              const updated = prev.map((p) => {
+                const fresh = data.tickers.find((t) => t.symbol === p.symbol);
+                return fresh ?? p;
+              });
+              writeCache(updated);
+              return updated;
             }
             writeCache(data.tickers);
             return data.tickers;
@@ -156,7 +208,7 @@ export function TickerBar() {
     return () => { cancelled = true; if (timer) clearInterval(timer); };
   }, []);
 
-  // Scroll detector — rAF throttle untuk performance.
+  // Scroll detector
   useEffect(() => {
     if (typeof window === 'undefined') return;
     let ticking = false;
@@ -173,7 +225,7 @@ export function TickerBar() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Footer observer — fade-out saat footer visible.
+  // Footer observer
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const footer = document.getElementById('enterprise-footer');
@@ -188,24 +240,19 @@ export function TickerBar() {
     return () => obs.disconnect();
   }, []);
 
-  // Chat icon visibility listener dihapus 2026-05-22 (Pak Abdullah audit):
-  // ticker SEKARANG selalu reserve 80px right saat bottom-fixed, regardless
-  // chat icon state — supaya menu floating apapun di pojok kanan-bawah
-  // (chat icon, floating banner, future widgets) tidak ter-cover visual.
-
-  // StickyCtaBar coordination — saat #sticky-cta-bar mounted DAN visible,
-  // ticker bottom-fixed offset ke atas sticky bar supaya tidak menutupi.
-  // Pakai MutationObserver supaya detect mount/unmount per route navigation.
+  // StickyCtaBar coordination — ticker bottom-fixed sit ABOVE sticky-cta
+  // (presisi berdampingan, no overlap). Pakai IntersectionObserver +
+  // ResizeObserver + MutationObserver supaya detect per route navigation.
   useEffect(() => {
     if (typeof window === 'undefined') return;
     let intersectObs: IntersectionObserver | null = null;
     let resizeObs: ResizeObserver | null = null;
+    let scrollHandler: (() => void) | null = null;
     let currentEl: HTMLElement | null = null;
 
     const measure = (el: HTMLElement | null) => {
       if (!el) return setStickyCtaHeight(0);
       const rect = el.getBoundingClientRect();
-      // Visible jika top edge sudah masuk viewport dari bawah (rect.top < window height)
       const inView = rect.top < window.innerHeight && rect.bottom > 0;
       setStickyCtaHeight(inView ? Math.ceil(rect.height) : 0);
     };
@@ -217,20 +264,25 @@ export function TickerBar() {
       intersectObs.observe(el);
       resizeObs = new ResizeObserver(() => measure(el));
       resizeObs.observe(el);
-      window.addEventListener('scroll', () => measure(el), { passive: true });
+      scrollHandler = () => measure(el);
+      window.addEventListener('scroll', scrollHandler, { passive: true });
+    };
+
+    const detach = () => {
+      intersectObs?.disconnect();
+      resizeObs?.disconnect();
+      if (scrollHandler) window.removeEventListener('scroll', scrollHandler);
+      currentEl = null;
+      setStickyCtaHeight(0);
     };
 
     const tryAttach = () => {
       const el = document.getElementById('sticky-cta-bar');
       if (el && el !== currentEl) {
-        intersectObs?.disconnect();
-        resizeObs?.disconnect();
+        detach();
         attach(el);
       } else if (!el && currentEl) {
-        intersectObs?.disconnect();
-        resizeObs?.disconnect();
-        currentEl = null;
-        setStickyCtaHeight(0);
+        detach();
       }
     };
 
@@ -240,79 +292,36 @@ export function TickerBar() {
 
     return () => {
       mutObs.disconnect();
-      intersectObs?.disconnect();
-      resizeObs?.disconnect();
+      detach();
     };
   }, []);
 
-  // Skeleton placeholder — initial load belum punya data sama sekali (no cache).
-  // Render 8 invisible skeleton items dengan width consistent supaya layout
-  // shift minimal saat data sampai.
-  if (!hydrated) {
-    // SSR: render minimal placeholder shell (no animation) — hindari mismatch.
-    return (
-      <div
-        className="relative w-full overflow-hidden border-b border-amber-500/15 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 z-[90]"
-        aria-label="Live market ticker"
-        aria-busy="true"
-      >
-        <div className="flex whitespace-nowrap py-2 px-4">
-          <div className="h-4 w-full bg-slate-800/40" />
-        </div>
-      </div>
-    );
-  }
+  // Memoize repeated array — only re-compute saat tickers REFERENCE berubah
+  // (in-place value updates dengan stable order tetap trigger ini, tapi
+  // memo TickerItem cegah cascade).
+  const repeated = useMemo(() => [...tickers, ...tickers], [tickers]);
 
-  // Dismiss kalau gagal >2x berturut-turut DAN belum pernah punya data
-  if (failCount > 2 && tickers.length === 0) return null;
-
-  // Initial loading state — hydrated tapi belum ada cache + belum ada fetch result.
-  // Tampilkan skeleton shimmer (no pop-in artefact saat data sampai).
-  if (tickers.length === 0) {
-    return (
-      <div
-        className="relative w-full overflow-hidden border-b border-amber-500/15 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 z-[90]"
-        aria-label="Live market ticker loading"
-        aria-busy="true"
-      >
-        <div className="flex whitespace-nowrap py-2 px-4 gap-6">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="inline-flex items-center gap-2.5 shrink-0">
-              <span className="inline-block h-3 w-10 rounded bg-slate-800/60 animate-pulse" />
-              <span className="inline-block h-3 w-16 rounded bg-slate-800/40 animate-pulse" />
-              <span className="inline-block h-3 w-12 rounded bg-slate-800/30 animate-pulse" />
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  // Duplicate tickers untuk seamless marquee loop (animation: 0 → -50%)
-  const repeated = [...tickers, ...tickers];
-
-  // Mode visual:
-  //   - "top": normal flow di atas nav (saat scrollY ≤ 120px atau footer visible)
-  //   - "bottom-fixed": fixed bottom viewport — floating ticker Bloomberg style.
-  //     Offset ke atas sticky-cta-bar kalau visible.
-  //   - "hidden": display none saat footer fully visible
+  // Mode visual
   const mode: 'top' | 'bottom-fixed' | 'hidden' =
-    footerVisible ? 'hidden'
+    !hydrated ? 'top'
+    : footerVisible ? 'hidden'
     : scrolled ? 'bottom-fixed'
     : 'top';
 
-  // Compose inline style: ALWAYS reserve 80px right space saat bottom-fixed
-  // supaya chat icon / banner / floating menu di pojok kanan-bawah tidak
-  // ter-visual-cover oleh ticker dark background. Bottom offset hanya saat
-  // sticky-cta-bar visible.
+  // Compose inline style untuk bottom-fixed mode
   const bottomFixedStyle: React.CSSProperties = {};
   if (mode === 'bottom-fixed') {
-    // Always reserve right space — clean visual even when chat icon belum
-    // visible (e.g., public page belum klik footer Chat AI).
     bottomFixedStyle.right = `${CHAT_ICON_RESERVE_PX}px`;
     if (stickyCtaHeight > 0) bottomFixedStyle.bottom = `${stickyCtaHeight}px`;
-    else if (SAFE_BOTTOM_PX > 0) bottomFixedStyle.bottom = `${SAFE_BOTTOM_PX}px`;
   }
+
+  // Decide content untuk inner marquee:
+  //   - kalau hydrated DAN punya tickers → render real marquee items
+  //   - kalau hydrated tapi tickers kosong (initial fetch + no cache) → skeleton
+  //   - kalau gagal >2x + 0 cache → dismissed (container tetap mount, opacity-0)
+  const dismissed = failCount > 2 && tickers.length === 0;
+  const showSkeleton = hydrated && tickers.length === 0 && !dismissed;
+  const showMarquee = hydrated && tickers.length > 0;
 
   return (
     <div
@@ -324,54 +333,45 @@ export function TickerBar() {
         mode === 'top' && 'relative w-full border-b z-[90]',
         mode === 'bottom-fixed' && 'fixed left-0 right-0 z-[85] border-t shadow-[0_-4px_20px_rgba(0,0,0,0.4)]',
         mode === 'hidden' && 'opacity-0 pointer-events-none',
+        dismissed && 'opacity-0 pointer-events-none',
       )}
       style={mode === 'bottom-fixed' ? bottomFixedStyle : undefined}
       role="region"
       aria-label="Live market ticker"
-      aria-hidden={mode === 'hidden'}
+      aria-hidden={mode === 'hidden' || dismissed}
     >
-      {/* Subtle left-edge fade — entry smooth (replaces LIVE pill) */}
+      {/* Left-edge fade */}
       <span
         aria-hidden
         className="pointer-events-none absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-slate-950 to-transparent z-10"
       />
 
       <div className="relative z-0">
+        {/* Single marquee track — content swap, animation host TETAP mount.
+            Animation duration locked ke ANIM_DURATION_S = predictable speed
+            terlepas dari jumlah items. */}
         <div
           className="ticker-marquee flex whitespace-nowrap py-2 will-change-transform"
           style={{ animation: `ticker-scroll ${ANIM_DURATION_S}s linear infinite` }}
         >
-          {repeated.map((t, i) => {
-            const isUp = t.change24hPct >= 0;
-            return (
-              <div
-                key={`${t.symbol}-${i}`}
-                className="inline-flex items-center gap-2.5 px-4 sm:px-5 text-xs font-mono shrink-0"
-              >
-                <span className={cn('font-bold tracking-[0.05em]', GROUP_COLOR[t.group])}>
-                  {t.label}
-                </span>
-                <span className="text-foreground/95 tabular-nums">
-                  {formatPrice(t.last, t.group, t.symbol, t.currency)}
-                </span>
-                <span
-                  className={cn(
-                    'tabular-nums px-1.5 py-0.5 rounded text-[10px] font-bold',
-                    isUp
-                      ? 'bg-emerald-500/15 text-emerald-400'
-                      : 'bg-rose-500/15 text-rose-400',
-                  )}
-                >
-                  {isUp ? '▲' : '▼'} {formatPct(t.change24hPct)}
-                </span>
-                <span className="text-foreground/15" aria-hidden>│</span>
-              </div>
-            );
-          })}
+          {showMarquee
+            ? repeated.map((t, i) => (
+                // Key includes index supaya React reconcile duplicated set
+                // sebagai separate items (bukan key conflict).
+                <TickerItem key={`${t.symbol}-${i}`} t={t} />
+              ))
+            : showSkeleton
+              ? (
+                <>
+                  <SkeletonItems />
+                  <SkeletonItems />
+                </>
+              )
+              : null}
         </div>
       </div>
 
-      {/* Right edge fade — smooth visual exit */}
+      {/* Right edge fade */}
       <span
         aria-hidden
         className="pointer-events-none absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-slate-950 to-transparent z-10"

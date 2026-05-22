@@ -26,6 +26,9 @@ const publicPaths = ['/login', '/admin/login', '/forgot-password', '/reset-passw
   // /api/cms/* — public read-only endpoints (pricing tiers, active promotions).
   // Admin write endpoints di /api/admin/cms/* tetap require admin role.
   '/api/cms/',
+  // /api/v1/* — public versioned API (recommend-tier dst). No auth required;
+  // route handlers self-validate input.
+  '/api/v1/',
   // /api/admin/cms/promotions/[id]/generate-image — dual auth (admin OR CRON).
   // Middleware bypass — route handler self-authenticates.
   '/api/admin/cms/promotions/',

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { createMidtransTransaction } from '@/lib/payment/midtrans';
 import { createXenditInvoice } from '@/lib/payment/xendit';
+import { idrToUsd } from '@/lib/payment/rates';
 import { randomUUID } from 'crypto';
 import { resolveIdempotencyKey } from '@/lib/api/idempotency';
 import { detectRequestLocale, type AppLocale } from '@/lib/i18n/server-locale';
@@ -183,14 +184,14 @@ export async function POST(req: NextRequest) {
       id: orderId,
       userId,
       number: orderId,
-      amountUsd: finalAmount / 16000,
+      amountUsd: idrToUsd(finalAmount),
       status: 'DUE',
       dueAt,
       description: localizedDescription,
       subscriptionId: null,
       metadata: {
         tier, amountIdr: finalAmount, originalAmountIdr: pricing.amountIdr,
-        provider, idempotencyKey, clientSupplied,
+        provider, idempotencyKey, clientSupplied, locale,
         promoApplied: appliedPromo ? { id: appliedPromo.id, slug: appliedPromo.slug, discountValue: appliedPromo.discountValue, discountType: appliedPromo.discountType } : null,
       },
     },
@@ -262,7 +263,7 @@ export async function POST(req: NextRequest) {
     data: {
       metadata: {
         tier, amountIdr: finalAmount, originalAmountIdr: pricing.amountIdr,
-        provider, idempotencyKey, clientSupplied,
+        provider, idempotencyKey, clientSupplied, locale,
         snapToken: transaction.token, redirectUrl: transaction.redirectUrl,
         promoApplied: appliedPromo,
       },

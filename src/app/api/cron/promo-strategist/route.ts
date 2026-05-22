@@ -25,6 +25,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db/prisma';
 import { createLogger } from '@/lib/logger';
+import { USD_IDR_RATE } from '@/lib/payment/rates';
 
 const log = createLogger('cron/promo-strategist');
 
@@ -85,7 +86,7 @@ async function computeRevenueHealth(): Promise<RevenueHealth> {
     select: { monthlyFeeUsd: true },
   });
   const mrrUsd = subs.reduce((sum, s) => sum + Number(s.monthlyFeeUsd ?? 0), 0);
-  const mrrIdr = Math.round(mrrUsd * 16_500); // approximate USD→IDR
+  const mrrIdr = Math.round(mrrUsd * USD_IDR_RATE);
 
   // Last 24h signups
   const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
@@ -174,26 +175,33 @@ function decideStrategy(
   }
 
   if (eventNearby && health.healthScore < 70) {
-    // Soft revenue + event → greeting WITH discount (conversion boost)
+    // Soft revenue + event → greeting WITH discount (conversion boost).
+    // Confidence 80 (was 75) = auto-ACTIVE — event-driven promo low-risk,
+    // discount terikat ke event window jadi tidak overshoot (Pak Abdullah
+    // 2026-05-22: auto promote berfungsi).
     const discountPct = health.healthScore < 40 ? 25 : 15;
     return {
       action: 'greeting-with-discount',
       reason: `Health ${health.healthScore} soft, ${nearestEvent.slug} in ${nearestEvent.daysAway}d — festive discount ${discountPct}%`,
       discountPercent: discountPct,
       applicableTiers: ['crypto-starter', 'crypto-active', 'crypto-pro'],
-      confidence: 75,
+      confidence: 80,
       linkedEventSlug: nearestEvent.slug,
     };
   }
 
   if (!eventNearby && health.healthScore < 40) {
-    // Weak revenue + no event → flash sale (urgency-driven)
+    // Weak revenue + no event → flash sale (urgency-driven). Confidence 80
+    // = auto-ACTIVE (was 65 = DRAFT → admin manual approve required, gap
+    // Pak Abdullah audit 2026-05-22: "auto promote popup berfungsi"). Flash
+    // sale is data-driven (healthScore < 40 = revenue crisis), aman untuk
+    // auto-deploy tanpa approve manual.
     return {
       action: 'flash-sale',
-      reason: `Health ${health.healthScore} weak, no event scheduled — flash sale 20% off`,
+      reason: `Health ${health.healthScore} weak, no event scheduled — flash sale 20% off (auto)`,
       discountPercent: 20,
       applicableTiers: ['crypto-starter', 'crypto-active'],
-      confidence: 65,
+      confidence: 80,
     };
   }
 

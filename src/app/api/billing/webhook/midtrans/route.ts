@@ -53,9 +53,12 @@ export async function POST(req: NextRequest) {
       data: { status: 'PAID', paidAt: new Date() },
     });
 
-    const tier = (invoice.metadata as Record<string, unknown>)?.tier as string;
+    const meta = (invoice.metadata as Record<string, unknown>) ?? {};
+    const tier = meta.tier as string;
+    const localeMeta = meta.locale as string | undefined;
+    const locale: 'id' | 'en' | undefined = localeMeta === 'en' ? 'en' : localeMeta === 'id' ? 'id' : undefined;
     if (tier) {
-      await activateSubscription(invoice.userId, tier);
+      await activateSubscription(invoice.userId, tier, { invoiceId: invoice.id, locale });
     }
 
     log.info(`Payment success: ${order_id}`);

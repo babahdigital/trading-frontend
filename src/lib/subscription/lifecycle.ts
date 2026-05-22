@@ -5,7 +5,32 @@ import { createLogger } from '@/lib/logger';
 
 const log = createLogger('subscription');
 
-export async function activateSubscription(userId: string, tier: string) {
+type EmailLocale = 'id' | 'en';
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://babahalgo.com';
+
+/** Resolve locale untuk transactional email — prioritas:
+ *  1. Explicit `locale` arg (dari webhook handler reading invoice.metadata)
+ *  2. Most recent ChatLead untuk user.email (locale field exists di ChatLead)
+ *  3. Default 'id' (primary market) */
+async function resolveEmailLocale(userEmail: string, explicit?: string): Promise<EmailLocale> {
+  if (explicit === 'en' || explicit === 'id') return explicit;
+  try {
+    const lead = await prisma.chatLead.findFirst({
+      where: { email: userEmail },
+      orderBy: { createdAt: 'desc' },
+      select: { locale: true },
+    });
+    if (lead?.locale === 'en') return 'en';
+  } catch { /* ignore */ }
+  return 'id';
+}
+
+export async function activateSubscription(
+  userId: string,
+  tier: string,
+  opts?: { invoiceId?: string; invoiceUrl?: string; locale?: 'id' | 'en' },
+) {
   const existing = await prisma.subscription.findFirst({
     where: { userId, tier: tier as 'SIGNAL_BASIC' | 'SIGNAL_VIP', status: 'ACTIVE' },
   });
@@ -33,14 +58,37 @@ export async function activateSubscription(userId: string, tier: string) {
 
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (user) {
+    const locale = await resolveEmailLocale(user.email, opts?.locale);
+    const isEn = locale === 'en';
+    const greetName = user.name || (isEn ? 'Trader' : 'Trader');
+    const expiresStr = expiresAt.toLocaleDateString(isEn ? 'en-US' : 'id-ID', {
+      year: 'numeric', month: 'long', day: 'numeric',
+    });
+    const portalUrl = `${APP_URL}/portal/account/notifications`;
+    const billingUrl = `${APP_URL}/portal/billing`;
+    const invoiceLink = opts?.invoiceUrl
+      ? `<p>${isEn ? 'View invoice' : 'Lihat invoice'}: <a href="${opts.invoiceUrl}">${opts.invoiceUrl}</a></p>`
+      : opts?.invoiceId
+        ? `<p>${isEn ? 'Invoice' : 'Invoice'}: <strong>${opts.invoiceId}</strong> — <a href="${billingUrl}">${isEn ? 'view in portal' : 'lihat di portal'}</a></p>`
+        : '';
+
+    const subject = isEn
+      ? `Subscription Active — BabahAlgo`
+      : `Subscription Aktif — BabahAlgo`;
+    const body = isEn
+      ? `<p>Hi ${greetName},</p>
+         <p>Your <strong>${tier}</strong> subscription is now active until ${expiresStr}.</p>
+         ${invoiceLink}
+         <p>Setup notifications: <a href="${portalUrl}">Portal Settings</a></p>
+         <p>— BabahAlgo Team</p>`
+      : `<p>Halo ${greetName},</p>
+         <p>Subscription <strong>${tier}</strong> Anda sudah aktif hingga ${expiresStr}.</p>
+         ${invoiceLink}
+         <p>Setup notifikasi: <a href="${portalUrl}">Portal Settings</a></p>
+         <p>— Tim BabahAlgo</p>`;
+
     try {
-      await sendEmail(
-        user.email,
-        'Subscription Aktif - BabahAlgo',
-        `<p>Halo ${user.name || 'Trader'},</p>
-         <p>Subscription <strong>${tier}</strong> Anda sudah aktif hingga ${expiresAt.toLocaleDateString('id-ID')}.</p>
-         <p>Setup Telegram: <a href="https://babahalgo.com/portal/account/notifications">Portal Settings</a></p>`,
-      );
+      await sendEmail(user.email, subject, body);
     } catch (err) {
       log.warn(`Failed to send activation email to ${user.email}: ${err}`);
     }
@@ -112,15 +160,20 @@ export async function cancelSubscription(
   if (result.count > 0 || cryptoCancelled) {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (user) {
-      try {
-        await sendEmail(
-          user.email,
-          'Subscription Dibatalkan — BabahAlgo',
-          `<p>Halo ${user.name || 'Trader'},</p>
+      const locale = await resolveEmailLocale(user.email);
+      const isEn = locale === 'en';
+      const subject = isEn ? 'Subscription Cancelled — BabahAlgo' : 'Subscription Dibatalkan — BabahAlgo';
+      const body = isEn
+        ? `<p>Hi ${user.name || 'Trader'},</p>
+           <p>Your subscription has been cancelled${opts?.tier ? ` (tier: ${opts.tier})` : ''}.</p>
+           <p>Reason: ${reason}</p>
+           <p>Automated execution stopped. To reactivate, <a href="${APP_URL}/pricing">pick a plan</a>.</p>`
+        : `<p>Halo ${user.name || 'Trader'},</p>
            <p>Subscription Anda telah dibatalkan${opts?.tier ? ` (tier: ${opts.tier})` : ''}.</p>
            <p>Alasan: ${reason}</p>
-           <p>Eksekusi otomatis sudah berhenti. Untuk aktivasi kembali, <a href="https://babahalgo.com/pricing">pilih paket di /pricing</a>.</p>`,
-        );
+           <p>Eksekusi otomatis sudah berhenti. Untuk aktivasi kembali, <a href="${APP_URL}/pricing">pilih paket di /pricing</a>.</p>`;
+      try {
+        await sendEmail(user.email, subject, body);
       } catch (err) {
         log.warn(`Failed to send cancellation email to ${user.email}: ${err}`);
       }
@@ -155,14 +208,23 @@ export async function expireSubscriptions() {
   });
 
   for (const sub of expiring) {
+    const locale = await resolveEmailLocale(sub.user.email);
+    const isEn = locale === 'en';
+    const expiresStr = sub.expiresAt.toLocaleDateString(isEn ? 'en-US' : 'id-ID', {
+      year: 'numeric', month: 'long', day: 'numeric',
+    });
+    const subject = isEn
+      ? 'Subscription expiring in 3 days — BabahAlgo'
+      : 'Subscription Akan Berakhir — 3 Hari Lagi';
+    const body = isEn
+      ? `<p>Hi ${sub.user.name || 'Trader'},</p>
+         <p>Your ${sub.tier} subscription expires on ${expiresStr}.</p>
+         <p><a href="${APP_URL}/portal/billing">Renew now</a></p>`
+      : `<p>Halo ${sub.user.name || 'Trader'},</p>
+         <p>Subscription ${sub.tier} Anda berakhir ${expiresStr}.</p>
+         <p><a href="${APP_URL}/portal/billing">Perpanjang Sekarang</a></p>`;
     try {
-      await sendEmail(
-        sub.user.email,
-        'Subscription Akan Berakhir - 3 Hari Lagi',
-        `<p>Halo ${sub.user.name || 'Trader'},</p>
-         <p>Subscription ${sub.tier} Anda berakhir ${sub.expiresAt.toLocaleDateString('id-ID')}.</p>
-         <p><a href="https://babahalgo.com/portal/billing">Perpanjang Sekarang</a></p>`,
-      );
+      await sendEmail(sub.user.email, subject, body);
     } catch (err) {
       log.warn(`Failed to send renewal reminder to ${sub.user.email}: ${err}`);
     }

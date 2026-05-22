@@ -15,10 +15,43 @@ export type XenditPaymentMethod =
   | 'QRIS'
   // Bank Virtual Account
   | 'BCA' | 'BNI' | 'BSI' | 'BRI' | 'MANDIRI' | 'PERMATA'
-  // E-Wallet
-  | 'OVO' | 'DANA' | 'SHOPEEPAY' | 'LINKAJA'
+  // E-Wallet Indonesia (inline via /ewallets/charges)
+  | 'GOPAY' | 'OVO' | 'DANA' | 'SHOPEEPAY' | 'LINKAJA' | 'ASTRAPAY'
+  // E-Wallet Regional (Global Account markets)
+  | 'GRABPAY_PH' | 'GRABPAY_MY' | 'GRABPAY_SG'
+  | 'GCASH_PH' | 'PAYMAYA_PH' | 'TOUCHNGO_MY'
   // Retail outlets
   | 'ALFAMART' | 'INDOMARET';
+
+/** Xendit /ewallets/charges canonical channel_code per region. */
+const EWALLET_CHANNEL_CODE: Partial<Record<XenditPaymentMethod, string>> = {
+  GOPAY: 'ID_GOPAY',
+  OVO: 'ID_OVO',
+  DANA: 'ID_DANA',
+  SHOPEEPAY: 'ID_SHOPEEPAY',
+  LINKAJA: 'ID_LINKAJA',
+  ASTRAPAY: 'ID_ASTRAPAY',
+  GRABPAY_PH: 'PH_GRABPAY',
+  GRABPAY_MY: 'MY_GRABPAY',
+  GRABPAY_SG: 'SG_GRABPAY',
+  GCASH_PH: 'PH_GCASH',
+  PAYMAYA_PH: 'PH_PAYMAYA',
+  TOUCHNGO_MY: 'MY_TOUCHNGO',
+};
+
+/** Currency per e-wallet (Global Account multi-currency). */
+const EWALLET_CURRENCY: Partial<Record<XenditPaymentMethod, string>> = {
+  GOPAY: 'IDR', OVO: 'IDR', DANA: 'IDR', SHOPEEPAY: 'IDR',
+  LINKAJA: 'IDR', ASTRAPAY: 'IDR',
+  GRABPAY_PH: 'PHP', GCASH_PH: 'PHP', PAYMAYA_PH: 'PHP',
+  GRABPAY_MY: 'MYR', TOUCHNGO_MY: 'MYR',
+  GRABPAY_SG: 'SGD',
+};
+
+/** Supported settlement currencies untuk Card via Global Account.
+ *  Per Xendit docs: IDR, USD, SGD, MYR, PHP, THB, VND, HKD. */
+export const SUPPORTED_CURRENCIES = ['IDR', 'USD', 'SGD', 'MYR', 'PHP', 'THB', 'HKD'] as const;
+export type SupportedCurrency = (typeof SUPPORTED_CURRENCIES)[number];
 
 interface CreateInvoiceParams {
   externalId: string;
@@ -181,14 +214,20 @@ export interface XenditPaymentInstrument {
   accountNumber?: string;
   /** Bank code/display name (untuk VA) */
   bankCode?: string;
-  /** 3DS redirect/action URL (untuk Card kalau require challenge) */
+  /** 3DS / e-wallet redirect/action URL (mobile_web_checkout_url etc) */
   actionUrl?: string;
+  /** Mobile deep-link URL (untuk e-wallet apps — gojek://, dana://, dst) */
+  deeplinkUrl?: string;
   /** Reference ke external_id kita (order ID) */
   externalId: string;
   /** Expiry timestamp (ISO) — biasanya 24 jam */
   expiresAt?: string;
   /** Raw amount IDR (echo back untuk verification) */
   amountIdr: number;
+  /** Charge currency (USD/IDR/SGD/MYR for multi-currency Card + native for e-wallet) */
+  currency?: string;
+  /** Actual charge amount in charge currency (untuk e-wallet non-IDR) */
+  chargeAmount?: number;
 }
 
 interface CreateChargeBase {
@@ -213,9 +252,22 @@ interface CreateCardCharge extends CreateChargeBase {
   tokenId: string;
   /** Auth ID (jika 3DS challenged successfully) */
   authenticationId?: string;
+  /** Multi-currency support (Global Account) — default IDR.
+   *  Bila non-IDR, amount dianggap sudah dalam currency tersebut. */
+  currency?: SupportedCurrency;
+  /** Amount dalam target currency (overrides amountIdr untuk non-IDR). */
+  amountInCurrency?: number;
 }
 
-type CreateChargeParams = CreateQrisCharge | CreateVaCharge | CreateCardCharge;
+interface CreateEwalletCharge extends CreateChargeBase {
+  method: 'GOPAY' | 'OVO' | 'DANA' | 'SHOPEEPAY' | 'LINKAJA' | 'ASTRAPAY'
+    | 'GRABPAY_PH' | 'GRABPAY_MY' | 'GRABPAY_SG'
+    | 'GCASH_PH' | 'PAYMAYA_PH' | 'TOUCHNGO_MY';
+  /** Amount dalam native currency e-wallet (PHP/MYR/SGD/IDR). Default = amountIdr. */
+  amountInCurrency?: number;
+}
+
+type CreateChargeParams = CreateQrisCharge | CreateVaCharge | CreateCardCharge | CreateEwalletCharge;
 
 /** Auth header utility — Basic dari secret key. */
 function authHeader(): string {
@@ -379,11 +431,14 @@ export async function createXenditVaCharge(params: CreateVaCharge): Promise<Xend
  * → setelah customer complete, retry charge dengan authentication_id.
  */
 export async function createXenditCardCharge(params: CreateCardCharge): Promise<XenditPaymentInstrument> {
+  const currency = params.currency ?? 'IDR';
+  const chargeAmount = params.amountInCurrency ?? params.amountIdr;
+
   const payload: Record<string, unknown> = {
     token_id: params.tokenId,
     external_id: params.externalId,
-    amount: params.amountIdr,
-    currency: 'IDR',
+    amount: chargeAmount,
+    currency,
     capture: true,
     descriptor: 'BabahAlgo',
     metadata: { externalId: params.externalId, customerEmail: params.customerEmail },
@@ -415,14 +470,102 @@ export async function createXenditCardCharge(params: CreateCardCharge): Promise<
     actionUrl: data.authentication_url ?? data.redirect_url,
     externalId: data.external_id,
     amountIdr: params.amountIdr,
+    currency,
+    chargeAmount,
   };
 }
+
+/**
+ * Create E-Wallet charge via Xendit /ewallets/charges API v2.
+ *
+ * Supported: GoPay, OVO, DANA, ShopeePay, LinkAja, AstraPay (ID),
+ * GrabPay/GCash/Maya (PH), GrabPay/TouchNGo (MY), GrabPay (SG).
+ *
+ * Customer flow:
+ *   1. Server create charge → returns actions.mobile_web_checkout_url
+ *      (desktop_web_checkout_url + mobile_deeplink_url)
+ *   2. FE opens checkout URL di small popup window (window.open)
+ *   3. Customer authorize di e-wallet (push notif ke app, or web login)
+ *   4. Webhook ewallet.capture event → invoice PAID
+ *   5. FE poll + close popup + redirect ke success
+ */
+export async function createXenditEwalletCharge(params: CreateEwalletCharge): Promise<XenditPaymentInstrument> {
+  const channelCode = EWALLET_CHANNEL_CODE[params.method];
+  const currency = EWALLET_CURRENCY[params.method] ?? 'IDR';
+  if (!channelCode) throw new Error(`Unsupported e-wallet method: ${params.method}`);
+
+  const chargeAmount = params.amountInCurrency ?? params.amountIdr;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://babahalgo.com';
+
+  const payload = {
+    reference_id: params.externalId,
+    currency,
+    amount: chargeAmount,
+    checkout_method: 'ONE_TIME_PAYMENT',
+    channel_code: channelCode,
+    channel_properties: {
+      success_redirect_url: `${appUrl}/portal/billing/success?order_id=${encodeURIComponent(params.externalId)}`,
+      failure_redirect_url: `${appUrl}/portal/billing/failure?order_id=${encodeURIComponent(params.externalId)}`,
+    },
+    customer: {
+      given_names: params.customerName.split(' ')[0] ?? params.customerName,
+      surname: params.customerName.split(' ').slice(1).join(' ') || params.customerName,
+      email: params.customerEmail,
+    },
+    metadata: { externalId: params.externalId, description: params.description },
+  };
+
+  const res = await xenditFetch('https://api.xendit.co/ewallets/charges', {
+    method: 'POST',
+    headers: { 'api-version': '2024-11-11' },
+    body: JSON.stringify(payload),
+    idempotencyKey: `ewallet_${params.method}_${params.externalId}`,
+  });
+
+  if (!res.ok) {
+    const body = await res.text();
+    log.error(`Xendit E-Wallet charge error: ${body}`);
+    throw new Error(`Xendit E-Wallet API ${res.status}: ${body.slice(0, 200)}`);
+  }
+
+  const data = await res.json() as {
+    id: string; status: string; reference_id: string;
+    currency: string; charge_amount: number;
+    actions?: {
+      desktop_web_checkout_url?: string;
+      mobile_web_checkout_url?: string;
+      mobile_deeplink_checkout_url?: string;
+    };
+  };
+
+  return {
+    id: data.id,
+    status: normalizeStatus(data.status),
+    method: params.method,
+    // Prefer mobile_web (works on both desktop browser + mobile fallback)
+    actionUrl: data.actions?.mobile_web_checkout_url
+            ?? data.actions?.desktop_web_checkout_url,
+    deeplinkUrl: data.actions?.mobile_deeplink_checkout_url,
+    externalId: data.reference_id,
+    amountIdr: params.amountIdr,
+    currency: data.currency,
+    chargeAmount: data.charge_amount,
+  };
+}
+
+/** All e-wallet methods that route to /ewallets/charges */
+const EWALLET_METHODS = new Set<XenditPaymentMethod>([
+  'GOPAY', 'OVO', 'DANA', 'SHOPEEPAY', 'LINKAJA', 'ASTRAPAY',
+  'GRABPAY_PH', 'GRABPAY_MY', 'GRABPAY_SG',
+  'GCASH_PH', 'PAYMAYA_PH', 'TOUCHNGO_MY',
+]);
 
 /** Unified entrypoint — dispatch ke API spesifik per method. */
 export async function createXenditCharge(params: CreateChargeParams): Promise<XenditPaymentInstrument> {
   if (params.method === 'QRIS') return createXenditQrisCharge(params);
   if (params.method === 'CREDIT_CARD') return createXenditCardCharge(params);
-  return createXenditVaCharge(params);
+  if (EWALLET_METHODS.has(params.method)) return createXenditEwalletCharge(params as CreateEwalletCharge);
+  return createXenditVaCharge(params as CreateVaCharge);
 }
 
 /**
@@ -438,11 +581,21 @@ export async function getXenditChargeStatus(
   chargeId: string,
 ): Promise<XenditPaymentInstrument['status']> {
   let url: string;
-  if (method === 'QRIS') url = `https://api.xendit.co/qr_codes/${encodeURIComponent(chargeId)}`;
-  else if (method === 'CREDIT_CARD') url = `https://api.xendit.co/credit_card_charges/${encodeURIComponent(chargeId)}`;
-  else url = `https://api.xendit.co/callback_virtual_accounts/${encodeURIComponent(chargeId)}`;
+  let extraHeaders: Record<string, string> = {};
 
-  const res = await xenditFetch(url, { method: 'GET' });
+  if (method === 'QRIS') {
+    url = `https://api.xendit.co/qr_codes/${encodeURIComponent(chargeId)}`;
+    extraHeaders = { 'api-version': '2022-07-31' };
+  } else if (method === 'CREDIT_CARD') {
+    url = `https://api.xendit.co/credit_card_charges/${encodeURIComponent(chargeId)}`;
+  } else if (EWALLET_METHODS.has(method)) {
+    url = `https://api.xendit.co/ewallets/charges/${encodeURIComponent(chargeId)}`;
+    extraHeaders = { 'api-version': '2024-11-11' };
+  } else {
+    url = `https://api.xendit.co/callback_virtual_accounts/${encodeURIComponent(chargeId)}`;
+  }
+
+  const res = await xenditFetch(url, { method: 'GET', headers: extraHeaders });
   if (!res.ok) {
     // VA `is_closed=true` doesn't expose status easily — fall back ke PENDING
     return 'PENDING';

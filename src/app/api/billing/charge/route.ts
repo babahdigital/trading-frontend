@@ -23,8 +23,9 @@ import {
   createXenditCharge,
   type XenditPaymentMethod,
   type XenditPaymentInstrument,
+  type SupportedCurrency,
 } from '@/lib/payment/xendit';
-import { idrToUsd } from '@/lib/payment/rates';
+import { idrToUsd, USD_IDR_RATE } from '@/lib/payment/rates';
 import { randomUUID } from 'crypto';
 import { resolveIdempotencyKey } from '@/lib/api/idempotency';
 import { detectRequestLocale, type AppLocale } from '@/lib/i18n/server-locale';
@@ -48,10 +49,32 @@ const TIER_SLUG_MAP: Record<string, string> = {
 };
 
 const VALID_METHODS = new Set<XenditPaymentMethod>([
-  'CREDIT_CARD', 'QRIS', 'BCA', 'BNI', 'BSI', 'BRI', 'MANDIRI', 'PERMATA',
+  'CREDIT_CARD', 'QRIS',
+  // VA
+  'BCA', 'BNI', 'BSI', 'BRI', 'MANDIRI', 'PERMATA',
+  // E-Wallet Indonesia (inline /ewallets/charges)
+  'GOPAY', 'OVO', 'DANA', 'SHOPEEPAY', 'LINKAJA', 'ASTRAPAY',
+  // E-Wallet Regional (Global Account)
+  'GRABPAY_PH', 'GRABPAY_MY', 'GRABPAY_SG',
+  'GCASH_PH', 'PAYMAYA_PH', 'TOUCHNGO_MY',
 ]);
 
 const VA_METHODS = new Set<XenditPaymentMethod>(['BCA', 'BNI', 'BSI', 'BRI', 'MANDIRI', 'PERMATA']);
+const EWALLET_METHODS = new Set<XenditPaymentMethod>([
+  'GOPAY', 'OVO', 'DANA', 'SHOPEEPAY', 'LINKAJA', 'ASTRAPAY',
+  'GRABPAY_PH', 'GRABPAY_MY', 'GRABPAY_SG',
+  'GCASH_PH', 'PAYMAYA_PH', 'TOUCHNGO_MY',
+]);
+
+/** ID-locale only methods (server enforces — non-ID gate non-card). */
+const ID_ONLY_METHODS = new Set<XenditPaymentMethod>([
+  'QRIS',
+  'BCA', 'BNI', 'BSI', 'BRI', 'MANDIRI', 'PERMATA',
+  'GOPAY', 'OVO', 'DANA', 'SHOPEEPAY', 'LINKAJA', 'ASTRAPAY',
+]);
+
+/** Card multi-currency supported list (per Xendit Global Account). */
+const CARD_CURRENCIES = new Set(['IDR', 'USD', 'SGD', 'MYR', 'PHP', 'THB', 'HKD']);
 
 function errorResponse(code: string, message: string, status: number) {
   return NextResponse.json({ code, error: message }, { status });
@@ -92,24 +115,33 @@ export async function POST(req: NextRequest) {
     tokenId,
     authenticationId,
     promo: promoSlug,
+    currency: requestedCurrency,
   } = body as {
     tier: string;
     paymentMethod: XenditPaymentMethod;
     tokenId?: string;
     authenticationId?: string;
     promo?: string;
+    /** Card multi-currency settlement — default IDR.
+     *  Per Xendit Global Account: USD/SGD/MYR/PHP/THB/HKD. Non-ID locale
+     *  default ke USD untuk Stripe-like UX. */
+    currency?: string;
   };
 
   if (!paymentMethod || !VALID_METHODS.has(paymentMethod)) {
     return errorResponse('invalid_payment_method', 'Invalid payment method', 400);
   }
-  // Non-ID gate
-  if (locale === 'en' && paymentMethod !== 'CREDIT_CARD') {
+  // Non-ID gate: hanya Card + regional e-wallet (PH/MY/SG) yang allow.
+  if (locale === 'en' && ID_ONLY_METHODS.has(paymentMethod)) {
     return errorResponse('payment_method_locale_mismatch', 'Selected payment method not available for your region', 400);
   }
   // Card requires tokenId from Xendit.js client tokenization
   if (paymentMethod === 'CREDIT_CARD' && !tokenId) {
     return errorResponse('missing_card_token', 'Card token required (tokenize via Xendit.js first)', 400);
+  }
+  // Currency validation (only relevant untuk Card)
+  if (requestedCurrency && !CARD_CURRENCIES.has(requestedCurrency)) {
+    return errorResponse('invalid_currency', 'Unsupported currency', 400);
   }
 
   const pricing = await resolveTierPricing(tier);
@@ -209,6 +241,26 @@ export async function POST(req: NextRequest) {
     },
   });
 
+  // ── Multi-currency conversion (Card only; e-wallet pakai native) ──
+  // Card default IDR. Non-ID locale default USD untuk Stripe-like UX.
+  let cardCurrency: SupportedCurrency = 'IDR';
+  let cardAmountInCurrency: number | undefined;
+  if (paymentMethod === 'CREDIT_CARD') {
+    cardCurrency = (requestedCurrency as SupportedCurrency) ?? (locale === 'en' ? 'USD' : 'IDR');
+    if (cardCurrency === 'USD') {
+      cardAmountInCurrency = Number(idrToUsd(finalAmount).toFixed(2));
+    } else if (cardCurrency === 'IDR') {
+      cardAmountInCurrency = finalAmount;
+    } else {
+      // Untuk SGD/MYR/PHP/THB/HKD — gunakan USD bridge dengan rough ratio.
+      // Production: ambil live FX rate dari Xendit /balance/fx atau external.
+      // Untuk sekarang, default ke USD untuk currency lain supaya tidak salah
+      // calculate; FE seharusnya cuma offer USD untuk non-ID Card.
+      cardCurrency = 'USD';
+      cardAmountInCurrency = Number(idrToUsd(finalAmount).toFixed(2));
+    }
+  }
+
   // ── Create Xendit charge ──────────────────────────────────────────
   let instrument: XenditPaymentInstrument;
   try {
@@ -222,6 +274,8 @@ export async function POST(req: NextRequest) {
         description: localizedDescription,
         tokenId: tokenId!,
         authenticationId,
+        currency: cardCurrency,
+        amountInCurrency: cardAmountInCurrency,
       });
     } else if (paymentMethod === 'QRIS') {
       instrument = await createXenditCharge({
@@ -237,6 +291,28 @@ export async function POST(req: NextRequest) {
         method: paymentMethod as 'BCA' | 'BNI' | 'BSI' | 'BRI' | 'MANDIRI' | 'PERMATA',
         externalId: orderId,
         amountIdr: finalAmount,
+        customerName: user.name || user.email,
+        customerEmail: user.email,
+        description: localizedDescription,
+      });
+    } else if (EWALLET_METHODS.has(paymentMethod)) {
+      // For regional e-wallet (PH/MY/SG), convert IDR → native via rough USD bridge.
+      // Production: pakai live FX. ID e-wallet (GoPay/OVO/DANA/etc) tetap IDR native.
+      let amountInCurrency: number | undefined;
+      const isRegional = paymentMethod.endsWith('_PH') || paymentMethod.endsWith('_MY') || paymentMethod.endsWith('_SG');
+      if (isRegional) {
+        // Rough conversion via USD: USD/IDR=16500, USD/PHP=58, USD/MYR=4.7, USD/SGD=1.35
+        const usdAmount = finalAmount / USD_IDR_RATE;
+        if (paymentMethod.endsWith('_PH')) amountInCurrency = Number((usdAmount * 58).toFixed(2));
+        else if (paymentMethod.endsWith('_MY')) amountInCurrency = Number((usdAmount * 4.7).toFixed(2));
+        else if (paymentMethod.endsWith('_SG')) amountInCurrency = Number((usdAmount * 1.35).toFixed(2));
+      }
+      instrument = await createXenditCharge({
+        method: paymentMethod as 'GOPAY' | 'OVO' | 'DANA' | 'SHOPEEPAY' | 'LINKAJA' | 'ASTRAPAY'
+          | 'GRABPAY_PH' | 'GRABPAY_MY' | 'GRABPAY_SG' | 'GCASH_PH' | 'PAYMAYA_PH' | 'TOUCHNGO_MY',
+        externalId: orderId,
+        amountIdr: finalAmount,
+        amountInCurrency,
         customerName: user.name || user.email,
         customerEmail: user.email,
         description: localizedDescription,
@@ -272,7 +348,10 @@ export async function POST(req: NextRequest) {
           accountNumber: instrument.accountNumber ?? null,
           bankCode: instrument.bankCode ?? null,
           actionUrl: instrument.actionUrl ?? null,
+          deeplinkUrl: instrument.deeplinkUrl ?? null,
           expiresAt: instrument.expiresAt ?? null,
+          currency: instrument.currency ?? null,
+          chargeAmount: instrument.chargeAmount ?? null,
         },
       },
     },
@@ -288,8 +367,11 @@ export async function POST(req: NextRequest) {
       accountNumber: instrument.accountNumber,
       bankCode: instrument.bankCode,
       actionUrl: instrument.actionUrl,
+      deeplinkUrl: instrument.deeplinkUrl,
       expiresAt: instrument.expiresAt,
       amountIdr: finalAmount,
+      currency: instrument.currency,
+      chargeAmount: instrument.chargeAmount,
     },
     discount: appliedPromo,
   });

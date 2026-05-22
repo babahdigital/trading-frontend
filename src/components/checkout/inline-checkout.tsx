@@ -25,7 +25,7 @@ import Link from 'next/link';
 import {
   Loader2, AlertCircle, ArrowLeft, ShieldCheck, Sparkles, RefreshCw,
   Receipt, ArrowRight, Tag, Lock, CreditCard, QrCode, Building2,
-  CheckCircle2,
+  CheckCircle2, Wallet,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -33,12 +33,16 @@ import { cn } from '@/lib/utils';
 import { CardForm } from './card-form';
 import { QrisDisplay } from './qris-display';
 import { VaDisplay } from './va-display';
+import { EwalletDisplay } from './ewallet-display';
 
 export type PaymentMethodCode =
   | 'CREDIT_CARD' | 'QRIS'
-  | 'BCA' | 'BNI' | 'BSI' | 'BRI' | 'MANDIRI' | 'PERMATA';
+  | 'BCA' | 'BNI' | 'BSI' | 'BRI' | 'MANDIRI' | 'PERMATA'
+  | 'GOPAY' | 'OVO' | 'DANA' | 'SHOPEEPAY' | 'LINKAJA' | 'ASTRAPAY'
+  | 'GRABPAY_PH' | 'GRABPAY_MY' | 'GRABPAY_SG'
+  | 'GCASH_PH' | 'PAYMAYA_PH' | 'TOUCHNGO_MY';
 
-type MethodCategory = 'card' | 'qris' | 'va';
+type MethodCategory = 'card' | 'qris' | 'va' | 'ewallet';
 
 interface MethodOption {
   code: PaymentMethodCode;
@@ -66,6 +70,31 @@ const METHODS: MethodOption[] = [
   { code: 'MANDIRI', category: 'va', labelId: 'Mandiri Virtual Account', labelEn: 'Mandiri Virtual Account' },
   { code: 'BSI', category: 'va', labelId: 'BSI Virtual Account', labelEn: 'BSI Virtual Account' },
   { code: 'PERMATA', category: 'va', labelId: 'Permata Virtual Account', labelEn: 'Permata Virtual Account' },
+  // E-Wallet Indonesia (popup checkout, inline status polling)
+  { code: 'GOPAY', category: 'ewallet', labelId: 'GoPay', labelEn: 'GoPay' },
+  { code: 'OVO', category: 'ewallet', labelId: 'OVO', labelEn: 'OVO' },
+  { code: 'DANA', category: 'ewallet', labelId: 'DANA', labelEn: 'DANA' },
+  { code: 'SHOPEEPAY', category: 'ewallet', labelId: 'ShopeePay', labelEn: 'ShopeePay' },
+  { code: 'LINKAJA', category: 'ewallet', labelId: 'LinkAja', labelEn: 'LinkAja' },
+  { code: 'ASTRAPAY', category: 'ewallet', labelId: 'AstraPay', labelEn: 'AstraPay' },
+];
+
+/** Regional e-wallet (PH/MY/SG) — visible untuk non-ID locale dengan
+ *  Global Account multi-currency. Available bila Xendit Global Account
+ *  ter-enable (otomatis untuk non-Indonesian merchants). */
+const EWALLET_METHOD_CODES = new Set<PaymentMethodCode>([
+  'GOPAY', 'OVO', 'DANA', 'SHOPEEPAY', 'LINKAJA', 'ASTRAPAY',
+  'GRABPAY_PH', 'GRABPAY_MY', 'GRABPAY_SG',
+  'GCASH_PH', 'PAYMAYA_PH', 'TOUCHNGO_MY',
+]);
+
+const REGIONAL_EWALLETS: MethodOption[] = [
+  { code: 'GCASH_PH', category: 'ewallet', labelId: 'GCash (PH)', labelEn: 'GCash (Philippines)' },
+  { code: 'PAYMAYA_PH', category: 'ewallet', labelId: 'Maya (PH)', labelEn: 'Maya (Philippines)' },
+  { code: 'GRABPAY_PH', category: 'ewallet', labelId: 'GrabPay (PH)', labelEn: 'GrabPay (Philippines)' },
+  { code: 'GRABPAY_MY', category: 'ewallet', labelId: 'GrabPay (MY)', labelEn: 'GrabPay (Malaysia)' },
+  { code: 'TOUCHNGO_MY', category: 'ewallet', labelId: "Touch 'n Go (MY)", labelEn: "Touch 'n Go (Malaysia)" },
+  { code: 'GRABPAY_SG', category: 'ewallet', labelId: 'GrabPay (SG)', labelEn: 'GrabPay (Singapore)' },
 ];
 
 function resolveDemoLink(service: 'signal' | 'crypto' | 'vps', locale: string): string | null {
@@ -102,8 +131,11 @@ interface ChargeInstrument {
   accountNumber?: string;
   bankCode?: string;
   actionUrl?: string;
+  deeplinkUrl?: string;
   expiresAt?: string;
   amountIdr: number;
+  currency?: string;
+  chargeAmount?: number;
 }
 
 type CheckoutState =
@@ -112,6 +144,7 @@ type CheckoutState =
   | { kind: 'card_form' }
   | { kind: 'qris'; orderId: string; instrument: ChargeInstrument }
   | { kind: 'va'; orderId: string; instrument: ChargeInstrument }
+  | { kind: 'ewallet'; orderId: string; instrument: ChargeInstrument }
   | { kind: 'success'; orderId: string }
   | { kind: 'failed'; reason: string };
 
@@ -140,6 +173,7 @@ function CategoryIcon({ cat, className }: { cat: MethodCategory; className?: str
     case 'card': return <CreditCard className={className} aria-hidden />;
     case 'qris': return <QrCode className={className} aria-hidden />;
     case 'va': return <Building2 className={className} aria-hidden />;
+    case 'ewallet': return <Wallet className={className} aria-hidden />;
   }
 }
 
@@ -153,9 +187,17 @@ export function InlineCheckout({ tier, service, locale, promoSlug }: InlineCheck
   const [state, setState] = useState<CheckoutState>({ kind: 'picking' });
   const startedRef = useRef(false);
 
-  // Locale gate — non-ID hanya Card visible
+  // Locale gate:
+  //   ID: semua method ID (Card + QRIS + 6 VA banks + 6 ID e-wallets)
+  //   Non-ID: Card + Regional e-wallets (PH/MY/SG) via Global Account
   const availableMethods = useMemo<MethodOption[]>(() => {
-    return isEn ? METHODS.filter((m) => m.code === 'CREDIT_CARD') : METHODS;
+    if (isEn) {
+      return [
+        METHODS.find((m) => m.code === 'CREDIT_CARD')!,
+        ...REGIONAL_EWALLETS,
+      ];
+    }
+    return METHODS;
   }, [isEn]);
 
   const grouped = useMemo(() => {
@@ -249,6 +291,8 @@ export function InlineCheckout({ tier, service, locale, promoSlug }: InlineCheck
 
       if (method === 'QRIS') {
         setState({ kind: 'qris', orderId, instrument });
+      } else if (EWALLET_METHOD_CODES.has(method)) {
+        setState({ kind: 'ewallet', orderId, instrument });
       } else {
         setState({ kind: 'va', orderId, instrument });
       }
@@ -368,8 +412,8 @@ export function InlineCheckout({ tier, service, locale, promoSlug }: InlineCheck
     );
   }
 
-  // ─── QRIS / VA display ────────────────────────────────────────────
-  if (state.kind === 'qris' || state.kind === 'va') {
+  // ─── QRIS / VA / E-Wallet display ─────────────────────────────────
+  if (state.kind === 'qris' || state.kind === 'va' || state.kind === 'ewallet') {
     return (
       <div className="w-full max-w-2xl mx-auto">
         <button
@@ -381,7 +425,7 @@ export function InlineCheckout({ tier, service, locale, promoSlug }: InlineCheck
           {isEn ? 'Cancel and choose different method' : 'Batal & pilih metode lain'}
         </button>
 
-        {state.kind === 'qris' ? (
+        {state.kind === 'qris' && (
           <QrisDisplay
             orderId={state.orderId}
             qrString={state.instrument.qrString!}
@@ -391,13 +435,28 @@ export function InlineCheckout({ tier, service, locale, promoSlug }: InlineCheck
             onSucceeded={() => setState({ kind: 'success', orderId: state.orderId })}
             onFailed={(reason) => setState({ kind: 'failed', reason: reason ?? 'Payment expired or failed' })}
           />
-        ) : (
+        )}
+        {state.kind === 'va' && (
           <VaDisplay
             orderId={state.orderId}
             accountNumber={state.instrument.accountNumber!}
             bankCode={state.instrument.bankCode ?? state.instrument.method}
             amountIdr={state.instrument.amountIdr}
             expiresAt={state.instrument.expiresAt}
+            locale={locale}
+            onSucceeded={() => setState({ kind: 'success', orderId: state.orderId })}
+            onFailed={(reason) => setState({ kind: 'failed', reason: reason ?? 'Payment expired or failed' })}
+          />
+        )}
+        {state.kind === 'ewallet' && (
+          <EwalletDisplay
+            orderId={state.orderId}
+            method={state.instrument.method}
+            actionUrl={state.instrument.actionUrl!}
+            deeplinkUrl={state.instrument.deeplinkUrl}
+            amountIdr={state.instrument.amountIdr}
+            currency={state.instrument.currency}
+            chargeAmount={state.instrument.chargeAmount}
             locale={locale}
             onSucceeded={() => setState({ kind: 'success', orderId: state.orderId })}
             onFailed={(reason) => setState({ kind: 'failed', reason: reason ?? 'Payment expired or failed' })}
@@ -468,41 +527,40 @@ export function InlineCheckout({ tier, service, locale, promoSlug }: InlineCheck
               </div>
             </div>
 
-            {isEn ? (
-              <MethodCardLarge
-                option={availableMethods[0]}
-                selected={method === availableMethods[0].code}
-                onSelect={() => setMethod(availableMethods[0].code)}
-                isEn
-              />
-            ) : (
-              <div className="space-y-5">
-                {grouped.get('card') && (
-                  <MethodGroup
-                    title={isEn ? 'Card' : 'Kartu'}
-                    options={grouped.get('card')!}
-                    method={method} setMethod={setMethod}
-                    isEn={isEn} columns={1}
-                  />
-                )}
-                {grouped.get('qris') && (
-                  <MethodGroup
-                    title={isEn ? 'QR Code' : 'QR Code'}
-                    options={grouped.get('qris')!}
-                    method={method} setMethod={setMethod}
-                    isEn={isEn} columns={1}
-                  />
-                )}
-                {grouped.get('va') && (
-                  <MethodGroup
-                    title={isEn ? 'Bank Transfer (Virtual Account)' : 'Transfer Bank (Virtual Account)'}
-                    options={grouped.get('va')!}
-                    method={method} setMethod={setMethod}
-                    isEn={isEn} columns={2} compact
-                  />
-                )}
-              </div>
-            )}
+            <div className="space-y-5">
+              {grouped.get('card') && (
+                <MethodGroup
+                  title={isEn ? 'Card' : 'Kartu'}
+                  options={grouped.get('card')!}
+                  method={method} setMethod={setMethod}
+                  isEn={isEn} columns={1}
+                />
+              )}
+              {grouped.get('qris') && (
+                <MethodGroup
+                  title={isEn ? 'QR Code' : 'QR Code'}
+                  options={grouped.get('qris')!}
+                  method={method} setMethod={setMethod}
+                  isEn={isEn} columns={1}
+                />
+              )}
+              {grouped.get('ewallet') && (
+                <MethodGroup
+                  title={isEn ? 'E-Wallet' : 'E-Wallet'}
+                  options={grouped.get('ewallet')!}
+                  method={method} setMethod={setMethod}
+                  isEn={isEn} columns={2} compact
+                />
+              )}
+              {grouped.get('va') && (
+                <MethodGroup
+                  title={isEn ? 'Bank Transfer (Virtual Account)' : 'Transfer Bank (Virtual Account)'}
+                  options={grouped.get('va')!}
+                  method={method} setMethod={setMethod}
+                  isEn={isEn} columns={2} compact
+                />
+              )}
+            </div>
           </CardContent>
         </Card>
 
@@ -605,53 +663,6 @@ export function InlineCheckout({ tier, service, locale, promoSlug }: InlineCheck
 }
 
 // ─── Sub-components ───────────────────────────────────────────────
-
-interface MethodCardLargeProps {
-  option: MethodOption;
-  selected: boolean;
-  onSelect: () => void;
-  isEn: boolean;
-}
-
-function MethodCardLarge({ option, selected, onSelect, isEn }: MethodCardLargeProps) {
-  return (
-    <button
-      type="button"
-      onClick={onSelect}
-      aria-pressed={selected}
-      className={cn(
-        'w-full text-left rounded-xl border-2 p-5 transition-all',
-        'flex items-center gap-4',
-        selected
-          ? 'border-amber-500 bg-amber-500/5 shadow-md shadow-amber-500/10'
-          : 'border-border bg-card/40 hover:border-border/80 hover:bg-card/70',
-      )}
-    >
-      <div className={cn(
-        'h-12 w-12 rounded-xl flex items-center justify-center shrink-0',
-        selected ? 'bg-amber-500/15 text-amber-500' : 'bg-muted/40 text-muted-foreground',
-      )}>
-        <CategoryIcon cat={option.category} className="h-6 w-6" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm sm:text-base font-bold leading-tight">
-          {isEn ? option.labelEn : option.labelId}
-        </p>
-        {option.hint && (
-          <p className="text-xs text-muted-foreground mt-0.5">
-            {isEn ? option.hint.en : option.hint.id}
-          </p>
-        )}
-      </div>
-      <div className={cn(
-        'h-5 w-5 rounded-full border-2 shrink-0 flex items-center justify-center transition-colors',
-        selected ? 'border-amber-500 bg-amber-500' : 'border-muted-foreground/40',
-      )}>
-        {selected && <div className="h-2 w-2 rounded-full bg-amber-950" />}
-      </div>
-    </button>
-  );
-}
 
 interface MethodGroupProps {
   title: string;

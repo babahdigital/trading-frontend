@@ -109,6 +109,13 @@ export async function GET(req: NextRequest) {
     break;
   }
 
+  // Customer email for Card tokenization (Xendit.js requires card_holder_email
+  // or card_holder_phone_number — we always pass email of logged-in user).
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { email: true, name: true },
+  });
+
   return NextResponse.json({
     tier,
     description: localizeDescription(description, locale),
@@ -117,5 +124,6 @@ export async function GET(req: NextRequest) {
     amountUsd: idrToUsd(discountedAmount),
     discount: appliedPromo,
     locale,
+    customer: user ? { email: user.email, name: user.name } : null,
   });
 }

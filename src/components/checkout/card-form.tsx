@@ -26,6 +26,8 @@ interface CardFormProps {
   tier: string;
   locale: string;
   promoSlug?: string;
+  /** Customer email — required by Xendit Card API as card_holder_email */
+  customerEmail: string;
   onSucceeded: (orderId: string) => void;
   onFailed: (reason: string) => void;
   onCancel: () => void;
@@ -72,7 +74,7 @@ function detectCardBrand(num: string): 'visa' | 'mastercard' | 'amex' | 'jcb' | 
   return 'unknown';
 }
 
-export function CardForm({ amountIdr, tier, locale, promoSlug, onSucceeded, onFailed, onCancel }: CardFormProps) {
+export function CardForm({ amountIdr, tier, locale, promoSlug, customerEmail, onSucceeded, onFailed, onCancel }: CardFormProps) {
   const isEn = locale === 'en';
   const [sdkReady, setSdkReady] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -156,6 +158,9 @@ export function CardForm({ amountIdr, tier, locale, promoSlug, onSucceeded, onFa
           card_cvn: cvn,
           card_holder_first_name: holder.trim().split(' ')[0] ?? holder,
           card_holder_last_name: holder.trim().split(' ').slice(1).join(' ') || holder,
+          // Xendit Card API requires card_holder_email OR card_holder_phone_number.
+          // We always pass email (customer logged-in user). Phone optional.
+          card_holder_email: customerEmail,
           is_multiple_use: false,
           should_authenticate: true,
           currency: 'IDR',

@@ -129,6 +129,32 @@ interface PreviewResponse {
     discountValue: number;
     discountType: 'PERCENT' | 'FIXED_IDR';
   } | null;
+  customer: { email: string; name: string | null } | null;
+}
+
+/**
+ * Normalize phone ke E.164 untuk Xendit API.
+ *
+ * Xendit regex: ^\+?[1-9]\d{1,14}$ — leading digit harus 1-9 (no zero),
+ * total 2-15 digits, optional + prefix.
+ *
+ * Convert:
+ *   "081234567890"   → "+6281234567890" (Indonesian convention)
+ *   "8123456789"     → "+628123456789"  (assume Indonesian)
+ *   "+6281234567890" → "+6281234567890" (passthrough)
+ *   "62812345..."    → "+62812345..."   (add + prefix)
+ */
+function normalizePhoneE164(raw: string, defaultCountryCode = '62'): string {
+  const cleaned = raw.trim().replace(/[\s\-()]/g, '');
+  // Already E.164
+  if (/^\+[1-9]\d{1,14}$/.test(cleaned)) return cleaned;
+  // No + but has country code (62xxx, 65xxx, etc — starts non-zero, ≥10 digits)
+  if (/^[1-9]\d{9,14}$/.test(cleaned)) return '+' + cleaned;
+  // Indonesian local format (0812xxx)
+  if (/^0\d{8,13}$/.test(cleaned)) return '+' + defaultCountryCode + cleaned.slice(1);
+  // Bare local without leading 0 (812xxx) — assume Indonesia
+  if (/^[1-9]\d{7,12}$/.test(cleaned)) return '+' + defaultCountryCode + cleaned;
+  return cleaned; // return as-is; server will reject if invalid
 }
 
 interface ChargeInstrument {
@@ -281,13 +307,20 @@ export function InlineCheckout({ tier, service, locale, promoSlug }: InlineCheck
     }
 
     // Phone-required wallets (OVO/LinkAja/GCash/Maya/TouchNGo): client harus
-    // provide E.164 mobile number. Validate here sebelum hit API.
+    // provide E.164 mobile number. Validate + auto-normalize.
+    let normalizedPhone: string | undefined;
     if (PHONE_REQUIRED_METHODS.has(method)) {
-      const cleaned = phoneInput.trim().replace(/[\s-]/g, '');
-      if (!/^\+?\d{8,15}$/.test(cleaned)) {
+      // Default country: Indonesia (62) untuk ID wallets, PH (63) untuk GCash/Maya,
+      // MY (60) untuk TouchNGo.
+      const defaultCC = method === 'GCASH_PH' || method === 'PAYMAYA_PH' ? '63'
+                      : method === 'TOUCHNGO_MY' ? '60'
+                      : '62';
+      normalizedPhone = normalizePhoneE164(phoneInput, defaultCC);
+      // Xendit regex: ^\+?[1-9]\d{1,14}$ — leading 1-9, total 2-15 digits.
+      if (!/^\+[1-9]\d{1,14}$/.test(normalizedPhone)) {
         setState({ kind: 'failed', reason: isEn
-          ? 'Please enter a valid phone number (e.g. +6281234567890)'
-          : 'Masukkan nomor HP yang valid (contoh: +6281234567890)' });
+          ? `Invalid phone number. Please enter in international format (e.g. +6281234567890)`
+          : `Nomor HP tidak valid. Format internasional (contoh: +6281234567890)` });
         return;
       }
     }
@@ -305,9 +338,7 @@ export function InlineCheckout({ tier, service, locale, promoSlug }: InlineCheck
         body: JSON.stringify({
           tier, paymentMethod: method,
           ...(promoSlug ? { promo: promoSlug } : {}),
-          ...(PHONE_REQUIRED_METHODS.has(method)
-              ? { mobileNumber: phoneInput.trim().replace(/[\s-]/g, '') }
-              : {}),
+          ...(normalizedPhone ? { mobileNumber: normalizedPhone } : {}),
         }),
       });
 
@@ -514,6 +545,7 @@ export function InlineCheckout({ tier, service, locale, promoSlug }: InlineCheck
               tier={tier}
               locale={locale}
               promoSlug={promoSlug}
+              customerEmail={preview.customer?.email ?? ''}
               onSucceeded={(orderId) => setState({ kind: 'success', orderId })}
               onFailed={(reason) => setState({ kind: 'failed', reason })}
               onCancel={() => setState({ kind: 'picking' })}

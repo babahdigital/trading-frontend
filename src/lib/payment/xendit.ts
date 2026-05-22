@@ -23,9 +23,15 @@ export type XenditPaymentMethod =
   // Retail outlets
   | 'ALFAMART' | 'INDOMARET';
 
-/** Xendit /ewallets/charges canonical channel_code per region. */
+/** Xendit /ewallets/charges canonical channel_code per region.
+ *
+ * NOTE: GoPay specifically uses `GOPAY` (no ID_ prefix) per Xendit's
+ * GoPay-direct docs page (https://docs.xendit.co/docs/gopay), berbeda dari
+ * pattern e-wallet ID lain yang pakai `ID_` prefix. Confirmed via API:
+ * `ID_GOPAY` returns "JSON value is not one of the allowed values" sedang
+ * `GOPAY` accepted. Other ID wallets (OVO/DANA/dst) tetap pakai ID_ prefix. */
 const EWALLET_CHANNEL_CODE: Partial<Record<XenditPaymentMethod, string>> = {
-  GOPAY: 'ID_GOPAY',
+  GOPAY: 'GOPAY',
   OVO: 'ID_OVO',
   DANA: 'ID_DANA',
   SHOPEEPAY: 'ID_SHOPEEPAY',
@@ -519,11 +525,15 @@ export async function createXenditEwalletCharge(params: CreateEwalletCharge): Pr
     throw new Error(`Mobile number required for ${params.method}`);
   }
 
+  const successUrl = `${appUrl}/portal/billing/success?order_id=${encodeURIComponent(params.externalId)}`;
+  const failureUrl = `${appUrl}/portal/billing/failure?order_id=${encodeURIComponent(params.externalId)}`;
   const channelProperties: Record<string, unknown> = needsPhone
     ? { mobile_number: params.mobileNumber }
     : {
-        success_redirect_url: `${appUrl}/portal/billing/success?order_id=${encodeURIComponent(params.externalId)}`,
-        failure_redirect_url: `${appUrl}/portal/billing/failure?order_id=${encodeURIComponent(params.externalId)}`,
+        success_redirect_url: successUrl,
+        failure_redirect_url: failureUrl,
+        // GoPay (legacy channel) butuh `redirect_url` singular alongside success/failure
+        ...(params.method === 'GOPAY' ? { redirect_url: successUrl } : {}),
       };
 
   const payload = {

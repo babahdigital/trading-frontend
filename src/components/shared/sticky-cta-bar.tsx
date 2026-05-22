@@ -25,7 +25,11 @@ export function StickyCtaBar({
       : 'border-amber-400/40 bg-amber-500/[0.06] text-amber-400 hover:bg-amber-500/[0.12] hover:border-amber-400/60';
 
   return (
-    <div className="sticky bottom-0 left-0 right-0 z-sticky border-t border-border/60 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+    <div
+      id="sticky-cta-bar"
+      data-sticky-cta="true"
+      className="sticky bottom-0 left-0 right-0 z-sticky border-t border-border/60 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80"
+    >
       <div className="layout-container py-3 flex items-center justify-between gap-4">
         <p className="text-xs sm:text-sm text-foreground/70 leading-snug">{message}</p>
         <Link

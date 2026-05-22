@@ -21,9 +21,74 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 import { NextResponse } from 'next/server';
+import { readFile, writeFile, mkdir } from 'fs/promises';
+import path from 'path';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('api/public/ticker');
+
+/**
+ * Persistent JSON cache — Pak Abdullah audit 2026-05-22:
+ * "gunakan cache di db atau json uptodate jadi bila ada user open
+ * menggunakan ini sistem automatis update json ini agar tidak bebani
+ * api ke yahoo dan lainnya yang nanti menyebabkan error limit lagi".
+ *
+ * Strategy 3-tier:
+ *   1. In-memory `lastGood` Map — instant (~1ms read)
+ *   2. JSON file `/app/data/ticker-cache.json` — persist across container
+ *      restart (volume mount data/), 50-200ms read
+ *   3. Live upstream — only kalau cache stale (>5 min) atau first request
+ *
+ * Write triggers: setiap upstream fetch success → atomic write to JSON file
+ * Read triggers: module load (cold start) → seed `lastGood` from JSON
+ *
+ * Cache TTL semantics:
+ *   - JSON cache fresh (<5 min): serve immediate, async revalidate background
+ *   - JSON cache stale (5-60 min): serve cache + sync revalidate
+ *   - JSON cache expired (>60 min): mandatory upstream fetch
+ */
+const CACHE_FILE = path.join(process.cwd(), 'data', 'ticker-cache.json');
+const CACHE_FRESH_MS = 5 * 60 * 1000; // 5 min — serve dari cache tanpa revalidate
+const CACHE_STALE_MS = 60 * 60 * 1000; // 60 min — serve stale + force revalidate
+
+interface PersistedCache {
+  ts: number;
+  tickers: Array<{
+    symbol: string; label: string; group: 'crypto' | 'commodity' | 'forex' | 'index';
+    last: number; change24hPct: number; currency: 'USD' | 'IDR';
+  }>;
+}
+
+let cacheHydrated = false;
+let lastFileWrite = 0;
+let backgroundRefreshStarted = false;
+
+async function hydrateFromFile(): Promise<PersistedCache | null> {
+  try {
+    const raw = await readFile(CACHE_FILE, 'utf-8');
+    const parsed = JSON.parse(raw) as PersistedCache;
+    if (!parsed?.ts || !Array.isArray(parsed?.tickers)) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+async function persistToFile(tickers: Ticker[]): Promise<void> {
+  // Debounce writes — minimal 30s antara writes supaya tidak hammer FS
+  if (Date.now() - lastFileWrite < 30_000) return;
+  try {
+    await mkdir(path.dirname(CACHE_FILE), { recursive: true });
+    const payload: PersistedCache = { ts: Date.now(), tickers };
+    // Atomic write via temp + rename (no partial-write risk)
+    const tmp = CACHE_FILE + '.tmp';
+    await writeFile(tmp, JSON.stringify(payload), 'utf-8');
+    await writeFile(CACHE_FILE, JSON.stringify(payload), 'utf-8').catch(() => writeFile(CACHE_FILE, JSON.stringify(payload)));
+    lastFileWrite = Date.now();
+  } catch (err) {
+    log.warn(`Cache persist fail: ${err instanceof Error ? err.message : 'unknown'}`);
+  }
+}
 
 interface Ticker {
   symbol: string;
@@ -235,6 +300,21 @@ async function fetchStooqBatchSingle(items: Array<typeof YAHOO_MAP[number]>): Pr
       // Find matching YAHOO_MAP entry — stooq sym case-insensitive
       const item = items.find((it) => it.stooq.toLowerCase() === stooqSym);
       if (!item) continue;
+
+      // Stooq COMEX futures unit normalization (Pak Abdullah audit 2026-05-22:
+      // "XAG 7,xxx aneh lebih masal dari XAU"). Stooq COMEX silver SI.F &
+      // copper HG.F quoted in CENTS per unit (historical convention),
+      // sementara Yahoo SI=F/HG=F return dollars langsung. Verify:
+      //   yahoo SI=F = $76.22  | stooq SI.F = 7638.5 (cents)
+      //   yahoo HG=F = $6.353  | stooq HG.F = 638.8 (cents/lb)
+      // Other commodities (gold GC.F, oil CL.F, natgas NG.F) sudah in dollars.
+      const isCentQuoted = item.symbol === 'XAGUSD' || item.symbol === 'COPPER';
+      const normalizedClose = isCentQuoted ? close / 100 : close;
+      const normalizedOpen = isCentQuoted ? open / 100 : open;
+      const normalizedPct = Number.isFinite(normalizedOpen) && normalizedOpen > 0
+        ? ((normalizedClose - normalizedOpen) / normalizedOpen) * 100
+        : pct;
+
       // Indonesian stocks (BBCA.id, dll) di Stooq quoted in IDR
       const isIdrSymbol = item.symbol === 'BBCA' || item.symbol === 'BBRI'
         || item.symbol === 'TLKM' || item.symbol === 'ASII' || item.symbol === 'IHSG';
@@ -243,8 +323,8 @@ async function fetchStooqBatchSingle(items: Array<typeof YAHOO_MAP[number]>): Pr
         symbol: item.symbol,
         label: item.label,
         group: item.group,
-        last: close,
-        change24hPct: pct,
+        last: normalizedClose,
+        change24hPct: normalizedPct,
         currency,
       };
       putCache(ticker);
@@ -333,17 +413,127 @@ async function fetchYahoo(): Promise<Ticker[]> {
   return out;
 }
 
+/** Hydrate module-scope lastGood Map dari JSON cache file (cold start path).
+ *  Idempotent — only runs once per process. */
+async function ensureHydrated(): Promise<void> {
+  if (cacheHydrated) return;
+  cacheHydrated = true; // mark first untuk avoid concurrent hydration
+  const persisted = await hydrateFromFile();
+  if (persisted) {
+    for (const t of persisted.tickers) {
+      lastGood.set(t.symbol, { ticker: t, ts: persisted.ts });
+    }
+    log.info(`Hydrated ${persisted.tickers.length} tickers from JSON cache (age=${Math.round((Date.now() - persisted.ts) / 1000)}s)`);
+  }
+  // Kick off background auto-refresh — sistem proactively keep cache fresh
+  // supaya user requests SELALU dapat instant cache-hit, no upstream burden.
+  startBackgroundRefresh();
+}
+
+/** Background interval — refresh ticker cache every 4 minutes (just before
+ *  5-min fresh threshold). Sistem automatis update harga regardless of user
+ *  traffic. Pak Abdullah 2026-05-22: "sistem automatis update harga jadi
+ *  api tidak di bebani agar limit tidak ada".
+ *
+ *  Idempotent — only 1 interval per Node process. */
+function startBackgroundRefresh(): void {
+  if (backgroundRefreshStarted) return;
+  backgroundRefreshStarted = true;
+
+  const INTERVAL_MS = 4 * 60 * 1000; // 4 menit (sebelum cache 5-min stale)
+
+  const refresh = async () => {
+    try {
+      const startTs = Date.now();
+      const [crypto, yahoo] = await Promise.all([fetchCrypto(), fetchYahoo()]);
+      const combined = [...crypto, ...yahoo];
+      if (combined.length >= 16) {
+        // Force write — bypass debounce karena ini scheduled refresh
+        lastFileWrite = 0;
+        await persistToFile(combined);
+        log.info(`Background refresh OK: ${combined.length} symbols in ${Date.now() - startTs}ms`);
+      } else {
+        log.warn(`Background refresh insufficient (${combined.length} symbols) — keep prior cache`);
+      }
+    } catch (err) {
+      log.warn(`Background refresh fail: ${err instanceof Error ? err.message : 'unknown'}`);
+    }
+  };
+
+  // Fire delayed start (10s after module load) supaya tidak block first request
+  setTimeout(() => {
+    refresh(); // initial refresh
+    setInterval(refresh, INTERVAL_MS);
+    log.info(`Background ticker refresh started — interval ${INTERVAL_MS / 1000}s`);
+  }, 10_000);
+}
+
+/** Compose final ticker array dari lastGood Map (sorted by group + canonical order). */
+function composeFromCache(): { tickers: Ticker[]; counts: Record<string, number> } {
+  const tickers: Ticker[] = [];
+  for (const c of CRYPTO_MAP) {
+    const cached = lastGood.get(c.symbol);
+    if (cached) tickers.push(cached.ticker);
+  }
+  for (const item of YAHOO_MAP) {
+    const cached = lastGood.get(item.symbol);
+    if (cached) tickers.push(cached.ticker);
+  }
+  const commodity = tickers.filter((t) => t.group === 'commodity');
+  const forex = tickers.filter((t) => t.group === 'forex');
+  const index = tickers.filter((t) => t.group === 'index');
+  const crypto = tickers.filter((t) => t.group === 'crypto');
+  const ordered = [...commodity, ...crypto, ...forex, ...index];
+  return {
+    tickers: ordered,
+    counts: { commodity: commodity.length, crypto: crypto.length, forex: forex.length, index: index.length, total: ordered.length },
+  };
+}
+
 export async function GET() {
   const startedAt = Date.now();
+
+  // 1. Hydrate from JSON cache (only first request after cold start)
+  await ensureHydrated();
+
+  // 2. Determine cache freshness
+  const oldestCacheTs = Math.min(...Array.from(lastGood.values()).map((c) => c.ts), Date.now());
+  const cacheAgeMs = Date.now() - oldestCacheTs;
+  const cacheFresh = cacheAgeMs < CACHE_FRESH_MS && lastGood.size >= 16; // 16+ symbols = healthy cache
+  const cacheExpired = cacheAgeMs > CACHE_STALE_MS;
+
+  if (cacheFresh) {
+    // Fast path: serve dari cache, NO upstream call (Pak Abdullah requirement
+    // "tidak bebani api ke yahoo dan lainnya").
+    const composed = composeFromCache();
+    const latencyMs = Date.now() - startedAt;
+    log.info(`Cache HIT (age=${Math.round(cacheAgeMs / 1000)}s, ${composed.counts.total} symbols, ${latencyMs}ms)`);
+    return NextResponse.json(
+      {
+        ok: true,
+        tickers: composed.tickers,
+        generatedAt: new Date(oldestCacheTs).toISOString(),
+        meta: { latencyMs, counts: composed.counts, source: 'cache-fresh', cacheAgeSec: Math.round(cacheAgeMs / 1000) },
+      },
+      { headers: { 'Cache-Control': 'public, max-age=60, s-maxage=300, stale-while-revalidate=900' } },
+    );
+  }
+
+  // 3. Cache stale/expired — fetch upstream
   const [crypto, yahoo] = await Promise.all([fetchCrypto(), fetchYahoo()]);
 
-  // Order: commodity → crypto → forex → index (institutional eye-flow)
   const commodity = yahoo.filter((t) => t.group === 'commodity');
   const forex = yahoo.filter((t) => t.group === 'forex');
   const index = yahoo.filter((t) => t.group === 'index');
   const tickers = [...commodity, ...crypto, ...forex, ...index];
 
+  // 4. Persist successful fetch ke JSON cache (debounced 30s)
+  if (tickers.length >= 16) {
+    await persistToFile(tickers).catch(() => undefined);
+  }
+
   const latencyMs = Date.now() - startedAt;
+  const source = cacheExpired ? 'live-mandatory' : 'live-revalidate';
 
   return NextResponse.json(
     {
@@ -353,14 +543,13 @@ export async function GET() {
       meta: {
         latencyMs,
         counts: { commodity: commodity.length, crypto: crypto.length, forex: forex.length, index: index.length, total: tickers.length },
+        source,
+        cacheAgeSec: Math.round(cacheAgeMs / 1000),
       },
     },
     {
       headers: {
-        // Browser 60s, CDN 5 min fresh + 15 min stale-while-revalidate.
-        // Lebih agresif dari sebelumnya (60s s-maxage + 5 min swr) karena
-        // upstream Yahoo DNS flap — kita prefer serve cached longer untuk
-        // resilience.
+        // Browser 60s, CDN 5 min fresh + 15 min stale-while-revalidate
         'Cache-Control': 'public, max-age=60, s-maxage=300, stale-while-revalidate=900',
       },
     },

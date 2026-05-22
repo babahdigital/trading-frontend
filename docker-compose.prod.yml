@@ -133,6 +133,11 @@ services:
       - ./public:/app/public
       # Scratch space untuk one-off test/maintenance script (read-only di container)
       - ./scratch:/app/scratch:ro
+      # Persistent runtime data — ticker-cache.json, dll. Survives container
+      # restart sehingga cold-start tidak hit upstream (Pak Abdullah 2026-05-22:
+      # "tidak bebani api ke yahoo, sistem automatis update harga"). Folder
+      # ./data harus exist di host (sudah ada karena dipakai db-backup).
+      - ./data:/app/data
 
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]

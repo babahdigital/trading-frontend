@@ -206,8 +206,11 @@ async function fetchStooqBatch(items: Array<typeof YAHOO_MAP[number]>): Promise<
   const out = new Map<string, Ticker>();
   if (items.length === 0) return out;
   try {
-    const symbolsParam = items.map((i) => i.stooq).join(',');
-    const url = `https://stooq.com/q/l/?s=${encodeURIComponent(symbolsParam)}&f=sd2t2ohlcv&h&e=csv`;
+    // Stooq batch uses '+' separator (NOT comma!). Each symbol still
+    // URL-encoded individually (e.g. '^spx' → '%5Espx') tapi separator '+'
+    // dipertahankan literal di query string.
+    const symbolsParam = items.map((i) => encodeURIComponent(i.stooq)).join('+');
+    const url = `https://stooq.com/q/l/?s=${symbolsParam}&f=sd2t2ohlcv&h&e=csv`;
     const res = await fetch(url, {
       signal: AbortSignal.timeout(8_000),
       headers: { 'Accept': 'text/csv,text/plain' },

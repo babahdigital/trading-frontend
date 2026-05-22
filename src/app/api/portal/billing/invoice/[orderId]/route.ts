@@ -30,6 +30,7 @@ export async function GET(
   if (!orderId || orderId.length < 3) {
     return NextResponse.json({ error: 'invalid_order_id' }, { status: 400 });
   }
+  const includeInstrument = request.nextUrl.searchParams.get('include') === 'instrument';
 
   try {
     const invoice = await prisma.invoice.findFirst({
@@ -38,11 +39,13 @@ export async function GET(
         OR: [{ number: orderId }, { id: orderId }],
       },
       select: {
+        id: true,
         number: true,
         amountUsd: true,
         status: true,
         paidAt: true,
         description: true,
+        metadata: true,
       },
     });
 
@@ -50,12 +53,21 @@ export async function GET(
       return NextResponse.json({ error: 'not_found' }, { status: 404 });
     }
 
+    const meta = (invoice.metadata as Record<string, unknown> | null) ?? {};
+    const amountIdr = (meta.amountIdr as number | undefined) ?? 0;
+    const instrument = includeInstrument
+      ? (meta.instrument as Record<string, unknown> | null) ?? null
+      : undefined;
+
     return NextResponse.json({
+      id: invoice.id,
       number: invoice.number,
       amountUsd: Number(invoice.amountUsd),
+      amountIdr,
       status: invoice.status,
       paidAt: invoice.paidAt?.toISOString() ?? null,
       description: invoice.description,
+      ...(includeInstrument ? { instrument } : {}),
     });
   } catch (err) {
     log.error(`invoice lookup error: ${err instanceof Error ? err.message : 'unknown'}`);

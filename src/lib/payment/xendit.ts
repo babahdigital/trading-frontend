@@ -149,3 +149,296 @@ export function verifyXenditWebhook(
   if (!webhookToken) return false;
   return xCallbackToken === webhookToken;
 }
+
+// ════════════════════════════════════════════════════════════════════
+// Payment Methods API v2 (inline checkout — 2026-05-22)
+// ════════════════════════════════════════════════════════════════════
+// Pak Abdullah audit 2026-05-22: upgrade dari Invoice API (hosted page)
+// ke Payment Methods API v2 untuk true Stripe-like inline UX.
+//
+// Flow:
+//   - Card: client tokenize via Xendit.js → server create payment_method
+//           pakai card_id → create payment_request → 3DS modal kalau perlu
+//   - QRIS: server create payment_request type=QR_CODE → render qr_string
+//           di domain kita → polling status
+//   - VA:   server create payment_request type=VIRTUAL_ACCOUNT → display
+//           account_number+bank di domain kita → polling status
+//   - E-wallet: defer ke phase 2 (deep-link popup window)
+//
+// Common return shape (XenditPaymentInstrument) supaya FE component bisa
+// switch render berdasar method tanpa special-case server logic.
+
+export interface XenditPaymentInstrument {
+  /** payment_request_id dari Xendit */
+  id: string;
+  /** Status canonical: PENDING | SUCCEEDED | FAILED | EXPIRED | REQUIRES_ACTION */
+  status: 'PENDING' | 'SUCCEEDED' | 'FAILED' | 'EXPIRED' | 'REQUIRES_ACTION';
+  /** Method kanonik */
+  method: XenditPaymentMethod;
+  /** QR string (untuk QRIS) — encode jadi PNG di FE */
+  qrString?: string;
+  /** Account number (untuk VA) */
+  accountNumber?: string;
+  /** Bank code/display name (untuk VA) */
+  bankCode?: string;
+  /** 3DS redirect/action URL (untuk Card kalau require challenge) */
+  actionUrl?: string;
+  /** Reference ke external_id kita (order ID) */
+  externalId: string;
+  /** Expiry timestamp (ISO) — biasanya 24 jam */
+  expiresAt?: string;
+  /** Raw amount IDR (echo back untuk verification) */
+  amountIdr: number;
+}
+
+interface CreateChargeBase {
+  externalId: string;
+  amountIdr: number;
+  customerName: string;
+  customerEmail: string;
+  description: string;
+}
+
+interface CreateQrisCharge extends CreateChargeBase {
+  method: 'QRIS';
+}
+
+interface CreateVaCharge extends CreateChargeBase {
+  method: 'BCA' | 'BNI' | 'BSI' | 'BRI' | 'MANDIRI' | 'PERMATA';
+}
+
+interface CreateCardCharge extends CreateChargeBase {
+  method: 'CREDIT_CARD';
+  /** Token ID dari Xendit.js tokenization */
+  tokenId: string;
+  /** Auth ID (jika 3DS challenged successfully) */
+  authenticationId?: string;
+}
+
+type CreateChargeParams = CreateQrisCharge | CreateVaCharge | CreateCardCharge;
+
+/** Auth header utility — Basic dari secret key. */
+function authHeader(): string {
+  const secretKey = process.env.XENDIT_SECRET_KEY;
+  if (!secretKey) throw new Error('XENDIT_SECRET_KEY not configured');
+  return 'Basic ' + Buffer.from(secretKey + ':').toString('base64');
+}
+
+/** Xendit fetch dengan retry untuk DNS transient (sama pattern Invoice API). */
+async function xenditFetch(url: string, init: RequestInit & { idempotencyKey?: string }): Promise<Response> {
+  const maxAttempts = 3;
+  let lastErr: unknown;
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    Authorization: authHeader(),
+    'api-version': '2020-04-01',
+    ...(init.headers as Record<string, string> | undefined),
+  };
+  if (init.idempotencyKey) headers['Idempotency-key'] = init.idempotencyKey;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await fetch(url, {
+        ...init,
+        headers,
+        signal: AbortSignal.timeout(15_000),
+      });
+    } catch (err) {
+      lastErr = err;
+      const msg = err instanceof Error ? err.message : String(err);
+      const transient = msg.includes('EAI_AGAIN') || msg.includes('ENOTFOUND')
+        || msg.includes('ECONNRESET') || msg.includes('fetch failed');
+      if (!transient || attempt === maxAttempts) throw err;
+      log.warn(`Xendit fetch attempt ${attempt} (${url}) failed: ${msg}`);
+      await new Promise((r) => setTimeout(r, 500 * attempt));
+    }
+  }
+  throw lastErr;
+}
+
+/** Normalize Xendit status string ke canonical enum. */
+function normalizeStatus(s: string): XenditPaymentInstrument['status'] {
+  const upper = s.toUpperCase();
+  if (upper === 'SUCCEEDED' || upper === 'PAID' || upper === 'SETTLED' || upper === 'COMPLETED') return 'SUCCEEDED';
+  if (upper === 'FAILED' || upper === 'DENIED' || upper === 'DECLINED') return 'FAILED';
+  if (upper === 'EXPIRED') return 'EXPIRED';
+  if (upper === 'REQUIRES_ACTION' || upper === 'AWAITING_CAPTURE' || upper === 'AUTHORIZED') return 'REQUIRES_ACTION';
+  return 'PENDING';
+}
+
+/**
+ * Create QRIS payment request — returns qr_string untuk render di FE.
+ * Customer scan QR pakai any Indonesian e-wallet/mobile banking yang
+ * support QRIS standard (OVO, DANA, ShopeePay, BCA Mobile, dll).
+ */
+export async function createXenditQrisCharge(params: CreateQrisCharge): Promise<XenditPaymentInstrument> {
+  const payload = {
+    reference_id: params.externalId,
+    type: 'PAY',
+    country: 'ID',
+    currency: 'IDR',
+    request_amount: params.amountIdr,
+    channel_code: 'QRIS',
+    channel_properties: {
+      // QRIS expires 30 min default; bisa di-override sampai 24h
+      expires_at: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
+    },
+    metadata: { externalId: params.externalId, customerEmail: params.customerEmail },
+  };
+
+  const res = await xenditFetch('https://api.xendit.co/qr_codes', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+    idempotencyKey: `qris_${params.externalId}`,
+  });
+
+  if (!res.ok) {
+    const body = await res.text();
+    log.error(`Xendit QRIS create error: ${body}`);
+    throw new Error(`Xendit QRIS API ${res.status}: ${body.slice(0, 200)}`);
+  }
+
+  const data = await res.json() as {
+    id: string; reference_id: string; qr_string: string; status: string;
+    expires_at: string; channel_code: string;
+  };
+  return {
+    id: data.id,
+    status: normalizeStatus(data.status),
+    method: 'QRIS',
+    qrString: data.qr_string,
+    externalId: data.reference_id,
+    expiresAt: data.expires_at,
+    amountIdr: params.amountIdr,
+  };
+}
+
+/**
+ * Create Virtual Account payment — customer transfer ke nomor VA yang
+ * dihasilkan, kita display nomor + bank instructions di FE.
+ *
+ * Bank channel codes per Xendit canonical:
+ *   BCA, BNI, BRI, MANDIRI, BSI, PERMATA
+ */
+export async function createXenditVaCharge(params: CreateVaCharge): Promise<XenditPaymentInstrument> {
+  // Customer name sanitization — Xendit VA requires ASCII-only name (max 40)
+  const safeName = params.customerName.replace(/[^\x20-\x7E]/g, '').slice(0, 40) || 'Customer';
+
+  const payload = {
+    external_id: params.externalId,
+    bank_code: params.method,
+    name: safeName,
+    expected_amount: params.amountIdr,
+    is_closed: true,
+    is_single_use: true,
+    expiration_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+  };
+
+  const res = await xenditFetch('https://api.xendit.co/callback_virtual_accounts', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+    idempotencyKey: `va_${params.method}_${params.externalId}`,
+  });
+
+  if (!res.ok) {
+    const body = await res.text();
+    log.error(`Xendit VA create error: ${body}`);
+    throw new Error(`Xendit VA API ${res.status}: ${body.slice(0, 200)}`);
+  }
+
+  const data = await res.json() as {
+    id: string; external_id: string; account_number: string;
+    bank_code: string; status: string; expiration_date: string;
+  };
+  return {
+    id: data.id,
+    status: normalizeStatus(data.status),
+    method: params.method,
+    accountNumber: data.account_number,
+    bankCode: data.bank_code,
+    externalId: data.external_id,
+    expiresAt: data.expiration_date,
+    amountIdr: params.amountIdr,
+  };
+}
+
+/**
+ * Create Card charge — pakai card_token dari Xendit.js client tokenization.
+ *
+ * Flow: FE tokenize CC pakai Xendit.js v2 → kirim token_id ke kita →
+ * kita create charge → kalau require_authentication, Xendit return
+ * REQUIRES_ACTION dengan authentication_url → FE buka iframe modal 3DS
+ * → setelah customer complete, retry charge dengan authentication_id.
+ */
+export async function createXenditCardCharge(params: CreateCardCharge): Promise<XenditPaymentInstrument> {
+  const payload: Record<string, unknown> = {
+    token_id: params.tokenId,
+    external_id: params.externalId,
+    amount: params.amountIdr,
+    currency: 'IDR',
+    capture: true,
+    descriptor: 'BabahAlgo',
+    metadata: { externalId: params.externalId, customerEmail: params.customerEmail },
+  };
+  if (params.authenticationId) payload.authentication_id = params.authenticationId;
+
+  const res = await xenditFetch('https://api.xendit.co/credit_card_charges', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+    idempotencyKey: `card_${params.externalId}`,
+  });
+
+  if (!res.ok) {
+    const body = await res.text();
+    log.error(`Xendit Card charge error: ${body}`);
+    throw new Error(`Xendit Card API ${res.status}: ${body.slice(0, 200)}`);
+  }
+
+  const data = await res.json() as {
+    id: string; status: string; external_id: string;
+    redirect_url?: string;
+    authentication_url?: string;
+    failure_reason?: string;
+  };
+  return {
+    id: data.id,
+    status: normalizeStatus(data.status),
+    method: 'CREDIT_CARD',
+    actionUrl: data.authentication_url ?? data.redirect_url,
+    externalId: data.external_id,
+    amountIdr: params.amountIdr,
+  };
+}
+
+/** Unified entrypoint — dispatch ke API spesifik per method. */
+export async function createXenditCharge(params: CreateChargeParams): Promise<XenditPaymentInstrument> {
+  if (params.method === 'QRIS') return createXenditQrisCharge(params);
+  if (params.method === 'CREDIT_CARD') return createXenditCardCharge(params);
+  return createXenditVaCharge(params);
+}
+
+/**
+ * Poll payment status by ID. Dipakai oleh FE polling loop untuk QRIS/VA
+ * dan oleh /api/billing/poll-status endpoint.
+ *
+ * Note: untuk QRIS pakai `/qr_codes/:id`, VA pakai `/callback_virtual_accounts/:id`,
+ * Card pakai `/credit_card_charges/:id`. We accept method param untuk
+ * route ke endpoint yang tepat.
+ */
+export async function getXenditChargeStatus(
+  method: XenditPaymentMethod,
+  chargeId: string,
+): Promise<XenditPaymentInstrument['status']> {
+  let url: string;
+  if (method === 'QRIS') url = `https://api.xendit.co/qr_codes/${encodeURIComponent(chargeId)}`;
+  else if (method === 'CREDIT_CARD') url = `https://api.xendit.co/credit_card_charges/${encodeURIComponent(chargeId)}`;
+  else url = `https://api.xendit.co/callback_virtual_accounts/${encodeURIComponent(chargeId)}`;
+
+  const res = await xenditFetch(url, { method: 'GET' });
+  if (!res.ok) {
+    // VA `is_closed=true` doesn't expose status easily — fall back ke PENDING
+    return 'PENDING';
+  }
+  const data = await res.json() as { status?: string };
+  return data.status ? normalizeStatus(data.status) : 'PENDING';
+}

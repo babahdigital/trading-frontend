@@ -23,14 +23,51 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { external_id, status, paid_amount } = body;
+
+  // Xendit webhook payload shape varies per API:
+  //   - Invoice API:  { external_id, status: 'PAID'|'EXPIRED', paid_amount }
+  //   - QR Code API:  { reference_id, status: 'COMPLETED'|'ACTIVE'|'INACTIVE', amount }
+  //   - VA API:       { external_id, payment_id, transaction_timestamp, amount }
+  //   - Card API:     { external_id, status: 'CAPTURED'|'FAILED', amount }
+  //
+  // We normalize ke external_id + status logical (PAID / EXPIRED / FAILED).
+  const external_id: string = body.external_id ?? body.reference_id;
+  const rawStatus: string = body.status ?? (body.event ? String(body.event) : '');
+  const paid_amount: number | undefined = body.paid_amount ?? body.amount;
+
+  // Map Xendit status string → logical status
+  const upper = rawStatus.toUpperCase();
+  let logicalStatus: 'PAID' | 'EXPIRED' | 'FAILED' | null = null;
+  if (upper === 'PAID' || upper === 'SETTLED' || upper === 'COMPLETED'
+      || upper === 'CAPTURED' || upper === 'SUCCEEDED'
+      || upper.includes('PAYMENT_MADE') || upper.includes('CAPTURED')
+      || upper.includes('PAYMENT.SUCCEEDED')) {
+    logicalStatus = 'PAID';
+  } else if (upper === 'EXPIRED' || upper.includes('EXPIRED')) {
+    logicalStatus = 'EXPIRED';
+  } else if (upper === 'FAILED' || upper === 'DECLINED' || upper.includes('FAILED')) {
+    logicalStatus = 'FAILED';
+  }
+
+  if (!external_id) {
+    log.warn(`Webhook missing external_id/reference_id: ${JSON.stringify(body).slice(0, 200)}`);
+    return NextResponse.json({ ok: true, ignored: 'missing_external_id' });
+  }
 
   const invoice = await prisma.invoice.findUnique({ where: { id: external_id } });
   if (!invoice) {
-    return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
+    log.warn(`Webhook received for unknown invoice: ${external_id} (status=${rawStatus})`);
+    // ACK to prevent infinite retry from Xendit side. Likely test ping or stale.
+    return NextResponse.json({ ok: true, ignored: 'invoice_not_found' });
   }
 
-  if (status === 'PAID' || status === 'SETTLED') {
+  // Idempotency — if already PAID, ignore duplicate webhook (Xendit retries)
+  if (invoice.status === 'PAID' && logicalStatus === 'PAID') {
+    log.info(`Webhook ignored (already PAID): ${external_id}`);
+    return NextResponse.json({ ok: true, ignored: 'already_paid' });
+  }
+
+  if (logicalStatus === 'PAID') {
     const paidAt = new Date();
     await prisma.invoice.update({
       where: { id: external_id },
@@ -111,7 +148,7 @@ export async function POST(req: NextRequest) {
     }
 
     log.info(`Xendit payment success: ${external_id} amount=${paid_amount} pdf=${pdfUrl ?? 'none'}`);
-  } else if (status === 'EXPIRED') {
+  } else if (logicalStatus === 'EXPIRED' || logicalStatus === 'FAILED') {
     await prisma.invoice.update({
       where: { id: external_id },
       data: { status: 'CANCELLED' },
@@ -122,14 +159,17 @@ export async function POST(req: NextRequest) {
     try {
       await cancelSubscription(invoice.userId, {
         tier,
-        reason: 'xendit_expired',
+        reason: logicalStatus === 'EXPIRED' ? 'xendit_expired' : 'xendit_failed',
         source: 'xendit',
       });
     } catch (err) {
       log.warn(`Cancel propagation failed for ${external_id}: ${err}`);
     }
 
-    log.info(`Xendit invoice expired: ${external_id}`);
+    log.info(`Xendit invoice ${logicalStatus}: ${external_id}`);
+  } else {
+    // Unknown/intermediate event — ACK without action.
+    log.info(`Xendit webhook unknown status: ${external_id} status=${rawStatus}`);
   }
 
   return NextResponse.json({ ok: true });

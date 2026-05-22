@@ -1,28 +1,23 @@
 'use client';
 
 /**
- * Inline checkout (Stripe-like) — Pak Abdullah audit 2026-05-22.
+ * Inline checkout orchestrator (true Stripe-like, 2026-05-22).
  *
- * Sebelumnya: auto-POST /api/billing/checkout → redirect ke Xendit hosted
- * page yang berisi method picker generic Xendit. UX: customer kena 2-step
- * (our page → Xendit method picker → Xendit form).
+ * Customer NEVER leaves babahalgo.com — Card / QRIS / VA semua rendered
+ * di domain kita. Card via Xendit.js client tokenization (PCI-safe),
+ * QRIS via qr_codes API, VA via callback_virtual_accounts API.
  *
- * Sekarang: customer pilih method di domain kita (locale-aware), lalu
- * Xendit page langsung render form spesifik (1-step pay). Identik dengan
- * Stripe Checkout (pilih method di pages.stripe.com → 3DS modal).
+ * State machine:
+ *   picking → user pilih method, lihat order summary
+ *   card_form → render <CardForm> (Xendit.js tokenize → server charge)
+ *   qris → render <QrisDisplay> (QR + polling)
+ *   va → render <VaDisplay> (account number + polling)
+ *   success → redirect /portal/billing/success?order_id=...
+ *   failed → show error + retry CTA
  *
- * Locale gating:
- *   - locale='en' (non-ID): hanya CREDIT_CARD card visible. Server
- *     re-asserts gate supaya client tampering tidak bisa pilih non-card.
- *   - locale='id': full Indonesian methods (Card, QRIS, VA 6 banks,
- *     E-Wallet 4 providers). Grouped untuk reduce visual overwhelm.
- *
- * Flow:
- *   1. Mount → GET /api/billing/preview?tier=X → display order summary
- *   2. User pick method → highlight + show details (VA bank icon, etc)
- *   3. Click "Pay" → POST /api/billing/checkout with method → redirect
- *      ke Xendit invoiceUrl (single-method, langsung render form).
- *   4. Webhook → activate subscription → /portal/billing/success
+ * E-wallet (OVO/DANA/ShopeePay/LinkAja) defer ke phase berikutnya
+ * (butuh popup window deep-link pattern; akan diaktifkan setelah QRIS/VA
+ * battle-tested di production).
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
@@ -30,19 +25,20 @@ import Link from 'next/link';
 import {
   Loader2, AlertCircle, ArrowLeft, ShieldCheck, Sparkles, RefreshCw,
   Receipt, ArrowRight, Tag, Lock, CreditCard, QrCode, Building2,
-  Smartphone, CheckCircle2, Store,
+  CheckCircle2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { CardForm } from './card-form';
+import { QrisDisplay } from './qris-display';
+import { VaDisplay } from './va-display';
 
 export type PaymentMethodCode =
   | 'CREDIT_CARD' | 'QRIS'
-  | 'BCA' | 'BNI' | 'BSI' | 'BRI' | 'MANDIRI' | 'PERMATA'
-  | 'OVO' | 'DANA' | 'SHOPEEPAY' | 'LINKAJA'
-  | 'ALFAMART' | 'INDOMARET';
+  | 'BCA' | 'BNI' | 'BSI' | 'BRI' | 'MANDIRI' | 'PERMATA';
 
-type MethodCategory = 'card' | 'qris' | 'va' | 'ewallet' | 'retail';
+type MethodCategory = 'card' | 'qris' | 'va';
 
 interface MethodOption {
   code: PaymentMethodCode;
@@ -60,19 +56,13 @@ const METHODS: MethodOption[] = [
   { code: 'QRIS', category: 'qris',
     labelId: 'QRIS',
     labelEn: 'QRIS',
-    hint: { id: 'Semua e-wallet & mobile banking Indonesia', en: 'All Indonesian e-wallets & mobile banking' } },
+    hint: { id: 'OVO · DANA · ShopeePay · BCA · Mandiri · semua e-wallet', en: 'OVO · DANA · ShopeePay · BCA · Mandiri · all wallets' } },
   { code: 'BCA', category: 'va', labelId: 'BCA Virtual Account', labelEn: 'BCA Virtual Account' },
   { code: 'BNI', category: 'va', labelId: 'BNI Virtual Account', labelEn: 'BNI Virtual Account' },
   { code: 'BRI', category: 'va', labelId: 'BRI Virtual Account', labelEn: 'BRI Virtual Account' },
   { code: 'MANDIRI', category: 'va', labelId: 'Mandiri Virtual Account', labelEn: 'Mandiri Virtual Account' },
   { code: 'BSI', category: 'va', labelId: 'BSI Virtual Account', labelEn: 'BSI Virtual Account' },
   { code: 'PERMATA', category: 'va', labelId: 'Permata Virtual Account', labelEn: 'Permata Virtual Account' },
-  { code: 'OVO', category: 'ewallet', labelId: 'OVO', labelEn: 'OVO' },
-  { code: 'DANA', category: 'ewallet', labelId: 'DANA', labelEn: 'DANA' },
-  { code: 'SHOPEEPAY', category: 'ewallet', labelId: 'ShopeePay', labelEn: 'ShopeePay' },
-  { code: 'LINKAJA', category: 'ewallet', labelId: 'LinkAja', labelEn: 'LinkAja' },
-  { code: 'ALFAMART', category: 'retail', labelId: 'Alfamart', labelEn: 'Alfamart' },
-  { code: 'INDOMARET', category: 'retail', labelId: 'Indomaret', labelEn: 'Indomaret' },
 ];
 
 function resolveDemoLink(service: 'signal' | 'crypto' | 'vps', locale: string): string | null {
@@ -85,7 +75,6 @@ interface InlineCheckoutProps {
   tier: string;
   service: 'signal' | 'crypto' | 'vps';
   locale: string;
-  /** Optional preselect promo dari deep-link */
   promoSlug?: string;
 }
 
@@ -101,6 +90,27 @@ interface PreviewResponse {
     discountType: 'PERCENT' | 'FIXED_IDR';
   } | null;
 }
+
+interface ChargeInstrument {
+  id: string;
+  method: PaymentMethodCode;
+  status: 'PENDING' | 'SUCCEEDED' | 'FAILED' | 'EXPIRED' | 'REQUIRES_ACTION';
+  qrString?: string;
+  accountNumber?: string;
+  bankCode?: string;
+  actionUrl?: string;
+  expiresAt?: string;
+  amountIdr: number;
+}
+
+type CheckoutState =
+  | { kind: 'picking' }
+  | { kind: 'creating' }
+  | { kind: 'card_form' }
+  | { kind: 'qris'; orderId: string; instrument: ChargeInstrument }
+  | { kind: 'va'; orderId: string; instrument: ChargeInstrument }
+  | { kind: 'success'; orderId: string }
+  | { kind: 'failed'; reason: string };
 
 const TIER_LABEL: Record<string, { id: string; en: string }> = {
   SIGNAL_STARTER: { id: 'Tier 1 · Swing (MT5 Signal)',  en: 'Tier 1 · Swing (MT5 Signal)' },
@@ -127,8 +137,6 @@ function CategoryIcon({ cat, className }: { cat: MethodCategory; className?: str
     case 'card': return <CreditCard className={className} aria-hidden />;
     case 'qris': return <QrCode className={className} aria-hidden />;
     case 'va': return <Building2 className={className} aria-hidden />;
-    case 'ewallet': return <Smartphone className={className} aria-hidden />;
-    case 'retail': return <Store className={className} aria-hidden />;
   }
 }
 
@@ -136,19 +144,17 @@ export function InlineCheckout({ tier, service, locale, promoSlug }: InlineCheck
   const t = useTranslations('checkout');
   const isEn = locale === 'en';
   const [preview, setPreview] = useState<PreviewResponse | null>(null);
-  const [status, setStatus] = useState<'loading' | 'ready' | 'submitting' | 'error'>('loading');
-  const [error, setError] = useState<string | null>(null);
-  // Non-ID locale: only CREDIT_CARD available (Stripe-like international UX).
-  // ID locale: default ke CREDIT_CARD untuk consistency, user bebas switch.
+  const [previewStatus, setPreviewStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [previewErr, setPreviewErr] = useState<string | null>(null);
   const [method, setMethod] = useState<PaymentMethodCode>('CREDIT_CARD');
+  const [state, setState] = useState<CheckoutState>({ kind: 'picking' });
   const startedRef = useRef(false);
 
-  // Filter methods berdasarkan locale gate. Non-ID hanya Card visible.
+  // Locale gate — non-ID hanya Card visible
   const availableMethods = useMemo<MethodOption[]>(() => {
     return isEn ? METHODS.filter((m) => m.code === 'CREDIT_CARD') : METHODS;
   }, [isEn]);
 
-  // Group by category untuk visual organization (ID locale).
   const grouped = useMemo(() => {
     const map = new Map<MethodCategory, MethodOption[]>();
     for (const m of availableMethods) {
@@ -158,7 +164,16 @@ export function InlineCheckout({ tier, service, locale, promoSlug }: InlineCheck
     return map;
   }, [availableMethods]);
 
-  // Fetch preview on mount.
+  // Auto-redirect side-effect when reaching success state. Lifted to
+  // top-level (Rules of Hooks — useEffect must not be inside conditional
+  // render branches).
+  const successOrderId = state.kind === 'success' ? state.orderId : null;
+  useEffect(() => {
+    if (!successOrderId) return;
+    window.location.href = `/${locale}/portal/billing/success?order_id=${encodeURIComponent(successOrderId)}`;
+  }, [successOrderId, locale]);
+
+  // Fetch preview on mount
   useEffect(() => {
     if (startedRef.current) return;
     startedRef.current = true;
@@ -180,32 +195,36 @@ export function InlineCheckout({ tier, service, locale, promoSlug }: InlineCheck
         const body = await res.json();
         if (!res.ok) throw new Error(body?.error || `HTTP ${res.status}`);
         setPreview(body as PreviewResponse);
-        setStatus('ready');
+        setPreviewStatus('ready');
       } catch (err) {
-        setError(err instanceof Error ? err.message : t('network_error'));
-        setStatus('error');
+        setPreviewErr(err instanceof Error ? err.message : t('network_error'));
+        setPreviewStatus('error');
       }
     })();
   }, [tier, service, locale, promoSlug, t]);
 
+  // ─── Action handlers ─────────────────────────────────────────────
   async function handlePay() {
     if (!preview) return;
-    setStatus('submitting');
-    setError(null);
+
+    // CARD → render inline form (Xendit.js tokenize happens in CardForm)
+    if (method === 'CREDIT_CARD') {
+      setState({ kind: 'card_form' });
+      return;
+    }
+
+    // QRIS / VA → POST charge → render display
+    setState({ kind: 'creating' });
     try {
-      const res = await fetch('/api/billing/checkout', {
+      const res = await fetch('/api/billing/charge', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          // Fresh idempotency key per submit — kalau user ganti method dan
-          // submit ulang, kita TIDAK mau replay invoice lama dengan method
-          // berbeda. Each submit = independent invoice creation request.
-          'Idempotency-Key': `checkout_${crypto.randomUUID().replaceAll('-', '_')}`,
+          'Idempotency-Key': `charge_${crypto.randomUUID().replaceAll('-', '_')}`,
         },
         credentials: 'same-origin',
         body: JSON.stringify({
-          tier, provider: 'xendit',
-          paymentMethod: method,
+          tier, paymentMethod: method,
           ...(promoSlug ? { promo: promoSlug } : {}),
         }),
       });
@@ -218,20 +237,27 @@ export function InlineCheckout({ tier, service, locale, promoSlug }: InlineCheck
 
       const body = await res.json();
       if (!res.ok) {
-        throw new Error(body?.message || body?.error || `HTTP ${res.status}`);
+        setState({ kind: 'failed', reason: body?.message ?? body?.error ?? `HTTP ${res.status}` });
+        return;
       }
-      if (!body.invoiceUrl) throw new Error(t('invalid_response'));
-      // Redirect ke Xendit hosted page — karena single-method filter, page
-      // langsung render form spesifik (Card / QRIS / VA / E-Wallet).
-      window.location.assign(body.invoiceUrl);
+
+      const orderId = body.orderId as string;
+      const instrument = body.instrument as ChargeInstrument;
+
+      if (method === 'QRIS') {
+        setState({ kind: 'qris', orderId, instrument });
+      } else {
+        setState({ kind: 'va', orderId, instrument });
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('network_error'));
-      setStatus('error');
+      setState({ kind: 'failed', reason: err instanceof Error ? err.message : t('network_error') });
     }
   }
 
-  // ─── ERROR STATE ─────────────────────────────────────────────────
-  if (status === 'error') {
+  // (Auto-redirect side-effect handled via top-level useEffect — see above.)
+
+  // ─── PREVIEW ERROR ────────────────────────────────────────────────
+  if (previewStatus === 'error') {
     const demoLink = resolveDemoLink(service, locale);
     return (
       <Card className="w-full max-w-md">
@@ -242,14 +268,14 @@ export function InlineCheckout({ tier, service, locale, promoSlug }: InlineCheck
               <h1 className="font-semibold text-lg mb-1">
                 {isEn ? 'Checkout error' : 'Gangguan checkout'}
               </h1>
-              <p className="text-sm text-muted-foreground break-words">{error}</p>
+              <p className="text-sm text-muted-foreground break-words">{previewErr}</p>
             </div>
           </div>
           <div className="flex gap-2 pt-2">
             <Button asChild variant="outline" size="sm" className="flex-1">
               <Link href={`/${locale}/pricing`}>
                 <ArrowLeft className="w-4 h-4 mr-1.5" />
-                {isEn ? 'Back to pricing' : 'Kembali ke pricing'}
+                {isEn ? 'Back' : 'Kembali'}
               </Link>
             </Button>
             <Button type="button" size="sm" className="flex-1" onClick={() => window.location.reload()}>
@@ -264,12 +290,12 @@ export function InlineCheckout({ tier, service, locale, promoSlug }: InlineCheck
                   <Sparkles className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold mb-1">
-                      {isEn ? 'Not sure yet? Try the demo first.' : 'Belum yakin? Coba demo dulu.'}
+                      {isEn ? 'Try demo first?' : 'Coba demo dulu?'}
                     </p>
-                    <Button asChild variant="default" size="sm" className="w-full bg-amber-500 hover:bg-amber-600 text-amber-950">
+                    <Button asChild size="sm" className="w-full bg-amber-500 hover:bg-amber-600 text-amber-950">
                       <Link href={demoLink}>
                         <Sparkles className="w-4 h-4 mr-1.5" />
-                        {isEn ? 'Try Demo Free' : 'Coba Demo Gratis'}
+                        {isEn ? 'Free Demo' : 'Demo Gratis'}
                       </Link>
                     </Button>
                   </div>
@@ -282,13 +308,12 @@ export function InlineCheckout({ tier, service, locale, promoSlug }: InlineCheck
     );
   }
 
-  // ─── LOADING STATE ───────────────────────────────────────────────
-  if (status === 'loading') {
+  // ─── PREVIEW LOADING ──────────────────────────────────────────────
+  if (previewStatus === 'loading' || !preview) {
     return (
       <Card className="w-full max-w-md">
         <CardContent className="p-8 space-y-4 text-center">
           <Loader2 className="w-10 h-10 mx-auto animate-spin text-amber-500" />
-          <h1 className="font-semibold text-lg">{t('processing')}</h1>
           <p className="text-sm text-muted-foreground">
             {isEn ? 'Preparing your secure checkout…' : 'Menyiapkan pembayaran aman…'}
           </p>
@@ -297,19 +322,130 @@ export function InlineCheckout({ tier, service, locale, promoSlug }: InlineCheck
     );
   }
 
-  if (!preview) return null;
   const tierLabel = TIER_LABEL[tier]?.[isEn ? 'en' : 'id'] ?? tier;
   const hasDiscount = preview.discount != null && preview.amountIdr < preview.originalAmountIdr;
   const discountAmount = preview.originalAmountIdr - preview.amountIdr;
-  const submitting = status === 'submitting';
 
+  // ─── SUCCESS state (transient before redirect) ────────────────────
+  if (state.kind === 'success') {
+    return (
+      <Card className="w-full max-w-md">
+        <CardContent className="p-8 space-y-4 text-center">
+          <CheckCircle2 className="w-16 h-16 mx-auto text-emerald-500" />
+          <h2 className="font-bold text-xl">{isEn ? 'Payment confirmed' : 'Pembayaran dikonfirmasi'}</h2>
+          <p className="text-sm text-muted-foreground">
+            {isEn ? 'Redirecting to your portal…' : 'Mengalihkan ke portal Anda…'}
+          </p>
+          <Loader2 className="w-5 h-5 mx-auto animate-spin text-amber-500" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // ─── FAILED state ─────────────────────────────────────────────────
+  if (state.kind === 'failed') {
+    return (
+      <Card className="w-full max-w-md">
+        <CardContent className="p-6 space-y-5">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-6 h-6 text-rose-500 shrink-0 mt-0.5" />
+            <div className="min-w-0">
+              <h1 className="font-semibold text-lg mb-1">
+                {isEn ? 'Payment failed' : 'Pembayaran gagal'}
+              </h1>
+              <p className="text-sm text-muted-foreground break-words">{state.reason}</p>
+            </div>
+          </div>
+          <Button type="button" size="sm" className="w-full" onClick={() => setState({ kind: 'picking' })}>
+            <RefreshCw className="w-4 h-4 mr-1.5" />
+            {isEn ? 'Try again' : 'Coba lagi'}
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // ─── QRIS / VA display ────────────────────────────────────────────
+  if (state.kind === 'qris' || state.kind === 'va') {
+    return (
+      <div className="w-full max-w-2xl mx-auto">
+        <button
+          type="button"
+          onClick={() => setState({ kind: 'picking' })}
+          className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          {isEn ? 'Cancel and choose different method' : 'Batal & pilih metode lain'}
+        </button>
+
+        {state.kind === 'qris' ? (
+          <QrisDisplay
+            orderId={state.orderId}
+            qrString={state.instrument.qrString!}
+            amountIdr={state.instrument.amountIdr}
+            expiresAt={state.instrument.expiresAt}
+            locale={locale}
+            onSucceeded={() => setState({ kind: 'success', orderId: state.orderId })}
+            onFailed={(reason) => setState({ kind: 'failed', reason: reason ?? 'Payment expired or failed' })}
+          />
+        ) : (
+          <VaDisplay
+            orderId={state.orderId}
+            accountNumber={state.instrument.accountNumber!}
+            bankCode={state.instrument.bankCode ?? state.instrument.method}
+            amountIdr={state.instrument.amountIdr}
+            expiresAt={state.instrument.expiresAt}
+            locale={locale}
+            onSucceeded={() => setState({ kind: 'success', orderId: state.orderId })}
+            onFailed={(reason) => setState({ kind: 'failed', reason: reason ?? 'Payment expired or failed' })}
+          />
+        )}
+      </div>
+    );
+  }
+
+  // ─── CARD FORM ────────────────────────────────────────────────────
+  if (state.kind === 'card_form') {
+    return (
+      <div className="w-full max-w-md mx-auto">
+        <Card>
+          <CardContent className="p-6">
+            <CardForm
+              amountIdr={preview.amountIdr}
+              tier={tier}
+              locale={locale}
+              promoSlug={promoSlug}
+              onSucceeded={(orderId) => setState({ kind: 'success', orderId })}
+              onFailed={(reason) => setState({ kind: 'failed', reason })}
+              onCancel={() => setState({ kind: 'picking' })}
+            />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // ─── CREATING (transient between pick and qris/va) ────────────────
+  if (state.kind === 'creating') {
+    return (
+      <Card className="w-full max-w-md">
+        <CardContent className="p-8 space-y-4 text-center">
+          <Loader2 className="w-10 h-10 mx-auto animate-spin text-amber-500" />
+          <p className="text-sm text-muted-foreground">
+            {isEn ? 'Creating your payment instrument…' : 'Membuat instrumen pembayaran…'}
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // ─── PICKING (default) ────────────────────────────────────────────
   return (
     <div className="w-full max-w-5xl">
       <div className="grid lg:grid-cols-[1fr,420px] gap-5 lg:gap-6">
-        {/* ─── Method picker (left, primary) ────────────────────── */}
+        {/* Method picker (left) */}
         <Card>
           <CardContent className="p-6 sm:p-7 space-y-5">
-            {/* Header */}
             <div className="flex items-start gap-3 pb-4 border-b border-border/60">
               <div className="shrink-0 rounded-xl bg-amber-500/10 border border-amber-500/30 p-2.5">
                 <CreditCard className="h-5 w-5 text-amber-500" aria-hidden />
@@ -323,13 +459,12 @@ export function InlineCheckout({ tier, service, locale, promoSlug }: InlineCheck
                 </h1>
                 <p className="text-xs text-muted-foreground mt-1">
                   {isEn
-                    ? 'Pick one method below — we redirect you to the secure form for that method only.'
-                    : 'Pilih satu metode di bawah — kami arahkan langsung ke form aman metode pilihan Anda.'}
+                    ? 'Pay securely on babahalgo.com — no redirect to gateway.'
+                    : 'Bayar aman di babahalgo.com — tanpa redirect ke gateway eksternal.'}
                 </p>
               </div>
             </div>
 
-            {/* Non-ID: card-only big card */}
             {isEn ? (
               <MethodCardLarge
                 option={availableMethods[0]}
@@ -339,62 +474,28 @@ export function InlineCheckout({ tier, service, locale, promoSlug }: InlineCheck
               />
             ) : (
               <div className="space-y-5">
-                {/* Card */}
                 {grouped.get('card') && (
                   <MethodGroup
                     title={isEn ? 'Card' : 'Kartu'}
                     options={grouped.get('card')!}
-                    method={method}
-                    setMethod={setMethod}
-                    isEn={isEn}
-                    columns={1}
+                    method={method} setMethod={setMethod}
+                    isEn={isEn} columns={1}
                   />
                 )}
-                {/* QRIS */}
                 {grouped.get('qris') && (
                   <MethodGroup
                     title={isEn ? 'QR Code' : 'QR Code'}
                     options={grouped.get('qris')!}
-                    method={method}
-                    setMethod={setMethod}
-                    isEn={isEn}
-                    columns={1}
+                    method={method} setMethod={setMethod}
+                    isEn={isEn} columns={1}
                   />
                 )}
-                {/* VA */}
                 {grouped.get('va') && (
                   <MethodGroup
                     title={isEn ? 'Bank Transfer (Virtual Account)' : 'Transfer Bank (Virtual Account)'}
                     options={grouped.get('va')!}
-                    method={method}
-                    setMethod={setMethod}
-                    isEn={isEn}
-                    columns={2}
-                    compact
-                  />
-                )}
-                {/* E-Wallet */}
-                {grouped.get('ewallet') && (
-                  <MethodGroup
-                    title={isEn ? 'E-Wallet' : 'E-Wallet'}
-                    options={grouped.get('ewallet')!}
-                    method={method}
-                    setMethod={setMethod}
-                    isEn={isEn}
-                    columns={2}
-                    compact
-                  />
-                )}
-                {/* Retail */}
-                {grouped.get('retail') && (
-                  <MethodGroup
-                    title={isEn ? 'Retail Outlet' : 'Toko Retail'}
-                    options={grouped.get('retail')!}
-                    method={method}
-                    setMethod={setMethod}
-                    isEn={isEn}
-                    columns={2}
-                    compact
+                    method={method} setMethod={setMethod}
+                    isEn={isEn} columns={2} compact
                   />
                 )}
               </div>
@@ -402,11 +503,10 @@ export function InlineCheckout({ tier, service, locale, promoSlug }: InlineCheck
           </CardContent>
         </Card>
 
-        {/* ─── Order summary (right, sticky on lg+) ───────────────── */}
+        {/* Order summary (right, sticky) */}
         <div className="lg:sticky lg:top-6 lg:self-start">
           <Card>
             <CardContent className="p-6 space-y-5">
-              {/* Header */}
               <div className="flex items-center gap-2 pb-3 border-b border-border/60">
                 <Receipt className="h-4 w-4 text-amber-500" aria-hidden />
                 <p className="text-[11px] font-mono uppercase tracking-[0.15em] text-amber-600 dark:text-amber-400 font-semibold">
@@ -414,7 +514,6 @@ export function InlineCheckout({ tier, service, locale, promoSlug }: InlineCheck
                 </p>
               </div>
 
-              {/* Item */}
               <div className="space-y-1">
                 <p className="text-sm font-semibold leading-tight">{tierLabel}</p>
                 <p className="text-[11px] text-muted-foreground">
@@ -424,7 +523,6 @@ export function InlineCheckout({ tier, service, locale, promoSlug }: InlineCheck
                 </p>
               </div>
 
-              {/* Breakdown */}
               <div className="space-y-2 text-sm pt-2 border-t border-border/60">
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">{isEn ? 'Subtotal' : 'Subtotal'}</span>
@@ -447,9 +545,7 @@ export function InlineCheckout({ tier, service, locale, promoSlug }: InlineCheck
                 <div className="flex items-center justify-between pt-3 border-t border-border/60">
                   <span className="font-semibold">{isEn ? 'Total' : 'Total'}</span>
                   <div className="text-right">
-                    <span className="font-display text-2xl font-bold tabular-nums block">
-                      {fmtIdr(preview.amountIdr)}
-                    </span>
+                    <span className="font-display text-2xl font-bold tabular-nums block">{fmtIdr(preview.amountIdr)}</span>
                     {isEn && (
                       <span className="text-[11px] font-mono text-muted-foreground tabular-nums">
                         ≈ {fmtUsd(preview.amountUsd)}
@@ -459,7 +555,6 @@ export function InlineCheckout({ tier, service, locale, promoSlug }: InlineCheck
                 </div>
               </div>
 
-              {/* Discount celebration */}
               {hasDiscount && (
                 <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/30 p-3 text-xs flex items-start gap-2">
                   <Tag className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" aria-hidden />
@@ -471,29 +566,16 @@ export function InlineCheckout({ tier, service, locale, promoSlug }: InlineCheck
                 </div>
               )}
 
-              {/* Pay button */}
               <Button
-                type="button"
-                size="lg"
+                type="button" size="lg"
                 onClick={handlePay}
-                disabled={submitting}
                 className="w-full bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-amber-950 font-bold shadow-lg shadow-amber-500/20"
               >
-                {submitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    {isEn ? 'Redirecting…' : 'Mengarahkan…'}
-                  </>
-                ) : (
-                  <>
-                    <Lock className="w-4 h-4 mr-1.5" aria-hidden />
-                    {isEn ? `Pay ${fmtIdr(preview.amountIdr)}` : `Bayar ${fmtIdr(preview.amountIdr)}`}
-                    <ArrowRight className="w-4 h-4 ml-1.5" />
-                  </>
-                )}
+                <Lock className="w-4 h-4 mr-1.5" aria-hidden />
+                {isEn ? `Pay ${fmtIdr(preview.amountIdr)}` : `Bayar ${fmtIdr(preview.amountIdr)}`}
+                <ArrowRight className="w-4 h-4 ml-1.5" />
               </Button>
 
-              {/* Cancel */}
               <Button asChild variant="ghost" size="sm" className="w-full text-muted-foreground hover:text-foreground">
                 <Link href={`/${locale}/pricing`}>
                   <ArrowLeft className="w-4 h-4 mr-1.5" />
@@ -501,7 +583,6 @@ export function InlineCheckout({ tier, service, locale, promoSlug }: InlineCheck
                 </Link>
               </Button>
 
-              {/* Trust badges */}
               <div className="space-y-2 pt-3 border-t border-border/60">
                 <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
                   <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" aria-hidden />
@@ -520,7 +601,7 @@ export function InlineCheckout({ tier, service, locale, promoSlug }: InlineCheck
   );
 }
 
-// ─── Internal sub-components ───────────────────────────────────────
+// ─── Sub-components ───────────────────────────────────────────────
 
 interface MethodCardLargeProps {
   option: MethodOption;

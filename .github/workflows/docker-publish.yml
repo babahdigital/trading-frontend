@@ -328,14 +328,20 @@ jobs:
             fi
           done
 
-          # Hapus .env.bak lama (>30 hari) — keep recent backup untuk audit
-          PRUNED_BAK=$(find . -maxdepth 1 -name '.env.bak-*' -mtime +30 -print -delete 2>/dev/null | wc -l)
+          # Hapus .env.bak lama (>30 hari) — keep recent backup untuk audit.
+          # || true: find sometimes exits 1 untuk minor warning (mtime locked,
+          # dll), tapi cleanup tidak perlu fatal kalau deploy sudah sukses.
+          PRUNED_BAK=$(find . -maxdepth 1 -name '.env.bak-*' -mtime +30 -print -delete 2>/dev/null | wc -l || true)
 
           echo "== state SETELAH cleanup =="
-          ls -A
-          du -sh . 2>/dev/null | head -1
+          ls -A || true
+          du -sh . 2>/dev/null | head -1 || true
           echo "summary: deleted=$DELETED skipped=$SKIPPED pruned_old_backups=$PRUNED_BAK"
           REMOTE
+        # Non-fatal — deploy sudah sukses sebelum step ini. Cleanup failure
+        # (e.g. transient find warning, du pipefail) tidak boleh batalkan
+        # downstream smoke test + summary steps.
+        continue-on-error: true
 
       - name: Public smoke test (origin via SSH, bypass Cloudflare)
         run: |

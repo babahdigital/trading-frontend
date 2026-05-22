@@ -48,6 +48,27 @@ export async function POST(req: NextRequest) {
     // — fallback ke ChatLead lookup di lifecycle kalau tidak ada.
     const localeMeta = meta.locale as string | undefined;
     const locale: 'id' | 'en' | undefined = localeMeta === 'en' ? 'en' : localeMeta === 'id' ? 'id' : undefined;
+    // Inline checkout (2026-05-22): user pilih method di domain kita,
+    // kita simpan di metadata.paymentMethod. Mapping ke friendly label
+    // untuk display di PDF invoice.
+    const PAYMENT_METHOD_LABELS: Record<string, string> = {
+      CREDIT_CARD: 'Credit / Debit Card',
+      QRIS: 'QRIS',
+      BCA: 'BCA Virtual Account', BNI: 'BNI Virtual Account', BRI: 'BRI Virtual Account',
+      MANDIRI: 'Mandiri Virtual Account', BSI: 'BSI Virtual Account', PERMATA: 'Permata Virtual Account',
+      OVO: 'OVO', DANA: 'DANA', SHOPEEPAY: 'ShopeePay', LINKAJA: 'LinkAja',
+      ALFAMART: 'Alfamart', INDOMARET: 'Indomaret',
+    };
+    const paymentMethodCode = meta.paymentMethod as string | undefined;
+    // Xendit webhook payload juga punya payment_method/channel — fallback
+    // ke situ kalau metadata.paymentMethod tidak ter-set (legacy invoice).
+    const webhookMethod = typeof body.payment_method === 'string' ? body.payment_method : undefined;
+    const webhookChannel = typeof body.payment_channel === 'string' ? body.payment_channel : undefined;
+    const paymentMethodLabel = paymentMethodCode
+      ? (PAYMENT_METHOD_LABELS[paymentMethodCode] ?? paymentMethodCode)
+      : (webhookChannel && PAYMENT_METHOD_LABELS[webhookChannel])
+        ? PAYMENT_METHOD_LABELS[webhookChannel]
+        : webhookMethod ?? undefined;
 
     // Generate PDF invoice — best-effort, never block activation.
     let pdfUrl: string | undefined;
@@ -68,6 +89,7 @@ export async function POST(req: NextRequest) {
           provider: 'xendit',
           promo: promoApplied ?? null,
           locale: locale ?? (user.locale === 'en' ? 'en' : 'id'),
+          paymentMethodLabel,
         });
         pdfUrl = pdf.pdfUrl;
         // Persist pdfUrl ke invoice.metadata supaya portal billing page bisa link

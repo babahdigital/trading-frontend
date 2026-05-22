@@ -265,6 +265,7 @@ export async function POST(req: NextRequest) {
           provider, idempotencyKey, clientSupplied,
           invoiceUrl: invoice.invoiceUrl, invoiceId: invoice.invoiceId,
           promoApplied: appliedPromo,
+          paymentMethod: paymentMethod ?? null,
         },
       },
     });

@@ -208,7 +208,7 @@ export function PromoPopup() {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 bg-black/70 backdrop-blur-md animate-in fade-in duration-300"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 lg:p-8 bg-black/70 backdrop-blur-md animate-in fade-in duration-300"
       onClick={dismiss}
       role="dialog"
       aria-modal="true"
@@ -218,12 +218,12 @@ export function PromoPopup() {
         ref={dialogRef}
         tabIndex={-1}
         className={cn(
-          // Responsive max-width per breakpoint
-          'relative w-full max-w-md sm:max-w-lg md:max-w-2xl lg:max-w-4xl xl:max-w-5xl',
-          // Max height tighter + overflow HIDDEN (bukan auto) — image + content
-          // total harus fit di viewport. Sebelumnya overflow-y-auto bikin
-          // scroll vertikal di mobile karena image 4:3 + content combined > 90vh.
-          'max-h-[88vh] overflow-hidden rounded-2xl bg-card shadow-2xl',
+          // Wide-screen presence (Pak Abdullah audit 2026-05-22) — extend
+          // max-w sampai 2xl supaya monitor besar tidak terasa floating-tiny
+          // tengah viewport.
+          'relative w-full max-w-md sm:max-w-lg md:max-w-2xl lg:max-w-4xl xl:max-w-6xl 2xl:max-w-7xl',
+          // Max height tighter + overflow HIDDEN (bukan auto)
+          'max-h-[88vh] lg:max-h-[82vh] overflow-hidden rounded-2xl lg:rounded-3xl bg-card shadow-2xl',
           'border border-amber-500/20 ring-1 ring-white/5',
           'animate-in zoom-in-95 slide-in-from-bottom-4 duration-500',
           'focus:outline-none',
@@ -249,9 +249,12 @@ export function PromoPopup() {
           <X className="h-4 w-4" />
         </button>
 
-        {/* Grid 1:1 di desktop supaya image square (Gemini 2.5 Flash Image
-            1024×1024) fill kolom kiri sempurna tanpa crop content. */}
-        <div className="grid md:grid-cols-2">
+        {/* Grid layout — image left + content right.
+            Mobile: stacked (image atas).
+            md+: 1:1 (image square dari Gemini 1024×1024 fill kolom kiri).
+            lg+ wide: 11:14 ratio (image 44% + content 56%) supaya content
+            area lebih luas untuk title/body breathing di big screen. */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-[11fr_14fr]">
           {/* ─── HERO IMAGE COLUMN ─── */}
           {/*
             Image native dari Gemini = 1024×1024 square (no crop, content utuh).
@@ -319,54 +322,54 @@ export function PromoPopup() {
             )}
           </div>
 
-          {/* ─── CONTENT COLUMN ─── */}
-          {/* Content area scrollable independent kalau memang content terlalu
-              panjang (mis. body very long). Padding compact di mobile supaya
-              tidak terlalu memakan ruang. */}
-          <div className="relative flex flex-col p-4 sm:p-5 md:p-6 lg:p-8 xl:p-9 md:min-h-[400px] lg:min-h-[440px] overflow-y-auto">
-            {/* Eyebrow */}
-            <div className="flex items-center gap-2 mb-3">
-              <Sparkles className="h-4 w-4 text-amber-500" aria-hidden />
-              <span className="text-[11px] font-mono uppercase tracking-[0.15em] text-amber-600 dark:text-amber-400 font-semibold">
-                {isEn ? 'Limited Promotion' : 'Penawaran Terbatas'}
+          {/* ─── CONTENT COLUMN ─── adaptive padding + typography scaling */}
+          <div className="relative flex flex-col p-4 sm:p-5 md:p-6 lg:p-8 xl:p-10 2xl:p-12 md:min-h-[400px] lg:min-h-[480px] xl:min-h-[520px] overflow-y-auto">
+            {/* Eyebrow — adapts to promo kind (greeting vs discount) */}
+            <div className="flex items-center gap-2 mb-3 lg:mb-4">
+              <Sparkles className="h-4 w-4 lg:h-5 lg:w-5 text-amber-500" aria-hidden />
+              <span className="text-[11px] lg:text-xs font-mono uppercase tracking-[0.15em] text-amber-600 dark:text-amber-400 font-semibold">
+                {discountText
+                  ? (isEn ? 'Limited Promotion' : 'Penawaran Terbatas')
+                  : (isEn ? 'Special Greeting' : 'Ucapan Spesial')}
               </span>
             </div>
 
-            {/* Title — scaled per breakpoint untuk responsive readability */}
+            {/* Title — scaled per breakpoint sampai 4xl di 2xl screen */}
             <h2
               id="promo-popup-title"
-              className="font-display text-xl sm:text-2xl md:text-2xl lg:text-3xl font-bold leading-[1.15] tracking-tight mb-2.5 text-foreground"
+              className="font-display text-xl sm:text-2xl md:text-2xl lg:text-3xl xl:text-4xl 2xl:text-[42px] font-bold leading-[1.1] tracking-tight mb-3 lg:mb-4 text-foreground"
             >
               {title}
             </h2>
 
-            {/* Body — generous line-height */}
-            <p className="text-[13px] sm:text-sm md:text-[15px] text-muted-foreground leading-relaxed mb-4 sm:mb-5">
+            {/* Body — generous line-height + larger di wide screen */}
+            <p className="text-[13px] sm:text-sm md:text-[15px] lg:text-base xl:text-lg 2xl:text-xl text-muted-foreground leading-relaxed mb-4 sm:mb-5 lg:mb-6">
               {body}
             </p>
 
-            {/* Benefit chips — subtle highlight */}
+            {/* Benefit chip — discount only kalau promo punya nilai. Greeting
+                tanpa diskon skip chip — clean focus pada title+body. */}
             {discountText && (
-              <div className="mb-6 inline-flex items-baseline gap-1.5 self-start rounded-lg bg-amber-500/10 border border-amber-500/25 px-3 py-1.5">
-                <span className="text-[10px] uppercase tracking-wider text-amber-600 dark:text-amber-300 font-mono font-semibold">
+              <div className="mb-6 lg:mb-8 inline-flex items-baseline gap-1.5 lg:gap-2 self-start rounded-lg lg:rounded-xl bg-amber-500/10 border border-amber-500/25 px-3 lg:px-4 py-1.5 lg:py-2">
+                <span className="text-[10px] lg:text-xs uppercase tracking-wider text-amber-600 dark:text-amber-300 font-mono font-semibold">
                   {isEn ? 'Discount' : 'Diskon'}
                 </span>
-                <span className="text-lg font-bold text-amber-700 dark:text-amber-300 tabular-nums leading-none">
+                <span className="text-lg lg:text-2xl xl:text-3xl font-bold text-amber-700 dark:text-amber-300 tabular-nums leading-none">
                   {discountText}
                 </span>
                 {promo.discountType === 'PERCENT' && (
-                  <span className="text-[10px] uppercase tracking-wider text-amber-600/70 dark:text-amber-400/70 font-mono">OFF</span>
+                  <span className="text-[10px] lg:text-xs uppercase tracking-wider text-amber-600/70 dark:text-amber-400/70 font-mono">OFF</span>
                 )}
               </div>
             )}
 
-            {/* CTAs — spacer push ke bottom on desktop */}
-            <div className="mt-auto pt-2 flex flex-col-reverse sm:flex-row gap-2.5">
+            {/* CTAs — spacer push ke bottom on desktop, adaptive sizing */}
+            <div className="mt-auto pt-2 flex flex-col-reverse sm:flex-row gap-2.5 lg:gap-3">
               <button
                 type="button"
                 onClick={dismiss}
                 className={cn(
-                  'flex-1 px-4 py-3 rounded-lg text-sm font-medium',
+                  'flex-1 px-4 py-3 lg:py-3.5 rounded-lg text-sm lg:text-base font-medium',
                   'text-muted-foreground hover:text-foreground hover:bg-muted/50',
                   'border border-border/40 transition-colors',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500',
@@ -378,24 +381,28 @@ export function PromoPopup() {
                 href={ctaLink}
                 onClick={dismiss}
                 className={cn(
-                  'flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg',
+                  'flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 lg:py-3.5 rounded-lg',
                   'bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300',
-                  'text-amber-950 font-semibold text-sm transition-all',
+                  'text-amber-950 font-semibold text-sm lg:text-base transition-all',
                   'shadow-lg shadow-amber-500/25 hover:shadow-xl hover:shadow-amber-500/30',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2',
                   'hover:scale-[1.02] active:scale-[0.98]',
                 )}
               >
                 <span>{ctaLabel}</span>
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
+                <ArrowRight className="h-4 w-4 lg:h-5 lg:w-5 transition-transform group-hover:translate-x-0.5" aria-hidden />
               </Link>
             </div>
 
-            {/* Fine print — disclaimer */}
-            <p className="mt-4 text-[10px] text-muted-foreground/60 leading-relaxed">
-              {isEn
-                ? 'Offer valid while available. Terms apply.'
-                : 'Penawaran berlaku selama tersedia. Syarat & ketentuan berlaku.'}
+            {/* Fine print — adapts: jika no discount (greeting), pesan beda */}
+            <p className="mt-4 lg:mt-5 text-[10px] lg:text-xs text-muted-foreground/60 leading-relaxed">
+              {discountText
+                ? (isEn
+                    ? 'Offer valid while available. Terms apply.'
+                    : 'Penawaran berlaku selama tersedia. Syarat & ketentuan berlaku.')
+                : (isEn
+                    ? 'Warm wishes from the BabahAlgo family.'
+                    : 'Salam hangat dari keluarga BabahAlgo.')}
             </p>
           </div>
         </div>

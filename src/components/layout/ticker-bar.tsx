@@ -45,8 +45,15 @@ const ANIM_DURATION_S = 120;
 // Threshold scroll position (px) yang trigger ticker pindah ke bottom-fixed
 const SCROLL_THRESHOLD = 120;
 
-// Reserved right space saat chat icon visible (h-14 + safe-area = ~80px)
+// Reserved right space saat chat icon visible (h-14 + safe-area = ~80px).
+// Pak Abdullah audit 2026-05-22: ticker masih menutupi menu floating saat
+// scroll. Walau z-100 chat > z-85 ticker, background slate ticker visually
+// "lewat di belakang" icon = lihat aneh. Solusi: SELALU reserve 80px kanan
+// saat bottom-fixed mode (clean look + future-proof untuk floating banner).
 const CHAT_ICON_RESERVE_PX = 80;
+// Reserved bottom space minimal supaya tidak terlalu dekat dengan bottom
+// nav iOS bar atau Cookie Consent banner.
+const SAFE_BOTTOM_PX = 0;
 
 // localStorage key untuk cache tickers — survive hot refresh + offline blip
 const CACHE_KEY = 'babah.ticker.cache.v2';
@@ -105,7 +112,6 @@ export function TickerBar() {
   const [hydrated, setHydrated] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [footerVisible, setFooterVisible] = useState(false);
-  const [chatIconVisible, setChatIconVisible] = useState(false);
   const [stickyCtaHeight, setStickyCtaHeight] = useState(0);
   const tickerRef = useRef<HTMLDivElement>(null);
 
@@ -182,16 +188,10 @@ export function TickerBar() {
     return () => obs.disconnect();
   }, []);
 
-  // Chat icon visibility — sync via custom event.
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const handler = (e: Event) => {
-      const detail = (e as CustomEvent<{ visible: boolean }>).detail;
-      setChatIconVisible(Boolean(detail?.visible));
-    };
-    window.addEventListener('babahalgo:chat-icon-state', handler as EventListener);
-    return () => window.removeEventListener('babahalgo:chat-icon-state', handler as EventListener);
-  }, []);
+  // Chat icon visibility listener dihapus 2026-05-22 (Pak Abdullah audit):
+  // ticker SEKARANG selalu reserve 80px right saat bottom-fixed, regardless
+  // chat icon state — supaya menu floating apapun di pojok kanan-bawah
+  // (chat icon, floating banner, future widgets) tidak ter-cover visual.
 
   // StickyCtaBar coordination — saat #sticky-cta-bar mounted DAN visible,
   // ticker bottom-fixed offset ke atas sticky bar supaya tidak menutupi.
@@ -301,12 +301,17 @@ export function TickerBar() {
     : scrolled ? 'bottom-fixed'
     : 'top';
 
-  // Compose inline style: right reserve untuk chat icon + bottom offset untuk
-  // sticky-cta-bar — keduanya hanya di bottom-fixed mode.
+  // Compose inline style: ALWAYS reserve 80px right space saat bottom-fixed
+  // supaya chat icon / banner / floating menu di pojok kanan-bawah tidak
+  // ter-visual-cover oleh ticker dark background. Bottom offset hanya saat
+  // sticky-cta-bar visible.
   const bottomFixedStyle: React.CSSProperties = {};
   if (mode === 'bottom-fixed') {
-    if (chatIconVisible) bottomFixedStyle.right = `${CHAT_ICON_RESERVE_PX}px`;
+    // Always reserve right space — clean visual even when chat icon belum
+    // visible (e.g., public page belum klik footer Chat AI).
+    bottomFixedStyle.right = `${CHAT_ICON_RESERVE_PX}px`;
     if (stickyCtaHeight > 0) bottomFixedStyle.bottom = `${stickyCtaHeight}px`;
+    else if (SAFE_BOTTOM_PX > 0) bottomFixedStyle.bottom = `${SAFE_BOTTOM_PX}px`;
   }
 
   return (

@@ -1,7 +1,16 @@
 'use client';
 
-import { createContext, useContext, useCallback, useMemo } from 'react';
+import { createContext, useContext, useCallback, useMemo, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+
+/**
+ * Subscription gate state.
+ *   - 'loading': initial fetch in flight
+ *   - 'active': user has valid subscription/license — premium APIs accessible
+ *   - 'inactive': authenticated but no subscription — portal renders locked overlay
+ *   - 'guest': not authenticated
+ */
+export type SubscriptionState = 'loading' | 'active' | 'inactive' | 'guest';
 
 interface AuthContextValue {
   /**
@@ -20,6 +29,14 @@ interface AuthContextValue {
    */
   getAccessToken: () => string;
   logout: () => Promise<void>;
+  /**
+   * Subscription gate state (Pak Abdullah audit 2026-05-22 — institutional
+   * locked page UX, prevent 403 console floods untuk un-subscribed users).
+   * Components dapat skip /api/client/* fetch saat state='inactive'.
+   */
+  subscriptionState: SubscriptionState;
+  /** Convenience boolean — `subscriptionState === 'active'`. */
+  hasSubscription: boolean;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -49,6 +66,39 @@ function purgeLegacyAuthArtifacts(): void {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const [subscriptionState, setSubscriptionState] = useState<SubscriptionState>('loading');
+
+  // Single fetch /api/auth/me on mount → resolve subscription state.
+  // Components downstream check `hasSubscription` SEBELUM fetch /api/client/*,
+  // sehingga zero 403 console errors untuk un-subscribed users.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/auth/me', { credentials: 'same-origin', cache: 'no-store' });
+        if (!res.ok) {
+          if (!cancelled) setSubscriptionState('guest');
+          return;
+        }
+        const data = await res.json();
+        if (cancelled) return;
+        if (!data?.user) {
+          setSubscriptionState('guest');
+          return;
+        }
+        // Admin role bypass — admin always considered "active" for portal access
+        if (data.user.role === 'ADMIN') {
+          setSubscriptionState('active');
+          return;
+        }
+        const hasActive = !!(data.activeSubscription || data.licenseId || data.subscriptionId);
+        setSubscriptionState(hasActive ? 'active' : 'inactive');
+      } catch {
+        if (!cancelled) setSubscriptionState('guest');
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   const getAuthHeaders = useCallback((): HeadersInit => {
     // Browser sends HttpOnly cookies automatically. Only the Content-Type
@@ -79,9 +129,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     router.push('/login');
   }, [router]);
 
+  const hasSubscription = subscriptionState === 'active';
+
   const value = useMemo(
-    () => ({ getAuthHeaders, getAuthToken, getAccessToken, logout }),
-    [getAuthHeaders, getAuthToken, getAccessToken, logout],
+    () => ({ getAuthHeaders, getAuthToken, getAccessToken, logout, subscriptionState, hasSubscription }),
+    [getAuthHeaders, getAuthToken, getAccessToken, logout, subscriptionState, hasSubscription],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

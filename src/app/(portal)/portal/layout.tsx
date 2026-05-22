@@ -37,6 +37,7 @@ import { KillSwitchBanner } from '@/components/portal/kill-switch-banner';
 import { NotificationBellCount } from '@/components/portal/notification-bell-count';
 import { KycAdvisoryBanner } from '@/components/portal/kyc-advisory-banner';
 import { NotificationDispatcher } from '@/components/portal/notification-dispatcher';
+import { PortalLockedOverlay } from '@/components/portal/portal-locked-overlay';
 
 interface NavItem {
   href: string;
@@ -105,8 +106,19 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
 
 function PortalLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { logout } = useAuth();
+  const { logout, subscriptionState } = useAuth();
   const t = useTranslations('portal.shared');
+
+  // Gate state — Pak Abdullah audit 2026-05-22: locked overlay UX
+  // institusional, prevent 403 floods dari un-subscribed user fetching
+  // /api/client/* endpoints.
+  //
+  // - loading: skeleton (waiting /api/auth/me)
+  // - inactive: render PortalLockedOverlay (children NOT mounted = no fetch)
+  // - active: render normal portal (children + banners + dispatcher)
+  // - guest: middleware will redirect to /login (this branch shouldn't render)
+  const isLocked = subscriptionState === 'inactive';
+  const isLoading = subscriptionState === 'loading';
 
   return (
     <div className="min-h-screen flex">
@@ -181,14 +193,27 @@ function PortalLayoutInner({ children }: { children: React.ReactNode }) {
 
       <main className="flex-1 overflow-auto">
         <div className="p-4 sm:p-6 lg:p-8 max-w-[1400px] mx-auto space-y-4">
-          <KillSwitchBanner />
-          <KycAdvisoryBanner />
-          {children}
+          {/* Locked overlay — render INSTEAD of children + premium banners
+              saat user tanpa subscription. Children TIDAK mount, ZERO fetch
+              ke /api/client/*, ZERO 403 console errors. */}
+          {isLocked ? (
+            <PortalLockedOverlay />
+          ) : isLoading ? (
+            <div className="flex items-center justify-center min-h-[60vh]">
+              <div className="text-sm text-muted-foreground">{t('logo_alt')}…</div>
+            </div>
+          ) : (
+            <>
+              <KillSwitchBanner />
+              <KycAdvisoryBanner />
+              {children}
+            </>
+          )}
         </div>
       </main>
-      {/* No-render dispatcher — subscribes ke notification log + push toast
-          + auto mark-read. Mount sekali per portal session. */}
-      <NotificationDispatcher />
+      {/* No-render dispatcher — only mount saat active subscription supaya
+          tidak ada WebSocket connection attempt ke /api/client/* tanpa auth. */}
+      {!isLocked && !isLoading && <NotificationDispatcher />}
     </div>
   );
 }

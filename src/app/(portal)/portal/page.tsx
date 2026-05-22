@@ -12,6 +12,7 @@ import { DiscoveryBanner } from '@/components/portal/discovery-banner';
 import { ShopProductsSection } from '@/components/portal/shop-products-section';
 import { OnboardingChecklist } from '@/components/portal/onboarding-checklist';
 import { VerifyEmailBanner } from '@/components/portal/verify-email-banner';
+import { SubscriptionRequiredEmpty } from '@/components/portal/subscription-required-empty';
 import { SubscriptionExpiryBanner } from '@/components/portal/subscription-expiry-banner';
 import { PageHeader } from '@/components/admin/page-header';
 import { StatCard, StatCardGrid } from '@/components/admin/stat-card';
@@ -261,6 +262,20 @@ export default function PortalDashboard() {
       <VerifyEmailBanner initialVerified={emailVerified} />
       <OnboardingChecklist locale={locale === 'en' ? 'en' : 'id'} />
       <DiscoveryBanner />
+
+      {/* No active subscription → prominent CTA before shop section
+          (Pak Abdullah audit 2026-05-22 — institusional UX, jelas user
+          butuh subscribe untuk akses fitur premium). */}
+      {!activeSubscription && (
+        <SubscriptionRequiredEmpty
+          feature="default"
+          description={{
+            id: 'Akun Anda aktif tapi belum punya subscription. Pilih paket di bawah untuk unlock fitur trading live, analytics performance, audit signal, kontrol risk, dan notifikasi real-time.',
+            en: 'Your account is active but has no subscription yet. Choose a plan below to unlock live trading, performance analytics, signal audit, risk controls, and real-time notifications.',
+          }}
+        />
+      )}
+
       <ShopProductsSection />
 
       {/* KPI Row */}

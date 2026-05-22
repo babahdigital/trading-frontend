@@ -162,7 +162,11 @@ export function CardForm({ amountIdr, tier, locale, promoSlug, customerEmail, on
           // We always pass email (customer logged-in user). Phone optional.
           card_holder_email: customerEmail,
           is_multiple_use: false,
-          should_authenticate: true,
+          // 'optional' lets the card's BIN range decide 3DS. Mengatasi error
+          // "3DS verification unsuccessful" untuk dev cards yang tidak punya
+          // 3DS configured (mis. 4000000000000002 = success-no-3DS).
+          // Production cards yang require 3DS tetap di-challenge by issuer.
+          should_authenticate: 'optional',
           currency: 'IDR',
         }, (xerr, tok) => {
           if (xerr || !tok) {

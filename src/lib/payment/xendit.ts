@@ -365,8 +365,8 @@ export async function createXenditQrisCharge(params: CreateQrisCharge): Promise<
     method: 'POST',
     headers: {
       'api-version': '2022-07-31',
-      // Per-request callback URL (alternative ke dashboard setting)
-      'x-callback-url': `${appUrl}/api/billing/webhook/xendit`,
+      // Xendit-Callback-URL header per Xendit docs (alternative ke dashboard)
+      'Xendit-Callback-URL': `${appUrl}/api/billing/webhook/xendit`,
     },
     body: JSON.stringify(payload),
     idempotencyKey: `qris_${params.externalId}`,
@@ -532,8 +532,6 @@ export async function createXenditEwalletCharge(params: CreateEwalletCharge): Pr
     : {
         success_redirect_url: successUrl,
         failure_redirect_url: failureUrl,
-        // GoPay (legacy channel) butuh `redirect_url` singular alongside success/failure
-        ...(params.method === 'GOPAY' ? { redirect_url: successUrl } : {}),
       };
 
   const payload = {
@@ -555,9 +553,10 @@ export async function createXenditEwalletCharge(params: CreateEwalletCharge): Pr
     method: 'POST',
     headers: {
       'api-version': '2024-11-11',
-      // Per-request callback URL — dipakai kalau dashboard global setting
-      // belum di-config. Webhook tetap masuk ke /api/billing/webhook/xendit.
-      'x-callback-url': `${appUrl}/api/billing/webhook/xendit`,
+      // Xendit-Callback-URL header (capitalize per Xendit docs convention).
+      // Required kalau dashboard belum config global callback. Pak perlu
+      // set juga di dashboard Settings → Callbacks → E-Wallet untuk reliable.
+      'Xendit-Callback-URL': `${appUrl}/api/billing/webhook/xendit`,
     },
     body: JSON.stringify(payload),
     idempotencyKey: `ewallet_${params.method}_${params.externalId}`,

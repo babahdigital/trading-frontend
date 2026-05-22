@@ -63,6 +63,12 @@ model User {
   /// Workflow opt-in saat ini (tidak gate access), tapi infra ready
   /// untuk Phase B gate (block checkout + kyc submit kalau belum verify).
   emailVerifiedAt    DateTime?
+
+  /// 2026-05-22 — Persistent locale preference per user (Pak Abdullah audit).
+  /// Default 'id' (primary market Indonesia). On login, NEXT_LOCALE cookie
+  /// set ke value ini = persistent across devices (vs cookie-only yang
+  /// hilang saat clear browser). Updatable via /portal/account/profile.
+  locale             String                 @default("id")
 }
 
 model EmailVerificationToken {

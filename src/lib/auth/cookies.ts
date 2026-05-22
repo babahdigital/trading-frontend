@@ -46,6 +46,27 @@ export function setAuthCookies(
   return response;
 }
 
+/**
+ * Set NEXT_LOCALE cookie dari user.locale value (persistent across devices).
+ * Pak Abdullah directive 2026-05-22: locale preference harus persist —
+ * cookie-only hilang saat clear browser. User.locale = source of truth
+ * per-account, sync ke NEXT_LOCALE cookie saat login supaya middleware
+ * + next-intl pickup tanpa flicker.
+ */
+export function setLocaleCookie(response: NextResponse, locale: string): NextResponse {
+  const safeLocale = locale === 'en' || locale === 'id' ? locale : 'id';
+  response.cookies.set({
+    name: 'NEXT_LOCALE',
+    value: safeLocale,
+    httpOnly: false, // accessible to next-intl client lib
+    secure: isProd,
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 365 * 24 * 60 * 60,
+  });
+  return response;
+}
+
 export function clearAuthCookies(response: NextResponse): NextResponse {
   response.cookies.set({
     name: ACCESS_TOKEN_COOKIE,

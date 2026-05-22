@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { verifyPassword } from '@/lib/auth/password';
 import { signJwt, signRefreshToken, type JwtPayload } from '@/lib/auth/jwt';
-import { setAuthCookies } from '@/lib/auth/cookies';
+import { setAuthCookies, setLocaleCookie } from '@/lib/auth/cookies';
 import { forexLogin } from '@/lib/forex/auth';
 import { setForexCookies } from '@/lib/forex/cookies';
 import { ForexApiError } from '@/lib/forex/types';
@@ -91,11 +91,14 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      return setAuthCookies(
-        NextResponse.json({
-          user: { id: user.id, email: user.email, role: user.role, name: user.name },
-        }),
-        { accessToken, refreshToken },
+      return setLocaleCookie(
+        setAuthCookies(
+          NextResponse.json({
+            user: { id: user.id, email: user.email, role: user.role, name: user.name, locale: user.locale },
+          }),
+          { accessToken, refreshToken },
+        ),
+        user.locale,
       );
     }
 
@@ -153,11 +156,14 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const response = setAuthCookies(
-      NextResponse.json({
-        user: { id: user.id, email: user.email, role: user.role, name: user.name },
-      }),
-      { accessToken, refreshToken },
+    const response = setLocaleCookie(
+      setAuthCookies(
+        NextResponse.json({
+          user: { id: user.id, email: user.email, role: user.role, name: user.name, locale: user.locale },
+        }),
+        { accessToken, refreshToken },
+      ),
+      user.locale,
     );
 
     // Best-effort bridge to backend forex auth. Customers with a stored

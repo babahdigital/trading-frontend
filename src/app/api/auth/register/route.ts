@@ -83,6 +83,10 @@ export async function POST(request: NextRequest) {
 
     const passwordHash = await hashPassword(password);
 
+    // Capture locale dari request — persistent di User.locale supaya sync
+    // across devices saat login (Pak Abdullah 2026-05-22 audit).
+    const registrationLocale = detectRequestLocale(request);
+
     // Buat user + subscription dalam transaksi
     const result = await prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
@@ -92,6 +96,7 @@ export async function POST(request: NextRequest) {
           passwordHash,
           role: 'CLIENT',
           mt5Account: mt5Account || null,
+          locale: registrationLocale,
         },
       });
 
@@ -193,7 +198,8 @@ export async function POST(request: NextRequest) {
       }).catch(() => {});
     }
 
-    const locale = detectRequestLocale(request);
+    // Locale dari registration request (sudah dipakai untuk User.locale di atas)
+    const locale = registrationLocale;
 
     // Welcome email TIDAK dikirim di sini.
     // 2026-05-21 (per directive Pak Abdullah) — welcome email dipindah ke

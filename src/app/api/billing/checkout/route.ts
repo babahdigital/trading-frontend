@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { createMidtransTransaction } from '@/lib/payment/midtrans';
-import { createXenditInvoice } from '@/lib/payment/xendit';
+import { createXenditInvoice, type XenditPaymentMethod } from '@/lib/payment/xendit';
 import { idrToUsd } from '@/lib/payment/rates';
 import { randomUUID } from 'crypto';
 import { resolveIdempotencyKey } from '@/lib/api/idempotency';
@@ -87,11 +87,27 @@ export async function POST(req: NextRequest) {
   // Multi-currency display di invoice page (USD + IDR), API + dokumentasi
   // lebih clean, dan forex backend juga akan migrate ke Xendit eventually.
   // Midtrans tetap available kalau customer prefer atau Xendit down.
-  const { tier, provider = 'xendit', promo: promoSlug } = body as {
+  const { tier, provider = 'xendit', promo: promoSlug, paymentMethod } = body as {
     tier: string;
     provider?: PaymentProvider;
     promo?: string;  // optional promo slug (saat customer datang dari popup)
+    paymentMethod?: XenditPaymentMethod;  // inline checkout single-method selection
   };
+  // Inline checkout method whitelist (defense-in-depth — even though typed,
+  // body is user-provided JSON so we revalidate against canonical set).
+  const VALID_METHODS = new Set<XenditPaymentMethod>([
+    'CREDIT_CARD', 'QRIS', 'BCA', 'BNI', 'BSI', 'BRI', 'MANDIRI', 'PERMATA',
+    'OVO', 'DANA', 'SHOPEEPAY', 'LINKAJA', 'ALFAMART', 'INDOMARET',
+  ]);
+  if (paymentMethod && !VALID_METHODS.has(paymentMethod)) {
+    return errorResponse('invalid_payment_method', 'Invalid payment method', 400);
+  }
+  // Non-ID locale: enforce card-only (Stripe-like — international customers
+  // only see Card on our domain, and server re-asserts gate so a tampered
+  // client body can't trigger non-card method server-side).
+  if (locale === 'en' && paymentMethod && paymentMethod !== 'CREDIT_CARD') {
+    return errorResponse('payment_method_locale_mismatch', 'Selected payment method not available for your region', 400);
+  }
   // CMS centralization 2026-05-21: resolve pricing dari PricingTier DB
   // bukan hardcoded TIER_PRICES. Admin edit /admin/cms/pricing → checkout
   // langsung update tanpa redeploy.
@@ -228,6 +244,10 @@ export async function POST(req: NextRequest) {
         // ID=full Indonesian channels. Sebelumnya semua ditampilkan ke
         // semua customer — international customer bingung lihat OVO/Dana.
         locale,
+        // Inline checkout (2026-05-22): user picks method on our domain,
+        // we pin Xendit ke single method → gateway page langsung render
+        // form spesifik (Stripe-like single-method UX).
+        paymentMethod,
       });
     } catch (err) {
       // Cleanup orphan invoice supaya idempotency key tidak ke-stuck dengan

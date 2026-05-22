@@ -2,6 +2,24 @@ import { createLogger } from '@/lib/logger';
 
 const log = createLogger('xendit');
 
+/**
+ * Xendit Invoice canonical payment method codes. Subset yang kita expose
+ * lewat inline method picker. Bila customer pilih satu, Xendit hosted
+ * page langsung skip method-picker dan render form spesifik (Stripe-like
+ * feel: choose method on our domain, gateway only handles secure form).
+ */
+export type XenditPaymentMethod =
+  // Cards
+  | 'CREDIT_CARD'
+  // QR
+  | 'QRIS'
+  // Bank Virtual Account
+  | 'BCA' | 'BNI' | 'BSI' | 'BRI' | 'MANDIRI' | 'PERMATA'
+  // E-Wallet
+  | 'OVO' | 'DANA' | 'SHOPEEPAY' | 'LINKAJA'
+  // Retail outlets
+  | 'ALFAMART' | 'INDOMARET';
+
 interface CreateInvoiceParams {
   externalId: string;
   amountIdr: number;
@@ -14,6 +32,10 @@ interface CreateInvoiceParams {
    *  - 'id': full Indonesian channels (VA bank + e-wallet + QRIS + CC)
    *  Kalau tidak di-set, fallback ke full default (backward-compat). */
   locale?: 'id' | 'en';
+  /** Inline checkout (2026-05-22): kalau provided, override locale filter
+   *  dan kunci ke single method. Xendit hosted page langsung render form
+   *  spesifik tanpa method-picker layer. */
+  paymentMethod?: XenditPaymentMethod;
 }
 
 const PAYMENT_METHODS_ID = [
@@ -62,7 +84,9 @@ export async function createXenditInvoice(params: CreateInvoiceParams) {
       given_names: params.customerName,
       email: params.customerEmail,
     },
-    payment_methods: params.locale === 'en' ? PAYMENT_METHODS_EN : PAYMENT_METHODS_ID,
+    payment_methods: params.paymentMethod
+      ? [params.paymentMethod]
+      : (params.locale === 'en' ? PAYMENT_METHODS_EN : PAYMENT_METHODS_ID),
     // Force Xendit page bahasa sesuai locale customer
     locale: params.locale === 'en' ? 'en' : 'id',
   };

@@ -1,18 +1,16 @@
 /**
- * Self-serve checkout entry — `/checkout?tier=CRYPTO_PRO&provider=xendit`
+ * Self-serve checkout entry — `/checkout?tier=CRYPTO_PRO[&promo=slug]`
  *
- * Flow:
- *   1. Customer click "Subscribe" di pricing card → /checkout?tier=...
- *   2. Page detect auth state
- *      - Unauth → redirect /register?service=crypto&tier=X&from=checkout
- *      - Auth   → auto-POST /api/billing/checkout + redirect ke gateway
- *   3. Gateway hosted page → customer pay → webhook → activate subscription
- *
- * Server component untuk auth detection + initial render; client component
- * untuk POST + redirect logic.
+ * Inline Stripe-like checkout (2026-05-22):
+ *   1. Customer click "Subscribe" → /checkout?tier=...
+ *   2. InlineCheckout fetches /api/billing/preview untuk price + promo
+ *   3. Customer pick payment method (locale-aware: EN=Card only, ID=full)
+ *   4. POST /api/billing/checkout dengan paymentMethod → single-method
+ *      Xendit invoice → redirect ke gateway hosted form spesifik
+ *   5. Webhook → activate subscription → /portal/billing/success
  */
 import { redirect } from 'next/navigation';
-import { CheckoutAutoStart } from '@/components/checkout/checkout-auto-start';
+import { InlineCheckout } from '@/components/checkout/inline-checkout';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -42,8 +40,7 @@ export default async function CheckoutPage({ params, searchParams }: PageProps) 
   const sp = await searchParams;
 
   const tier = typeof sp.tier === 'string' ? sp.tier.toUpperCase() : '';
-  const providerParam = typeof sp.provider === 'string' ? sp.provider.toLowerCase() : 'xendit';
-  const provider: 'midtrans' | 'xendit' = providerParam === 'midtrans' ? 'midtrans' : 'xendit';
+  const promoSlug = typeof sp.promo === 'string' ? sp.promo : undefined;
 
   if (!VALID_TIERS.has(tier)) {
     redirect(`/${locale}/pricing`);
@@ -52,12 +49,12 @@ export default async function CheckoutPage({ params, searchParams }: PageProps) 
   const service = SERVICE_FROM_TIER[tier] ?? 'crypto';
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-background">
-      <CheckoutAutoStart
+    <div className="min-h-screen flex items-start justify-center px-4 py-10 sm:py-14 bg-background">
+      <InlineCheckout
         tier={tier}
-        provider={provider}
         service={service}
         locale={locale}
+        promoSlug={promoSlug}
       />
     </div>
   );

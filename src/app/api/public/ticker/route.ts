@@ -63,15 +63,15 @@ const YAHOO_MAP: Array<{ ticker: string; symbol: string; label: string; group: '
   { ticker: 'USDCHF=X',  symbol: 'USDCHF',  label: 'CHF',    group: 'forex', stooq: 'usdchf' },
   { ticker: 'USDIDR=X',  symbol: 'USDIDR',  label: 'IDR',    group: 'forex', stooq: 'usdidr' },
   { ticker: 'DX=F',      symbol: 'DXY',     label: 'DXY',    group: 'forex', stooq: 'dx.f' },
-  // Index — IHSG + blue chip Indonesia. Stooq uses ^spx etc for indices,
-  // BBCA.id for Indonesian stocks.
+  // Index — global majors + IHSG composite. Indonesian individual stocks
+  // (BBCA/BBRI/TLKM/ASII) DROPPED 2026-05-22: production verification
+  // confirmed neither Yahoo (HTTP 404 since 2024 v8 chart; v7 quote =
+  // Unauthorized) nor Stooq (returns N/D for .id/.jk format) deliver
+  // these symbols. IHSG composite (^JKSE Yahoo) covers Indonesia market
+  // representation. Re-add bila ada paid provider (TwelveData/IDX direct).
   { ticker: '^GSPC',     symbol: 'SPX',     label: 'S&P500', group: 'index', stooq: '^spx' },
   { ticker: '^IXIC',     symbol: 'NDX',     label: 'NASDAQ', group: 'index', stooq: '^ndq' },
   { ticker: '^JKSE',     symbol: 'IHSG',    label: 'IHSG',   group: 'index', stooq: '^jkse' },
-  { ticker: 'BBCA.JK',   symbol: 'BBCA',    label: 'BBCA',   group: 'index', stooq: 'bbca.id' },
-  { ticker: 'BBRI.JK',   symbol: 'BBRI',    label: 'BBRI',   group: 'index', stooq: 'bbri.id' },
-  { ticker: 'TLKM.JK',   symbol: 'TLKM',    label: 'TLKM',   group: 'index', stooq: 'tlkm.id' },
-  { ticker: 'ASII.JK',   symbol: 'ASII',    label: 'ASII',   group: 'index', stooq: 'asii.id' },
 ];
 
 // ─── In-memory stale-while-error cache ──────────────────────────────────

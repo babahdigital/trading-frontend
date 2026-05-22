@@ -91,7 +91,9 @@ export const TIERS: Record<TierName, TierConfig> = {
     name: 'starter',
     labelKey: 'tiers.starter.label',
     minEquity: 500,
-    monthlyPrice: 19,
+    // 2026-05-22 audit fix — was 19, drift dari PRICE_TABLE.signal_starter=$39
+    // (kenaikan 2026-05-19 per AI cost). Sekarang aligned.
+    monthlyPrice: 39,
     realTrading: true,
     strategies: ['qm_perfect_pure', 'qm_perfect_ao', 'qm_perfect_adx', 'qm_perfect_full', 'pivot_mean_reversion'],
     pairs: ['EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCHF', 'NZDUSD', 'USDCAD'],

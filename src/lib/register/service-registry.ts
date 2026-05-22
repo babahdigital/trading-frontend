@@ -107,8 +107,13 @@ export const SERVICES: ServiceDescriptor[] = [
       subtitleKey: 'crypto.subtitle',
       submitKey: 'crypto.btn_confirm',
     },
+    // rc29 5-tier canonical (Pak Abdullah audit 2026-05-22 — expand dari 3-tier
+    // legacy supaya wizard match /pricing UI). DEMO = free $0 trial 30 hari,
+    // ACTIVE = sweet spot ($19), PRO popular ($49 sweet $10K equity).
     tiers: [
-      { value: 'CRYPTO_BASIC', labelKey: 'crypto.tier_basic_label', descKey: 'crypto.tier_basic_desc', priceKey: 'crypto_basic', urlAlias: 'basic' },
+      { value: 'DEMO', labelKey: 'crypto.tier_demo_label', descKey: 'crypto.tier_demo_desc', priceKey: 'crypto_demo', urlAlias: 'demo' },
+      { value: 'CRYPTO_STARTER', labelKey: 'crypto.tier_starter_label', descKey: 'crypto.tier_starter_desc', priceKey: 'crypto_starter', urlAlias: 'starter' },
+      { value: 'CRYPTO_ACTIVE', labelKey: 'crypto.tier_active_label', descKey: 'crypto.tier_active_desc', priceKey: 'crypto_active', urlAlias: 'active' },
       { value: 'CRYPTO_PRO', labelKey: 'crypto.tier_pro_label', descKey: 'crypto.tier_pro_desc', priceKey: 'crypto_pro', urlAlias: 'pro', popular: true },
       { value: 'CRYPTO_HNWI', labelKey: 'crypto.tier_hnwi_label', descKey: 'crypto.tier_hnwi_desc', priceKey: 'crypto_hnwi', urlAlias: 'hnwi' },
     ],

@@ -104,17 +104,26 @@ export async function POST(request: NextRequest) {
       const startsAt = new Date();
       const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
-      // Canonical pricing per audit 2026-04-26 + 2026-05-20 expansion
-      // (FREE, CRYPTO_*). Updated dari single-product signal-only ke
-      // multi-product unified registration.
+      // Canonical pricing — rc29 (Pak Abdullah audit 2026-05-22 CRITICAL FIX).
+      // Sebelumnya CRYPTO_PRO=$199 + CRYPTO_HNWI=$499 (legacy 3-tier) BERBEDA
+      // dengan UI display (/pricing rc29 5-tier) $49 / $199. Customer billing
+      // 4× lipat dari yang ditampilkan = pricing dispute risk.
+      // Now: rc29 5-tier canonical (demo $0 / starter $9 / active $19 / pro $49
+      // / hnwi $199) matching pricing-format.ts + PricingTier DB.
       const monthlyFeeUsd = (() => {
         if (tier === 'DEMO' || tier === 'FREE') return 0;
+        // Signal/Forex tiers
         if (tier === 'SIGNAL_VIP') return 299;
         if (tier === 'SIGNAL_PRO') return 79;
         if (tier === 'SIGNAL_STARTER' || tier === 'SIGNAL_BASIC') return 39;
-        if (tier === 'CRYPTO_HNWI') return 499;
-        if (tier === 'CRYPTO_PRO') return 199;
-        if (tier === 'CRYPTO_BASIC') return 49;
+        // Crypto rc29 5-tier canonical
+        if (tier === 'CRYPTO_HNWI') return 199;
+        if (tier === 'CRYPTO_PRO') return 49;
+        if (tier === 'CRYPTO_ACTIVE') return 19;
+        if (tier === 'CRYPTO_STARTER') return 9;
+        // CRYPTO_BASIC = legacy alias → map to STARTER $9 (was $49 = old 3-tier).
+        // Existing grandfathered subscriptions unaffected (DB rows immutable).
+        if (tier === 'CRYPTO_BASIC') return 9;
         return 0;
       })();
       const profitSharePct = null; // Zero-custody — semua tier flat monthly fee

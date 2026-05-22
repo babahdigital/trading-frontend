@@ -38,11 +38,14 @@ const SUBSCRIPTION_TO_CAPABILITY: Record<string, CapabilityTier> = {
   VPS_STANDARD: 'dedicated',
   VPS_PREMIUM: 'dedicated',
   VPS_DEDICATED: 'dedicated',
-  // Crypto Bot — separate product, but for capability-overlap (signals/indicators)
-  // map by USD price equivalent
-  CRYPTO_BASIC: 'pro',
-  CRYPTO_PRO: 'vip',
-  CRYPTO_HNWI: 'dedicated',
+  // Crypto Bot — rc29 5-tier (2026-05-22 audit). Map by USD price equivalent
+  // ke forex capability ladder. CRYPTO_BASIC legacy → starter (was 'pro').
+  CRYPTO_DEMO: 'beta',
+  CRYPTO_STARTER: 'starter',
+  CRYPTO_ACTIVE: 'starter',
+  CRYPTO_BASIC: 'starter', // legacy alias = starter price
+  CRYPTO_PRO: 'pro',
+  CRYPTO_HNWI: 'vip',
 };
 
 const LICENSE_TO_CAPABILITY: Record<string, CapabilityTier> = {

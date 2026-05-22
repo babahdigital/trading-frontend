@@ -7,16 +7,15 @@
  *   - Forex/Commodity (XAU/USOIL/DXY): Yahoo Finance chart API (free, no auth,
  *     UA header required)
  *
- * Caching:
- *   - Browser: 30s (Cache-Control max-age)
- *   - CDN: 60s s-maxage + 5-min stale-while-revalidate
- *   - Server-side: relies on CDN/browser; fail-soft kalau source down
+ * Resilience (refactor 2026-05-22 — production audit found DNS EAI_AGAIN
+ * intermittent + ticker incomplete 20/24):
+ *   - In-memory server cache (lastGood) hold successful tickers per symbol
+ *   - Stale-while-error: kalau Yahoo DNS fail, return last-known-good
+ *   - Per-symbol retry sekali (3s timeout, 1 retry dengan 800ms backoff)
+ *   - Aggressive CDN cache (s-maxage 300, swr 900) supaya origin hit jarang
  *
  * Response shape:
- *   { ok: true, tickers: [{ symbol, label, group, last, change24hPct, currency }], generatedAt }
- *
- * Note: Binance terblok dari VPS3 (kemungkinan geo restriction); CoinGecko
- * dipilih sebagai source utama crypto (no geo block, free public tier).
+ *   { ok, tickers: [...], generatedAt, sources: { live, cached } }
  */
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -35,12 +34,8 @@ interface Ticker {
   currency: 'USD' | 'IDR';
 }
 
-// Expanded ticker universe — Pak Abdullah directive 2026-05-21 "tambahkan lagi
-// terlalu sedikit perkaya lagi". 8 → 24 symbols mencakup:
-//   - Commodity (5): Gold, Silver, Oil, NatGas, Copper
-//   - Forex major (8): EUR, GBP, JPY, AUD, CAD, CHF, NZD, USDIDR (Indonesia)
-//   - Crypto major (8): BTC, ETH, XRP, SOL, BNB, ADA, DOGE, AVAX
-//   - Index (3): SPX, NASDAQ, JKSE (Indonesia Composite)
+// Expanded ticker universe — 22 symbols. Indonesia blue-chip stocks (IDR)
+// + global commodity/crypto/forex (USD).
 const CRYPTO_MAP: Array<{ id: string; symbol: string; label: string }> = [
   { id: 'bitcoin',      symbol: 'BTCUSDT', label: 'BTC' },
   { id: 'ethereum',     symbol: 'ETHUSDT', label: 'ETH' },
@@ -68,8 +63,7 @@ const YAHOO_MAP: Array<{ ticker: string; symbol: string; label: string; group: '
   { ticker: 'USDCHF=X',  symbol: 'USDCHF',  label: 'CHF',    group: 'forex' },
   { ticker: 'USDIDR=X',  symbol: 'USDIDR',  label: 'IDR',    group: 'forex' },
   { ticker: 'DX=F',      symbol: 'DXY',     label: 'DXY',    group: 'forex' },
-  // Index — IHSG = label native Indonesia (sebelumnya 'JKSE' English),
-  // plus BBRI/BBCA liquid Indonesian blue-chip per Pak Abdullah 2026-05-21.
+  // Index — IHSG + blue chip Indonesia
   { ticker: '^GSPC',     symbol: 'SPX',     label: 'S&P500', group: 'index' },
   { ticker: '^IXIC',     symbol: 'NDX',     label: 'NASDAQ', group: 'index' },
   { ticker: '^JKSE',     symbol: 'IHSG',    label: 'IHSG',   group: 'index' },
@@ -79,90 +73,174 @@ const YAHOO_MAP: Array<{ ticker: string; symbol: string; label: string; group: '
   { ticker: 'ASII.JK',   symbol: 'ASII',    label: 'ASII',   group: 'index' },
 ];
 
+// ─── In-memory stale-while-error cache ──────────────────────────────────
+// Per-symbol last-good record. Survive across requests (module-scope).
+// Saat Yahoo DNS down 10+ menit, kita TETAP serve last-good values supaya
+// ticker bar tidak kehilangan group entirely. Stale entry max 1 jam — beyond
+// itu data sudah terlalu basi (drop).
+const STALE_MAX_AGE_MS = 60 * 60 * 1000; // 1 jam
+interface CacheEntry { ticker: Ticker; ts: number }
+const lastGood: Map<string, CacheEntry> = new Map();
+
+function getCached(symbol: string): Ticker | null {
+  const entry = lastGood.get(symbol);
+  if (!entry) return null;
+  if (Date.now() - entry.ts > STALE_MAX_AGE_MS) {
+    lastGood.delete(symbol);
+    return null;
+  }
+  return entry.ticker;
+}
+
+function putCache(t: Ticker): void {
+  lastGood.set(t.symbol, { ticker: t, ts: Date.now() });
+}
+
 async function fetchCrypto(): Promise<Ticker[]> {
   try {
     const ids = CRYPTO_MAP.map((c) => c.id).join(',');
     const url = `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`;
     const res = await fetch(url, {
-      signal: AbortSignal.timeout(8_000),
+      signal: AbortSignal.timeout(6_000),
       headers: { 'Accept': 'application/json' },
-      next: { revalidate: 30 },
+      next: { revalidate: 60 },
     });
     if (!res.ok) throw new Error(`CoinGecko HTTP ${res.status}`);
     const data = await res.json() as Record<string, { usd?: number; usd_24h_change?: number }>;
     const out: Ticker[] = [];
     for (const c of CRYPTO_MAP) {
       const row = data[c.id];
-      if (!row || typeof row.usd !== 'number') continue;
-      out.push({
+      if (!row || typeof row.usd !== 'number') {
+        // CoinGecko skip kalau partial — pakai cache untuk symbol ini
+        const cached = getCached(c.symbol);
+        if (cached) out.push(cached);
+        continue;
+      }
+      const t: Ticker = {
         symbol: c.symbol,
         label: c.label,
         group: 'crypto',
         last: row.usd,
         change24hPct: typeof row.usd_24h_change === 'number' ? row.usd_24h_change : 0,
         currency: 'USD',
-      });
+      };
+      putCache(t);
+      out.push(t);
     }
     return out;
   } catch (err) {
     log.warn(`Crypto fetch failed: ${err instanceof Error ? err.message : 'unknown'}`);
-    return [];
+    // Total fail — return semua cache yang masih valid
+    const stale: Ticker[] = [];
+    for (const c of CRYPTO_MAP) {
+      const cached = getCached(c.symbol);
+      if (cached) stale.push(cached);
+    }
+    return stale;
   }
 }
 
-async function fetchYahooSingle(item: typeof YAHOO_MAP[number]): Promise<Ticker | null> {
-  try {
-    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(item.ticker)}`;
-    const res = await fetch(url, {
-      signal: AbortSignal.timeout(6_000),
-      headers: {
-        // Yahoo Finance reject default fetch UA → 403. Pakai browser UA.
-        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'application/json',
-      },
-      next: { revalidate: 30 },
-    });
-    if (!res.ok) return null;
-    const data = await res.json() as { chart?: { result?: Array<{ meta?: { regularMarketPrice?: number; chartPreviousClose?: number; currency?: string } }> } };
-    const meta = data.chart?.result?.[0]?.meta;
-    if (!meta || typeof meta.regularMarketPrice !== 'number') return null;
-    const last = meta.regularMarketPrice;
-    const prev = typeof meta.chartPreviousClose === 'number' ? meta.chartPreviousClose : last;
-    const pct = prev !== 0 ? ((last - prev) / prev) * 100 : 0;
-    // Yahoo Finance return currency native — Indonesian stocks (BBCA.JK, etc)
-    // return IDR. Forward currency supaya FE format Rp untuk IDR, $ untuk USD.
-    const currency: 'USD' | 'IDR' = meta.currency === 'IDR' ? 'IDR' : 'USD';
-    return {
-      symbol: item.symbol,
-      label: item.label,
-      group: item.group,
-      last,
-      change24hPct: pct,
-      currency,
-    };
-  } catch {
-    return null;
+/** Fetch Yahoo single dengan 1 retry — backoff 800ms. Timeout 4s per attempt.
+ *  Total worst-case latency = 4s + 800ms + 4s ≈ 9s per symbol. Tapi karena
+ *  parallel via Promise.all, total = max single = 9s (jarang).
+ *
+ *  Untuk handle EAI_AGAIN DNS error spesifik, retry seharusnya cukup karena
+ *  systemd-resolved biasanya recover dalam 1-2 detik. */
+async function fetchYahooSingleWithRetry(item: typeof YAHOO_MAP[number]): Promise<Ticker | null> {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    if (attempt > 0) {
+      await new Promise((r) => setTimeout(r, 800));
+    }
+    try {
+      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(item.ticker)}`;
+      const res = await fetch(url, {
+        signal: AbortSignal.timeout(4_000),
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'application/json',
+        },
+        next: { revalidate: 60 },
+      });
+      if (!res.ok) continue;
+      const data = await res.json() as { chart?: { result?: Array<{ meta?: { regularMarketPrice?: number; chartPreviousClose?: number; currency?: string } }> } };
+      const meta = data.chart?.result?.[0]?.meta;
+      if (!meta || typeof meta.regularMarketPrice !== 'number') continue;
+      const last = meta.regularMarketPrice;
+      const prev = typeof meta.chartPreviousClose === 'number' ? meta.chartPreviousClose : last;
+      const pct = prev !== 0 ? ((last - prev) / prev) * 100 : 0;
+      const currency: 'USD' | 'IDR' = meta.currency === 'IDR' ? 'IDR' : 'USD';
+      const t: Ticker = {
+        symbol: item.symbol,
+        label: item.label,
+        group: item.group,
+        last,
+        change24hPct: pct,
+        currency,
+      };
+      putCache(t);
+      return t;
+    } catch {
+      // retry loop
+    }
   }
+  return null;
 }
 
 async function fetchYahoo(): Promise<Ticker[]> {
-  const results = await Promise.all(YAHOO_MAP.map(fetchYahooSingle));
-  return results.filter((x): x is Ticker => x !== null);
+  const results = await Promise.all(YAHOO_MAP.map(fetchYahooSingleWithRetry));
+  const out: Ticker[] = [];
+  let liveCount = 0;
+  let cachedCount = 0;
+  for (let i = 0; i < YAHOO_MAP.length; i++) {
+    const item = YAHOO_MAP[i];
+    const live = results[i];
+    if (live) {
+      out.push(live);
+      liveCount++;
+    } else {
+      // Stale-while-error: pakai last-known-good
+      const cached = getCached(item.symbol);
+      if (cached) {
+        out.push(cached);
+        cachedCount++;
+      }
+    }
+  }
+  if (cachedCount > 0) {
+    log.info(`Yahoo fetch: ${liveCount} live, ${cachedCount} from stale cache (Yahoo upstream partial fail)`);
+  }
+  return out;
 }
 
 export async function GET() {
+  const startedAt = Date.now();
   const [crypto, yahoo] = await Promise.all([fetchCrypto(), fetchYahoo()]);
-  // Order: commodity → crypto → forex (institutional eye-flow)
+
+  // Order: commodity → crypto → forex → index (institutional eye-flow)
   const commodity = yahoo.filter((t) => t.group === 'commodity');
   const forex = yahoo.filter((t) => t.group === 'forex');
-  const tickers = [...commodity, ...crypto, ...forex];
+  const index = yahoo.filter((t) => t.group === 'index');
+  const tickers = [...commodity, ...crypto, ...forex, ...index];
+
+  const latencyMs = Date.now() - startedAt;
 
   return NextResponse.json(
-    { ok: true, tickers, generatedAt: new Date().toISOString() },
+    {
+      ok: true,
+      tickers,
+      generatedAt: new Date().toISOString(),
+      meta: {
+        latencyMs,
+        counts: { commodity: commodity.length, crypto: crypto.length, forex: forex.length, index: index.length, total: tickers.length },
+      },
+    },
     {
       headers: {
-        // Browser 30s, CDN 60s, stale-while-revalidate 5 min
-        'Cache-Control': 'public, max-age=30, s-maxage=60, stale-while-revalidate=300',
+        // Browser 60s, CDN 5 min fresh + 15 min stale-while-revalidate.
+        // Lebih agresif dari sebelumnya (60s s-maxage + 5 min swr) karena
+        // upstream Yahoo DNS flap — kita prefer serve cached longer untuk
+        // resilience.
+        'Cache-Control': 'public, max-age=60, s-maxage=300, stale-while-revalidate=900',
       },
     },
   );

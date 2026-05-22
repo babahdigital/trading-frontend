@@ -403,37 +403,16 @@ export async function proxy(request: NextRequest) {
       // tidak make sense kalau belum subscribe).
       if (pathname.startsWith('/api/client') && payload.role === 'CLIENT') {
         if (!payload.licenseId && !payload.subscriptionId) {
-          // Pak Abdullah audit 2026-05-22 — return 200 graceful shape supaya
-          // FE tidak flood console dengan 403 errors. User without active
-          // subscription tetap browse portal, components show "Subscribe to
-          // unlock" empty state via `requires_subscription` flag.
-          //
-          // Multi-shape response satisfies various endpoint consumers
-          // (positions/notifications/equity/trades/signals/events/etc) tanpa
-          // need refactor di setiap component.
-          return NextResponse.json({
-            ok: true,
-            code: 'no_active_subscription',
-            requires_subscription: true,
-            data: null,
-            items: [],
-            positions: [],
-            notifications: [],
-            equity: [],
-            trades: [],
-            events: [],
-            signals: [],
-            reports: [],
-            tenants: [],
-            killSwitch: null,
-            status: null,
-            performance: null,
-            scanner: null,
-            calendar: [],
-            onboarding: { needsKyc: false, needsSubscription: true },
-            tenant: { features: [], requires_subscription: true },
-            message: 'Active subscription required to access this data',
-          }, { status: 200 });
+          // Return 403 — bukan 200 graceful shape (Pak Abdullah audit
+          // 2026-05-22 round 2: 200 shape `{ equity: [], positions: [] }`
+          // crash consumer yang expect array langsung dari response.json()
+          // → "Cannot read properties of undefined (reading 'map')" di portal).
+          // 403 cleaner — FE catch handler default to empty state via initial
+          // useState. Console "errors" cosmetic only, tidak block functionality.
+          return NextResponse.json(
+            { code: 'no_active_subscription', error: 'No active license or subscription' },
+            { status: 403 },
+          );
         }
       }
     }

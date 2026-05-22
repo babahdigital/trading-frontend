@@ -273,8 +273,24 @@ async function fetchStooqBatch(items: Array<typeof YAHOO_MAP[number]>): Promise<
   return out;
 }
 
+/** Chunked parallel fetcher — Node.js undici default per-origin connection
+ *  limit ~6-10. Firing 16 paralel ke query1.finance.yahoo.com bikin sebagian
+ *  request queue overshoot 6s timeout (logs verify 2026-05-22: yahoo=3
+ *  succeeded of 16 saat parallel). Chunk 5-at-a-time = 4 batches × ~1.5s
+ *  each = ~6s total, semua symbols dapat fair chance.
+ */
+async function fetchInChunks<T, R>(items: T[], fn: (item: T) => Promise<R>, chunkSize = 5): Promise<R[]> {
+  const out: R[] = [];
+  for (let i = 0; i < items.length; i += chunkSize) {
+    const chunk = items.slice(i, i + chunkSize);
+    const chunkResults = await Promise.all(chunk.map(fn));
+    out.push(...chunkResults);
+  }
+  return out;
+}
+
 async function fetchYahoo(): Promise<Ticker[]> {
-  const results = await Promise.all(YAHOO_MAP.map(fetchYahooSingle));
+  const results = await fetchInChunks(YAHOO_MAP, fetchYahooSingle, 5);
   const filled = new Map<string, Ticker>();
   const missingItems: Array<typeof YAHOO_MAP[number]> = [];
   for (let i = 0; i < YAHOO_MAP.length; i++) {

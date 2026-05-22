@@ -20,5 +20,8 @@ export async function GET() {
   }
   // Detect dev vs prod by key prefix supaya FE bisa show banner
   const isDev = publicKey.startsWith('xnd_public_development_');
-  return NextResponse.json({ publicKey, isDev });
+  // Global Account flag — controls visibility of regional e-wallets
+  // (PH/MY/SG). Default false untuk Indonesian merchant tanpa Global Account.
+  const globalAccountEnabled = process.env.XENDIT_GLOBAL_ACCOUNT_ENABLED === 'true';
+  return NextResponse.json({ publicKey, isDev, globalAccountEnabled });
 }

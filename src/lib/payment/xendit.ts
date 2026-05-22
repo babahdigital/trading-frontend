@@ -265,7 +265,16 @@ interface CreateEwalletCharge extends CreateChargeBase {
     | 'GCASH_PH' | 'PAYMAYA_PH' | 'TOUCHNGO_MY';
   /** Amount dalam native currency e-wallet (PHP/MYR/SGD/IDR). Default = amountIdr. */
   amountInCurrency?: number;
+  /** E.164 phone number — required untuk OVO, LinkAja, GCash, Maya, TouchNGo.
+   *  Other wallets (GoPay, DANA, ShopeePay, AstraPay, GrabPay) tidak butuh
+   *  karena redirect-based flow. */
+  mobileNumber?: string;
 }
+
+/** E-wallet channels yang butuh mobile_number di channel_properties. */
+const EWALLET_REQUIRES_PHONE = new Set([
+  'OVO', 'LINKAJA', 'GCASH_PH', 'PAYMAYA_PH', 'TOUCHNGO_MY',
+]);
 
 type CreateChargeParams = CreateQrisCharge | CreateVaCharge | CreateCardCharge | CreateEwalletCharge;
 
@@ -336,18 +345,23 @@ export async function createXenditQrisCharge(params: CreateQrisCharge): Promise<
   // QRIS expiry minimum 1 menit, max 24 jam. Default 30 menit.
   const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
 
+  // Xendit QR Code v2 API (api-version 2022-07-31) — shape canonical:
+  //   reference_id (NOT external_id), type=DYNAMIC, currency, amount, expires_at
   const payload = {
-    external_id: params.externalId,
+    reference_id: params.externalId,
     type: 'DYNAMIC',
-    callback_url: `${appUrl}/api/billing/webhook/xendit`,
-    amount: params.amountIdr,
     currency: 'IDR',
+    amount: params.amountIdr,
     expires_at: expiresAt,
   };
 
   const res = await xenditFetch('https://api.xendit.co/qr_codes', {
     method: 'POST',
-    headers: { 'api-version': '2022-07-31' },
+    headers: {
+      'api-version': '2022-07-31',
+      // Per-request callback URL (alternative ke dashboard setting)
+      'x-callback-url': `${appUrl}/api/billing/webhook/xendit`,
+    },
     body: JSON.stringify(payload),
     idempotencyKey: `qris_${params.externalId}`,
   });
@@ -359,15 +373,15 @@ export async function createXenditQrisCharge(params: CreateQrisCharge): Promise<
   }
 
   const data = await res.json() as {
-    id: string; external_id: string; qr_string: string;
-    status: string; expires_at?: string; type?: string;
+    id: string; reference_id?: string; external_id?: string;
+    qr_string: string; status: string; expires_at?: string; type?: string;
   };
   return {
     id: data.id,
     status: normalizeStatus(data.status),
     method: 'QRIS',
     qrString: data.qr_string,
-    externalId: data.external_id,
+    externalId: data.reference_id ?? data.external_id ?? params.externalId,
     expiresAt: data.expires_at ?? expiresAt,
     amountIdr: params.amountIdr,
   };
@@ -497,16 +511,28 @@ export async function createXenditEwalletCharge(params: CreateEwalletCharge): Pr
   const chargeAmount = params.amountInCurrency ?? params.amountIdr;
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://babahalgo.com';
 
+  // Channel-properties bervariasi per wallet:
+  //   - Pull (OVO/LinkAja/GCash/Maya/TouchNGo): butuh mobile_number E.164
+  //   - Redirect (GoPay/DANA/ShopeePay/AstraPay/GrabPay): pakai redirect URLs
+  const needsPhone = EWALLET_REQUIRES_PHONE.has(params.method);
+  if (needsPhone && !params.mobileNumber) {
+    throw new Error(`Mobile number required for ${params.method}`);
+  }
+
+  const channelProperties: Record<string, unknown> = needsPhone
+    ? { mobile_number: params.mobileNumber }
+    : {
+        success_redirect_url: `${appUrl}/portal/billing/success?order_id=${encodeURIComponent(params.externalId)}`,
+        failure_redirect_url: `${appUrl}/portal/billing/failure?order_id=${encodeURIComponent(params.externalId)}`,
+      };
+
   const payload = {
     reference_id: params.externalId,
     currency,
     amount: chargeAmount,
     checkout_method: 'ONE_TIME_PAYMENT',
     channel_code: channelCode,
-    channel_properties: {
-      success_redirect_url: `${appUrl}/portal/billing/success?order_id=${encodeURIComponent(params.externalId)}`,
-      failure_redirect_url: `${appUrl}/portal/billing/failure?order_id=${encodeURIComponent(params.externalId)}`,
-    },
+    channel_properties: channelProperties,
     customer: {
       given_names: params.customerName.split(' ')[0] ?? params.customerName,
       surname: params.customerName.split(' ').slice(1).join(' ') || params.customerName,
@@ -517,7 +543,12 @@ export async function createXenditEwalletCharge(params: CreateEwalletCharge): Pr
 
   const res = await xenditFetch('https://api.xendit.co/ewallets/charges', {
     method: 'POST',
-    headers: { 'api-version': '2024-11-11' },
+    headers: {
+      'api-version': '2024-11-11',
+      // Per-request callback URL — dipakai kalau dashboard global setting
+      // belum di-config. Webhook tetap masuk ke /api/billing/webhook/xendit.
+      'x-callback-url': `${appUrl}/api/billing/webhook/xendit`,
+    },
     body: JSON.stringify(payload),
     idempotencyKey: `ewallet_${params.method}_${params.externalId}`,
   });

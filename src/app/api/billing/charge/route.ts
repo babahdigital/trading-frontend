@@ -116,17 +116,42 @@ export async function POST(req: NextRequest) {
     authenticationId,
     promo: promoSlug,
     currency: requestedCurrency,
+    mobileNumber,
   } = body as {
     tier: string;
     paymentMethod: XenditPaymentMethod;
     tokenId?: string;
     authenticationId?: string;
     promo?: string;
-    /** Card multi-currency settlement — default IDR.
-     *  Per Xendit Global Account: USD/SGD/MYR/PHP/THB/HKD. Non-ID locale
-     *  default ke USD untuk Stripe-like UX. */
     currency?: string;
+    /** E.164 phone number untuk OVO/LinkAja/GCash/Maya/TouchNGo pull wallets */
+    mobileNumber?: string;
   };
+
+  // Phone-required wallets: client harus collect mobile_number E.164.
+  const PHONE_REQUIRED_METHODS = new Set<XenditPaymentMethod>([
+    'OVO', 'LINKAJA', 'GCASH_PH', 'PAYMAYA_PH', 'TOUCHNGO_MY',
+  ]);
+  if (PHONE_REQUIRED_METHODS.has(paymentMethod)) {
+    if (!mobileNumber || !/^\+?\d{8,15}$/.test(mobileNumber.replace(/\s/g, ''))) {
+      return errorResponse('mobile_number_required', `Mobile number (E.164) required for ${paymentMethod}`, 400);
+    }
+  }
+
+  // Global Account gate — Xendit ID dev/prod key cuma support IDR e-wallet.
+  // Regional e-wallet (PH/MY/SG) butuh Global Account aktif → INELIGIBLE_MERCHANT
+  // di akun standar. Block early dengan pesan jelas + dokumentasi.
+  const REGIONAL_EWALLETS_GLOBAL_ONLY = new Set<XenditPaymentMethod>([
+    'GCASH_PH', 'PAYMAYA_PH', 'GRABPAY_PH', 'GRABPAY_MY', 'TOUCHNGO_MY', 'GRABPAY_SG',
+  ]);
+  const enableGlobalAccount = process.env.XENDIT_GLOBAL_ACCOUNT_ENABLED === 'true';
+  if (REGIONAL_EWALLETS_GLOBAL_ONLY.has(paymentMethod) && !enableGlobalAccount) {
+    return errorResponse(
+      'global_account_required',
+      'Regional payment methods require Xendit Global Account activation. Contact help@xendit.co or use Card/QRIS/VA/IDR e-wallet.',
+      400,
+    );
+  }
 
   if (!paymentMethod || !VALID_METHODS.has(paymentMethod)) {
     return errorResponse('invalid_payment_method', 'Invalid payment method', 400);
@@ -316,6 +341,7 @@ export async function POST(req: NextRequest) {
         customerName: user.name || user.email,
         customerEmail: user.email,
         description: localizedDescription,
+        mobileNumber,
       });
     } else {
       // Unreachable per VALID_METHODS gate above

@@ -97,6 +97,14 @@ const REGIONAL_EWALLETS: MethodOption[] = [
   { code: 'GRABPAY_SG', category: 'ewallet', labelId: 'GrabPay (SG)', labelEn: 'GrabPay (Singapore)' },
 ];
 
+/** Wallets yang butuh mobile_number E.164 (Xendit pull-pattern):
+ *  - OVO, LinkAja (Indonesia)
+ *  - GCash, Maya, TouchNGo (regional)
+ *  Sisanya redirect-based — customer authorize tanpa kasih nomor HP. */
+const PHONE_REQUIRED_METHODS = new Set<PaymentMethodCode>([
+  'OVO', 'LINKAJA', 'GCASH_PH', 'PAYMAYA_PH', 'TOUCHNGO_MY',
+]);
+
 function resolveDemoLink(service: 'signal' | 'crypto' | 'vps', locale: string): string | null {
   if (service === 'crypto') return `/${locale}/register?service=crypto&tier=demo&from=checkout`;
   if (service === 'signal') return `/${locale}/demo?product=robot-meta&from=checkout`;
@@ -185,20 +193,34 @@ export function InlineCheckout({ tier, service, locale, promoSlug }: InlineCheck
   const [previewErr, setPreviewErr] = useState<string | null>(null);
   const [method, setMethod] = useState<PaymentMethodCode>('CREDIT_CARD');
   const [state, setState] = useState<CheckoutState>({ kind: 'picking' });
+  const [phoneInput, setPhoneInput] = useState('');
+  const [globalAccountEnabled, setGlobalAccountEnabled] = useState(false);
   const startedRef = useRef(false);
+
+  // Probe Xendit config — capture globalAccountEnabled flag supaya UI bisa
+  // hide regional e-wallet tiles bila merchant belum aktif Global Account.
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch('/api/billing/xendit-config', { credentials: 'same-origin' });
+        if (res.ok) {
+          const data = await res.json() as { globalAccountEnabled?: boolean };
+          setGlobalAccountEnabled(!!data.globalAccountEnabled);
+        }
+      } catch { /* ignore, default false */ }
+    })();
+  }, []);
 
   // Locale gate:
   //   ID: semua method ID (Card + QRIS + 6 VA banks + 6 ID e-wallets)
-  //   Non-ID: Card + Regional e-wallets (PH/MY/SG) via Global Account
+  //   Non-ID: Card always; regional e-wallets hanya kalau Global Account aktif
   const availableMethods = useMemo<MethodOption[]>(() => {
     if (isEn) {
-      return [
-        METHODS.find((m) => m.code === 'CREDIT_CARD')!,
-        ...REGIONAL_EWALLETS,
-      ];
+      const card = METHODS.find((m) => m.code === 'CREDIT_CARD')!;
+      return globalAccountEnabled ? [card, ...REGIONAL_EWALLETS] : [card];
     }
     return METHODS;
-  }, [isEn]);
+  }, [isEn, globalAccountEnabled]);
 
   const grouped = useMemo(() => {
     const map = new Map<MethodCategory, MethodOption[]>();
@@ -258,7 +280,19 @@ export function InlineCheckout({ tier, service, locale, promoSlug }: InlineCheck
       return;
     }
 
-    // QRIS / VA → POST charge → render display
+    // Phone-required wallets (OVO/LinkAja/GCash/Maya/TouchNGo): client harus
+    // provide E.164 mobile number. Validate here sebelum hit API.
+    if (PHONE_REQUIRED_METHODS.has(method)) {
+      const cleaned = phoneInput.trim().replace(/[\s-]/g, '');
+      if (!/^\+?\d{8,15}$/.test(cleaned)) {
+        setState({ kind: 'failed', reason: isEn
+          ? 'Please enter a valid phone number (e.g. +6281234567890)'
+          : 'Masukkan nomor HP yang valid (contoh: +6281234567890)' });
+        return;
+      }
+    }
+
+    // QRIS / VA / E-Wallet → POST charge → render display
     setState({ kind: 'creating' });
     try {
       const res = await fetch('/api/billing/charge', {
@@ -271,6 +305,9 @@ export function InlineCheckout({ tier, service, locale, promoSlug }: InlineCheck
         body: JSON.stringify({
           tier, paymentMethod: method,
           ...(promoSlug ? { promo: promoSlug } : {}),
+          ...(PHONE_REQUIRED_METHODS.has(method)
+              ? { mobileNumber: phoneInput.trim().replace(/[\s-]/g, '') }
+              : {}),
         }),
       });
 
@@ -624,6 +661,29 @@ export function InlineCheckout({ tier, service, locale, promoSlug }: InlineCheck
                       ? `You're saving ${fmtIdr(discountAmount)} with this promo.`
                       : `Anda hemat ${fmtIdr(discountAmount)} dengan promo ini.`}
                   </span>
+                </div>
+              )}
+
+              {/* Phone input — required untuk OVO/LinkAja/GCash/Maya/TouchNGo */}
+              {PHONE_REQUIRED_METHODS.has(method) && (
+                <div className="space-y-1.5 pt-1">
+                  <label className="block text-[11px] font-semibold uppercase tracking-wider text-foreground/80">
+                    {isEn ? 'Mobile number (registered on wallet)' : 'Nomor HP (terdaftar di wallet)'}
+                  </label>
+                  <input
+                    type="tel"
+                    autoComplete="tel"
+                    inputMode="tel"
+                    value={phoneInput}
+                    onChange={(e) => setPhoneInput(e.target.value)}
+                    placeholder="+6281234567890"
+                    className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500/60"
+                  />
+                  <p className="text-[11px] text-muted-foreground leading-snug">
+                    {isEn
+                      ? `Push notification will be sent to your ${method} app.`
+                      : `Notifikasi push akan dikirim ke aplikasi ${method} Anda.`}
+                  </p>
                 </div>
               )}
 

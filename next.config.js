@@ -45,13 +45,15 @@ const nextConfig = {
       // Cloudflare Web Analytics auto-injected beacon (static.cloudflareinsights.com)
       // dan post analytics endpoint cloudflareinsights.com. Cal.com embed butuh script
       // dari domain mereka. 'unsafe-inline' + 'unsafe-eval' diperlukan untuk Next 16 hydration.
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://app.cal.com https://embed.cal.com https://static.cloudflareinsights.com",
-      "script-src-elem 'self' 'unsafe-inline' https://app.cal.com https://embed.cal.com https://static.cloudflareinsights.com",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://app.cal.com https://embed.cal.com https://static.cloudflareinsights.com https://js.xendit.co",
+      "script-src-elem 'self' 'unsafe-inline' https://app.cal.com https://embed.cal.com https://static.cloudflareinsights.com https://js.xendit.co",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",
-      "connect-src 'self' https://*.babahalgo.com https://babahalgo.com https://app.cal.com https://api.cal.com https://image.pollinations.ai wss://*.babahalgo.com",
-      "frame-src 'self' https://app.cal.com https://embed.cal.com",
+      // Xendit.js tokenization + 3DS challenge calls hit api.xendit.co
+      "connect-src 'self' https://*.babahalgo.com https://babahalgo.com https://app.cal.com https://api.cal.com https://image.pollinations.ai https://api.xendit.co https://js.xendit.co wss://*.babahalgo.com",
+      // Xendit 3DS challenge iframe + payment popups need frame allowance
+      "frame-src 'self' https://app.cal.com https://embed.cal.com https://*.xendit.co https://js.xendit.co",
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",

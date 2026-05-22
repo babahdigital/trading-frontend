@@ -116,6 +116,18 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
+    # Explicit DNS — Pak Abdullah audit 2026-05-22: production logs show
+    # recurring EAI_AGAIN errors ke api.coingecko.com / query1.finance.yahoo.com
+    # / stooq.com. Root cause: container resolv.conf forward ke systemd-resolved
+    # host (127.0.0.53) yang config kosong + multi-hop slow. Bypass via
+    # per-service dns directive supaya container query langsung ke 8.8.8.8/1.1.1.1.
+    # Daemon-level /etc/docker/daemon.json dns juga set tapi tidak konsisten apply
+    # untuk compose containers di Ubuntu 22+ — explicit per-service lebih reliable.
+    dns:
+      - 8.8.8.8         # Google primary
+      - 1.1.1.1         # Cloudflare primary
+      - 8.8.4.4         # Google secondary
+
     volumes:
       # Public assets (logos, CMS-uploaded images, default branding) — hot-swap tanpa rebuild image
       - ./public:/app/public

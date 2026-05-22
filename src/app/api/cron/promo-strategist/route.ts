@@ -28,6 +28,22 @@ import { createLogger } from '@/lib/logger';
 
 const log = createLogger('cron/promo-strategist');
 
+/**
+ * Return UTC Date yang mewakili midnight WIB (Asia/Jakarta UTC+7) untuk
+ * given timestamp. Result digunakan untuk snapshot key — supaya 1×/day per
+ * WIB calendar day, no fuzzy 7-day delta.
+ *
+ * Contoh: input 2026-05-22T03:00Z (10:00 WIB), output 2026-05-21T17:00Z
+ * (= 2026-05-22T00:00 WIB).
+ */
+function wibMidnight(d: Date): Date {
+  const WIB_OFFSET_MS = 7 * 60 * 60 * 1000;
+  const wibTime = d.getTime() + WIB_OFFSET_MS;
+  const wibDay = new Date(wibTime);
+  wibDay.setUTCHours(0, 0, 0, 0);
+  return new Date(wibDay.getTime() - WIB_OFFSET_MS);
+}
+
 function authorize(request: NextRequest): boolean {
   // Admin role bypass
   if (request.headers.get('x-user-role') === 'ADMIN') return true;
@@ -88,9 +104,11 @@ async function computeRevenueHealth(): Promise<RevenueHealth> {
     },
   });
 
-  // 7-day trend — compare with snapshot 7 days ago
-  const since7d = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-  since7d.setUTCHours(0, 0, 0, 0);
+  // 7-day trend — compare with snapshot 7 days ago. Date aligned ke WIB
+  // (Asia/Jakarta UTC+7) supaya snapshot 1×/day consistent dengan business
+  // hours Indonesia. Sebelumnya pakai setUTCHours bikin 7-day delta fuzzy
+  // ±1 day saat cron fire di pagi WIB (07:00 WIB = 00:00 UTC).
+  const since7d = wibMidnight(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
   const snap7d = await prisma.revenueSnapshot.findFirst({
     where: { snapshotDate: { lte: since7d } },
     orderBy: { snapshotDate: 'desc' },
@@ -337,10 +355,9 @@ export async function POST(request: NextRequest) {
   // 0. Auto-cleanup expired (status flip + DB purge > 90 days)
   const cleanup = await cleanupExpiredPromos();
 
-  // 1. Compute revenue health + write snapshot (1 row per day)
+  // 1. Compute revenue health + write snapshot (1 row per WIB calendar day)
   const health = await computeRevenueHealth();
-  const today = new Date();
-  today.setUTCHours(0, 0, 0, 0);
+  const today = wibMidnight(new Date());
 
   await prisma.revenueSnapshot.upsert({
     where: { snapshotDate: today },

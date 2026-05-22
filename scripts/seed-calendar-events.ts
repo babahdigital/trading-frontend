@@ -118,6 +118,84 @@ const EVENTS: EventSeed[] = [
     dates: { 2026: '2026-04-01', 2027: '2027-04-01' },
     leadDays: 7, country: 'INTL',
   },
+
+  // ─── Indonesia national milestones (audit 2026-05-22 — expanded) ───
+  {
+    slug: 'hari-buruh', templateKey: 'hari-buruh',
+    name: 'Hari Buruh Internasional', name_en: 'Labour Day',
+    dates: { 2026: '2026-05-01', 2027: '2027-05-01' },
+    leadDays: 5, country: 'ID',
+  },
+  {
+    slug: 'hari-pendidikan', templateKey: 'hari-pendidikan',
+    name: 'Hari Pendidikan Nasional', name_en: 'National Education Day',
+    dates: { 2026: '2026-05-02', 2027: '2027-05-02' },
+    leadDays: 5, country: 'ID',
+  },
+  {
+    slug: 'hari-kartini', templateKey: 'hari-kartini',
+    name: 'Hari Kartini', name_en: 'Kartini Day (Women Empowerment)',
+    dates: { 2026: '2026-04-21', 2027: '2027-04-21' },
+    leadDays: 5, country: 'ID',
+  },
+  {
+    slug: 'hari-anak-nasional', templateKey: 'hari-anak-nasional',
+    name: 'Hari Anak Nasional', name_en: 'National Children Day',
+    dates: { 2026: '2026-07-23', 2027: '2027-07-23' },
+    leadDays: 5, country: 'ID',
+  },
+  {
+    slug: 'hari-sumpah-pemuda', templateKey: 'hari-sumpah-pemuda',
+    name: 'Hari Sumpah Pemuda', name_en: 'Youth Pledge Day',
+    dates: { 2026: '2026-10-28', 2027: '2027-10-28' },
+    leadDays: 5, country: 'ID',
+  },
+  {
+    slug: 'hari-pahlawan', templateKey: 'hari-pahlawan',
+    name: 'Hari Pahlawan', name_en: 'Heroes Day',
+    dates: { 2026: '2026-11-10', 2027: '2027-11-10' },
+    leadDays: 5, country: 'ID',
+  },
+  {
+    slug: 'hari-ibu', templateKey: 'hari-ibu',
+    name: 'Hari Ibu', name_en: 'Mother\'s Day Indonesia',
+    dates: { 2026: '2026-12-22', 2027: '2027-12-22' },
+    leadDays: 7, country: 'ID',
+  },
+
+  // ─── International major (audit 2026-05-22 — expanded) ─────────────
+  {
+    slug: 'valentine', templateKey: 'valentine',
+    name: 'Hari Valentine', name_en: 'Valentine\'s Day',
+    dates: { 2026: '2026-02-14', 2027: '2027-02-14' },
+    leadDays: 7, country: 'INTL',
+  },
+  {
+    slug: 'hari-perempuan-internasional', templateKey: 'womens-day',
+    name: 'Hari Perempuan Internasional', name_en: 'International Women\'s Day',
+    dates: { 2026: '2026-03-08', 2027: '2027-03-08' },
+    leadDays: 5, country: 'INTL',
+  },
+  {
+    slug: 'easter', templateKey: 'easter',
+    name: 'Paskah', name_en: 'Easter',
+    // Computus algorithm — 2026: Apr 5, 2027: Mar 28
+    dates: { 2026: '2026-04-05', 2027: '2027-03-28' },
+    leadDays: 7, country: 'INTL',
+  },
+  {
+    slug: 'halloween', templateKey: 'halloween',
+    name: 'Halloween', name_en: 'Halloween',
+    dates: { 2026: '2026-10-31', 2027: '2027-10-31' },
+    leadDays: 7, country: 'INTL',
+  },
+  {
+    slug: 'thanksgiving', templateKey: 'thanksgiving',
+    name: 'Thanksgiving', name_en: 'Thanksgiving',
+    // 4th Thursday November — 2026: Nov 26, 2027: Nov 25
+    dates: { 2026: '2026-11-26', 2027: '2027-11-25' },
+    leadDays: 5, country: 'INTL',
+  },
 ];
 
 async function main() {

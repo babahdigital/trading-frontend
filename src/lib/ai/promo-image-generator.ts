@@ -59,6 +59,9 @@ const THEME_HINTS: Record<string, string> = {
   easter: 'Easter celebration, soft pastel spring palette, abstract eggs and lily motif, fresh hopeful',
   halloween: 'Halloween, deep purple and orange, atmospheric moonlight, mysterious elegant not scary',
   thanksgiving: 'Thanksgiving harvest, warm autumn palette, abstract wheat and amber leaves, grateful cozy',
+  // Welcome / evergreen (added 2026-05-22)
+  welcome: 'Welcome onboarding theme, warm amber and navy gradient, abstract open door motif, inviting professional fintech aesthetic',
+  evergreen: 'Evergreen offer theme, sophisticated emerald and gold palette, abstract growth chart, perennial trustworthy',
   default: 'Modern fintech promotional banner, professional gold and black palette, abstract trading elements',
 };
 

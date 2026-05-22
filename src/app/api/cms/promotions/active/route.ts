@@ -28,6 +28,8 @@ export async function GET(request: NextRequest) {
       startsAt: { lte: now },
       endsAt: { gte: now },
     },
+    // Order by startsAt desc — final priority sort below di JS karena
+    // butuh evaluate calendarEventId + endsAt distance.
     orderBy: { startsAt: 'desc' },
     select: {
       id: true,
@@ -80,14 +82,41 @@ export async function GET(request: NextRequest) {
     : localeFiltered;
 
   // Respect maxUsage
-  const eligible = tierFiltered.filter((p) => p.maxUsage === 0 || p.currentUsage < p.maxUsage);
+  const eligibleAll = tierFiltered.filter((p) => p.maxUsage === 0 || p.currentUsage < p.maxUsage);
+
+  // Priority + exclusivity logic (Pak Abdullah audit 2026-05-22 — "bila
+  // ada promo event hari raya jangan munculkan promo lainnya"):
+  //
+  //   IF ada event-linked promo aktif → ONLY return event promos
+  //     (hide flash-sale + evergreen welcome supaya tidak dilute event)
+  //   ELSE → return semua eligible (flash-sale + evergreen filler)
+  //
+  // Within group, sort by:
+  //   - Closer endsAt first (urgent festive)
+  //   - Higher discount first kalau days roughly equal (within 3d)
+  const eventLinked = eligibleAll.filter((p) => p.calendarEventId != null);
+  const nonEvent = eligibleAll.filter((p) => p.calendarEventId == null);
+
+  const sortByUrgency = (a: typeof eligibleAll[number], b: typeof eligibleAll[number]) => {
+    const aDays = (new Date(a.endsAt).getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+    const bDays = (new Date(b.endsAt).getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+    if (Math.abs(aDays - bDays) < 3) {
+      return Number(b.discountValue) - Number(a.discountValue);
+    }
+    return aDays - bDays;
+  };
+
+  // Exclusivity: event-linked promos win mutually exclusive
+  const selected = eventLinked.length > 0
+    ? [...eventLinked].sort(sortByUrgency)
+    : [...nonEvent].sort(sortByUrgency);
 
   return NextResponse.json({
-    promotions: eligible.map((p) => ({
+    promotions: selected.map((p) => ({
       ...p,
       discountValue: Number(p.discountValue),
     })),
-    count: eligible.length,
+    count: selected.length,
   }, {
     headers: {
       'Cache-Control': 'public, max-age=60, s-maxage=300, stale-while-revalidate=86400',

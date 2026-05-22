@@ -58,9 +58,15 @@ export async function POST(
     return NextResponse.json({ error: 'promotion_not_found' }, { status: 404 });
   }
 
-  // Resolve templateKey:
+  // Resolve templateKey (Pak Abdullah audit 2026-05-22 — expand mapping):
+  //   1. Linked event templateKey (Lebaran/Natal/etc) — priority
+  //   2. Slug prefix → flash-sale / welcome / evergreen variant
+  //   3. Default fintech aesthetic
   const templateKey = promo.calendarEvent?.templateKey
-    ?? (promo.slug.startsWith('flash') ? 'flash-sale' : 'default');
+    ?? (promo.slug.startsWith('flash') ? 'flash-sale'
+      : promo.slug.startsWith('welcome') ? 'welcome'
+      : promo.slug.startsWith('evergreen') ? 'evergreen'
+      : 'default');
 
   // Optional tier name — kalau applicable tier cuma 1, embed di prompt
   const applicableTiers = Array.isArray(promo.applicableTiers) ? (promo.applicableTiers as string[]) : [];

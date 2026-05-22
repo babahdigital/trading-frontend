@@ -54,14 +54,26 @@ interface ActivePromo {
 
 const DISMISS_KEY_PREFIX = 'promo-dismissed-';
 
-function isDismissedToday(slug: string): boolean {
+/** Cooldown periode per kategori promo (Pak Abdullah audit 2026-05-22):
+ *  - Event hari raya: 1 hari (re-show besok kalau event masih aktif)
+ *  - Welcome/evergreen: 7 hari (jangan ganggu user yang sudah lihat)
+ *  - Flash-sale: 1 hari (urgency-driven, retry besok kalau masih aktif)
+ */
+function getCooldownDays(slug: string, hasEvent: boolean): number {
+  if (hasEvent) return 1;
+  if (slug.startsWith('welcome') || slug.startsWith('evergreen')) return 7;
+  return 1; // flash-sale + default
+}
+
+function isDismissedRecently(slug: string, cooldownDays: number): boolean {
   if (typeof window === 'undefined') return false;
   try {
     const raw = localStorage.getItem(`${DISMISS_KEY_PREFIX}${slug}`);
     if (!raw) return false;
     const dismissedAt = new Date(raw);
-    const today = new Date();
-    return dismissedAt.toDateString() === today.toDateString();
+    const ageMs = Date.now() - dismissedAt.getTime();
+    const cooldownMs = cooldownDays * 24 * 60 * 60 * 1000;
+    return ageMs < cooldownMs;
   } catch {
     return false;
   }
@@ -106,7 +118,14 @@ export function PromoPopup() {
         if (!res.ok) return;
         const data = await res.json();
         const list: ActivePromo[] = data.promotions ?? [];
-        const eligible = list.find((p) => !isDismissedToday(p.slug));
+        // Pick first eligible — server sudah sort by priority (event > flash >
+        // evergreen). Respect per-kategori cooldown supaya evergreen tidak
+        // tampil setiap hari (Pak Abdullah audit 2026-05-22).
+        const eligible = list.find((p) => {
+          const hasEvent = !!p.calendarEvent;
+          const cooldown = getCooldownDays(p.slug, hasEvent);
+          return !isDismissedRecently(p.slug, cooldown);
+        });
         if (!cancelled && eligible) setPromo(eligible);
       } catch {
         /* silent — popup is non-critical */

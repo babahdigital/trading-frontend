@@ -45,6 +45,20 @@ const THEME_HINTS: Record<string, string> = {
   'harbolnas-1212': 'Indonesian online shopping day 12.12, vibrant gradient red-orange, modern Indonesian commerce',
   'flash-sale': 'Flash sale, lightning energy, urgent red-yellow palette, dynamic motion',
   'fiscal-year': 'New fiscal year, professional business aesthetic, gold and navy, growth chart elements',
+  // Indonesia national milestones (added 2026-05-22 audit)
+  'hari-buruh': 'Labour Day, dignified workforce silhouettes abstract, navy and red, strong industrial yet warm',
+  'hari-pendidikan': 'National Education Day, abstract book and lamp motif, warm sepia and gold, classic scholarly',
+  'hari-kartini': 'Kartini Day women empowerment, batik motif abstract, deep amber and crimson, elegant Javanese heritage',
+  'hari-anak-nasional': 'National Children Day, soft pastel rainbow palette, playful geometric shapes, hopeful',
+  'hari-sumpah-pemuda': 'Youth Pledge Day, red white gold, dynamic forward motion, patriotic modern Indonesian',
+  'hari-pahlawan': 'Heroes Day Indonesia, monumental statue silhouette, deep red and bronze, solemn patriotic',
+  'hari-ibu': 'Indonesian Mother Day, warm rose and gold, gentle floral abstract, family love mood',
+  // International major (added 2026-05-22 audit)
+  valentine: 'Valentine Day, deep crimson and rose gold, soft hearts abstract, romantic elegant',
+  'womens-day': 'International Womens Day, deep purple and gold mimosa flower abstract, empowering modern',
+  easter: 'Easter celebration, soft pastel spring palette, abstract eggs and lily motif, fresh hopeful',
+  halloween: 'Halloween, deep purple and orange, atmospheric moonlight, mysterious elegant not scary',
+  thanksgiving: 'Thanksgiving harvest, warm autumn palette, abstract wheat and amber leaves, grateful cozy',
   default: 'Modern fintech promotional banner, professional gold and black palette, abstract trading elements',
 };
 
@@ -52,10 +66,30 @@ const THEME_HINTS: Record<string, string> = {
 // hint negative ringan. Perlu eksplisit + redundant supaya hampir tidak ada
 // text artifact. Pak Abdullah feedback 2026-05-21: text di gambar terlihat
 // "tulisannya gak jelas" — lebih baik visual murni tanpa teks sama sekali.
-const BRAND_SUFFIX =
+//
+// Brand suffix untuk Gemini (square 1024×1024) — minta full-bleed edge-to-
+// edge composition supaya tidak ada white letterbox padding (Pak Abdullah
+// 2026-05-22: "gambar wide sisanya disi background putih"). Gemini akan
+// menggambar full canvas tanpa bars kalau prompt eksplisit minta full-bleed.
+const BRAND_SUFFIX_SQUARE =
   'BabahAlgo trading platform branding, institutional fintech aesthetic, '
   + 'magazine cover quality, marketing-grade composition, '
-  + '16:9 horizontal banner, 1024x576 resolution, '
+  + 'square 1:1 aspect ratio, full-bleed edge-to-edge composition, '
+  + 'content fills the entire canvas to all four edges, '
+  + 'NO white borders, NO white bars, NO letterboxing, NO padding, '
+  + 'NO empty space at top, NO empty space at bottom, NO matte frames, '
+  + 'pure visual atmospheric photography, abstract decorative composition, '
+  + 'STRICTLY NO text, NO letters, NO words, NO writing, NO typography, '
+  + 'NO calligraphy, NO inscription, NO signage, NO numbers, NO digits, '
+  + 'NO logos, NO watermark, NO captions, clean visual only';
+
+// Brand suffix untuk Pollinations (wide 1024×576 horizontal banner) —
+// Pollinations FLUX honour width/height param di URL, jadi minta 16:9.
+const BRAND_SUFFIX_WIDE =
+  'BabahAlgo trading platform branding, institutional fintech aesthetic, '
+  + 'magazine cover quality, marketing-grade composition, '
+  + '16:9 horizontal banner, full-bleed edge-to-edge composition, '
+  + 'content fills the entire canvas, NO white borders, NO letterboxing, '
   + 'pure visual atmospheric photography, abstract decorative composition, '
   + 'STRICTLY NO text, NO letters, NO words, NO writing, NO typography, '
   + 'NO calligraphy, NO inscription, NO signage, NO numbers, NO digits, '
@@ -66,16 +100,18 @@ const BRAND_SUFFIX =
 const NEGATIVE_PROMPT = 'text, letters, words, typography, writing, '
   + 'calligraphy, signage, inscription, watermark, numbers, digits, '
   + 'logos, captions, subtitles, garbled text, gibberish text, '
+  + 'white letterbox bars, empty white borders, matte frame, padded canvas, '
   + 'poor anatomy, low quality, blurry, distorted';
 
-function buildPrompt(ctx: PromoImageContext): string {
+function buildPrompt(ctx: PromoImageContext, format: 'square' | 'wide'): string {
   const themeHint = THEME_HINTS[ctx.templateKey] ?? THEME_HINTS.default;
   const tierLine = ctx.tierName ? `featuring ${ctx.tierName} subscription tier` : '';
+  const brandSuffix = format === 'square' ? BRAND_SUFFIX_SQUARE : BRAND_SUFFIX_WIDE;
   return [
-    `Promotional banner for "${ctx.promoName}"`,
+    `Promotional artwork for "${ctx.promoName}"`,
     themeHint,
     tierLine,
-    BRAND_SUFFIX,
+    brandSuffix,
   ].filter(Boolean).join('. ');
 }
 
@@ -105,14 +141,25 @@ async function generateViaOpenRouter(prompt: string, signal?: AbortSignal): Prom
         'X-Title': 'BabahAlgo Promo Image',
       },
       body: JSON.stringify({
-        // Upgraded 2026-05-21 (Pak Abdullah verify): 2.0-flash-exp:free →
-        // 2.5-flash-image. STABLE production (not preview), $0.0000003 per
-        // request — cheaper than 3.1-flash-image-preview. Tested real call:
-        // returns image data:image/png base64 reliably. Better than FLUX
-        // (Pollinations) untuk respecting "no text/letters" instruction.
-        // Catatan: x-ai/grok-imagine-image-quality TIDAK tersedia di OpenRouter.
+        // Gemini 2.5 Flash Image — native 1024×1024 square output. Prompt
+        // EKSPLISIT minta full-bleed square (NO letterbox) supaya Gemini tidak
+        // menggambar "wide banner with white bars" inside square canvas
+        // (Pak Abdullah audit 2026-05-22). Sebelumnya prompt menyebut
+        // "16:9 banner" → Gemini interpret sebagai letterboxed banner = bug.
         model: 'google/gemini-2.5-flash-image',
-        messages: [{ role: 'user', content: `Generate a 16:9 promotional banner image. CRITICAL: NO text, NO letters, NO words, NO writing anywhere in the image. Pure visual atmospheric only. ${prompt}` }],
+        messages: [{
+          role: 'user',
+          content:
+            'Generate a SQUARE 1:1 aspect ratio image (1024×1024). '
+            + 'CRITICAL — composition must be FULL-BLEED edge-to-edge: '
+            + 'content fills the entire canvas to all four edges, '
+            + 'NO white bars at top or bottom, NO letterboxing, NO empty borders, '
+            + 'NO matte padding, NO horizontal banner cropped inside square. '
+            + 'Imagine the camera frame IS square — compose for square. '
+            + 'NO text, NO letters, NO words, NO writing anywhere. '
+            + 'Pure visual atmospheric only. '
+            + prompt,
+        }],
         modalities: ['image', 'text'],
       }),
       signal: signal ?? AbortSignal.timeout(90_000),
@@ -160,14 +207,19 @@ export async function generatePromoHeroImage(
   promoSlug: string,
   ctx: PromoImageContext,
 ): Promise<PromoImageResult> {
-  const prompt = buildPrompt(ctx);
+  // Two prompts — square untuk Gemini (1024×1024 native), wide untuk
+  // Pollinations FLUX (1024×576 via URL param). Each provider gets
+  // brand suffix yang sesuai dengan output canvas-nya supaya tidak
+  // ada conflicting hint (mis. "16:9" di Gemini = letterbox inside square).
+  const squarePrompt = buildPrompt(ctx, 'square');
+  const widePrompt = buildPrompt(ctx, 'wide');
 
-  let buffer: Buffer | null = await generateViaOpenRouter(prompt);
+  let buffer: Buffer | null = await generateViaOpenRouter(squarePrompt);
   let provider: 'openrouter' | 'pollinations' = 'openrouter';
 
   if (!buffer) {
     log.info('OpenRouter fail or unavailable, fallback Pollinations…');
-    buffer = await generateViaPollinations(prompt);
+    buffer = await generateViaPollinations(widePrompt);
     provider = 'pollinations';
   }
 
@@ -195,5 +247,8 @@ export async function generatePromoHeroImage(
   const publicUrl = `/api/uploads/promotions/${filename}`;
   log.info(`Generated promo image slug=${promoSlug} provider=${provider} size=${buffer.length} url=${publicUrl}`);
 
-  return { url: publicUrl, filename, provider, prompt, sizeBytes: buffer.length };
+  // Record prompt actually used by the provider yang akhirnya berhasil
+  // (untuk audit / regen reference).
+  const usedPrompt = provider === 'openrouter' ? squarePrompt : widePrompt;
+  return { url: publicUrl, filename, provider, prompt: usedPrompt, sizeBytes: buffer.length };
 }

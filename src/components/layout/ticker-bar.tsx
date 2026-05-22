@@ -41,7 +41,10 @@ const GROUP_COLOR: Record<Ticker['group'], string> = {
   index:     'text-violet-400',
 };
 
-const ANIM_DURATION_S = 120;
+// Animation speed — 75s lebih nyaman dari 120s (Pak Abdullah feedback
+// 2026-05-22: "di mobile + windows lambat sekali percepat"). 75s × 24
+// items duplicated set = ~3.1s/item average — readable tapi feel live.
+const ANIM_DURATION_S = 75;
 const SCROLL_THRESHOLD = 120;
 const CHAT_ICON_RESERVE_PX = 80;
 const CACHE_KEY = 'babah.ticker.cache.v2';
@@ -100,18 +103,17 @@ function formatPct(n: number): string {
 const TickerItem = memo(function TickerItem({ t }: { t: Ticker }) {
   const isUp = t.change24hPct >= 0;
   return (
-    <div className="inline-flex items-center gap-2.5 px-4 sm:px-5 text-xs font-mono shrink-0">
-      <span className={cn('font-bold tracking-[0.05em] min-w-[36px]', GROUP_COLOR[t.group])}>
+    <div className="inline-flex items-center gap-2 px-2.5 sm:px-3.5 text-xs font-mono shrink-0">
+      <span className={cn('font-bold tracking-[0.04em] min-w-[32px]', GROUP_COLOR[t.group])}>
         {t.label}
       </span>
-      {/* min-w lock prevents layout shift saat angka berubah width
-          (mis. 120.50 → 1200.00 atau 4546.20 → 99.99). */}
-      <span className="text-foreground/95 tabular-nums min-w-[64px] text-right">
+      {/* min-w lock prevents layout shift saat angka berubah width. */}
+      <span className="text-foreground/95 tabular-nums min-w-[56px] text-right">
         {formatPrice(t.last, t.group, t.symbol, t.currency)}
       </span>
       <span
         className={cn(
-          'tabular-nums px-1.5 py-0.5 rounded text-[10px] font-bold min-w-[56px] text-center',
+          'tabular-nums px-1 py-0.5 rounded text-[10px] font-bold min-w-[52px] text-center',
           isUp
             ? 'bg-emerald-500/15 text-emerald-400'
             : 'bg-rose-500/15 text-rose-400',
@@ -119,7 +121,7 @@ const TickerItem = memo(function TickerItem({ t }: { t: Ticker }) {
       >
         {isUp ? '▲' : '▼'} {formatPct(t.change24hPct)}
       </span>
-      <span className="text-foreground/15" aria-hidden>│</span>
+      <span className="text-foreground/15 px-0.5" aria-hidden>│</span>
     </div>
   );
 }, (prev, next) => {
@@ -137,10 +139,10 @@ function SkeletonItems() {
   return (
     <>
       {Array.from({ length: 8 }).map((_, i) => (
-        <div key={`skel-${i}`} className="inline-flex items-center gap-2.5 px-4 sm:px-5 shrink-0">
-          <span className="inline-block h-3 w-10 rounded bg-slate-800/60 animate-pulse" />
-          <span className="inline-block h-3 w-16 rounded bg-slate-800/40 animate-pulse" />
-          <span className="inline-block h-3 w-12 rounded bg-slate-800/30 animate-pulse" />
+        <div key={`skel-${i}`} className="inline-flex items-center gap-2 px-2.5 sm:px-3.5 shrink-0">
+          <span className="inline-block h-3 w-8 rounded bg-slate-800/60 animate-pulse" />
+          <span className="inline-block h-3 w-14 rounded bg-slate-800/40 animate-pulse" />
+          <span className="inline-block h-3 w-10 rounded bg-slate-800/30 animate-pulse" />
         </div>
       ))}
     </>

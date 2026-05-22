@@ -33,7 +33,7 @@ const EVENTS: EventSeed[] = [
     slug: 'tahun-baru', templateKey: 'tahun-baru',
     name: 'Tahun Baru Masehi', name_en: 'New Year',
     dates: { 2026: '2026-01-01', 2027: '2027-01-01' },
-    leadDays: 7, country: 'ID',
+    leadDays: 7, country: 'INTL', // 2026-05-22 — universal event
   },
   {
     slug: 'imlek', templateKey: 'imlek',
@@ -82,7 +82,7 @@ const EVENTS: EventSeed[] = [
     slug: 'natal', templateKey: 'natal',
     name: 'Natal', name_en: 'Christmas',
     dates: { 2026: '2026-12-25', 2027: '2027-12-25' },
-    leadDays: 14, country: 'ID',
+    leadDays: 14, country: 'INTL', // 2026-05-22 — universal event
   },
 
   // ─── International commerce events ──────────────────────────────────

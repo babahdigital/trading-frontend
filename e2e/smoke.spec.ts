@@ -11,7 +11,10 @@ test.describe('Public API health', () => {
   });
 
   test('ticker endpoint delivers >= 16 symbols', async ({ request }) => {
-    const res = await request.get('/api/public/ticker');
+    // Cold container first request bisa ambil 6-20s (Yahoo TLS warmup +
+    // Stooq batch). Bump timeout untuk handle cold-start tanpa false fail.
+    test.setTimeout(60_000);
+    const res = await request.get('/api/public/ticker', { timeout: 45_000 });
     expect(res.status()).toBe(200);
     const data = await res.json();
     expect(data.ok).toBe(true);

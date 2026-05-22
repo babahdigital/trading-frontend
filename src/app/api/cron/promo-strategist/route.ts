@@ -229,8 +229,12 @@ function decideStrategy(
  *  orphan image deletion bisa di-tambah nanti kalau disk usage masalah.
  */
 const POST_EVENT_GRACE_DAYS = 3;
+// Stale DRAFT promos yang admin tidak approve dalam 14 hari → auto-delete
+// (Pak Abdullah audit 2026-05-22: zero-touch + tidak menumpuk admin queue).
+// Strategist akan re-create promo baru bila kondisi memang masih relevan.
+const STALE_DRAFT_DAYS = 14;
 
-async function cleanupExpiredPromos(): Promise<{ expired: number; purged: number }> {
+async function cleanupExpiredPromos(): Promise<{ expired: number; purged: number; staleDraftPurged: number }> {
   const now = new Date();
   const expiredResult = await prisma.promotion.updateMany({
     where: { status: 'ACTIVE', endsAt: { lt: now } },
@@ -240,7 +244,17 @@ async function cleanupExpiredPromos(): Promise<{ expired: number; purged: number
   const purgedResult = await prisma.promotion.deleteMany({
     where: { status: 'EXPIRED', endsAt: { lt: purgeBefore } },
   });
-  return { expired: expiredResult.count, purged: purgedResult.count };
+  // Stale DRAFT cleanup — auto-purge supaya admin queue tetap clean.
+  // Strategist akan recreate kalau memang event/kondisi masih relevan.
+  const staleDraftBefore = new Date(now.getTime() - STALE_DRAFT_DAYS * 24 * 60 * 60 * 1000);
+  const staleDraftResult = await prisma.promotion.deleteMany({
+    where: { status: 'DRAFT', createdAt: { lt: staleDraftBefore } },
+  });
+  return {
+    expired: expiredResult.count,
+    purged: purgedResult.count,
+    staleDraftPurged: staleDraftResult.count,
+  };
 }
 
 /** AI-powered copy generator via Claude Opus 4.7 (per Pak Abdullah:
@@ -509,6 +523,7 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({
     ok: true,
+    cleanup,
     health,
     decision,
     upcomingEvents: eventsByDays.map((e) => ({ slug: e.slug, daysAway: e.daysAway })),

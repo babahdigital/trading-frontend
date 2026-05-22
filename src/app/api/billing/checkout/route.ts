@@ -108,6 +108,24 @@ export async function POST(req: NextRequest) {
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) return errorResponse('user_not_found', 'User not found', 404);
 
+  // Email verification gate (Pak Abdullah audit 2026-05-22: zero-touch
+  // automatic enforcement). Block paid checkout kalau email belum verified
+  // — prevent fraud + ensure invoice email actually reaches customer.
+  // Grace 7 hari setelah registration (createdAt) supaya new user bisa
+  // immediately checkout walau email belum verified, dengan auto-expire.
+  if (!user.emailVerifiedAt) {
+    const ACCOUNT_AGE_GRACE_MS = 7 * 24 * 60 * 60 * 1000;
+    const accountAgeMs = Date.now() - new Date(user.createdAt).getTime();
+    if (accountAgeMs > ACCOUNT_AGE_GRACE_MS) {
+      return errorResponse(
+        'email_unverified',
+        'Email belum terverifikasi. Cek inbox untuk link verifikasi atau request ulang via /portal/account.',
+        403,
+        { gracePeriodExpired: true, accountAgeDays: Math.floor(accountAgeMs / (24 * 60 * 60 * 1000)) },
+      );
+    }
+  }
+
   // ─── Resolve discount dari Promotion active ─────────────────────────
   // Logic: kalau promoSlug provided → lookup; ELSE pick first active promo
   // yang applicableTiers includes current tier (atau empty = all-tiers).

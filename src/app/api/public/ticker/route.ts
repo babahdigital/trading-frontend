@@ -141,17 +141,21 @@ async function fetchCrypto(): Promise<Ticker[]> {
   }
 }
 
-/** Fetch Yahoo single — FAST FAIL (2s timeout, no retry). Production audit
- *  VPS3 menunjukkan Yahoo Finance fully blocked dari container (timeout 8s+
- *  pada semua endpoint). Maintain Yahoo path untuk environment dimana akses
- *  ada, tapi cepat fail supaya Stooq fallback langsung jalan tanpa terjegal
- *  retry delay (sebelumnya 4s × 2 = 8s budget habis untuk nothing).
+/** Fetch Yahoo single — 6s timeout. Production verify 2026-05-22 (post
+ *  initial audit): Yahoo Finance IS reachable dari VPS3 container, tapi
+ *  first cold request ambil 5.4s (TLS handshake + DNS warmup); subsequent
+ *  request <400ms (connection pool reuse). 2s timeout terlalu agresif —
+ *  abort even pada Yahoo success path saat cold start.
+ *
+ *  Indonesian stocks (BBCA.JK/BBRI.JK/TLKM.JK/ASII.JK/IHSG) HANYA tersedia
+ *  via Yahoo — Stooq tidak punya symbol .id (returns N/D). Critical untuk
+ *  ticker coverage di Indonesia market.
  */
 async function fetchYahooSingle(item: typeof YAHOO_MAP[number]): Promise<Ticker | null> {
     try {
       const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(item.ticker)}`;
       const res = await fetch(url, {
-        signal: AbortSignal.timeout(2_000),
+        signal: AbortSignal.timeout(6_000),
         headers: {
           'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
           'Accept': 'application/json',

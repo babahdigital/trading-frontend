@@ -599,6 +599,7 @@ export async function runDailyResearch(): Promise<DailyResearchResult> {
     const aiStart = Date.now();
     const { text: rawBody, usage } = await generateText({
       model: or.chat(DEFAULT_MODEL),
+      system: 'Kamu adalah analis riset trading profesional. JANGAN PERNAH menyebut nama produk, platform, bot, atau layanan apapun. Fokus 100% pada edukasi trading: analisis fundamental, teknikal, strategi, risk management. Tulis dalam perspektif netral seperti Bloomberg Research.',
       prompt: built.prompt,
       temperature: 0.45,
       maxOutputTokens: 4500,

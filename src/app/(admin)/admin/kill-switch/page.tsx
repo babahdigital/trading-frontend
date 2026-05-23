@@ -9,6 +9,7 @@ import { PageHeader } from '@/components/admin/page-header';
 import { cn } from '@/lib/utils';
 import { AlertTriangle, CheckCircle2, ShieldCheck, Zap } from 'lucide-react';
 import { formatDateTime } from '@/lib/format-locale';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth/auth-context';
 
 interface KillSwitchEvent {
@@ -22,6 +23,7 @@ interface KillSwitchEvent {
 }
 
 export default function KillSwitchPage() {
+  const t = useTranslations('admin.kill_switch');
   const { getAuthHeaders } = useAuth();
   const [events, setEvents] = useState<KillSwitchEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -74,13 +76,13 @@ export default function KillSwitchPage() {
         body: JSON.stringify({ licenseId }),
       });
       if (res.ok) {
-        setSuccess('Kill switch triggered successfully.');
+        setSuccess(t('success'));
         setLicenseId('');
         setConfirmStep(false);
         void fetchEvents();
       } else {
         const data = await res.json().catch(() => ({}));
-        setError(data.error || 'Failed to trigger kill switch');
+        setError(data.error || t('error_trigger'));
         setConfirmStep(false);
       }
     } catch {
@@ -101,15 +103,15 @@ export default function KillSwitchPage() {
     const trimmedId = resolveEventId.trim();
     const trimmedReason = resolveReason.trim();
     if (!trimmedId) {
-      setResolveError('Event ID is required.');
+      setResolveError(t('error_event_required'));
       return;
     }
     if (!trimmedReason) {
-      setResolveError('Reason is required.');
+      setResolveError(t('error_reason_required'));
       return;
     }
     if (trimmedReason.length > 512) {
-      setResolveError('Reason must be at most 512 characters.');
+      setResolveError(t('error_reason_max'));
       return;
     }
     setResolveSubmitting(true);
@@ -126,9 +128,9 @@ export default function KillSwitchPage() {
         setResolveReason('');
       } else {
         if (res.status === 404 || data.code === 'NOT_FOUND') {
-          setResolveError('Event already resolved or not found.');
+          setResolveError(t('error_not_found'));
         } else if (res.status === 422) {
-          setResolveError(data.error || 'Validation failed (reason required, ≤512 chars).');
+          setResolveError(data.error || t('error_validation'));
         } else {
           setResolveError(data.error || data.code || `Failed (HTTP ${res.status}).`);
         }
@@ -143,25 +145,25 @@ export default function KillSwitchPage() {
   return (
     <div>
       <PageHeader
-        title="Kill Switch"
-        description="Emergency license termination events"
+        title={t('title')}
+        description={t('description')}
       />
 
       <Card className="mb-6">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-rose-600 dark:text-rose-400" />
-            Manual Kill Switch
+            {t('manual_title')}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-end gap-4">
             <div className="flex-1">
-              <label className="text-sm font-medium text-muted-foreground">License ID</label>
+              <label className="text-sm font-medium text-muted-foreground">{t('label_license_id')}</label>
               <Input
                 value={licenseId}
                 onChange={(e) => { setLicenseId(e.target.value); setConfirmStep(false); }}
-                placeholder="Enter license ID to terminate"
+                placeholder={t('placeholder_license_id')}
               />
             </div>
             <div className="flex gap-2">
@@ -175,13 +177,13 @@ export default function KillSwitchPage() {
                 onClick={handleTrigger}
                 disabled={!licenseId.trim() || submitting}
               >
-                {submitting ? 'Triggering...' : confirmStep ? 'CONFIRM KILL' : 'TRIGGER KILL SWITCH'}
+                {submitting ? t('btn_triggering') : confirmStep ? t('btn_confirm') : t('btn_trigger')}
               </Button>
             </div>
           </div>
           {confirmStep && (
             <p className="mt-2 text-sm text-amber-600 dark:text-amber-400">
-              Are you sure? This will immediately terminate the license. Click &quot;CONFIRM KILL&quot; to proceed.
+              {t('confirm_message')}
             </p>
           )}
           {error && <p className="mt-2 text-sm text-rose-600 dark:text-rose-400">{error}</p>}
@@ -194,7 +196,7 @@ export default function KillSwitchPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ShieldCheck className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-            Resolve Forex Kill-Switch Event
+            {t('resolve_title')}
           </CardTitle>
           <p className="text-sm text-muted-foreground">
             Admin override for active kill-switch events on the forex backend.
@@ -247,7 +249,7 @@ export default function KillSwitchPage() {
                   resolveReason.length > 512
                 }
               >
-                {resolveSubmitting ? 'Resolving...' : 'Resolve Event'}
+                {resolveSubmitting ? t('btn_resolving') : t('btn_resolve')}
               </Button>
               {resolveSuccess && (
                 <span className="text-sm text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
@@ -263,18 +265,18 @@ export default function KillSwitchPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Kill Switch Events</CardTitle>
+          <CardTitle>{t('events_title')}</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <div className="md:overflow-x-auto">
             <table className="w-full text-sm table-responsive">
               <thead>
                 <tr className="border-b">
-                  <th className="text-left p-4 font-medium text-muted-foreground">Time</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">License Key</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">Triggered By</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">Success</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">Error</th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">{t('th_time')}</th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">{t('th_license_key')}</th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">{t('th_triggered_by')}</th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">{t('th_success')}</th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">{t('th_error')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -290,7 +292,7 @@ export default function KillSwitchPage() {
                   <tr>
                     <td colSpan={5} className="p-8 text-center no-label">
                       <Zap className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
-                      <p className="text-muted-foreground">No kill switch events recorded.</p>
+                      <p className="text-muted-foreground">{t('no_events')}</p>
                     </td>
                   </tr>
                 ) : (

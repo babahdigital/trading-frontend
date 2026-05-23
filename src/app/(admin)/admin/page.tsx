@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { RefreshCw } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth/auth-context';
 import { PageHeader } from '@/components/admin/page-header';
 import { Icon } from '@/components/ui/icon';
@@ -35,6 +36,8 @@ interface DashboardStats {
 }
 
 export default function AdminDashboard() {
+  const t = useTranslations('admin.dashboard');
+  const tc = useTranslations('admin.common');
   const { getAuthHeaders } = useAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [auditEntries, setAuditEntries] = useState<AuditEntry[]>([]);
@@ -198,25 +201,25 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Operations · Live"
-        title="Dashboard"
-        description="Pantau lisensi, VPS fleet, dan signal engine secara real-time."
+        eyebrow={t('eyebrow')}
+        title={t('title')}
+        description={t('description')}
         actions={
           <div className="flex items-center gap-2">
             {lastRefreshed ? (
               <span className="hidden sm:inline-flex items-center gap-1.5 text-xs text-muted-foreground">
                 <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                Diperbarui {formatDateTime(lastRefreshed)}
+                {tc('updated_at', { time: formatDateTime(lastRefreshed) })}
               </span>
             ) : null}
             <button
               type="button"
               onClick={() => void fetchAll()}
               className="inline-flex items-center gap-1.5 px-2.5 h-9 rounded-md border border-input bg-background text-sm hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              aria-label="Muat ulang dashboard"
+              aria-label={t('reload_aria')}
             >
               <Icon icon={RefreshCw} size="sm" />
-              <span className="hidden sm:inline">Refresh</span>
+              <span className="hidden sm:inline">{tc('refresh')}</span>
             </button>
           </div>
         }

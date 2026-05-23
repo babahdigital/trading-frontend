@@ -8,6 +8,7 @@ import { EmptyState } from '@/components/admin/empty-state';
 import { StatCard, StatCardGrid } from '@/components/admin/stat-card';
 import { formatDateTime } from '@/lib/format-locale';
 import { cn } from '@/lib/utils';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth/auth-context';
 import { Activity, AlertTriangle, ArrowRight, Server, Wifi, WifiOff } from 'lucide-react';
 
@@ -38,6 +39,7 @@ interface FleetSummary {
 }
 
 export default function VpsFleetPage() {
+  const t = useTranslations('admin.vps_fleet');
   const { getAuthHeaders } = useAuth();
   const [fleet, setFleet] = useState<FleetVps[]>([]);
   const [summary, setSummary] = useState<FleetSummary | null>(null);
@@ -80,28 +82,28 @@ export default function VpsFleetPage() {
   }
 
   function healthBadge(health: string | null) {
-    if (!health) return { label: 'Tidak diketahui', cls: 'bg-slate-500/15 text-slate-700 dark:bg-slate-500/20 dark:text-slate-300' };
-    if (health === 'ok') return { label: 'Sehat', cls: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' };
-    if (health === 'degraded') return { label: 'Terganggu', cls: 'bg-amber-500/15 text-amber-700 dark:text-amber-300' };
-    return { label: 'Tidak terjangkau', cls: 'bg-rose-500/15 text-rose-700 dark:text-rose-300' };
+    if (!health) return { label: t('health_unknown'), cls: 'bg-slate-500/15 text-slate-700 dark:bg-slate-500/20 dark:text-slate-300' };
+    if (health === 'ok') return { label: t('health_ok'), cls: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' };
+    if (health === 'degraded') return { label: t('health_degraded'), cls: 'bg-amber-500/15 text-amber-700 dark:text-amber-300' };
+    return { label: t('health_unreachable'), cls: 'bg-rose-500/15 text-rose-700 dark:text-rose-300' };
   }
 
   return (
     <div>
       <PageHeader
-        title="VPS Fleet"
-        description="Monitor kesehatan dan status semua VPS instance"
+        title={t('title')}
+        description={t('description')}
       />
 
       {/* Summary KPI Cards */}
       {summary && (
         <StatCardGrid columns={4} className="mb-6">
-          <StatCard label="Total" value={summary.total} icon={Server} />
-          <StatCard label="Aktif" value={summary.online} icon={Wifi} iconTone="success" />
-          <StatCard label="Mati" value={summary.offline} icon={WifiOff} iconTone="danger" />
-          <StatCard label="Terganggu" value={summary.degraded} icon={Activity} iconTone="warning" />
+          <StatCard label={t('stat_total')} value={summary.total} icon={Server} />
+          <StatCard label={t('stat_active')} value={summary.online} icon={Wifi} iconTone="success" />
+          <StatCard label={t('stat_offline')} value={summary.offline} icon={WifiOff} iconTone="danger" />
+          <StatCard label={t('stat_degraded')} value={summary.degraded} icon={Activity} iconTone="warning" />
           {summary.outdated !== null && (
-            <StatCard label="Perlu Update" value={summary.outdated} icon={AlertTriangle} iconTone="warning" />
+            <StatCard label={t('stat_outdated')} value={summary.outdated} icon={AlertTriangle} iconTone="warning" />
           )}
         </StatCardGrid>
       )}
@@ -116,8 +118,8 @@ export default function VpsFleetPage() {
       ) : fleet.length === 0 ? (
         <EmptyState
           icon={Server}
-          title="Tidak ada VPS instance"
-          description="Belum ada VPS instance yang terdaftar di fleet."
+          title={t('empty_title')}
+          description={t('empty_desc')}
         />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -137,19 +139,19 @@ export default function VpsFleetPage() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  <InfoLine label="Host" value={vps.host} mono />
-                  <InfoLine label="Status" value={vps.status} />
-                  <InfoLine label="Versi" value={vps.codeVersion || '-'} mono badge={
-                    vps.isUpToDate === false ? { label: 'Perlu Update', cls: 'bg-orange-500/15 text-orange-700 dark:text-orange-300' } : undefined
+                  <InfoLine label={t('label_host')} value={vps.host} mono />
+                  <InfoLine label={t('label_status')} value={vps.status} />
+                  <InfoLine label={t('label_version')} value={vps.codeVersion || '-'} mono badge={
+                    vps.isUpToDate === false ? { label: t('badge_outdated'), cls: 'bg-orange-500/15 text-orange-700 dark:text-orange-300' } : undefined
                   } />
-                  <InfoLine label="Lisensi" value={String(vps.licenseCount)} />
+                  <InfoLine label={t('label_licenses')} value={String(vps.licenseCount)} />
                   <InfoLine
-                    label="Cek Terakhir"
-                    value={vps.lastHealthCheckAt ? formatDateTime(vps.lastHealthCheckAt) : 'Belum pernah'}
+                    label={t('label_last_check')}
+                    value={vps.lastHealthCheckAt ? formatDateTime(vps.lastHealthCheckAt) : t('never_checked')}
                   />
                   <div className="pt-2">
                     <Link href={`/admin/vps-fleet/${vps.id}`} className="text-xs text-primary hover:underline flex items-center gap-1">
-                      Lihat Detail <ArrowRight className="w-3 h-3" />
+                      {t('link_details')} <ArrowRight className="w-3 h-3" />
                     </Link>
                   </div>
                 </CardContent>

@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/admin/page-header';
 import { EmptyState } from '@/components/admin/empty-state';
 import { formatRelative as formatRelativeI18n } from '@/lib/format-locale';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useToast } from '@/components/ui/toast';
 import { useConfirm } from '@/components/ui/confirm-dialog';
@@ -38,6 +39,8 @@ function formatRelative(iso: string | null): string {
 }
 
 export default function AdminTeamPage() {
+  const t = useTranslations('admin.team');
+  const tc = useTranslations('admin.common');
   const { getAuthHeaders } = useAuth();
   const toast = useToast();
   const confirm = useConfirm();
@@ -105,13 +108,13 @@ export default function AdminTeamPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Tim & RBAC"
-        description="Kelola super admin, admin, dan operator. Setiap perubahan tercatat di audit chain SHA-256."
+        title={t('title')}
+        description={t('description')}
         actions={
           <Button asChild className="gap-2">
             <Link href="/admin/team/new">
               <UserPlus className="h-4 w-4" strokeWidth={2.25} />
-              Tambah operator / admin
+              {t('add_member')}
             </Link>
           </Button>
         }
@@ -120,7 +123,7 @@ export default function AdminTeamPage() {
       {error && (
         <div role="alert" className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2.5 text-sm text-destructive">
           <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" strokeWidth={2.25} />
-          <span>Gagal memuat tim: {error}</span>
+          <span>{t('error_load', { error })}</span>
         </div>
       )}
 
@@ -128,12 +131,12 @@ export default function AdminTeamPage() {
         <table className="w-full text-sm table-responsive">
           <thead className="text-[11px] uppercase text-muted-foreground bg-muted/40">
             <tr>
-              <th className="text-left py-2 px-4 font-medium">Pengguna</th>
-              <th className="text-left py-2 px-4 font-medium">Peran</th>
-              <th className="text-left py-2 px-4 font-medium">Permissions</th>
-              <th className="text-left py-2 px-4 font-medium">Login Terakhir</th>
-              <th className="text-left py-2 px-4 font-medium">Dibuat oleh</th>
-              <th className="text-right py-2 px-4 font-medium">Aksi</th>
+              <th className="text-left py-2 px-4 font-medium">{t('th_user')}</th>
+              <th className="text-left py-2 px-4 font-medium">{t('th_role')}</th>
+              <th className="text-left py-2 px-4 font-medium">{t('th_permissions')}</th>
+              <th className="text-left py-2 px-4 font-medium">{t('th_last_login')}</th>
+              <th className="text-left py-2 px-4 font-medium">{t('th_created_by')}</th>
+              <th className="text-right py-2 px-4 font-medium">{t('th_actions')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -149,8 +152,8 @@ export default function AdminTeamPage() {
                   <EmptyState
                     variant="inline"
                     icon={Users}
-                    title="Belum ada admin/operator"
-                    description="Tambahkan anggota tim pertama untuk mulai mengelola platform."
+                    title={t('empty_title')}
+                    description={t('empty_desc')}
                   />
                 </td>
               </tr>

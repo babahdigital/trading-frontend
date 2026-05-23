@@ -26,6 +26,7 @@ import {
   Bell,
   Sparkles,
   CreditCard,
+  ReceiptText,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ResponsiveSidebar } from '@/components/layout/responsive-sidebar';
@@ -90,6 +91,7 @@ const NAV_SECTIONS: NavSection[] = [
     labelKey: 'nav_section_account',
     items: [
       { href: '/portal/billing/upgrade', labelKey: 'nav_upgrade', icon: CreditCard },
+      { href: '/portal/billing/history', labelKey: 'nav_billing_history', icon: ReceiptText },
       { href: '/portal/kyc', labelKey: 'nav_kyc', icon: IdCard },
       { href: '/portal/account', labelKey: 'nav_account', icon: User },
     ],

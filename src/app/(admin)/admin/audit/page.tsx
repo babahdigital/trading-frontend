@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ChevronLeft, ChevronRight, ScrollText } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth/auth-context';
 import { PageHeader } from '@/components/admin/page-header';
 import { EmptyState } from '@/components/admin/empty-state';
@@ -22,6 +23,8 @@ interface AuditEntry {
 const PAGE_SIZE = 50;
 
 export default function AuditPage() {
+  const t = useTranslations('admin.audit');
+  const tc = useTranslations('admin.common');
   const { getAuthHeaders } = useAuth();
   const [entries, setEntries] = useState<AuditEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -68,15 +71,15 @@ export default function AuditPage() {
   return (
     <div>
       <PageHeader
-        title="Audit Log"
-        description="Riwayat aktivitas lengkap untuk compliance + forensik."
+        title={t('title')}
+        description={t('description')}
       />
 
       <div className="flex flex-wrap gap-3 mb-4">
         <div className="flex-1 min-w-[180px]">
           <Input
             type="search"
-            placeholder="Filter berdasarkan action…"
+            placeholder={t('filter_action_placeholder')}
             value={actionFilter}
             onChange={(e) => setActionFilter(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
@@ -86,14 +89,14 @@ export default function AuditPage() {
         <div className="flex-1 min-w-[180px]">
           <Input
             type="search"
-            placeholder="Filter berdasarkan user ID…"
+            placeholder={t('filter_user_placeholder')}
             value={userIdFilter}
             onChange={(e) => setUserIdFilter(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
             aria-label="Filter user ID"
           />
         </div>
-        <Button onClick={applyFilters} variant="outline">Terapkan</Button>
+        <Button onClick={applyFilters} variant="outline">{tc('apply')}</Button>
       </div>
 
       <Card>
@@ -109,8 +112,8 @@ export default function AuditPage() {
               <EmptyState
                 variant="inline"
                 icon={ScrollText}
-                title={actionFilter || userIdFilter ? 'Tidak ada audit entry cocok filter' : 'Belum ada aktivitas audit'}
-                description={actionFilter || userIdFilter ? 'Coba ubah filter pencarian.' : 'Audit entry akan muncul saat sistem mencatat aktivitas user/admin.'}
+                title={actionFilter || userIdFilter ? t('empty_filtered') : t('empty_no_data')}
+                description={actionFilter || userIdFilter ? t('empty_filtered_desc') : t('empty_no_data_desc')}
                 size="sm"
               />
             </div>
@@ -119,11 +122,11 @@ export default function AuditPage() {
               <table className="w-full text-sm table-responsive">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left p-4 font-medium text-muted-foreground">Waktu</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">User ID</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Action</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">License ID</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">IP Address</th>
+                    <th className="text-left p-4 font-medium text-muted-foreground">{t('th_time')}</th>
+                    <th className="text-left p-4 font-medium text-muted-foreground">{t('th_user_id')}</th>
+                    <th className="text-left p-4 font-medium text-muted-foreground">{t('th_action')}</th>
+                    <th className="text-left p-4 font-medium text-muted-foreground">{t('th_license_id')}</th>
+                    <th className="text-left p-4 font-medium text-muted-foreground">{t('th_ip_address')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -146,7 +149,7 @@ export default function AuditPage() {
       </Card>
 
       <nav aria-label="Pagination" className="flex items-center justify-between mt-4">
-        <p className="text-sm text-muted-foreground tabular-nums">Halaman {page}</p>
+        <p className="text-sm text-muted-foreground tabular-nums">{tc('page_num', { page })}</p>
         <div className="flex gap-2">
           <Button
             variant="outline"
@@ -154,7 +157,7 @@ export default function AuditPage() {
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1 || loading}
           >
-            <ChevronLeft className="h-4 w-4 mr-1" /> Sebelumnya
+            <ChevronLeft className="h-4 w-4 mr-1" /> {tc('previous')}
           </Button>
           <Button
             variant="outline"
@@ -162,7 +165,7 @@ export default function AuditPage() {
             onClick={() => setPage((p) => p + 1)}
             disabled={!hasMore || loading}
           >
-            Selanjutnya <ChevronRight className="h-4 w-4 ml-1" />
+            {tc('next')} <ChevronRight className="h-4 w-4 ml-1" />
           </Button>
         </div>
       </nav>

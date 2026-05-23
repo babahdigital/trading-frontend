@@ -6,9 +6,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/admin/page-header';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth/auth-context';
 
 export default function AdminProfilePage() {
+  const t = useTranslations('admin.profile');
   const { getAuthHeaders } = useAuth();
   const router = useRouter();
 
@@ -25,11 +27,11 @@ export default function AdminProfilePage() {
     setError('');
 
     if (newPw.length < 8) {
-      setError('Password baru minimal 8 karakter.');
+      setError(t('error_min_length'));
       return;
     }
     if (newPw !== confirmPw) {
-      setError('Konfirmasi password tidak cocok.');
+      setError(t('error_mismatch'));
       return;
     }
 
@@ -43,17 +45,17 @@ export default function AdminProfilePage() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         if (data.code === 'wrong_current_password') {
-          setError('Password saat ini salah.');
+          setError(t('error_wrong_current'));
         } else if (data.code === 'same_as_old') {
-          setError('Password baru harus berbeda dari password saat ini.');
+          setError(t('error_same_as_old'));
         } else if (data.code === 'validation_failed') {
-          setError('Password baru minimal 8 karakter.');
+          setError(t('error_validation'));
         } else {
-          setError(data.error || 'Gagal mengubah password.');
+          setError(data.error || t('error_generic'));
         }
         return;
       }
-      setMessage('Password berhasil diubah. Anda akan diarahkan ke halaman login...');
+      setMessage(t('success'));
       setCurrentPw('');
       setNewPw('');
       setConfirmPw('');
@@ -68,22 +70,22 @@ export default function AdminProfilePage() {
   return (
     <div className="space-y-6 max-w-2xl">
       <PageHeader
-        title="Akun Saya"
-        description="Pengaturan akun admin"
+        title={t('title')}
+        description={t('description')}
       />
 
       <Card className="bg-card border-border">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold">Ubah Password</CardTitle>
+          <CardTitle className="text-lg font-semibold">{t('change_password')}</CardTitle>
           <p className="text-xs text-muted-foreground mt-1">
-            Setelah password diubah, semua sesi aktif akan keluar dan Anda harus login kembali.
+            {t('change_password_note')}
           </p>
         </CardHeader>
         <CardContent>
           <form onSubmit={changePassword} className="space-y-4 max-w-md">
             <div>
               <label htmlFor="current-pw" className="text-xs text-muted-foreground mb-1 block">
-                Password saat ini
+                {t('label_current')}
               </label>
               <Input
                 id="current-pw"
@@ -96,7 +98,7 @@ export default function AdminProfilePage() {
             </div>
             <div>
               <label htmlFor="new-pw" className="text-xs text-muted-foreground mb-1 block">
-                Password baru (min 8 karakter)
+                {t('label_new')}
               </label>
               <Input
                 id="new-pw"
@@ -110,7 +112,7 @@ export default function AdminProfilePage() {
             </div>
             <div>
               <label htmlFor="confirm-pw" className="text-xs text-muted-foreground mb-1 block">
-                Konfirmasi password baru
+                {t('label_confirm')}
               </label>
               <Input
                 id="confirm-pw"
@@ -135,7 +137,7 @@ export default function AdminProfilePage() {
             )}
 
             <Button type="submit" disabled={saving || !currentPw || !newPw || !confirmPw}>
-              {saving ? 'Menyimpan…' : 'Ubah Password'}
+              {saving ? t('btn_saving') : t('btn_save')}
             </Button>
           </form>
         </CardContent>

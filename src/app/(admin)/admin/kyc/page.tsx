@@ -9,6 +9,7 @@ import { PageHeader } from '@/components/admin/page-header';
 import { FilterBar } from '@/components/admin/filter-bar';
 import { EmptyState } from '@/components/admin/empty-state';
 import { cn } from '@/lib/utils';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth/auth-context';
 import { kycStatusBadge } from '@/lib/admin/badges';
 import { formatDateTime } from '@/lib/format-locale';
@@ -29,6 +30,8 @@ interface KycRow {
 type FilterStatus = 'all' | 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'ADDITIONAL_INFO_REQUIRED';
 
 export default function AdminKycPage() {
+  const t = useTranslations('admin.kyc');
+  const tc = useTranslations('admin.common');
   const { getAuthHeaders } = useAuth();
   const [items, setItems] = useState<KycRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,11 +64,11 @@ export default function AdminKycPage() {
   return (
     <div>
       <PageHeader
-        title="KYC Review Queue"
-        description={`${items.length} entry · ${pendingCount} menunggu review`}
+        title={t('title')}
+        description={t('description', { count: items.length, pending: pendingCount })}
         actions={
           <Button variant="outline" size="sm" onClick={() => void fetchQueue()}>
-            <Clock className="w-4 h-4 mr-1.5" /> Refresh
+            <Clock className="w-4 h-4 mr-1.5" /> {tc('refresh')}
           </Button>
         }
       />
@@ -74,11 +77,11 @@ export default function AdminKycPage() {
         className="mb-4"
         searchVisible={false}
         filters={[
-          { value: 'PENDING_REVIEW', label: 'Menunggu review' },
-          { value: 'ADDITIONAL_INFO_REQUIRED', label: 'Info tambahan' },
-          { value: 'APPROVED', label: 'Disetujui' },
-          { value: 'REJECTED', label: 'Ditolak' },
-          { value: 'all', label: 'Semua' },
+          { value: 'PENDING_REVIEW', label: t('filter_pending') },
+          { value: 'ADDITIONAL_INFO_REQUIRED', label: t('filter_info_required') },
+          { value: 'APPROVED', label: t('filter_approved') },
+          { value: 'REJECTED', label: t('filter_rejected') },
+          { value: 'all', label: tc('filter_all') },
         ]}
         activeFilter={filter}
         onFilterChange={(v) => setFilter(v as FilterStatus)}
@@ -97,8 +100,8 @@ export default function AdminKycPage() {
               <EmptyState
                 variant="inline"
                 icon={ShieldCheck}
-                title={filter === 'PENDING_REVIEW' ? 'Queue kosong — semua KYC sudah direview' : 'Tidak ada entry untuk filter ini'}
-                description={filter === 'PENDING_REVIEW' ? 'Bagus! Tidak ada KYC yang menunggu.' : 'Coba ubah filter di atas.'}
+                title={filter === 'PENDING_REVIEW' ? t('empty_queue') : t('empty_filter')}
+                description={filter === 'PENDING_REVIEW' ? t('empty_queue_desc') : t('empty_filter_desc')}
               />
             </div>
           ) : (
@@ -106,12 +109,12 @@ export default function AdminKycPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left p-4 font-medium text-muted-foreground">Nama</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Email</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Dokumen</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Status</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Diajukan</th>
-                    <th className="text-right p-4 font-medium text-muted-foreground">Aksi</th>
+                    <th className="text-left p-4 font-medium text-muted-foreground">{t('th_name')}</th>
+                    <th className="text-left p-4 font-medium text-muted-foreground">{t('th_email')}</th>
+                    <th className="text-left p-4 font-medium text-muted-foreground">{t('th_document')}</th>
+                    <th className="text-left p-4 font-medium text-muted-foreground">{t('th_status')}</th>
+                    <th className="text-left p-4 font-medium text-muted-foreground">{t('th_submitted')}</th>
+                    <th className="text-right p-4 font-medium text-muted-foreground">{t('th_actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -133,7 +136,7 @@ export default function AdminKycPage() {
                         <td className="p-4 text-right">
                           <Button asChild variant="outline" size="sm">
                             <Link href={`/admin/kyc/${row.id}`}>
-                              <FileSearch className="w-4 h-4 mr-1.5" /> Review
+                              <FileSearch className="w-4 h-4 mr-1.5" /> {t('btn_review')}
                             </Link>
                           </Button>
                         </td>

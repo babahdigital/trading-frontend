@@ -1037,6 +1037,23 @@ model AnalyticsEvent {
   @@index([userId])
 }
 
+model BroadcastJob {
+  id           String    @id @default(cuid())
+  audience     String    // "all_subscribers" | "all_clients" | "promo:{slug}"
+  subject      String
+  status       String    @default("PENDING") // PENDING | SENDING | COMPLETED | FAILED
+  totalCount   Int       @default(0)
+  sentCount    Int       @default(0)
+  failedCount  Int       @default(0)
+  errorMessage String?   @db.Text
+  metadata     Json      @default("{}")
+  createdById  String?
+  createdAt    DateTime  @default(now())
+  completedAt  DateTime?
+
+  @@index([status, createdAt])
+}
+
 model Invoice {
   id             String        @id @default(cuid())
   userId         String

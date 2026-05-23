@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { FileText, X as XIcon, ExternalLink } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useToast } from '@/components/ui/toast';
 import { useConfirm } from '@/components/ui/confirm-dialog';
@@ -52,6 +53,8 @@ const STATUSES: FilterType[] = ['ALL', 'DRAFT', 'DUE', 'PAID', 'OVERDUE', 'CANCE
 /* ─── Component ───────────────────────────────────────────────────────────── */
 
 export default function AdminInvoicesPage() {
+  const t = useTranslations('admin.invoices');
+  const tc = useTranslations('admin.common');
   const { getAuthHeaders } = useAuth();
   const toast = useToast();
   const confirm = useConfirm();
@@ -68,7 +71,7 @@ export default function AdminInvoicesPage() {
       if (res.ok) {
         setInvoices(await res.json());
       } else {
-        toast.push({ title: 'Gagal memuat invoice', description: `HTTP ${res.status}`, tone: 'error' });
+        toast.push({ title: t('toast_load_error'), description: `HTTP ${res.status}`, tone: 'error' });
       }
     } catch (err) {
       toast.push({ title: 'Network error', description: err instanceof Error ? err.message : 'Unknown', tone: 'error' });
@@ -84,10 +87,10 @@ export default function AdminInvoicesPage() {
   /* ── Actions ──────────────────────────────────────────────────────────── */
 
   async function handleStatusChange(inv: Invoice, newStatus: 'CANCELLED' | 'REFUNDED') {
-    const label = newStatus === 'CANCELLED' ? 'Batalkan' : 'Refund';
+    const label = newStatus === 'CANCELLED' ? t('btn_cancel') : 'Refund';
     const ok = await confirm({
       title: `${label} Invoice ${inv.number}?`,
-      description: `Status invoice akan diubah ke ${newStatus}. Aksi ini tercatat di audit log.`,
+      description: t('confirm_desc', { status: newStatus }),
       confirmLabel: label,
       tone: 'destructive',
     });
@@ -104,7 +107,7 @@ export default function AdminInvoicesPage() {
         if (detail?.id === inv.id) setDetail(null);
       } else {
         const data = await res.json().catch(() => ({}));
-        toast.push({ title: 'Gagal update status', description: data.error || `HTTP ${res.status}`, tone: 'error' });
+        toast.push({ title: t('toast_status_error'), description: data.error || `HTTP ${res.status}`, tone: 'error' });
       }
     } catch (err) {
       toast.push({ title: 'Network error', description: err instanceof Error ? err.message : 'Unknown', tone: 'error' });
@@ -127,7 +130,7 @@ export default function AdminInvoicesPage() {
 
   const filterOptions = STATUSES.map((s) => ({
     value: s,
-    label: s === 'ALL' ? 'Semua' : s,
+    label: s === 'ALL' ? tc('filter_all') : s,
     count: s === 'ALL' ? invoices.length : invoices.filter((inv) => inv.status === s).length,
   }));
 
@@ -156,8 +159,8 @@ export default function AdminInvoicesPage() {
   return (
     <div>
       <PageHeader
-        title="Invoices"
-        description={`${invoices.length} total invoice`}
+        title={t('title')}
+        description={t('description', { count: invoices.length })}
       />
 
       {/* Summary cards */}
@@ -165,19 +168,19 @@ export default function AdminInvoicesPage() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           <Card>
             <CardContent className="p-4">
-              <div className="text-sm text-muted-foreground">Total Invoice</div>
+              <div className="text-sm text-muted-foreground">{t('card_total')}</div>
               <div className="text-2xl font-semibold mt-1">{invoices.length}</div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4">
-              <div className="text-sm text-muted-foreground">Lunas (PAID)</div>
+              <div className="text-sm text-muted-foreground">{t('card_paid')}</div>
               <div className="text-2xl font-semibold mt-1 text-emerald-700 dark:text-emerald-300">{paidInvoices.length}</div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4">
-              <div className="text-sm text-muted-foreground">Total Revenue</div>
+              <div className="text-sm text-muted-foreground">{t('card_revenue')}</div>
               <div className="text-2xl font-semibold mt-1">{formatCurrency(totalRevenue, 'USD', 'en')}</div>
             </CardContent>
           </Card>
@@ -188,7 +191,7 @@ export default function AdminInvoicesPage() {
         className="mb-4"
         search={search}
         onSearchChange={setSearch}
-        searchPlaceholder="Cari nomor invoice atau email..."
+        searchPlaceholder={t('search_placeholder')}
         filters={filterOptions}
         activeFilter={filter}
         onFilterChange={setFilter}
@@ -208,11 +211,11 @@ export default function AdminInvoicesPage() {
                 variant="inline"
                 icon={FileText}
                 title={search
-                  ? 'Tidak ada invoice yang cocok'
+                  ? t('empty_search')
                   : filter === 'ALL'
-                    ? 'Belum ada invoice'
-                    : `Tidak ada invoice ${filter}`}
-                description={!search && filter === 'ALL' ? 'Invoice akan muncul setelah customer melakukan checkout.' : undefined}
+                    ? t('empty_no_data')
+                    : t('empty_filter', { status: filter })}
+                description={!search && filter === 'ALL' ? t('empty_no_data_desc') : undefined}
               />
             </div>
           ) : (
@@ -220,15 +223,15 @@ export default function AdminInvoicesPage() {
               <table className="w-full text-sm table-responsive">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left p-4 font-medium text-muted-foreground">Invoice #</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">User</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Amount</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Tier</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Status</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Provider</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Dibuat</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Paid At</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Aksi</th>
+                    <th className="text-left p-4 font-medium text-muted-foreground">{t('th_invoice')}</th>
+                    <th className="text-left p-4 font-medium text-muted-foreground">{t('th_user')}</th>
+                    <th className="text-left p-4 font-medium text-muted-foreground">{t('th_amount')}</th>
+                    <th className="text-left p-4 font-medium text-muted-foreground">{t('th_tier')}</th>
+                    <th className="text-left p-4 font-medium text-muted-foreground">{t('th_status')}</th>
+                    <th className="text-left p-4 font-medium text-muted-foreground">{t('th_provider')}</th>
+                    <th className="text-left p-4 font-medium text-muted-foreground">{t('th_created')}</th>
+                    <th className="text-left p-4 font-medium text-muted-foreground">{t('th_paid_at')}</th>
+                    <th className="text-left p-4 font-medium text-muted-foreground">{t('th_actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -267,7 +270,7 @@ export default function AdminInvoicesPage() {
                         <td className="p-4" data-label="Aksi">
                           <div className="flex gap-1.5">
                             <Button size="sm" variant="outline" onClick={() => setDetail(inv)}>
-                              Detail
+                              {tc('details')}
                             </Button>
                             {canChangeStatus(inv.status) && (
                               <Button
@@ -275,7 +278,7 @@ export default function AdminInvoicesPage() {
                                 variant="destructive"
                                 onClick={() => handleStatusChange(inv, 'CANCELLED')}
                               >
-                                Batalkan
+                                {t('btn_cancel')}
                               </Button>
                             )}
                           </div>
@@ -316,6 +319,8 @@ function DetailModal({
   onCancel?: () => void;
   onRefund?: () => void;
 }) {
+  const t = useTranslations('admin.invoices');
+  const tc = useTranslations('admin.common');
   const badge = invoiceStatusBadge(invoice.status);
 
   return (
@@ -328,7 +333,7 @@ function DetailModal({
       <button
         type="button"
         onClick={onClose}
-        aria-label="Tutup modal"
+        aria-label={tc('close')}
         className="absolute inset-0 bg-background/80 backdrop-blur-sm"
       />
       <div className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto bg-card border border-border rounded-xl shadow-2xl">
@@ -344,7 +349,7 @@ function DetailModal({
             type="button"
             onClick={onClose}
             className="inline-flex items-center justify-center h-8 w-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-            aria-label="Tutup"
+            aria-label={tc('close')}
           >
             <XIcon className="h-4 w-4" />
           </button>
@@ -360,7 +365,7 @@ function DetailModal({
             <InfoRow label="Currency" value={invoice.currency} />
             <InfoRow label="Tier" value={invoice.metadata?.tier || '-'} />
             <InfoRow label="Provider" value={invoice.metadata?.provider || '-'} />
-            <InfoRow label="Deskripsi" value={invoice.description} />
+            <InfoRow label={t('label_description')} value={invoice.description} />
             <InfoRow label="Issued At" value={formatDate(invoice.issuedAt)} />
             <InfoRow label="Due At" value={formatDate(invoice.dueAt)} />
             <InfoRow label="Paid At" value={formatDate(invoice.paidAt)} />
@@ -378,14 +383,14 @@ function DetailModal({
                 className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
               >
                 <ExternalLink className="h-3.5 w-3.5" />
-                Lihat PDF Invoice
+                {t('view_pdf')}
               </a>
             </div>
           )}
 
           {/* Metadata JSON */}
           <div>
-            <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">Metadata (raw JSON)</h3>
+            <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">{t('metadata_title')}</h3>
             <pre className="text-xs bg-muted/50 rounded-lg p-3 overflow-x-auto max-h-48 border border-border">
               {JSON.stringify(invoice.metadata, null, 2)}
             </pre>
@@ -397,12 +402,12 @@ function DetailModal({
           <div className="flex items-center gap-2 px-6 py-4 border-t border-border bg-muted/20">
             {onCancel && (
               <Button size="sm" variant="destructive" onClick={onCancel}>
-                Batalkan Invoice
+                {t('btn_cancel_invoice')}
               </Button>
             )}
             {onRefund && (
               <Button size="sm" variant="outline" onClick={onRefund}>
-                Refund Invoice
+                {t('btn_refund_invoice')}
               </Button>
             )}
           </div>

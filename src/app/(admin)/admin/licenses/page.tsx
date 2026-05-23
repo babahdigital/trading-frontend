@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Plus, X, KeyRound } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useToast } from '@/components/ui/toast';
 import { PageHeader } from '@/components/admin/page-header';
@@ -42,6 +43,8 @@ const LICENSE_TYPES = ['VPS_INSTALLATION', 'PAMM_SUBSCRIBER', 'SIGNAL_SUBSCRIBER
 type FilterType = 'ALL' | 'ACTIVE' | 'EXPIRED' | 'PENDING';
 
 export default function LicensesPage() {
+  const t = useTranslations('admin.licenses');
+  const tc = useTranslations('admin.common');
   const { getAuthHeaders } = useAuth();
   const toast = useToast();
   const [licenses, setLicenses] = useState<License[]>([]);
@@ -135,10 +138,10 @@ export default function LicensesPage() {
         setForm({ userId: '', type: LICENSE_TYPES[0], startsAt: '', expiresAt: '', vpsInstanceId: '' });
         setShowForm(false);
         void fetchLicenses();
-        toast.push({ tone: 'success', title: 'Lisensi berhasil dibuat' });
+        toast.push({ tone: 'success', title: t('toast_created') });
       } else {
         const data = await res.json().catch(() => ({}));
-        setError(data.error || 'Gagal membuat lisensi');
+        setError(data.error || t('error_create'));
       }
     } catch {
       setError('Network error');
@@ -161,21 +164,21 @@ export default function LicensesPage() {
     });
 
   const filterOptions = [
-    { value: 'ALL' as const, label: 'Semua', count: licenses.length },
-    { value: 'ACTIVE' as const, label: 'Aktif', count: licenses.filter(l => l.status === 'ACTIVE').length },
-    { value: 'EXPIRED' as const, label: 'Kedaluwarsa', count: licenses.filter(l => l.status === 'EXPIRED').length },
-    { value: 'PENDING' as const, label: 'Menunggu', count: licenses.filter(l => l.status === 'PENDING').length },
+    { value: 'ALL' as const, label: tc('filter_all'), count: licenses.length },
+    { value: 'ACTIVE' as const, label: tc('filter_active'), count: licenses.filter(l => l.status === 'ACTIVE').length },
+    { value: 'EXPIRED' as const, label: tc('filter_expired'), count: licenses.filter(l => l.status === 'EXPIRED').length },
+    { value: 'PENDING' as const, label: t('filter_pending'), count: licenses.filter(l => l.status === 'PENDING').length },
   ];
 
   return (
     <div>
       <PageHeader
-        title="Licenses"
-        description={`${total} total lisensi`}
+        title={t('title')}
+        description={t('description', { count: total })}
         actions={
           <Button onClick={() => setShowForm(!showForm)}>
             {showForm ? <X className="h-4 w-4 mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
-            {showForm ? 'Batal' : 'Generate Lisensi'}
+            {showForm ? tc('cancel') : t('generate')}
           </Button>
         }
       />
@@ -183,12 +186,12 @@ export default function LicensesPage() {
       {showForm && (
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>Generate Lisensi Baru</CardTitle>
+            <CardTitle>{t('generate_new')}</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label htmlFor="lic-user" className="text-sm font-medium text-muted-foreground">User *</label>
+                <label htmlFor="lic-user" className="text-sm font-medium text-muted-foreground">{t('label_user')} *</label>
                 <select
                   id="lic-user"
                   value={form.userId}
@@ -196,14 +199,14 @@ export default function LicensesPage() {
                   required
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                 >
-                  <option value="">Pilih user…</option>
+                  <option value="">{t('placeholder_user')}</option>
                   {users.map((u) => (
                     <option key={u.id} value={u.id}>{u.name || u.email}</option>
                   ))}
                 </select>
               </div>
               <div>
-                <label htmlFor="lic-type" className="text-sm font-medium text-muted-foreground">Tipe *</label>
+                <label htmlFor="lic-type" className="text-sm font-medium text-muted-foreground">{t('label_type')} *</label>
                 <select
                   id="lic-type"
                   value={form.type}
@@ -217,22 +220,22 @@ export default function LicensesPage() {
                 </select>
               </div>
               <div>
-                <label htmlFor="lic-start" className="text-sm font-medium text-muted-foreground">Mulai Aktif *</label>
+                <label htmlFor="lic-start" className="text-sm font-medium text-muted-foreground">{t('label_starts')} *</label>
                 <Input id="lic-start" type="date" value={form.startsAt} onChange={(e) => updateForm('startsAt', e.target.value)} required />
               </div>
               <div>
-                <label htmlFor="lic-exp" className="text-sm font-medium text-muted-foreground">Berakhir *</label>
+                <label htmlFor="lic-exp" className="text-sm font-medium text-muted-foreground">{t('label_expires')} *</label>
                 <Input id="lic-exp" type="date" value={form.expiresAt} onChange={(e) => updateForm('expiresAt', e.target.value)} required />
               </div>
               <div>
-                <label htmlFor="lic-vps" className="text-sm font-medium text-muted-foreground">VPS Instance (opsional)</label>
+                <label htmlFor="lic-vps" className="text-sm font-medium text-muted-foreground">{t('label_vps')}</label>
                 <select
                   id="lic-vps"
                   value={form.vpsInstanceId}
                   onChange={(e) => updateForm('vpsInstanceId', e.target.value)}
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                 >
-                  <option value="">— Tidak ada —</option>
+                  <option value="">{t('placeholder_vps')}</option>
                   {vpsList.map((v) => (
                     <option key={v.id} value={v.id}>{v.name}</option>
                   ))}
@@ -240,7 +243,7 @@ export default function LicensesPage() {
               </div>
               <div className="sm:col-span-2 flex items-center gap-4 flex-wrap">
                 <Button type="submit" disabled={submitting}>
-                  {submitting ? 'Memproses…' : 'Generate Lisensi'}
+                  {submitting ? t('btn_processing') : t('generate')}
                 </Button>
                 {error && <p className="text-sm text-rose-500 dark:text-rose-400" role="alert">{error}</p>}
               </div>
@@ -253,7 +256,7 @@ export default function LicensesPage() {
         className="mb-4"
         search={search}
         onSearchChange={setSearch}
-        searchPlaceholder="Cari key, email, atau VPS…"
+        searchPlaceholder={t('search_placeholder')}
         filters={filterOptions}
         activeFilter={filter}
         onFilterChange={setFilter}
@@ -273,12 +276,12 @@ export default function LicensesPage() {
                 variant="inline"
                 icon={KeyRound}
                 title={search
-                  ? 'Tidak ada lisensi yang cocok'
+                  ? t('empty_search')
                   : filter === 'ALL'
-                    ? 'Belum ada lisensi'
-                    : `Tidak ada lisensi ${filter.toLowerCase()}`}
-                description={!search && filter === 'ALL' ? 'Mulai dengan generate lisensi pertama untuk customer.' : undefined}
-                actions={!search && filter === 'ALL' ? [{ label: 'Generate Lisensi', onClick: () => setShowForm(true), icon: Plus }] : []}
+                    ? t('empty_no_data')
+                    : t('empty_filter', { status: filter.toLowerCase() })}
+                description={!search && filter === 'ALL' ? t('empty_no_data_desc') : undefined}
+                actions={!search && filter === 'ALL' ? [{ label: t('generate'), onClick: () => setShowForm(true), icon: Plus }] : []}
               />
             </div>
           ) : (
@@ -286,12 +289,12 @@ export default function LicensesPage() {
               <table className="w-full text-sm table-responsive">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left p-4 font-medium text-muted-foreground">License Key</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Tipe</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Client</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Status</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Berakhir</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">VPS</th>
+                    <th className="text-left p-4 font-medium text-muted-foreground">{t('th_key')}</th>
+                    <th className="text-left p-4 font-medium text-muted-foreground">{t('th_type')}</th>
+                    <th className="text-left p-4 font-medium text-muted-foreground">{t('th_client')}</th>
+                    <th className="text-left p-4 font-medium text-muted-foreground">{t('th_status')}</th>
+                    <th className="text-left p-4 font-medium text-muted-foreground">{t('th_expires')}</th>
+                    <th className="text-left p-4 font-medium text-muted-foreground">{t('th_vps')}</th>
                   </tr>
                 </thead>
                 <tbody>

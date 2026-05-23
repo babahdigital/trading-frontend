@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth/auth-context';
 import { Plus, UserCheck } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { TenantActions } from '@/components/admin/tenant-actions';
 import { PageHeader } from '@/components/admin/page-header';
 import { FilterBar } from '@/components/admin/filter-bar';
@@ -38,6 +39,8 @@ interface Customer {
 type FilterStatus = 'all' | 'ACTIVE' | 'EXPIRED';
 
 export default function CustomersPage() {
+  const t = useTranslations('admin.customers');
+  const tc = useTranslations('admin.common');
   const { getAuthHeaders } = useAuth();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [total, setTotal] = useState(0);
@@ -82,12 +85,12 @@ export default function CustomersPage() {
   return (
     <div>
       <PageHeader
-        title="Customers"
-        description={`${total} customer terdaftar`}
+        title={t('title')}
+        description={t('description', { count: total })}
         actions={
           <Button asChild>
             <Link href="/admin/customers/new">
-              <Plus className="h-4 w-4 mr-2" /> Tambah Customer
+              <Plus className="h-4 w-4 mr-2" /> {t('add_customer')}
             </Link>
           </Button>
         }
@@ -97,11 +100,11 @@ export default function CustomersPage() {
         className="mb-4"
         search={searchInput}
         onSearchChange={setSearchInput}
-        searchPlaceholder="Cari nama, email, MT5…"
+        searchPlaceholder={t('search_placeholder')}
         filters={[
-          { value: 'all', label: 'Semua' },
-          { value: 'ACTIVE', label: 'Aktif' },
-          { value: 'EXPIRED', label: 'Kedaluwarsa' },
+          { value: 'all', label: tc('filter_all') },
+          { value: 'ACTIVE', label: tc('filter_active') },
+          { value: 'EXPIRED', label: tc('filter_expired') },
         ]}
         activeFilter={filter}
         onFilterChange={(v) => { setFilter(v as FilterStatus); setPage(1); }}
@@ -121,9 +124,9 @@ export default function CustomersPage() {
               <EmptyState
                 variant="inline"
                 icon={UserCheck}
-                title={search || filter !== 'all' ? 'Tidak ada customer cocok filter' : 'Belum ada customer'}
-                description={search || filter !== 'all' ? 'Coba ubah filter atau pencarian.' : 'Tambahkan customer baru untuk mulai onboard.'}
-                actions={!search && filter === 'all' ? [{ label: 'Tambah Customer', href: '/admin/customers/new', icon: Plus }] : []}
+                title={search || filter !== 'all' ? t('empty_filtered') : t('empty_no_data')}
+                description={search || filter !== 'all' ? t('empty_filtered_desc') : t('empty_no_data_desc')}
+                actions={!search && filter === 'all' ? [{ label: t('add_customer'), href: '/admin/customers/new', icon: Plus }] : []}
               />
             </div>
           ) : (
@@ -131,13 +134,13 @@ export default function CustomersPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left p-4 font-medium text-muted-foreground">Nama</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Email</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Lisensi</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Berakhir</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">VPS</th>
-                    <th className="text-left p-4 font-medium text-muted-foreground">Login Terakhir</th>
-                    <th className="text-right p-4 font-medium text-muted-foreground">Aksi</th>
+                    <th className="text-left p-4 font-medium text-muted-foreground">{t('th_name')}</th>
+                    <th className="text-left p-4 font-medium text-muted-foreground">{t('th_email')}</th>
+                    <th className="text-left p-4 font-medium text-muted-foreground">{t('th_license')}</th>
+                    <th className="text-left p-4 font-medium text-muted-foreground">{t('th_expires')}</th>
+                    <th className="text-left p-4 font-medium text-muted-foreground">{t('th_vps')}</th>
+                    <th className="text-left p-4 font-medium text-muted-foreground">{t('th_last_login')}</th>
+                    <th className="text-right p-4 font-medium text-muted-foreground">{t('th_actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -171,7 +174,7 @@ export default function CustomersPage() {
                           )}
                         </td>
                         <td className="p-4 text-muted-foreground text-xs">
-                          {c.lastLoginAt ? formatDate(c.lastLoginAt) : 'Belum pernah'}
+                          {c.lastLoginAt ? formatDate(c.lastLoginAt) : tc('never')}
                         </td>
                         <td className="p-4 text-right">
                           <TenantActions
@@ -199,9 +202,9 @@ export default function CustomersPage() {
         ) : customers.length === 0 ? (
           <EmptyState
             icon={UserCheck}
-            title={search || filter !== 'all' ? 'Tidak ada customer cocok' : 'Belum ada customer'}
-            description={search || filter !== 'all' ? 'Coba ubah filter.' : 'Tambah customer untuk mulai.'}
-            actions={!search && filter === 'all' ? [{ label: 'Tambah Customer', href: '/admin/customers/new', icon: Plus }] : []}
+            title={search || filter !== 'all' ? t('mobile_empty_filtered') : t('mobile_empty_no_data')}
+            description={search || filter !== 'all' ? t('mobile_empty_filtered_desc') : t('mobile_empty_no_data_desc')}
+            actions={!search && filter === 'all' ? [{ label: t('add_customer'), href: '/admin/customers/new', icon: Plus }] : []}
           />
         ) : (
           customers.map((c) => {
@@ -219,7 +222,7 @@ export default function CustomersPage() {
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{c.vps ? c.vps.name : 'Tanpa VPS'}</span>
+                    <span>{c.vps ? c.vps.name : t('no_vps')}</span>
                     <span>
                       {c.license?.expiresAt ? `Exp ${formatDate(c.license.expiresAt)}` : ''}
                     </span>
@@ -235,13 +238,13 @@ export default function CustomersPage() {
       {totalPages > 1 && (
         <nav aria-label="Pagination" className="flex items-center justify-center gap-2 mt-6">
           <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>
-            Sebelumnya
+            {tc('previous')}
           </Button>
           <span className="text-sm text-muted-foreground tabular-nums">
-            Halaman {page} dari {totalPages}
+            {tc('page_of', { page, total: totalPages })}
           </span>
           <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
-            Selanjutnya
+            {tc('next')}
           </Button>
         </nav>
       )}

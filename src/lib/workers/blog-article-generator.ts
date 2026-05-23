@@ -215,9 +215,21 @@ async function generateOneTopic(topic: BlogTopic): Promise<{ articleId: string }
     .replace('{{DATA_JSON}}', JSON.stringify(injectedData, null, 2))
     .replaceAll('{{TARGET_WORDS}}', String(topic.targetLengthWords));
 
+  const systemPrompt =
+    'Kamu adalah analis riset trading profesional dan edukator pasar keuangan. '
+    + 'ATURAN KETAT: '
+    + '1) JANGAN PERNAH menyebut nama produk, platform, bot, atau layanan apapun (termasuk BabahAlgo). '
+    + '2) JANGAN PERNAH mempromosikan layanan signal, copy trade, VPS, PAMM, atau subscription. '
+    + '3) Fokus 100% pada edukasi trading: analisis fundamental, teknikal, strategi, risk management. '
+    + '4) Gunakan data faktual, contoh historis nyata, dan referensi akademis. '
+    + '5) Tulis dalam perspektif netral seperti Bloomberg Research atau Financial Times. '
+    + '6) Target pembaca: trader Indonesia yang ingin belajar, bukan calon pelanggan. '
+    + '7) Sertakan minimal 3 heading (##) dan tulis minimal ' + topic.targetLengthWords + ' kata.';
+
   const aiStart = Date.now();
   const { text: markdown, usage } = await generateText({
     model: or.chat(REASONING_MODEL),
+    system: systemPrompt,
     prompt,
     temperature: 0.4,
     maxOutputTokens: Math.max(8192, Math.ceil(topic.targetLengthWords * 6)),

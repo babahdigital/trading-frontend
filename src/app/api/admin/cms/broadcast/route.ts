@@ -9,8 +9,8 @@
  *   - 'all': union of both, dedupe by email
  *
  * Throttling: send in batches of 50 dengan 1s delay (Brevo rate limit safety).
- * Idempotency: jobId stored in BroadcastJob table (TODO: add table), prevent
- * duplicate sends.
+ * Idempotency: BroadcastJob table prevents duplicate sends — if a PENDING or
+ * SENDING job already exists for the same audience+promoId, reject the request.
  *
  * Auth: x-user-role=ADMIN (set by middleware after JWT verify).
  *
@@ -39,6 +39,10 @@ const BATCH_DELAY_MS = 1000;
 
 function isAdmin(req: NextRequest): boolean {
   return req.headers.get('x-user-role') === 'ADMIN';
+}
+
+function getAdminId(req: NextRequest): string | null {
+  return req.headers.get('x-user-id') ?? null;
 }
 
 interface Recipient { email: string; name?: string | null; locale: 'id' | 'en' }
@@ -117,6 +121,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ code: 'not_found', error: 'promo_not_found' }, { status: 404 });
     }
 
+    // Build audience key for dedup: "promo:{slug}:{audience}"
+    const audienceKey = `promo:${promo.slug}:${audience}`;
+
     const recipients = await resolveRecipients(audience);
 
     if (dryRun) {
@@ -129,6 +136,37 @@ export async function POST(req: NextRequest) {
         promo: { id: promo.id, slug: promo.slug, name: promo.name },
       });
     }
+
+    // ── Idempotency: check for in-flight job with same audience key ────────
+    const existingJob = await prisma.broadcastJob.findFirst({
+      where: {
+        audience: audienceKey,
+        status: { in: ['PENDING', 'SENDING'] },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (existingJob) {
+      return NextResponse.json({
+        code: 'duplicate',
+        error: 'A broadcast for this audience is already in progress.',
+        existingJobId: existingJob.id,
+        existingJobStatus: existingJob.status,
+      }, { status: 409 });
+    }
+
+    // ── Create BroadcastJob record ─────────────────────────────────────────
+    const subjectLine = promo.popupTitle ?? promo.name;
+    const job = await prisma.broadcastJob.create({
+      data: {
+        audience: audienceKey,
+        subject: subjectLine,
+        status: 'SENDING',
+        totalCount: recipients.length,
+        createdById: getAdminId(req),
+        metadata: { promoId: promo.id, promoSlug: promo.slug, locale },
+      },
+    });
 
     // Build per-locale promo content once for efficiency
     const renderFor = (recipientLocale: 'id' | 'en', recipientName?: string | null) => {
@@ -178,16 +216,37 @@ export async function POST(req: NextRequest) {
           if (errors.length < 5) errors.push(`${r.email}: ${msg}`);
         }
       }));
+
+      // Update progress every batch
+      await prisma.broadcastJob.update({
+        where: { id: job.id },
+        data: { sentCount: sent, failedCount: failed },
+      });
+
       // Throttle next batch
       if (i + BATCH_SIZE < recipients.length) {
         await new Promise((res) => setTimeout(res, BATCH_DELAY_MS));
       }
     }
 
-    log.info(`Promo broadcast ${promo.slug} → audience=${audience} recipients=${recipients.length} sent=${sent} failed=${failed}`);
+    // ── Finalize job status ────────────────────────────────────────────────
+    const finalStatus = failed === recipients.length ? 'FAILED' : 'COMPLETED';
+    await prisma.broadcastJob.update({
+      where: { id: job.id },
+      data: {
+        status: finalStatus,
+        sentCount: sent,
+        failedCount: failed,
+        errorMessage: errors.length > 0 ? errors.join('\n') : null,
+        completedAt: new Date(),
+      },
+    });
+
+    log.info(`Promo broadcast ${promo.slug} → audience=${audience} recipients=${recipients.length} sent=${sent} failed=${failed} jobId=${job.id}`);
 
     return NextResponse.json({
       ok: true,
+      jobId: job.id,
       promoId,
       promoSlug: promo.slug,
       audience,

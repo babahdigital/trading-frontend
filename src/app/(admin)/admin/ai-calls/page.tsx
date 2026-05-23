@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { PageHeader } from '@/components/admin/page-header';
 import { StatCard, StatCardGrid } from '@/components/admin/stat-card';
 import { EmptyState } from '@/components/admin/empty-state';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth/auth-context';
 import { formatDateTime } from '@/lib/format-locale';
 import { Icon } from '@/components/ui/icon';
@@ -44,6 +45,8 @@ interface AiCallsResponse {
 const PAGE_SIZE = 50;
 
 export default function AdminAiCallsPage() {
+  const t = useTranslations('admin.ai_calls');
+  const tc = useTranslations('admin.common');
   const { getAuthHeaders } = useAuth();
   const [data, setData] = useState<AiCallsResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -94,13 +97,13 @@ export default function AdminAiCallsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Monitoring"
-        title="AI Call Log"
-        description="Monitoring penggunaan AI — token, cost, success rate, latency."
+        eyebrow={t('eyebrow')}
+        title={t('title')}
+        description={t('description')}
         actions={
-          <Button variant="outline" size="sm" onClick={() => void load()} aria-label="Refresh">
+          <Button variant="outline" size="sm" onClick={() => void load()} aria-label={tc('refresh')}>
             <Icon icon={RefreshCw} size="sm" className="mr-1.5" />
-            Refresh
+            {tc('refresh')}
           </Button>
         }
       />
@@ -108,21 +111,21 @@ export default function AdminAiCallsPage() {
       {/* KPI cards */}
       <StatCardGrid columns={4}>
         <StatCard
-          label="Total Calls"
+          label={t('label_total_calls')}
           value={data ? data.summary.totalCalls.toLocaleString() : '-'}
           icon={Activity}
           iconTone="info"
           loading={loading}
         />
         <StatCard
-          label="Success Rate"
+          label={t('label_success_rate')}
           value={data ? `${data.summary.successRate.toFixed(1)}%` : '-'}
           icon={CheckCircle}
           iconTone={data && data.summary.successRate >= 95 ? 'success' : data && data.summary.successRate >= 80 ? 'warning' : 'danger'}
           loading={loading}
         />
         <StatCard
-          label="Total Tokens"
+          label={t('label_total_tokens')}
           value={data ? formatTokens(data.summary.totalTokens) : '-'}
           sub={data ? `In: ${formatTokens(data.summary.totalInputTokens)} / Out: ${formatTokens(data.summary.totalOutputTokens)}` : undefined}
           icon={Zap}
@@ -130,7 +133,7 @@ export default function AdminAiCallsPage() {
           loading={loading}
         />
         <StatCard
-          label="Cost Estimate"
+          label={t('label_cost')}
           value={data ? `$${data.summary.costEstimate.toFixed(2)}` : '-'}
           sub="~$3/M input, ~$15/M output"
           icon={DollarSign}
@@ -146,7 +149,7 @@ export default function AdminAiCallsPage() {
           value={purposeFilter}
           onChange={(e) => { setPurposeFilter(e.target.value); setPage(1); }}
         >
-          <option value="">Semua purpose</option>
+          <option value="">{t('filter_all_purpose')}</option>
           {data?.purposes.map((p) => (
             <option key={p} value={p}>{p}</option>
           ))}
@@ -156,11 +159,11 @@ export default function AdminAiCallsPage() {
           value={successFilter}
           onChange={(e) => { setSuccessFilter(e.target.value); setPage(1); }}
         >
-          <option value="">Semua status</option>
-          <option value="true">Success</option>
-          <option value="false">Failed</option>
+          <option value="">{t('filter_all_status')}</option>
+          <option value="true">{t('filter_success')}</option>
+          <option value="false">{t('filter_failed')}</option>
         </select>
-        <Button onClick={applyFilters} variant="outline" size="sm">Terapkan</Button>
+        <Button onClick={applyFilters} variant="outline" size="sm">{tc('apply')}</Button>
       </div>
 
       {/* Table */}
@@ -177,8 +180,8 @@ export default function AdminAiCallsPage() {
               <EmptyState
                 variant="inline"
                 icon={Brain}
-                title={purposeFilter || successFilter ? 'Tidak ada AI call cocok filter' : 'Belum ada AI call log'}
-                description={purposeFilter || successFilter ? 'Coba ubah filter pencarian.' : 'Log akan muncul saat sistem memanggil AI model.'}
+                title={purposeFilter || successFilter ? t('empty_filtered') : t('empty_no_data')}
+                description={purposeFilter || successFilter ? t('empty_filtered_desc') : t('empty_no_data_desc')}
                 size="sm"
               />
             </div>
@@ -240,7 +243,7 @@ export default function AdminAiCallsPage() {
       {data && data.entries.length > 0 && (
         <nav aria-label="Pagination" className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground tabular-nums">
-            Halaman {page} &middot; {data.total.toLocaleString()} total
+            {t('page_total', { page, total: data.total.toLocaleString() })}
           </p>
           <div className="flex gap-2">
             <Button
@@ -249,7 +252,7 @@ export default function AdminAiCallsPage() {
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1 || loading}
             >
-              <ChevronLeft className="h-4 w-4 mr-1" /> Sebelumnya
+              <ChevronLeft className="h-4 w-4 mr-1" /> {tc('previous')}
             </Button>
             <Button
               variant="outline"
@@ -257,7 +260,7 @@ export default function AdminAiCallsPage() {
               onClick={() => setPage((p) => p + 1)}
               disabled={!hasMore || loading}
             >
-              Selanjutnya <ChevronRight className="h-4 w-4 ml-1" />
+              {tc('next')} <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           </div>
         </nav>

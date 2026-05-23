@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageHeader } from '@/components/admin/page-header';
 import { EmptyState } from '@/components/admin/empty-state';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth/auth-context';
 import { formatDateTime, formatRelative } from '@/lib/format-locale';
 import { Icon } from '@/components/ui/icon';
@@ -41,6 +42,8 @@ interface WorkersResponse {
 }
 
 export default function AdminWorkersPage() {
+  const t = useTranslations('admin.workers');
+  const tc = useTranslations('admin.common');
   const { getAuthHeaders } = useAuth();
   const [data, setData] = useState<WorkersResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -64,21 +67,21 @@ export default function AdminWorkersPage() {
   useEffect(() => { void load(); }, [load]);
 
   function getHealthTone(errorRate: number): { bg: string; text: string; label: string } {
-    if (errorRate === 0) return { bg: 'border-emerald-500/30 bg-emerald-500/[0.03]', text: 'text-emerald-600 dark:text-emerald-400', label: 'Healthy' };
-    if (errorRate < 10) return { bg: 'border-amber-500/30 bg-amber-500/[0.03]', text: 'text-amber-600 dark:text-amber-400', label: 'Warning' };
-    return { bg: 'border-rose-500/30 bg-rose-500/[0.03]', text: 'text-rose-600 dark:text-rose-400', label: 'Unhealthy' };
+    if (errorRate === 0) return { bg: 'border-emerald-500/30 bg-emerald-500/[0.03]', text: 'text-emerald-600 dark:text-emerald-400', label: t('health_healthy') };
+    if (errorRate < 10) return { bg: 'border-amber-500/30 bg-amber-500/[0.03]', text: 'text-amber-600 dark:text-amber-400', label: t('health_warning') };
+    return { bg: 'border-rose-500/30 bg-rose-500/[0.03]', text: 'text-rose-600 dark:text-rose-400', label: t('health_unhealthy') };
   }
 
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Monitoring"
-        title="Worker Runs"
-        description="Health monitoring untuk semua background worker — error rate, last run, recent errors."
+        eyebrow={t('eyebrow')}
+        title={t('title')}
+        description={t('description')}
         actions={
-          <Button variant="outline" size="sm" onClick={() => void load()} aria-label="Refresh">
+          <Button variant="outline" size="sm" onClick={() => void load()} aria-label={tc('refresh')}>
             <Icon icon={RefreshCw} size="sm" className="mr-1.5" />
-            Refresh
+            {tc('refresh')}
           </Button>
         }
       />
@@ -97,8 +100,8 @@ export default function AdminWorkersPage() {
       ) : !data || data.workers.length === 0 ? (
         <EmptyState
           icon={Cog}
-          title="Belum ada worker run"
-          description="Data worker akan muncul saat background jobs (cron, scheduled tasks) mulai berjalan."
+          title={t('empty_title')}
+          description={t('empty_desc')}
         />
       ) : (
         <>
@@ -153,7 +156,7 @@ export default function AdminWorkersPage() {
 
                     {w.runningCount > 0 && (
                       <div className="mt-2 text-xs text-amber-600 dark:text-amber-400">
-                        {w.runningCount} currently running
+                        {t('currently_running', { count: w.runningCount })}
                       </div>
                     )}
 
@@ -173,7 +176,7 @@ export default function AdminWorkersPage() {
                           </span>
                         </span>
                       ) : (
-                        <span>No runs recorded</span>
+                        <span>{t('no_runs')}</span>
                       )}
                     </div>
                   </CardContent>
@@ -187,7 +190,7 @@ export default function AdminWorkersPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
                 <AlertTriangle className="h-4 w-4 text-rose-500" />
-                Recent Errors
+                {t('errors_title')}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
@@ -196,8 +199,8 @@ export default function AdminWorkersPage() {
                   <EmptyState
                     variant="inline"
                     icon={Cog}
-                    title="Tidak ada error terbaru"
-                    description="Semua worker berjalan normal."
+                    title={t('errors_empty')}
+                    description={t('errors_empty_desc')}
                     size="sm"
                   />
                 </div>

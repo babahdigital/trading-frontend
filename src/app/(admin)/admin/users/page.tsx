@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Plus, X, Trash2, Power, Users as UsersIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useToast } from '@/components/ui/toast';
 import { useConfirm } from '@/components/ui/confirm-dialog';
@@ -34,6 +35,8 @@ const ROLE_OPTIONS = [
 ];
 
 export default function UsersPage() {
+  const t = useTranslations('admin.users');
+  const tc = useTranslations('admin.common');
   const { getAuthHeaders } = useAuth();
   const toast = useToast();
   const confirm = useConfirm();
@@ -98,10 +101,10 @@ export default function UsersPage() {
         setForm({ email: '', password: '', name: '', role: 'CLIENT', mt5Account: '' });
         setShowForm(false);
         void fetchUsers();
-        toast.push({ tone: 'success', title: 'User dibuat', description: form.email });
+        toast.push({ tone: 'success', title: t('toast_created'), description: form.email });
       } else {
         const data = await res.json().catch(() => ({}));
-        setError(data.error || 'Gagal membuat user');
+        setError(data.error || t('error_create'));
       }
     } catch {
       setError('Network error');
@@ -112,10 +115,10 @@ export default function UsersPage() {
 
   async function handleDelete(user: User) {
     const ok = await confirm({
-      title: `Hapus user ${user.email}?`,
-      description: 'Tindakan ini tidak bisa dibatalkan. Semua license user akan ikut terhapus. Hanya user dengan role CLIENT yang bisa dihapus.',
-      confirmLabel: 'Hapus',
-      cancelLabel: 'Batal',
+      title: t('confirm_delete_title', { email: user.email }),
+      description: t('confirm_delete_desc'),
+      confirmLabel: tc('delete'),
+      cancelLabel: tc('cancel'),
       tone: 'destructive',
     });
     if (!ok) return;
@@ -126,10 +129,10 @@ export default function UsersPage() {
       });
       if (res.ok) {
         void fetchUsers();
-        toast.push({ tone: 'success', title: 'User dihapus', description: user.email });
+        toast.push({ tone: 'success', title: t('toast_deleted'), description: user.email });
       } else {
         const data = await res.json().catch(() => ({}));
-        toast.push({ tone: 'error', title: 'Hapus gagal', description: data.error || res.statusText });
+        toast.push({ tone: 'error', title: t('toast_delete_failed'), description: data.error || res.statusText });
       }
     } catch (err) {
       toast.push({ tone: 'error', title: 'Network error', description: err instanceof Error ? err.message : 'unknown' });
@@ -139,9 +142,9 @@ export default function UsersPage() {
   async function handleChangeRole(user: User, newRole: string) {
     if (newRole === user.role) return;
     const ok = await confirm({
-      title: 'Ubah role user?',
-      description: `${user.email}\nDari: ${user.role} → ${newRole}`,
-      confirmLabel: 'Ubah role',
+      title: t('confirm_role_title'),
+      description: `${user.email}\n${user.role} → ${newRole}`,
+      confirmLabel: t('confirm_role_btn'),
       tone: 'warning',
     });
     if (!ok) return;
@@ -153,10 +156,10 @@ export default function UsersPage() {
       });
       if (res.ok) {
         void fetchUsers();
-        toast.push({ tone: 'success', title: 'Role diubah', description: `${user.email} → ${newRole}` });
+        toast.push({ tone: 'success', title: t('toast_role_changed'), description: `${user.email} → ${newRole}` });
       } else {
         const data = await res.json().catch(() => ({}));
-        toast.push({ tone: 'error', title: 'Gagal ubah role', description: data.error || res.statusText });
+        toast.push({ tone: 'error', title: t('toast_role_failed'), description: data.error || res.statusText });
       }
     } catch (err) {
       toast.push({ tone: 'error', title: 'Network error', description: err instanceof Error ? err.message : 'unknown' });
@@ -165,7 +168,7 @@ export default function UsersPage() {
 
   async function handleToggleActive(user: User) {
     const next = !(user.isActive ?? true);
-    const action = next ? 'Reaktivasi' : 'Nonaktifkan';
+    const action = next ? t('confirm_reactivate') : t('confirm_deactivate');
     const ok = await confirm({
       title: `${action} user?`,
       description: user.email,
@@ -181,10 +184,10 @@ export default function UsersPage() {
       });
       if (res.ok) {
         void fetchUsers();
-        toast.push({ tone: 'success', title: next ? 'User diaktifkan' : 'User dinonaktifkan' });
+        toast.push({ tone: 'success', title: next ? t('toast_activated') : t('toast_deactivated') });
       } else {
         const data = await res.json().catch(() => ({}));
-        toast.push({ tone: 'error', title: 'Gagal', description: data.error || res.statusText });
+        toast.push({ tone: 'error', title: t('toast_toggle_failed'), description: data.error || res.statusText });
       }
     } catch (err) {
       toast.push({ tone: 'error', title: 'Network error', description: err instanceof Error ? err.message : 'unknown' });
@@ -194,12 +197,12 @@ export default function UsersPage() {
   return (
     <div>
       <PageHeader
-        title="Users"
-        description={`${total} pengguna terdaftar`}
+        title={t('title')}
+        description={t('description', { count: total })}
         actions={
           <Button onClick={() => setShowForm(!showForm)}>
             {showForm ? <X className="h-4 w-4 mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
-            {showForm ? 'Batal' : 'Tambah User'}
+            {showForm ? tc('cancel') : t('add_user')}
           </Button>
         }
       />
@@ -207,24 +210,24 @@ export default function UsersPage() {
       {showForm && (
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>Buat User Baru</CardTitle>
+            <CardTitle>{t('create_title')}</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label htmlFor="new-user-email" className="text-sm font-medium text-muted-foreground">Email *</label>
+                <label htmlFor="new-user-email" className="text-sm font-medium text-muted-foreground">{t('label_email')} *</label>
                 <Input id="new-user-email" type="email" value={form.email} onChange={(e) => updateForm('email', e.target.value)} placeholder="user@example.com" required />
               </div>
               <div>
-                <label htmlFor="new-user-password" className="text-sm font-medium text-muted-foreground">Password *</label>
-                <Input id="new-user-password" type="password" value={form.password} onChange={(e) => updateForm('password', e.target.value)} placeholder="Min 8 karakter" required minLength={8} />
+                <label htmlFor="new-user-password" className="text-sm font-medium text-muted-foreground">{t('label_password')} *</label>
+                <Input id="new-user-password" type="password" value={form.password} onChange={(e) => updateForm('password', e.target.value)} placeholder={t('placeholder_password')} required minLength={8} />
               </div>
               <div>
-                <label htmlFor="new-user-name" className="text-sm font-medium text-muted-foreground">Nama</label>
-                <Input id="new-user-name" value={form.name} onChange={(e) => updateForm('name', e.target.value)} placeholder="Nama lengkap" />
+                <label htmlFor="new-user-name" className="text-sm font-medium text-muted-foreground">{t('label_name')}</label>
+                <Input id="new-user-name" value={form.name} onChange={(e) => updateForm('name', e.target.value)} placeholder={t('placeholder_name')} />
               </div>
               <div>
-                <label htmlFor="new-user-role" className="text-sm font-medium text-muted-foreground">Role *</label>
+                <label htmlFor="new-user-role" className="text-sm font-medium text-muted-foreground">{t('label_role')} *</label>
                 <select
                   id="new-user-role"
                   value={form.role}
@@ -238,12 +241,12 @@ export default function UsersPage() {
                 </select>
               </div>
               <div>
-                <label htmlFor="new-user-mt5" className="text-sm font-medium text-muted-foreground">MT5 Account</label>
-                <Input id="new-user-mt5" value={form.mt5Account} onChange={(e) => updateForm('mt5Account', e.target.value)} placeholder="Nomor akun MT5" />
+                <label htmlFor="new-user-mt5" className="text-sm font-medium text-muted-foreground">{t('label_mt5')}</label>
+                <Input id="new-user-mt5" value={form.mt5Account} onChange={(e) => updateForm('mt5Account', e.target.value)} placeholder={t('placeholder_mt5')} />
               </div>
               <div className="sm:col-span-2 flex items-center gap-4 flex-wrap">
                 <Button type="submit" disabled={submitting}>
-                  {submitting ? 'Membuat...' : 'Buat User'}
+                  {submitting ? t('btn_creating') : t('btn_create')}
                 </Button>
                 {error && <p className="text-sm text-rose-500 dark:text-rose-400" role="alert">{error}</p>}
               </div>
@@ -259,14 +262,14 @@ export default function UsersPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b">
-                  <th className="text-left p-4 font-medium text-muted-foreground">Nama</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">Email</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">Role</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">Status</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">MT5</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">Lisensi</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">Login Terakhir</th>
-                  <th className="text-right p-4 font-medium text-muted-foreground">Aksi</th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">{t('th_name')}</th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">{t('th_email')}</th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">{t('th_role')}</th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">{t('th_status')}</th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">{t('th_mt5')}</th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">{t('th_licenses')}</th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">{t('th_last_login')}</th>
+                  <th className="text-right p-4 font-medium text-muted-foreground">{t('th_actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -284,9 +287,9 @@ export default function UsersPage() {
                       <EmptyState
                         variant="inline"
                         icon={UsersIcon}
-                        title="Belum ada user"
-                        description="Tambahkan user baru untuk mulai onboard pelanggan atau operator."
-                        actions={[{ label: 'Tambah User', onClick: () => setShowForm(true), icon: Plus }]}
+                        title={t('empty_title')}
+                        description={t('empty_desc')}
+                        actions={[{ label: t('add_user'), onClick: () => setShowForm(true), icon: Plus }]}
                       />
                     </td>
                   </tr>
@@ -326,7 +329,7 @@ export default function UsersPage() {
                         <td className="p-4 font-mono text-xs">{user.mt5Account || '-'}</td>
                         <td className="p-4">{user._count.licenses}</td>
                         <td className="p-4 text-muted-foreground">
-                          {user.lastLoginAt ? formatDateTime(user.lastLoginAt) : 'Belum pernah'}
+                          {user.lastLoginAt ? formatDateTime(user.lastLoginAt) : tc('never')}
                         </td>
                         <td className="p-4">
                           <div className="flex items-center justify-end gap-1.5">
@@ -334,8 +337,8 @@ export default function UsersPage() {
                               type="button"
                               onClick={() => handleToggleActive(user)}
                               disabled={isSuperAdmin}
-                              title={isActive ? 'Nonaktifkan user' : 'Aktifkan kembali user'}
-                              aria-label={isActive ? 'Nonaktifkan user' : 'Aktifkan kembali user'}
+                              title={isActive ? t('aria_deactivate') : t('aria_activate')}
+                              aria-label={isActive ? t('aria_deactivate') : t('aria_activate')}
                               className="p-1.5 rounded hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                             >
                               <Power className={cn('h-4 w-4', isActive ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground')} />
@@ -344,8 +347,8 @@ export default function UsersPage() {
                               type="button"
                               onClick={() => handleDelete(user)}
                               disabled={user.role !== 'CLIENT'}
-                              title={user.role === 'CLIENT' ? 'Hapus user' : 'Hanya CLIENT yang bisa dihapus'}
-                              aria-label={user.role === 'CLIENT' ? 'Hapus user' : 'Hanya CLIENT yang bisa dihapus'}
+                              title={user.role === 'CLIENT' ? t('aria_delete_client') : t('aria_delete_non_client')}
+                              aria-label={user.role === 'CLIENT' ? t('aria_delete_client') : t('aria_delete_non_client')}
                               className="p-1.5 rounded hover:bg-rose-500/15 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                             >
                               <Trash2 className="h-4 w-4 text-rose-500 dark:text-rose-400" />
@@ -361,7 +364,7 @@ export default function UsersPage() {
           </div>
 
           {/* Mobile card stack (<md) */}
-          <ul className="md:hidden divide-y divide-border" aria-label="Daftar user">
+          <ul className="md:hidden divide-y divide-border" aria-label={t('mobile_list_aria')}>
             {loading ? (
               Array.from({ length: 3 }).map((_, i) => (
                 <li key={`mskl-${i}`} className="p-4">
@@ -411,7 +414,7 @@ export default function UsersPage() {
                       <div>
                         <dt className="text-muted-foreground/70 text-[10px] uppercase tracking-wider">Login</dt>
                         <dd className="mt-0.5 text-muted-foreground truncate">
-                          {user.lastLoginAt ? formatDateTime(user.lastLoginAt) : 'Belum pernah'}
+                          {user.lastLoginAt ? formatDateTime(user.lastLoginAt) : tc('never')}
                         </dd>
                       </div>
                     </dl>
@@ -433,8 +436,8 @@ export default function UsersPage() {
                         type="button"
                         onClick={() => handleToggleActive(user)}
                         disabled={isSuperAdmin}
-                        title={isActive ? 'Nonaktifkan user' : 'Aktifkan kembali user'}
-                        aria-label={isActive ? 'Nonaktifkan user' : 'Aktifkan kembali user'}
+                        title={isActive ? t('aria_deactivate') : t('aria_activate')}
+                        aria-label={isActive ? t('aria_deactivate') : t('aria_activate')}
                         className="p-1.5 rounded hover:bg-accent transition-colors disabled:opacity-30"
                       >
                         <Power className={cn('h-4 w-4', isActive ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground')} />
@@ -443,8 +446,8 @@ export default function UsersPage() {
                         type="button"
                         onClick={() => handleDelete(user)}
                         disabled={user.role !== 'CLIENT'}
-                        title={user.role === 'CLIENT' ? 'Hapus user' : 'Hanya CLIENT yang bisa dihapus'}
-                        aria-label={user.role === 'CLIENT' ? 'Hapus user' : 'Hanya CLIENT yang bisa dihapus'}
+                        title={user.role === 'CLIENT' ? t('aria_delete_client') : t('aria_delete_non_client')}
+                        aria-label={user.role === 'CLIENT' ? t('aria_delete_client') : t('aria_delete_non_client')}
                         className="p-1.5 rounded hover:bg-rose-500/15 transition-colors disabled:opacity-30"
                       >
                         <Trash2 className="h-4 w-4 text-rose-500 dark:text-rose-400" />

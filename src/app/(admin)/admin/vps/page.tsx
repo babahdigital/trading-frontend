@@ -9,6 +9,7 @@ import { vpsStatusBadge } from '@/lib/admin/badges';
 import { formatDateTime } from '@/lib/format-locale';
 import { cn } from '@/lib/utils';
 import { Plus, RefreshCw, Server, X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth/auth-context';
 
 interface VpsInstance {
@@ -34,6 +35,8 @@ const defaultForm = {
 };
 
 export default function VpsPage() {
+  const t = useTranslations('admin.vps');
+  const tc = useTranslations('admin.common');
   const { getAuthHeaders } = useAuth();
   const [instances, setInstances] = useState<VpsInstance[]>([]);
   const [loading, setLoading] = useState(true);
@@ -92,7 +95,7 @@ export default function VpsPage() {
         void fetchVps();
       } else {
         const data = await res.json().catch(() => ({}));
-        setError(data.error || 'Failed to register VPS');
+        setError(data.error || t('error_register'));
       }
     } catch {
       setError('Network error');
@@ -104,8 +107,8 @@ export default function VpsPage() {
   return (
     <div>
       <PageHeader
-        title="VPS Instances"
-        description="Manage client VPS deployments"
+        title={t('title')}
+        description={t('description')}
         actions={
           <>
             <Button variant="outline" size="icon" onClick={fetchVps} disabled={loading}>
@@ -113,7 +116,7 @@ export default function VpsPage() {
             </Button>
             <Button onClick={() => setShowForm(!showForm)}>
               {showForm ? <X className="h-4 w-4 mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
-              {showForm ? 'Cancel' : 'Register VPS'}
+              {showForm ? tc('cancel') : t('register')}
             </Button>
           </>
         }
@@ -122,7 +125,7 @@ export default function VpsPage() {
       {showForm && (
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>Register New VPS</CardTitle>
+            <CardTitle>{t('register_new')}</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="grid gap-4 md:grid-cols-2">
@@ -160,7 +163,7 @@ export default function VpsPage() {
               </div>
               <div className="md:col-span-2 flex items-center gap-4">
                 <Button type="submit" disabled={submitting}>
-                  {submitting ? 'Registering...' : 'Register VPS'}
+                  {submitting ? t('btn_registering') : t('register')}
                 </Button>
                 {error && <p className="text-sm text-rose-600 dark:text-rose-400">{error}</p>}
               </div>
@@ -175,12 +178,12 @@ export default function VpsPage() {
             <table className="w-full text-sm table-responsive">
               <thead>
                 <tr className="border-b">
-                  <th className="text-left p-4 font-medium text-muted-foreground">Name</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">Host</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">Status</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">Last Health</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">Response Time</th>
-                  <th className="text-left p-4 font-medium text-muted-foreground">Actions</th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">{t('th_name')}</th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">{t('th_host')}</th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">{t('th_status')}</th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">{t('th_last_health')}</th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">{t('th_response_time')}</th>
+                  <th className="text-left p-4 font-medium text-muted-foreground">{t('th_actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -194,7 +197,7 @@ export default function VpsPage() {
                   <tr>
                     <td colSpan={6} className="p-8 text-center no-label">
                       <Server className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
-                      <p className="text-muted-foreground">No VPS instances registered. Click &quot;Register VPS&quot; to add one.</p>
+                      <p className="text-muted-foreground">{t('empty')}</p>
                     </td>
                   </tr>
                 ) : (
@@ -210,13 +213,13 @@ export default function VpsPage() {
                           </span>
                         </td>
                         <td className="p-4 text-muted-foreground" data-label="Last Health">
-                          {vps.lastHealthCheck ? formatDateTime(vps.lastHealthCheck) : 'Never'}
+                          {vps.lastHealthCheck ? formatDateTime(vps.lastHealthCheck) : tc('never')}
                         </td>
                         <td className="p-4 text-muted-foreground" data-label="Response Time">
                           {vps.lastResponseTime != null ? `${vps.lastResponseTime}ms` : '-'}
                         </td>
                         <td className="p-4" data-label="Actions">
-                          <Button variant="ghost" size="sm">Details</Button>
+                          <Button variant="ghost" size="sm">{t('btn_details')}</Button>
                         </td>
                       </tr>
                     );

@@ -18,9 +18,7 @@ next-env.d.ts
 # Dev planning docs (internal only)
 /dev/
 
-# Documentation (sensitive internal docs) — kecuali ops/CI yang public-safe
-/docs/*
-!/docs/CI_CD_DEPLOYMENT.md
+# Documentation tracked in repo (rewritten 2026-05-24)
 
 # OS
 .DS_Store

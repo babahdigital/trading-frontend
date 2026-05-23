@@ -82,9 +82,11 @@ export async function POST(request: Request) {
       model: or.chat(DEFAULT_MODEL),
       system: buildSystemPrompt({ locale, recentUserText, authenticated }),
       messages: await convertToModelMessages(messages),
-      // 400 token = ~1-3 paragraf singkat. Force brevity per FORMAT_RULES
-      // di skill identity. Naikkan kalau user spesifik minta detail panjang.
-      maxOutputTokens: 400,
+      // 500 token = ~2-4 paragraf singkat. Force brevity per FORMAT_RULES
+      // di skill identity. Budget sedikit lebih besar karena skill context
+      // sekarang lebih kaya (5-tier crypto, signal pipeline, payment methods)
+      // dan beberapa jawaban perlu list pendek (misal metode pembayaran).
+      maxOutputTokens: 500,
       temperature: 0.3,
       abortSignal: AbortSignal.timeout(PREFLIGHT_TIMEOUT_MS + 30_000),
     });

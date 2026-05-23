@@ -8,7 +8,7 @@
  *   2. For each topic:
  *      - Fetch data sources (VPS1 endpoints, DB queries, static).
  *      - Build prompt from promptTemplate with {{DATA_JSON}} / {{TARGET_WORDS}}.
- *      - Generate markdown via OpenRouter (DEFAULT_MODEL = gemini-3.1-flash-lite).
+ *      - Generate markdown via OpenRouter (REASONING_MODEL = gemini-3.1-flash-lite).
  *      - Validate output (length, structure, disclaimer).
  *      - Upsert Article with body + excerpt.
  *      - Auto-translate to EN (non-blocking — Article stays published in ID).
@@ -21,7 +21,7 @@
  */
 
 import { prisma } from '@/lib/db/prisma';
-import { getOpenRouter, DEFAULT_MODEL } from '@/lib/ai/openrouter';
+import { getOpenRouter, REASONING_MODEL } from '@/lib/ai/openrouter';
 import { translateText } from '@/lib/ai/content';
 import { generateArticleImage } from '@/lib/ai/image-generator';
 import { generateSeoMeta } from '@/lib/ai/seo-meta';
@@ -217,7 +217,7 @@ async function generateOneTopic(topic: BlogTopic): Promise<{ articleId: string }
 
   const aiStart = Date.now();
   const { text: markdown, usage } = await generateText({
-    model: or.chat(DEFAULT_MODEL),
+    model: or.chat(REASONING_MODEL),
     prompt,
     temperature: 0.4,
     maxOutputTokens: Math.ceil(topic.targetLengthWords * 3),
@@ -230,7 +230,7 @@ async function generateOneTopic(topic: BlogTopic): Promise<{ articleId: string }
   await prisma.aiCallLog.create({
     data: {
       purpose: 'blog_article_generate',
-      model: DEFAULT_MODEL,
+      model: REASONING_MODEL,
       inputTokens,
       outputTokens,
       latencyMs,
@@ -355,7 +355,7 @@ async function generateOneTopic(topic: BlogTopic): Promise<{ articleId: string }
       status: topic.autoPublish ? 'PUBLISHED' : 'GENERATED',
       articleId: article.id,
       lastGeneratedAt: new Date(),
-      aiModel: DEFAULT_MODEL,
+      aiModel: REASONING_MODEL,
       aiTokensUsed: (topic.aiTokensUsed ?? 0) + inputTokens + outputTokens,
       lastError: null,
     },

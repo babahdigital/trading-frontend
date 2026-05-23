@@ -215,44 +215,115 @@ async function fetchOneImage(opts: {
   }
 }
 
+async function generateViaGemini(
+  prompt: string,
+  signal?: AbortSignal,
+): Promise<ImageGenerationResult | null> {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) return null;
+
+  try {
+    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+        'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://babahalgo.com',
+        'X-Title': 'BabahAlgo Article Image',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash-preview-05-20',
+        messages: [{
+          role: 'user',
+          content:
+            'Generate a 16:9 LANDSCAPE image (1536×864). '
+            + 'CRITICAL: full-bleed edge-to-edge composition, content fills entire canvas. '
+            + 'NO white borders, NO letterboxing, NO padding, NO empty space. '
+            + 'STRICTLY NO text, NO letters, NO words, NO writing, NO numbers, NO digits, '
+            + 'NO logos, NO watermark, NO captions, NO chart data, NO candlestick UI. '
+            + 'Pure editorial illustration only. '
+            + prompt,
+        }],
+        modalities: ['image', 'text'],
+      }),
+      signal: signal ?? AbortSignal.timeout(90_000),
+    });
+
+    if (!res.ok) {
+      log.warn(`Gemini image HTTP ${res.status}`);
+      return null;
+    }
+
+    const body = await res.json();
+    const imageData = body.choices?.[0]?.message?.content?.find(
+      (c: { type: string }) => c.type === 'image_url',
+    );
+    const imageUrl = imageData?.image_url?.url
+      ?? body.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    if (!imageUrl) {
+      log.warn('Gemini image: no image in response');
+      return null;
+    }
+
+    if (imageUrl.startsWith('data:')) {
+      const match = imageUrl.match(/^data:(image\/\w+);base64,(.+)$/);
+      if (!match) return null;
+      const sizeBytes = Math.ceil(match[2].length * 3 / 4);
+      if (sizeBytes < MIN_VALID_IMAGE_BYTES) return null;
+      return { dataUri: imageUrl, sizeBytes, model: 'gemini-2.5-flash-image' };
+    }
+
+    const imgRes = await fetch(imageUrl, { signal: AbortSignal.timeout(30_000) });
+    if (!imgRes.ok) return null;
+    const buf = await imgRes.arrayBuffer();
+    if (buf.byteLength < MIN_VALID_IMAGE_BYTES) return null;
+    const ct = imgRes.headers.get('content-type') ?? 'image/png';
+    const b64 = Buffer.from(buf).toString('base64');
+    return {
+      dataUri: `data:${ct.split(';')[0]};base64,${b64}`,
+      sizeBytes: buf.byteLength,
+      model: 'gemini-2.5-flash-image',
+    };
+  } catch (err) {
+    log.warn(`Gemini image error: ${err instanceof Error ? err.message : 'unknown'}`);
+    return null;
+  }
+}
+
 export async function generateArticleImage(
   subject: string,
   options: ImageGenerationOptions = {},
 ): Promise<ImageGenerationResult | null> {
+  const prompt = buildImagePrompt(subject, { category: options.category, keywords: options.keywords, slug: options.slug });
+
+  // Primary: Gemini Flash Image via OpenRouter (high quality, ~$0.04/image)
+  const geminiResult = await generateViaGemini(prompt, options.signal);
+  if (geminiResult) {
+    log.info(`Gemini image OK ${geminiResult.sizeBytes} bytes for "${subject.slice(0, 40)}"`);
+    return geminiResult;
+  }
+
+  // Fallback: Pollinations Flux (free, lower quality)
+  log.info(`Gemini failed, falling back to Pollinations for "${subject.slice(0, 40)}"`);
   const model = options.model ?? DEFAULT_MODEL;
-  // 1536x864 = sweet spot — premium quality without Pollinations free-tier
-  // timeouts (1920x1080 had ~30% failure rate). Articles with high-impact
-  // slugs may still override.
   const size = options.size ?? '1536x864';
   const [widthStr, heightStr] = size.split('x');
-  const width = parseInt(widthStr, 10);
-  const height = parseInt(heightStr, 10);
-
-  const prompt = buildImagePrompt(subject, { category: options.category, keywords: options.keywords, slug: options.slug });
 
   function buildUrl(seed: number): string {
     const url = new URL(`${POLLINATIONS_BASE}/${encodeURIComponent(prompt)}`);
-    url.searchParams.set('width', String(width));
-    url.searchParams.set('height', String(height));
+    url.searchParams.set('width', widthStr);
+    url.searchParams.set('height', heightStr);
     url.searchParams.set('seed', String(seed));
     url.searchParams.set('model', model);
     url.searchParams.set('nologo', 'true');
-    // `enhance=true` previously routed prompt via Pollinations LLM expansion
-    // — that sometimes injected weird elements (chart UIs, fake text) that
-    // contradicted our brand prompt's NO-chart / NO-numbers constraints.
-    // Drop it so the prompt is honoured verbatim.
     if (options.private) url.searchParams.set('private', 'true');
     return url.toString();
   }
 
-  const firstSeed = options.seed ?? Math.floor(Math.random() * 1_000_000);
-  const firstAttempt = await fetchOneImage({ url: buildUrl(firstSeed), signal: options.signal, subject });
-  if (firstAttempt) return firstAttempt;
+  const seed = options.seed ?? Math.floor(Math.random() * 1_000_000);
+  const attempt = await fetchOneImage({ url: buildUrl(seed), signal: options.signal, subject });
+  if (attempt) return attempt;
 
-  // Single retry with a fresh seed when the first attempt failed / returned
-  // an undersized error placeholder. Doubles throughput on Pollinations
-  // free-tier flakiness without spamming.
   const retrySeed = Math.floor(Math.random() * 1_000_000);
-  log.info(`Retrying image gen for "${subject.slice(0, 40)}" with seed=${retrySeed}`);
   return fetchOneImage({ url: buildUrl(retrySeed), signal: options.signal, subject });
 }

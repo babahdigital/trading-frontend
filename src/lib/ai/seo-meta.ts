@@ -18,8 +18,8 @@ const log = createLogger('seo-meta');
 const MODEL_LABEL = `openrouter/${DEFAULT_MODEL.split('/').pop()}`;
 
 const META_PROMPT_ID = `Berikan metadata SEO untuk artikel berikut. Output WAJIB format JSON dengan 2 key:
-  "metaTitle": maksimal 60 karakter, keyword di awal, profesional, tanpa clickbait
-  "metaDescription": 150-160 karakter, ringkas value artikel, mention "BabahAlgo" sekali kalau natural
+  "metaTitle": maksimal 60 karakter, keyword utama di awal, engaging & profesional, tanpa clickbait. Gunakan format seperti "Panduan: ...", "Strategi: ...", atau "[Keyword]: Cara/Analisis ..." untuk CTR tinggi
+  "metaDescription": 150-160 karakter, ringkas value + insight unik artikel, mention "BabahAlgo" sekali kalau natural, akhiri dengan implicit CTA
 
 Bahasa Indonesia.
 
@@ -32,8 +32,8 @@ Keywords: {{KEYWORDS}}
 Return JSON only, tanpa preamble atau code fence.`;
 
 const META_PROMPT_EN = `Generate SEO metadata for the following article. Output MUST be JSON with 2 keys:
-  "metaTitle": max 60 characters, keyword-first, professional, no clickbait
-  "metaDescription": 150-160 characters, summarises value, mention "BabahAlgo" once if natural
+  "metaTitle": max 60 characters, primary keyword first, engaging & professional, no clickbait. Use patterns like "Guide: ...", "How to ...", or "[Keyword]: Analysis & Strategy" for high CTR
+  "metaDescription": 150-160 characters, summarise unique value + key insight, mention "BabahAlgo" once if natural, end with implicit CTA
 
 English.
 
@@ -109,9 +109,13 @@ export async function generateSeoMeta(input: GenerateSeoMetaInput): Promise<SeoM
       return null;
     }
 
+    // Enforce strict SEO length limits: metaTitle <= 60 chars, metaDescription <= 160 chars.
+    // Truncate at word boundary to avoid mid-word cuts in SERPs.
+    const rawTitle = parsed.metaTitle!;
+    const rawDesc = parsed.metaDescription!;
     return {
-      metaTitle: parsed.metaTitle!.slice(0, 70),
-      metaDescription: parsed.metaDescription!.slice(0, 200),
+      metaTitle: rawTitle.length <= 60 ? rawTitle : rawTitle.slice(0, 60).replace(/\s+\S*$/, '').trim(),
+      metaDescription: rawDesc.length <= 160 ? rawDesc : rawDesc.slice(0, 160).replace(/\s+\S*$/, '').trim(),
     };
   } catch (err) {
     await prisma.aiCallLog

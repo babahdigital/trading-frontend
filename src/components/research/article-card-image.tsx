@@ -98,9 +98,19 @@ export function ArticleCardImage({
           alt={alt}
           fill
           sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+          className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
           quality={85}
         />
+        {/* Dark gradient overlay at bottom for text readability when image present */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent pointer-events-none" />
+        {/* Category badge — semi-transparent dark pill on top of image */}
+        {category ? (
+          <span className="absolute top-3 left-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-sm text-[10px] font-mono uppercase tracking-wider text-white/90 border border-white/10">
+            {/* eslint-disable-next-line react-hooks/static-components */}
+            <Icon className="h-3 w-3 text-amber-400" strokeWidth={2} aria-hidden />
+            {category}
+          </span>
+        ) : null}
       </div>
     );
   }

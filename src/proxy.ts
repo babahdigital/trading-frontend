@@ -4,6 +4,7 @@ import createIntlMiddleware from 'next-intl/middleware';
 import { locales, defaultLocale } from '@/i18n/config';
 import { ADMIN_ROLES } from '@/lib/auth/jwt';
 import { resolveCountryByIp } from '@/lib/geoip/fallback';
+import { getMaintenanceStateEdge } from '@/lib/maintenance-edge';
 
 const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 
@@ -36,6 +37,9 @@ const publicPaths = ['/login', '/admin/login', '/forgot-password', '/reset-passw
   // Admin smoke test endpoints — pakai own Bearer CRON_SECRET auth di route handler,
   // tidak butuh JWT admin session. Bypass middleware JWT check.
   '/api/admin/sentry-test', '/api/admin/fonnte-test', '/api/admin/brevo-test',
+  // Maintenance mode status — GET is public (Edge middleware internal fetch).
+  // PATCH self-authenticates via JWT in route handler.
+  '/api/admin/maintenance',
   // Phase 14V forex backend bridge (2026-05-18) — these endpoints handle
   // their OWN auth via forex_*_token cookies in the route handler. The
   // FE-internal JWT middleware would otherwise reject the unauthenticated
@@ -255,6 +259,47 @@ export async function proxy(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = redirectTarget;
     return NextResponse.redirect(url, 301);
+  }
+
+  // --- Maintenance mode gate ---
+  // Check BEFORE auth so ALL visitors (guest + logged-in) see maintenance page.
+  // Bypass: maintenance page itself, admin login/auth, maintenance API, health,
+  // static assets. Admin panel paths are bypassed so operators can toggle it off.
+  const maintenanceBypass =
+    pathname === '/maintenance' ||
+    pathname.startsWith('/admin') ||
+    pathname === '/api/auth/login' ||
+    pathname.startsWith('/api/admin/') ||
+    pathname === '/api/health' ||
+    pathname.startsWith('/_next/') ||
+    pathname.startsWith('/favicon') ||
+    pathname.startsWith('/logo/') ||
+    pathname.startsWith('/logo') ||
+    pathname === '/manifest.json' ||
+    pathname === '/sw.js';
+
+  if (!maintenanceBypass) {
+    try {
+      const mState = await getMaintenanceStateEdge(request.url);
+      if (mState.enabled) {
+        // For API routes, return 503 JSON instead of redirect
+        if (pathname.startsWith('/api/')) {
+          return NextResponse.json(
+            {
+              code: 'maintenance',
+              error: 'System is under maintenance',
+              message: mState.message || undefined,
+              estimatedEnd: mState.estimatedEnd || undefined,
+            },
+            { status: 503 },
+          );
+        }
+        // Redirect all other pages to /maintenance
+        return NextResponse.redirect(new URL('/maintenance', request.url));
+      }
+    } catch {
+      // Maintenance check failed — fail-open, don't block the site
+    }
   }
 
   const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()

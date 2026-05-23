@@ -144,12 +144,14 @@ export default function ResearchPage() {
             {loading ? (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="card-enterprise animate-pulse">
-                    <div className="h-4 w-20 bg-white/10 rounded mb-3" />
-                    <div className="h-5 w-3/4 bg-white/10 rounded mb-3" />
-                    <div className="h-4 w-full bg-white/10 rounded mb-2" />
-                    <div className="h-4 w-2/3 bg-white/10 rounded mb-6" />
-                    <div className="h-3 w-1/2 bg-white/10 rounded" />
+                  <div key={i} className="card-enterprise animate-pulse overflow-hidden p-0">
+                    <div className="aspect-[16/9] bg-white/5" />
+                    <div className="p-5 sm:p-6">
+                      <div className="h-5 w-3/4 bg-white/10 rounded mb-3" />
+                      <div className="h-4 w-full bg-white/10 rounded mb-2" />
+                      <div className="h-4 w-2/3 bg-white/10 rounded mb-6" />
+                      <div className="h-3 w-1/2 bg-white/10 rounded" />
+                    </div>
                   </div>
                 ))}
               </div>
@@ -170,7 +172,7 @@ export default function ResearchPage() {
                       <Link
                         key={article.slug}
                         href={`/${locale}/research/${article.slug}`}
-                        className="card-enterprise flex flex-col group cursor-pointer hover:border-amber-500/30 transition-colors overflow-hidden p-0"
+                        className="card-enterprise flex flex-col group cursor-pointer hover:border-amber-500/30 hover:shadow-lg hover:shadow-amber-500/5 transition-all duration-300 overflow-hidden p-0 hover:-translate-y-0.5"
                       >
                         {/* Image area — selalu render box dengan aspect 16/9 supaya
                             card height konsisten. Fallback gradient + icon kalau
@@ -182,8 +184,11 @@ export default function ResearchPage() {
                           aspectClass="aspect-[16/9]"
                         />
                         <div className="p-5 sm:p-6 flex flex-col flex-1">
-                          <p className="t-eyebrow mb-3">{humanizeCategory(article.category)}</p>
-                          <h2 className="text-lg font-medium mb-3 line-clamp-2 group-hover:text-amber-500 dark:group-hover:text-amber-400 transition-colors">
+                          {/* Show category eyebrow only when no imageUrl (image cards already have badge on image) */}
+                          {!article.imageUrl && (
+                            <p className="t-eyebrow mb-3">{humanizeCategory(article.category)}</p>
+                          )}
+                          <h2 className="text-lg font-semibold mb-3 line-clamp-2 group-hover:text-amber-500 dark:group-hover:text-amber-400 transition-colors leading-snug">
                             {title}
                           </h2>
                           <p className="t-body-sm text-foreground/60 leading-relaxed line-clamp-3 mb-6 flex-1">

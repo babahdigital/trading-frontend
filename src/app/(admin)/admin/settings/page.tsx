@@ -7,9 +7,12 @@ import { PageHeader } from '@/components/admin/page-header';
 import { EmptyState } from '@/components/admin/empty-state';
 import { formatDateTime, formatNumber } from '@/lib/format-locale';
 import { useAuth } from '@/lib/auth/auth-context';
-import { RefreshCw, CheckCircle2, XCircle, AlertCircle, ExternalLink } from 'lucide-react';
+import { RefreshCw, CheckCircle2, XCircle, AlertCircle, ExternalLink, Wrench } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { LabeledSwitch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 
 type Presence = 'configured' | 'missing';
 type FlagState = 'on' | 'off';
@@ -65,6 +68,154 @@ function formatUptime(s: number): string {
   if (h > 0) return `${h}h ${m}m`;
   return `${m}m`;
 }
+
+// ---------- Maintenance Mode Card ----------
+
+interface MaintenanceState {
+  enabled: boolean;
+  message?: string;
+  estimatedEnd?: string;
+}
+
+function MaintenanceCard({ getAuthHeaders }: { getAuthHeaders: () => HeadersInit }) {
+  const [state, setState] = useState<MaintenanceState>({ enabled: false });
+  const [draft, setDraft] = useState<MaintenanceState>({ enabled: false });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  const fetchState = useCallback(async () => {
+    try {
+      const res = await fetch('/api/admin/maintenance', { headers: getAuthHeaders() });
+      if (res.ok) {
+        const data = await res.json();
+        setState(data);
+        setDraft(data);
+      }
+    } catch { /* ignore */ }
+    setLoading(false);
+  }, [getAuthHeaders]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchState();
+  }, [fetchState]);
+
+  async function handleSave() {
+    setSaving(true);
+    setSaved(false);
+    try {
+      const res = await fetch('/api/admin/maintenance', {
+        method: 'PATCH',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(draft),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setState(data);
+        setDraft(data);
+        setSaved(true);
+        setTimeout(() => setSaved(false), 3000);
+      }
+    } catch { /* ignore */ }
+    setSaving(false);
+  }
+
+  const hasChanges =
+    draft.enabled !== state.enabled ||
+    (draft.message ?? '') !== (state.message ?? '') ||
+    (draft.estimatedEnd ?? '') !== (state.estimatedEnd ?? '');
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="h-24 rounded bg-muted animate-pulse" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className={cn(
+      'border-2 transition-colors',
+      draft.enabled ? 'border-amber-500/50 bg-amber-500/5' : 'border-border',
+    )}>
+      <CardHeader>
+        <CardTitle className="text-lg flex items-center gap-2">
+          <Wrench className="h-5 w-5 text-amber-400" />
+          Maintenance Mode
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <LabeledSwitch
+          label="Aktifkan Maintenance Mode"
+          description="Semua halaman publik dan portal akan dialihkan ke halaman pemeliharaan. Admin panel tetap dapat diakses."
+          checked={draft.enabled}
+          onCheckedChange={(checked) => setDraft({ ...draft, enabled: !!checked })}
+        />
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-foreground">
+            Pesan Kustom <span className="text-muted-foreground font-normal">(opsional)</span>
+          </label>
+          <Textarea
+            value={draft.message ?? ''}
+            onChange={(e) => setDraft({ ...draft, message: e.target.value })}
+            placeholder="Tim kami sedang melakukan pemeliharaan terjadwal..."
+            rows={3}
+            className="text-sm"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-foreground">
+            Estimasi Selesai <span className="text-muted-foreground font-normal">(opsional)</span>
+          </label>
+          <Input
+            type="datetime-local"
+            value={draft.estimatedEnd ?? ''}
+            onChange={(e) => setDraft({ ...draft, estimatedEnd: e.target.value })}
+            className="text-sm font-mono max-w-xs"
+          />
+        </div>
+
+        {draft.enabled && (
+          <div className="rounded-md bg-amber-500/10 border border-amber-500/30 p-3">
+            <p className="text-sm text-amber-700 dark:text-amber-300">
+              <strong>Peringatan:</strong> Semua halaman publik dan portal akan dialihkan ke halaman pemeliharaan.
+              Hanya admin panel, halaman login admin, dan API internal yang tetap dapat diakses.
+            </p>
+          </div>
+        )}
+
+        <div className="flex items-center gap-3 pt-2">
+          <Button
+            onClick={handleSave}
+            disabled={saving || !hasChanges}
+            variant={draft.enabled ? 'destructive' : 'default'}
+            size="sm"
+          >
+            {saving ? 'Menyimpan...' : draft.enabled ? 'Aktifkan Maintenance' : 'Simpan'}
+          </Button>
+          {saved && (
+            <span className="text-sm text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+              <CheckCircle2 className="h-4 w-4" />
+              Tersimpan
+            </span>
+          )}
+          {state.enabled && (
+            <span className="text-xs text-amber-600 dark:text-amber-400 font-mono">
+              MAINTENANCE AKTIF
+            </span>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ---------- Status Pill ----------
 
 function StatusPill({ ok, label }: { ok: boolean; label: string }) {
   return (
@@ -151,6 +302,9 @@ export default function SettingsPage() {
       <p className="text-xs text-muted-foreground -mt-3 font-mono">
         Generated {formatDateTime(data.generatedAt)}
       </p>
+
+      {/* Maintenance Mode */}
+      <MaintenanceCard getAuthHeaders={getAuthHeaders} />
 
       {/* Row 1: App + DB */}
       <div className="grid gap-4 md:grid-cols-2">

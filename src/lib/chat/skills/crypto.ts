@@ -14,60 +14,85 @@
 import { formatPrice, type Locale } from '@/lib/pricing-format';
 
 export function getCryptoSkill(locale: Locale): string {
-  const tBasic = formatPrice('crypto_basic', locale, { period: 'mo', compact: false });
+  const tDemo = locale === 'id' ? 'Gratis' : 'Free';
+  const tStarter = formatPrice('crypto_starter', locale, { period: 'mo', compact: false });
+  const tActive = formatPrice('crypto_active', locale, { period: 'mo', compact: false });
   const tPro = formatPrice('crypto_pro', locale, { period: 'mo', compact: false });
   const tHnwi = formatPrice('crypto_hnwi', locale, { period: 'mo', compact: false });
-  const modal1k = locale === 'id' ? 'Rp 16 juta' : '$1K';
+  const modal500 = locale === 'id' ? 'Rp 8 juta' : '$500';
+  const modal1500 = locale === 'id' ? 'Rp 25 juta' : '$1,500';
   const modal5k = locale === 'id' ? 'Rp 80 juta' : '$5K';
+  const modal10k = locale === 'id' ? 'Rp 160 juta' : '$10K';
   const modal25k = locale === 'id' ? 'Rp 400 juta' : '$25K';
+  const modal50k = locale === 'id' ? 'Rp 800 juta' : '$50K';
 
   return `ROBOT CRYPTO — SKILL CRYPTO (load saat percakapan menyangkut crypto / Binance)
 
 PRODUK
 - Auto-trading dengan Binance API key customer.
 - API key permission: Read + Trade SAJA. Withdraw HARUS DISABLED (kami verify saat connect — kalau Withdraw enabled, koneksi ditolak).
-- Spot + Futures simulation — 3 sampai 12 pair tergantung tier.
+- USDT-M Futures + Spot — pair tergantung tier (2-7 slot simultan).
 - Strategi: scalping_momentum, swing_smc, wyckoff_breakout, mean_reversion, spot_dca_trend, spot_swing_trend.
 - Modal tetap di akun Binance customer — kami tidak punya withdraw permission, tidak custody dana.
+- 28 stable API endpoint tersedia di backend untuk manajemen: posisi, signal, konfigurasi, tier, billing.
+- Setiap request ke backend memerlukan X-Tenant-Id header — data terisolasi per customer (multi-tenant RLS).
 
-TIER + HARGA (flat monthly subscription, tanpa profit share, tanpa lock-in)
-- Tier Basic ${tBasic} — 3 pair otomatis, leverage 5x, strategi scalping_momentum, notif Telegram + dashboard.
-- Tier Pro ${tPro} (POPULAR) — 8 pair + 1 manual whitelist, leverage 10x, 3 strategi (SMC Scalper + SMC Swing + Pivot Mean Reversion), Telegram VIP + custom alerts, priority support.
-- Tier HNWI ${tHnwi} — 12 pair custom whitelist/blacklist, leverage 15x, semua 3 strategi inti + adaptive risk engine (rule-based) + custom parameter tuning, priority technical support + SLA 99.9%, monthly review call.
+5 TIER + HARGA (flat monthly subscription, tanpa profit share, tanpa lock-in)
+- Free Demo ${tDemo} — demo wallet virtual $5K, 30 hari trial, semua strategi tersedia di paper mode. Cocok untuk evaluasi tanpa risiko.
+- Starter ${tStarter} — 2 slot simultan, leverage 3x, risk 1.0%/trade, ideal untuk pemula dengan modal ${modal500}+. Notif dashboard + Telegram.
+- Active ${tActive} (ENTRY PICK) — 3 slot simultan, leverage 7x, risk 1.25%/trade, modal recommended ${modal1500}+. Strategi tambahan: swing_smc. Cocok trader yang sudah paham dasar crypto.
+- Pro ${tPro} (POPULAR) — 5 slot simultan, leverage 12x, risk 1.5%/trade, modal recommended ${modal5k}+ (sweet spot ${modal10k}). 3+ strategi (SMC Scalper + Swing + Mean Reversion), custom alerts, priority support.
+- HNWI ${tHnwi} — 7 slot simultan, leverage 20x, risk 2.0%/trade, modal recommended ${modal25k}+ (sweet spot ${modal50k}). Semua strategi + custom whitelist/blacklist + adaptive risk engine + parameter tuning + SLA 99.9% + monthly review call.
 
-VALUE PROGRESSION (kenapa tier mahal lebih bayar):
-- Lebih banyak pair simultan = lebih banyak diversifikasi
-- Strategi tambahan = lebih banyak setup eksploitasi
-- Custom whitelist/blacklist = kontrol lebih granular
-- Priority technical support (HNWI) = strategy refinement + SLA guarantee. NOTE: technical support saja — kami TIDAK trade untuk Anda, TIDAK akses API key plaintext, TIDAK kasih trading advice spesifik.
+REKOMENDASI TIER BERDASARKAN MODAL (equity bracket logic):
+- Modal < $500 → HANYA free demo. Alasan: fee bulanan dibanding profit expected terlalu tinggi (misal: modal $100, fee $9 = 180% dari expected profit 5%). Churn risk tinggi.
+- Modal $500-1.5K → Starter ($9). Fee ~2% dari modal per bulan — sustainable.
+- Modal $1.5-5K → Active ($19). Sweet spot diversifikasi 3 pair.
+- Modal $5-25K → Pro ($49). Bisa 5 pair simultan dengan edge yang jelas.
+- Modal $25K+ → HNWI ($199). Full feature + dedicated support.
+
+KENAPA FLAT SUBSCRIPTION (bukan profit share):
+- Kami tech provider, bukan asset manager. Modal di Binance, tetap customer yang kontrol.
+- Subscription flat = predictable cost, tidak ada "kena charge ekstra saat profit".
+- Sesuai positioning zero-custody: kami jual software license, bukan jual performance.
+- Customer tahu persis biaya bulanan — tidak ada surprise fee.
 
 PERTANYAAN UMUM CUSTOMER
-- "Kenapa tidak ada profit share?" → Kami tech provider, bukan asset manager. Modal Anda di Binance, tetap Anda yang kontrol. Subscription flat = predictable cost, tidak ada "kena charge ekstra saat profit". Sesuai positioning zero-custody kami.
-- "Aman titip API key?" → API key disimpan terenkripsi di Vault — kami sebagai operator pun tidak bisa baca plaintext. Withdraw permission MUST disabled, jadi worst-case bot bisa trade tapi tidak bisa tarik dana.
-- "Modal minimum Binance?" → Basic efektif mulai ${modal1k} (futures margin requirement). Pro ${modal5k}. HNWI ${modal25k}+ (untuk 12 pair simultan dengan leverage 15x).
-- "Leverage 15x bahaya?" → Default risk per trade tetap 1% account, tidak peduli leverage. Leverage tinggi = lebih banyak posisi paralel, bukan posisi yang lebih besar. Kerangka risiko sama dengan Robot Meta (vol-target sizing, exit multi-layer, circuit breaker).
+- "Bagaimana cara subscribe crypto bot?" → Pilih tier sesuai modal di /pricing → /register?service=crypto → bayar via Xendit (kartu/QRIS/VA/e-wallet) → login /portal → connect Binance API key di /portal/crypto/connect → bot aktif otomatis.
+- "Aman titip API key?" → API key disimpan terenkripsi di Vault — kami sebagai operator pun tidak bisa baca plaintext. Withdraw permission MUST disabled, jadi worst-case bot bisa trade tapi tidak bisa tarik dana. Dana customer TIDAK PERNAH meninggalkan akun Binance mereka.
+- "Modal minimum Binance?" → Free demo gratis (paper $5K). Live: Starter mulai ${modal500}, Active ${modal1500}, Pro ${modal5k}, HNWI ${modal25k}+.
+- "Leverage 20x bahaya?" → Default risk per trade tetap 1-2% account (tergantung tier), tidak peduli leverage. Leverage tinggi = lebih banyak posisi paralel, bukan posisi yang lebih besar. Kerangka risiko sama dengan Robot Meta (vol-target sizing, exit multi-layer, circuit breaker). Leverage bisa di-set lebih rendah dari max tier — customer yang kontrol.
 - "Bisa di Binance Indonesia (Tokocrypto)?" → Saat ini hanya Binance Global. Tokocrypto support roadmap Q4 2026.
 - "Spot DCA seperti apa?" → Tier HNWI: weekly trend-pullback DCA pada spot pair (BTC, ETH). Bukan DCA buta — entry dipicu sinyal mean-reversion + trend strength.
+- "Bisa ganti pair mana yang di-trade?" → Starter/Active: pair otomatis dikelola oleh sistem (top liquid pair). Pro: bisa request whitelist. HNWI: full custom whitelist/blacklist.
+- "Apakah bisa trading spot saja (tanpa futures)?" → Ya — strategi spot_dca_trend dan spot_swing_trend available di tier Pro ke atas. Spot-only mode = tanpa leverage, tanpa risiko liquidation.
 
 KONEK API KEY
 - Login portal → /portal/crypto/connect → paste API key + secret → bot auto-verify Withdraw=disabled → activated.
 - Bisa pause / disconnect kapan saja dari /portal/crypto.
+- Kalau customer ganti API key: disconnect lama → connect baru. Posisi terbuka di-close dulu.
 
 ONBOARDING
-- Demo 7 hari gratis (Binance Testnet, paper money): /demo?product=robot-crypto
-- Live: /register?service=crypto&tier=basic|pro|hnwi → /pricing → payment → /portal/crypto/connect`;
+- Demo 30 hari gratis (Binance Testnet, paper money $5K): /demo?product=robot-crypto
+- Live: /register?service=crypto → /pricing → pilih tier → payment (Xendit) → /portal/crypto/connect`;
 }
 
 /** @deprecated kept for backward compat — defaults to 'id' locale. Use getCryptoSkill(locale). */
 export const CRYPTO_SKILL = getCryptoSkill('id');
 
 const CRYPTO_KEYWORDS = [
-  'crypto', 'kripto', 'binance', 'tokocrypto',
+  'crypto', 'kripto', 'cryptocurrency', 'binance', 'tokocrypto',
   'btc', 'bitcoin', 'eth', 'ethereum', 'usdt', 'usdc',
-  'spot', 'futures', 'perpetual',
-  'robot crypto', 'crypto bot',
+  'bnb', 'sol', 'solana', 'xrp', 'ripple', 'ada', 'cardano', 'doge', 'dogecoin',
+  'spot', 'futures', 'perpetual', 'perp',
+  'robot crypto', 'crypto bot', 'bot crypto',
   'leverage', 'margin', 'liquidation', 'liquidasi',
-  'binance api', 'api key',
+  'binance api', 'api key', 'api-key',
+  'dca', 'dollar cost',
+  'koin', 'coin', 'token',
+  'defi', 'dex', 'cex',
+  'hnwi', 'whale',
+  'starter', 'active tier',
 ];
 
 export function isCryptoTopic(text: string): boolean {

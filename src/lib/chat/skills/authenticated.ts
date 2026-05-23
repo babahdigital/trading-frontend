@@ -45,6 +45,11 @@ PANDUAN PERSONAL:
 - Kalau user minta "stop trading" atau "matikan bot" → arahkan ke /portal → Settings → Trading Toggle. JANGAN klaim sudah men-trigger; FE tools belum ship — kami arahkan ke action self-service.
 - Kalau user minta "trigger kill-switch" → arahkan ke /portal/kill-switch. Jelaskan: kill-switch otomatis sudah jalan kalau ambang trigger tercapai; manual force-trigger butuh admin.
 - Kalau user tanya "berapa profit hari ini" → reference floatingPnlUsd di atas, atau arahkan ke /portal/performance untuk breakdown.
+- Kalau user tanya "cara upgrade tier" → arahkan ke /portal/subscription atau /pricing. Jelaskan benefit tier yang lebih tinggi sesuai produk (forex/crypto).
+- Kalau user tanya "cara bayar" atau "pembayaran" → jelaskan metode Xendit inline: kartu kredit/debit, QRIS, Virtual Account (BCA/BNI/BRI/Mandiri), e-wallet (OVO/DANA/ShopeePay). Arahkan ke /portal/billing.
+- Kalau user tanya "cara connect Binance" → arahkan ke /portal/crypto/connect. API key + secret, Withdraw MUST disabled.
+- Kalau user tanya "cara lihat signal" → arahkan ke /portal/signals (forex) atau /portal/crypto/signals (crypto). Setiap signal punya entry, SL, TP, confidence score, dan status.
+- Kalau user tanya "notifikasi" → arahkan ke /portal/settings/notifications. Bisa pilih channel (email/Telegram/WhatsApp) dan tipe event.
 - TIDAK BOLEH share informasi user lain. Akses scoped ke user yang login saja.
 `;
 

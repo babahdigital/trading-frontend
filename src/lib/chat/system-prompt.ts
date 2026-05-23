@@ -50,13 +50,22 @@ export function buildSystemPrompt(localeOrContext: ChatLocale | ChatPromptContex
   const forexHit = isForexTopic(txt);
   const cryptoHit = isCryptoTopic(txt);
 
+  // Detect comparison questions — load BOTH skills when user asks about
+  // differences, comparisons, or "which product" type questions.
+  const isComparisonQuery = /\b(beda|bedanya|perbandingan|compare|comparison|versus|vs\.?|mana yang|which|differ|perbedaan)\b/.test(txt);
+
   // Heuristic: kalau tidak ada hit jelas, load FOREX as default karena mayoritas
   // customer dan landing page condong ke forex. Crypto-specific muncul saat
-  // user spesifik nyebut crypto/Binance.
-  if (forexHit || (!forexHit && !cryptoHit)) {
+  // user spesifik nyebut crypto/Binance. Kalau comparison → load both.
+  if (isComparisonQuery) {
     sections.push(getForexSkill(pricingLocale));
-  }
-  if (cryptoHit) {
+    sections.push(getCryptoSkill(pricingLocale));
+  } else if (forexHit || (!forexHit && !cryptoHit)) {
+    sections.push(getForexSkill(pricingLocale));
+    if (cryptoHit) {
+      sections.push(getCryptoSkill(pricingLocale));
+    }
+  } else if (cryptoHit) {
     sections.push(getCryptoSkill(pricingLocale));
   }
 

@@ -58,6 +58,71 @@ export interface GenerateSeoMetaInput {
   language: 'id' | 'en';
 }
 
+/**
+ * Robust JSON extractor for AI-generated SEO metadata.
+ *
+ * Handles common AI response issues:
+ *   - Markdown code fences (```json ... ```)
+ *   - Explanatory preamble/postamble text around JSON
+ *   - Trailing commas before closing brace
+ *   - Smart/curly quotes in values
+ *
+ * Returns null if extraction fails — caller falls back gracefully.
+ */
+function extractSeoJson(raw: string): Partial<SeoMeta> | null {
+  // Step 1: Strip markdown code fences (```json ... ``` or ``` ... ```)
+  let text = raw
+    .trim()
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/\s*```\s*$/i, '')
+    .trim();
+
+  // Step 2: Try direct parse first (best case)
+  try {
+    const obj = JSON.parse(text);
+    if (obj && typeof obj === 'object') return obj as Partial<SeoMeta>;
+  } catch {
+    // fallthrough
+  }
+
+  // Step 3: Extract JSON object from anywhere in the response text.
+  // Find the first `{` and last `}` to isolate the JSON object.
+  const firstBrace = text.indexOf('{');
+  const lastBrace = text.lastIndexOf('}');
+  if (firstBrace !== -1 && lastBrace > firstBrace) {
+    let candidate = text.slice(firstBrace, lastBrace + 1);
+
+    // Fix trailing commas before closing brace: `,"metaDescription": "..."}` is ok,
+    // but `"...",}` is not — strip trailing comma.
+    candidate = candidate.replace(/,\s*}/g, '}');
+
+    // Fix smart/curly quotes that some AI models emit
+    candidate = candidate.replace(/[“”„‟″‶]/g, '"');
+    candidate = candidate.replace(/[‘’‚‛′‵]/g, "'");
+
+    try {
+      const obj = JSON.parse(candidate);
+      if (obj && typeof obj === 'object') return obj as Partial<SeoMeta>;
+    } catch {
+      // fallthrough
+    }
+  }
+
+  // Step 4: Regex fallback — extract metaTitle and metaDescription individually.
+  // This handles cases where JSON is deeply malformed but the key-value pairs
+  // are identifiable.
+  const titleMatch = raw.match(/"metaTitle"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+  const descMatch = raw.match(/"metaDescription"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+  if (titleMatch && descMatch) {
+    return {
+      metaTitle: titleMatch[1].replace(/\\"/g, '"').replace(/\\n/g, ' '),
+      metaDescription: descMatch[1].replace(/\\"/g, '"').replace(/\\n/g, ' '),
+    };
+  }
+
+  return null;
+}
+
 export async function generateSeoMeta(input: GenerateSeoMetaInput): Promise<SeoMeta | null> {
   const or = getOpenRouter();
   if (!or) {
@@ -81,15 +146,16 @@ export async function generateSeoMeta(input: GenerateSeoMetaInput): Promise<SeoM
       maxOutputTokens: 300,
     });
 
-    // Parse JSON — strip code fence if AI emitted one despite instructions
-    const cleaned = text
-      .trim()
-      .replace(/^```(?:json)?\s*/, '')
-      .replace(/\s*```\s*$/, '')
-      .trim();
-
-    const parsed = JSON.parse(cleaned) as Partial<SeoMeta>;
-    const success = !!(parsed.metaTitle && parsed.metaDescription);
+    // Parse JSON — robust extraction handling multiple AI output formats:
+    //   1. Clean JSON (ideal)
+    //   2. JSON wrapped in markdown code fences (```json ... ```)
+    //   3. JSON embedded in explanatory text
+    //   4. Malformed JSON with trailing commas or unescaped chars
+    const parsed = extractSeoJson(text);
+    if (!parsed) {
+      log.warn(`SEO meta JSON extraction failed for "${input.title.slice(0, 40)}" — raw response: ${text.slice(0, 300)}`);
+    }
+    const success = !!(parsed?.metaTitle && parsed?.metaDescription);
     await prisma.aiCallLog
       .create({
         data: {

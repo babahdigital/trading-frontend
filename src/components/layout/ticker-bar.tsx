@@ -400,46 +400,62 @@ export function TickerBar() {
     if (!marqueeMounted && tickers.length >= MIN_TICKER_COUNT) setMarqueeMounted(true);
   }, [tickers.length, marqueeMounted]);
 
-  // WAAPI seek — runs ONCE saat marquee div pertama kali mount.
-  // After this, animation berjalan secara CSS-only, immune dari React state.
+  // ───────────────────────────────────────────────────────────────────
+  // JS-driven animation via requestAnimationFrame.
+  //
+  // Pak Abdullah feedback 2026-05-23: blip persists walau pakai CSS
+  // animation + WAAPI seek + mount latch. Audit menemukan CSS animation
+  // punya browser-specific quirks ketika ancestor position/className
+  // berubah (mode top → bottom-fixed flip).
+  //
+  // Final solution: drop CSS animation entirely. Hitung translate setiap
+  // frame berdasarkan (Date.now() - anchor) % duration. Browser cuma render
+  // transform, tidak manage animation timeline. Zero restart possible
+  // karena tidak ada animation timeline yang bisa di-reset oleh state.
+  // ───────────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!marqueeMounted) return;
     if (typeof window === 'undefined') return;
     const el = marqueeRef.current;
     if (!el) return;
-    let rafCount = 0;
-    const seek = () => {
-      const anims = el.getAnimations();
-      if (anims.length === 0) {
-        if (rafCount++ < 5) requestAnimationFrame(seek);
-        return;
-      }
-      const anim = anims[0];
-      const timing = (anim.effect as KeyframeEffect | null)?.getTiming();
-      const durationMs = timing && typeof timing.duration === 'number' ? timing.duration : 0;
-      if (!durationMs) return;
-      const anchor = getAnimAnchor();
-      const elapsedMs = Date.now() - anchor;
-      anim.currentTime = elapsedMs % durationMs;
-      animationRef.current = anim;
-    };
-    requestAnimationFrame(seek);
-  }, [marqueeMounted]);
 
-  // Hover pause — bind ke DOM langsung via marquee ref event listeners
-  // (no React state needed, no animation recreation).
-  useEffect(() => {
-    const el = marqueeRef.current;
-    if (!el) return;
-    const onEnter = () => animationRef.current?.pause();
-    const onLeave = () => animationRef.current?.play();
+    const mobile = window.innerWidth < 640;
+    const durationMs = (mobile ? ANIM_DURATION_MOBILE_S : ANIM_DURATION_DESKTOP_S) * 1000;
+    const anchor = getAnimAnchor();
+    let raf = 0;
+    let paused = false;
+    let reducedMotion = false;
+
+    // Respect reduced-motion preference
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    reducedMotion = mq.matches;
+    const onMqChange = (e: MediaQueryListEvent) => { reducedMotion = e.matches; };
+    mq.addEventListener('change', onMqChange);
+
+    const tick = () => {
+      if (!paused && !reducedMotion) {
+        const elapsed = (Date.now() - anchor) % durationMs;
+        const progress = elapsed / durationMs; // 0..1
+        // translate3d untuk GPU compositing — smooth + battery-friendly
+        el.style.transform = `translate3d(${(-50 * progress).toFixed(4)}%, 0, 0)`;
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+
+    // Hover pause — direct DOM event, no React state
+    const onEnter = () => { paused = true; };
+    const onLeave = () => { paused = false; };
     el.addEventListener('mouseenter', onEnter);
     el.addEventListener('mouseleave', onLeave);
+
     return () => {
+      cancelAnimationFrame(raf);
       el.removeEventListener('mouseenter', onEnter);
       el.removeEventListener('mouseleave', onLeave);
+      mq.removeEventListener('change', onMqChange);
     };
-  }, []);
+  }, [marqueeMounted]);
 
   // Mode visual
   const mode: 'top' | 'bottom-fixed' | 'hidden' =
@@ -533,28 +549,10 @@ export function TickerBar() {
         className="pointer-events-none absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-slate-950 to-transparent z-10"
       />
 
-      {/* Pure CSS animation — browser fully manages lifecycle.
-          React state changes tidak touch animation property → no restart.
-          WAAPI useEffect (above) only SEEKS currentTime once for continuity. */}
-      <style>{`
-        @keyframes ticker-scroll {
-          0%   { transform: translate3d(0, 0, 0); }
-          100% { transform: translate3d(-50%, 0, 0); }
-        }
-        .ticker-marquee {
-          animation: ticker-scroll 40s linear infinite;
-        }
-        @media (max-width: 639px) {
-          .ticker-marquee {
-            animation-duration: 28s;
-          }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .ticker-marquee {
-            animation: none !important;
-          }
-        }
-      `}</style>
+      {/* No CSS animation — JS-driven via requestAnimationFrame loop
+          (useEffect[marqueeMounted] above). Setiap frame compute transform
+          dari (Date.now() - sessionAnchor) % duration. Zero restart possible
+          karena tidak ada animation timeline yang bisa di-reset. */}
     </div>
   );
 }

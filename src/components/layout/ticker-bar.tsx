@@ -111,15 +111,15 @@ function formatPct(n: number): string {
 const TickerItem = memo(function TickerItem({ t }: { t: Ticker }) {
   const isUp = t.change24hPct >= 0;
   return (
-    <div className="inline-flex items-center gap-2 px-2.5 sm:px-3.5 text-xs font-mono shrink-0">
-      {/* No fixed min-w — let label content drive width (OIL=3char vs XAUUSD=6char
-          tidak perlu padding ekstra). tracking-[0.04em] keeps letter spacing tight. */}
+    // Compact wrapper — px-1.5 sm:px-2 (6/8px tiap sisi). Sebelumnya
+    // px-2.5 sm:px-3.5 menyebabkan ~28px gap antara separator dan price
+    // berikutnya (terlalu boros). Sekarang ~14px = proporsional + readable.
+    <div className="inline-flex items-center gap-1.5 sm:gap-2 px-1.5 sm:px-2 text-xs font-mono shrink-0">
+      {/* No fixed min-w — let label content drive width. */}
       <span className={cn('font-bold tracking-[0.04em]', GROUP_COLOR[t.group])}>
         {t.label}
       </span>
-      {/* tabular-nums alone prevents intra-item digit shift saat satu item's
-          price flicks. No fixed min-w — natural width per symbol (BTC=7 digit
-          tidak boros space buat XLM=0.34xxx). */}
+      {/* tabular-nums prevents intra-symbol digit shift, natural width across symbols. */}
       <span className="text-foreground/95 tabular-nums">
         {formatPrice(t.last, t.group, t.symbol, t.currency)}
       </span>
@@ -133,7 +133,8 @@ const TickerItem = memo(function TickerItem({ t }: { t: Ticker }) {
       >
         {isUp ? '▲' : '▼'} {formatPct(t.change24hPct)}
       </span>
-      <span className="text-foreground/15 px-0.5" aria-hidden>│</span>
+      {/* Separator with own padding — tight inter-item rhythm. */}
+      <span className="text-foreground/15 ml-0.5" aria-hidden>│</span>
     </div>
   );
 }, (prev, next) => {

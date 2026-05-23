@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { PageHeader } from '@/components/admin/page-header';
 import { EmptyState } from '@/components/admin/empty-state';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth/auth-context';
 import { Mail, Edit, Plus } from 'lucide-react';
 
@@ -23,6 +24,7 @@ interface EmailTemplate {
 }
 
 export default function EmailTemplatesPage() {
+  const t = useTranslations('admin.cms.email_templates');
   const { getAuthHeaders } = useAuth();
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,8 +48,8 @@ export default function EmailTemplatesPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Email Templates"
-        description="Edit subject + body email transactional. Bilingual id/en. Variable interpolation pakai {{variable_name}}. Setiap template di-load dari DB saat dipakai sendTemplatedEmail()."
+        title={t('title')}
+        description={t('description')}
         actions={
           <Button variant="outline" asChild>
             <Link href="/admin/cms/email-templates/new" className="gap-1.5">
@@ -71,8 +73,8 @@ export default function EmailTemplatesPage() {
       ) : templates.length === 0 ? (
         <EmptyState
           icon={Mail}
-          title="Belum ada email template"
-          description="Migration seed harusnya menambahkan welcome_user, password_reset, lead_confirmation default."
+          title={t('empty_title')}
+          description={t('empty_desc')}
           actions={[{ label: 'New Template', href: '/admin/cms/email-templates/new', icon: Plus }]}
         />
       ) : (

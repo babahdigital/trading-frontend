@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useToast } from '@/components/ui/toast';
 import { cn } from '@/lib/utils';
@@ -19,6 +20,8 @@ interface CreateResponse {
 }
 
 export default function AdminUserCreatePage() {
+  const t = useTranslations('admin.team_new');
+  const tc = useTranslations('admin.common');
   const { getAuthHeaders } = useAuth();
   const router = useRouter();
   const toast = useToast();
@@ -50,7 +53,7 @@ export default function AdminUserCreatePage() {
     setError('');
 
     if (role === 'OPERATOR' && permissions.length === 0) {
-      setError('Operator wajib punya minimal 1 permission. Pilih preset atau centang manual.');
+      setError(t('error_no_permission'));
       return;
     }
 
@@ -71,9 +74,9 @@ export default function AdminUserCreatePage() {
         throw new Error(body.error || `HTTP ${res.status}`);
       }
       setCreated(body as CreateResponse);
-      toast.push({ tone: 'success', title: 'Akun berhasil dibuat', description: 'Salin password awal & kirim via channel aman.' });
+      toast.push({ tone: 'success', title: t('toast_account_created'), description: t('toast_account_desc') });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Gagal membuat akun');
+      setError(err instanceof Error ? err.message : t('error_create'));
     } finally {
       setSubmitting(false);
     }
@@ -82,7 +85,7 @@ export default function AdminUserCreatePage() {
   function copyPassword() {
     if (!created) return;
     navigator.clipboard?.writeText(created.initialPassword).then(() => {
-      toast.push({ tone: 'success', title: 'Password disalin' });
+      toast.push({ tone: 'success', title: t('toast_copied') });
     });
   }
 
@@ -92,31 +95,29 @@ export default function AdminUserCreatePage() {
       <div className="max-w-2xl space-y-6">
         <Link href="/admin/team" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="h-3.5 w-3.5" strokeWidth={2.25} />
-          Kembali ke daftar
+          {t('back_list')}
         </Link>
 
         <div className="rounded-lg border border-[hsl(var(--profit))]/30 bg-[hsl(var(--profit))]/[0.06] p-5">
           <div className="flex items-center gap-2 text-[hsl(var(--profit))] font-semibold mb-2">
             <Check className="h-5 w-5" strokeWidth={2.5} />
-            Akun {created.user.email} berhasil dibuat
+            {t('success_title', { email: created.user.email })}
           </div>
           <p className="text-sm text-foreground/85">
-            Berikut password awal. <strong>Password ini hanya ditampilkan SEKALI.</strong> Salin dan kirim ke
-            penerima via channel aman (Telegram, Signal, atau face-to-face). Mereka diharapkan
-            ganti password setelah login pertama.
+            {t('success_desc')}
           </p>
         </div>
 
         <div className="rounded-lg border border-border bg-card p-5 space-y-3">
-          <label className="t-eyebrow block">Password awal</label>
+          <label className="t-eyebrow block">{t('label_initial_password')}</label>
           <div className="flex items-center gap-2">
             <code className="flex-1 px-3 py-2.5 bg-muted/60 border border-border rounded-md font-mono text-sm break-all">
               {showPassword ? created.initialPassword : '•'.repeat(created.initialPassword.length)}
             </code>
-            <Button type="button" variant="outline" size="icon" onClick={() => setShowPassword((v) => !v)} aria-label={showPassword ? 'Sembunyikan' : 'Tampilkan'}>
+            <Button type="button" variant="outline" size="icon" onClick={() => setShowPassword((v) => !v)} aria-label={showPassword ? t('btn_hide') : t('btn_show')}>
               {showPassword ? <EyeOff className="h-4 w-4" strokeWidth={2.25} /> : <Eye className="h-4 w-4" strokeWidth={2.25} />}
             </Button>
-            <Button type="button" variant="outline" size="icon" onClick={copyPassword} aria-label="Salin password">
+            <Button type="button" variant="outline" size="icon" onClick={copyPassword} aria-label={t('btn_copy')}>
               <Copy className="h-4 w-4" strokeWidth={2.25} />
             </Button>
           </div>
@@ -131,10 +132,10 @@ export default function AdminUserCreatePage() {
 
         <div className="flex items-center gap-3">
           <Link href="/admin/team">
-            <Button variant="outline">Kembali ke daftar</Button>
+            <Button variant="outline">{t('back_list')}</Button>
           </Link>
           <Button onClick={() => { setCreated(null); setEmail(''); setName(''); setPermissions([]); setPresetId(''); }}>
-            Buat akun lain
+            {t('btn_create_another')}
           </Button>
         </div>
       </div>
@@ -145,14 +146,13 @@ export default function AdminUserCreatePage() {
     <div className="max-w-3xl space-y-6">
       <Link href="/admin/team" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
         <ArrowLeft className="h-3.5 w-3.5" strokeWidth={2.25} />
-        Kembali ke daftar tim
+        {t('back')}
       </Link>
 
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Tambah operator atau admin</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{t('title')}</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Hanya SUPER_ADMIN yang bisa create akun baru. Setelah submit, sistem generate password awal yang
-          ditampilkan SEKALI — salin dan kirim ke penerima via channel aman.
+          {t('subtitle')}
         </p>
       </div>
 
@@ -166,14 +166,14 @@ export default function AdminUserCreatePage() {
       <form onSubmit={handleSubmit} className="space-y-7">
         {/* Identitas */}
         <div className="rounded-lg border border-border p-5 space-y-4">
-          <h2 className="font-semibold text-foreground">Identitas</h2>
+          <h2 className="font-semibold text-foreground">{t('section_identity')}</h2>
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="user-email" className="t-eyebrow mb-2 block">Email</label>
+              <label htmlFor="user-email" className="t-eyebrow mb-2 block">{t('label_email')}</label>
               <Input id="user-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ops@babahalgo.com" autoComplete="off" />
             </div>
             <div>
-              <label htmlFor="user-name" className="t-eyebrow mb-2 block">Nama (opsional)</label>
+              <label htmlFor="user-name" className="t-eyebrow mb-2 block">{t('label_name')}</label>
               <Input id="user-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Budi" autoComplete="off" />
             </div>
           </div>
@@ -181,19 +181,19 @@ export default function AdminUserCreatePage() {
 
         {/* Role */}
         <div className="rounded-lg border border-border p-5 space-y-4">
-          <h2 className="font-semibold text-foreground">Peran</h2>
+          <h2 className="font-semibold text-foreground">{t('section_role')}</h2>
           <div className="grid sm:grid-cols-2 gap-3">
             <RoleCard
               active={role === 'OPERATOR'}
               onClick={() => setRole('OPERATOR')}
               title="OPERATOR"
-              desc="Akses scoped — wajib punya permissions eksplisit. Cocok untuk support agent, content editor, marketing manager."
+              desc={t('role_operator_desc')}
             />
             <RoleCard
               active={role === 'ADMIN'}
               onClick={() => setRole('ADMIN')}
               title="ADMIN"
-              desc="Akses luas. Permissions kosong = legacy full-access (kecuali user-management). Cocok untuk co-founder atau senior ops."
+              desc={t('role_admin_desc')}
             />
           </div>
         </div>
@@ -201,9 +201,9 @@ export default function AdminUserCreatePage() {
         {/* Preset */}
         <div className="rounded-lg border border-border p-5 space-y-4">
           <div>
-            <h2 className="font-semibold text-foreground mb-1">Preset permission (opsional)</h2>
+            <h2 className="font-semibold text-foreground mb-1">{t('section_preset')}</h2>
             <p className="text-xs text-muted-foreground">
-              Pilih bundle siap pakai sebagai starting point — Anda bisa tweak manual setelahnya.
+              {t('preset_desc')}
             </p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
@@ -233,15 +233,15 @@ export default function AdminUserCreatePage() {
         <div className="rounded-lg border border-border p-5 space-y-5">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h2 className="font-semibold text-foreground mb-1">Permissions</h2>
+              <h2 className="font-semibold text-foreground mb-1">{t('section_permissions')}</h2>
               <p className="text-xs text-muted-foreground">
                 {permissions.length > 0
-                  ? `${permissions.length} permission dipilih.`
-                  : 'Belum ada permission dipilih. Operator wajib punya minimal 1.'}
+                  ? t('permissions_selected', { count: permissions.length })
+                  : t('permissions_none')}
               </p>
             </div>
             <Button type="button" variant="ghost" size="sm" onClick={() => { setPermissions([]); setPresetId(''); }} disabled={permissions.length === 0}>
-              Reset
+              {t('btn_reset')}
             </Button>
           </div>
 
@@ -286,10 +286,10 @@ export default function AdminUserCreatePage() {
 
         <div className="flex items-center gap-3">
           <Link href="/admin/team">
-            <Button type="button" variant="outline">Batal</Button>
+            <Button type="button" variant="outline">{tc('cancel')}</Button>
           </Link>
           <Button type="submit" disabled={submitting} className="gap-2">
-            {submitting ? 'Membuat akun…' : 'Buat akun'}
+            {submitting ? t('btn_creating') : t('btn_create')}
           </Button>
         </div>
       </form>

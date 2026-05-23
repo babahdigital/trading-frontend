@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/admin/page-header';
 import { EmptyState } from '@/components/admin/empty-state';
 import { formatDateTime, formatNumber } from '@/lib/format-locale';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth/auth-context';
 import { RefreshCw, CheckCircle2, XCircle, AlertCircle, ExternalLink, Wrench } from 'lucide-react';
 import Link from 'next/link';
@@ -78,6 +79,8 @@ interface MaintenanceState {
 }
 
 function MaintenanceCard({ getAuthHeaders }: { getAuthHeaders: () => HeadersInit }) {
+  const t = useTranslations('admin.settings');
+  const tc = useTranslations('admin.common');
   const [state, setState] = useState<MaintenanceState>({ enabled: false });
   const [draft, setDraft] = useState<MaintenanceState>({ enabled: false });
   const [loading, setLoading] = useState(true);
@@ -144,25 +147,25 @@ function MaintenanceCard({ getAuthHeaders }: { getAuthHeaders: () => HeadersInit
       <CardHeader>
         <CardTitle className="text-lg flex items-center gap-2">
           <Wrench className="h-5 w-5 text-amber-400" />
-          Maintenance Mode
+          {t('maintenance_title')}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <LabeledSwitch
-          label="Aktifkan Maintenance Mode"
-          description="Semua halaman publik dan portal akan dialihkan ke halaman pemeliharaan. Admin panel tetap dapat diakses."
+          label={t('maintenance_toggle')}
+          description={t('maintenance_toggle_desc')}
           checked={draft.enabled}
           onCheckedChange={(checked) => setDraft({ ...draft, enabled: !!checked })}
         />
 
         <div className="space-y-2">
           <label className="text-sm font-medium text-foreground">
-            Pesan Kustom <span className="text-muted-foreground font-normal">(opsional)</span>
+            {t('maintenance_message_label')} <span className="text-muted-foreground font-normal">{t('maintenance_optional')}</span>
           </label>
           <Textarea
             value={draft.message ?? ''}
             onChange={(e) => setDraft({ ...draft, message: e.target.value })}
-            placeholder="Tim kami sedang melakukan pemeliharaan terjadwal..."
+            placeholder={t('maintenance_message_placeholder')}
             rows={3}
             className="text-sm"
           />
@@ -170,7 +173,7 @@ function MaintenanceCard({ getAuthHeaders }: { getAuthHeaders: () => HeadersInit
 
         <div className="space-y-2">
           <label className="text-sm font-medium text-foreground">
-            Estimasi Selesai <span className="text-muted-foreground font-normal">(opsional)</span>
+            {t('maintenance_end_label')} <span className="text-muted-foreground font-normal">{t('maintenance_optional')}</span>
           </label>
           <Input
             type="datetime-local"
@@ -183,8 +186,7 @@ function MaintenanceCard({ getAuthHeaders }: { getAuthHeaders: () => HeadersInit
         {draft.enabled && (
           <div className="rounded-md bg-amber-500/10 border border-amber-500/30 p-3">
             <p className="text-sm text-amber-700 dark:text-amber-300">
-              <strong>Peringatan:</strong> Semua halaman publik dan portal akan dialihkan ke halaman pemeliharaan.
-              Hanya admin panel, halaman login admin, dan API internal yang tetap dapat diakses.
+              {t('maintenance_warning')}
             </p>
           </div>
         )}
@@ -196,17 +198,17 @@ function MaintenanceCard({ getAuthHeaders }: { getAuthHeaders: () => HeadersInit
             variant={draft.enabled ? 'destructive' : 'default'}
             size="sm"
           >
-            {saving ? 'Menyimpan...' : draft.enabled ? 'Aktifkan Maintenance' : 'Simpan'}
+            {saving ? t('maintenance_saved') + '...' : draft.enabled ? t('maintenance_btn_activate') : tc('save')}
           </Button>
           {saved && (
             <span className="text-sm text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
               <CheckCircle2 className="h-4 w-4" />
-              Tersimpan
+              {t('maintenance_saved')}
             </span>
           )}
           {state.enabled && (
             <span className="text-xs text-amber-600 dark:text-amber-400 font-mono">
-              MAINTENANCE AKTIF
+              {t('maintenance_active_badge')}
             </span>
           )}
         </div>
@@ -232,6 +234,8 @@ function StatusPill({ ok, label }: { ok: boolean; label: string }) {
 }
 
 export default function SettingsPage() {
+  const t = useTranslations('admin.settings');
+  const tc = useTranslations('admin.common');
   const { getAuthHeaders } = useAuth();
   const [data, setData] = useState<SystemInfo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -262,7 +266,7 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Settings & System" description="Memuat system info..." />
+        <PageHeader title={t('title')} description={t('loading_desc')} />
         <div className="grid gap-4 md:grid-cols-2">
           {Array.from({ length: 4 }).map((_, i) => (
             <Card key={i}><CardContent className="p-6"><div className="h-32 rounded bg-muted animate-pulse" /></CardContent></Card>
@@ -275,13 +279,13 @@ export default function SettingsPage() {
   if (error || !data) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Settings & System" />
+        <PageHeader title={t('title')} />
         <EmptyState
           variant="error"
           icon={AlertCircle}
-          title="Gagal memuat system info"
+          title={t('error_title')}
           description={error ?? 'unknown error'}
-          actions={[{ label: 'Coba lagi', onClick: fetchInfo, icon: RefreshCw }]}
+          actions={[{ label: t('btn_retry'), onClick: fetchInfo, icon: RefreshCw }]}
         />
       </div>
     );
@@ -290,12 +294,12 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Settings & System"
-        description="Observability snapshot — flags, secrets presence, worker health, AI usage."
+        title={t('title')}
+        description={t('description')}
         actions={
           <Button size="sm" variant="outline" onClick={fetchInfo} disabled={refreshing}>
             <RefreshCw className={cn('h-4 w-4 mr-2', refreshing && 'animate-spin')} />
-            Refresh
+            {tc('refresh')}
           </Button>
         }
       />
@@ -309,7 +313,7 @@ export default function SettingsPage() {
       {/* Row 1: App + DB */}
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
-          <CardHeader><CardTitle className="text-lg">Application</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-lg">{t('app_title')}</CardTitle></CardHeader>
           <CardContent className="text-sm space-y-1 font-mono">
             <div><span className="text-muted-foreground">Name:</span> {data.app.name}</div>
             <div><span className="text-muted-foreground">Version:</span> {data.app.version}</div>
@@ -321,7 +325,7 @@ export default function SettingsPage() {
         </Card>
 
         <Card>
-          <CardHeader><CardTitle className="text-lg">Database & Sessions</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-lg">{t('db_title')}</CardTitle></CardHeader>
           <CardContent className="text-sm space-y-2">
             <div className="flex items-center gap-2">
               <span className="text-muted-foreground">PostgreSQL:</span>
@@ -341,7 +345,7 @@ export default function SettingsPage() {
 
       {/* Row 2: Feature flags */}
       <Card>
-        <CardHeader><CardTitle className="text-lg">Feature Flags</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-lg">{t('flags_title')}</CardTitle></CardHeader>
         <CardContent>
           <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3 text-sm font-mono">
             {Object.entries(data.flags).map(([name, state]) => (
@@ -357,9 +361,9 @@ export default function SettingsPage() {
       {/* Row 3: Secrets presence */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Secrets Presence</CardTitle>
+          <CardTitle className="text-lg">{t('secrets_title')}</CardTitle>
           <p className="text-xs text-muted-foreground mt-1">
-            Menampilkan hanya apakah env var ada — nilai tidak pernah dibaca atau ditampilkan.
+            {t('secrets_desc')}
           </p>
         </CardHeader>
         <CardContent>
@@ -376,10 +380,10 @@ export default function SettingsPage() {
 
       {/* Row 4: Worker summary */}
       <Card>
-        <CardHeader><CardTitle className="text-lg">Background Workers (10 Run Terakhir)</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-lg">{t('workers_title')}</CardTitle></CardHeader>
         <CardContent>
           {data.workers.recent.length === 0 ? (
-            <div className="text-center text-sm text-muted-foreground py-4">Belum ada WorkerRun tercatat.</div>
+            <div className="text-center text-sm text-muted-foreground py-4">{t('workers_empty')}</div>
           ) : (
             <div className="space-y-1 text-xs font-mono">
               <div className="grid grid-cols-[1fr_100px_90px_100px_1fr] gap-2 border-b border-border pb-1 text-muted-foreground">
@@ -420,11 +424,11 @@ export default function SettingsPage() {
       {/* Row 5: AI usage */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">OpenRouter AI Usage (7 Hari Terakhir)</CardTitle>
+          <CardTitle className="text-lg">{t('ai_title')}</CardTitle>
         </CardHeader>
         <CardContent>
           {data.ai.last7Days.length === 0 ? (
-            <div className="text-sm text-muted-foreground">Belum ada AI call — mungkin OPENROUTER_API_KEY belum di-set atau worker belum dipicu.</div>
+            <div className="text-sm text-muted-foreground">{t('ai_empty')}</div>
           ) : (
             <div className="space-y-1 text-sm font-mono">
               <div className="grid grid-cols-4 gap-2 border-b border-border pb-1 text-muted-foreground text-xs">
@@ -449,10 +453,10 @@ export default function SettingsPage() {
       {/* Row 6: Business stats */}
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
-          <CardHeader><CardTitle className="text-lg">Licenses</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-lg">{t('licenses_title')}</CardTitle></CardHeader>
           <CardContent className="text-sm font-mono space-y-1">
             {Object.entries(data.licenses).length === 0 ? (
-              <div className="text-muted-foreground">Tidak ada data.</div>
+              <div className="text-muted-foreground">{tc('no_data')}</div>
             ) : (
               Object.entries(data.licenses).map(([status, count]) => (
                 <div key={status} className="flex justify-between">
@@ -470,10 +474,10 @@ export default function SettingsPage() {
         </Card>
 
         <Card>
-          <CardHeader><CardTitle className="text-lg">VPS Fleet</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-lg">{t('vps_title')}</CardTitle></CardHeader>
           <CardContent className="text-sm font-mono space-y-1">
             {Object.entries(data.vps).length === 0 ? (
-              <div className="text-muted-foreground">Tidak ada VPS terdaftar.</div>
+              <div className="text-muted-foreground">{t('vps_empty')}</div>
             ) : (
               Object.entries(data.vps).map(([status, count]) => (
                 <div key={status} className="flex justify-between">
@@ -491,12 +495,12 @@ export default function SettingsPage() {
         </Card>
 
         <Card>
-          <CardHeader><CardTitle className="text-lg">Blog Topics (AI)</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-lg">{t('blog_title')}</CardTitle></CardHeader>
           <CardContent className="text-sm font-mono space-y-1">
             {Object.entries(data.blogTopics).length === 0 ? (
               <div className="text-muted-foreground">
                 <AlertCircle className="h-3 w-3 inline mr-1" />
-                Belum di-seed. Trigger /api/cron/seed-blog-topics.
+                {t('blog_empty')}
               </div>
             ) : (
               Object.entries(data.blogTopics).map(([status, count]) => (

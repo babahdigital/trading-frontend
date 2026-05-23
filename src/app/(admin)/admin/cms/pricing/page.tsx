@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageHeader } from '@/components/admin/page-header';
 import { EmptyState } from '@/components/admin/empty-state';
 import { GenerateEnglishButton } from '@/components/cms/generate-english-button';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useToast } from '@/components/ui/toast';
 import { useConfirm } from '@/components/ui/confirm-dialog';
@@ -34,6 +35,8 @@ interface PricingTier {
 }
 
 export default function CmsPricingPage() {
+  const t = useTranslations('admin.cms.pricing');
+  const tc = useTranslations('admin.common');
   const { getAuthHeaders } = useAuth();
   const { push } = useToast();
   const confirm = useConfirm();
@@ -93,9 +96,9 @@ export default function CmsPricingPage() {
 
   async function handleDelete(id: string) {
     const ok = await confirm({
-      title: 'Hapus tier pricing?',
-      description: 'Tier akan hilang dari pricing page publik dan tidak bisa di-restore.',
-      confirmLabel: 'Hapus tier',
+      title: t('confirm_delete'),
+      description: t('confirm_delete_desc'),
+      confirmLabel: t('confirm_delete_btn'),
       tone: 'destructive',
     });
     if (!ok) return;
@@ -171,8 +174,8 @@ export default function CmsPricingPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Pricing Tiers"
-        description="Kelola paket harga. Tulis Indonesian dulu, lalu Auto-translate ke English."
+        title={t('title')}
+        description={t('description')}
         actions={
           <>
             <Button variant="outline" size="sm" asChild>
@@ -183,14 +186,14 @@ export default function CmsPricingPage() {
             </Button>
             <Button onClick={() => setEditing(emptyTier)} className="gap-1.5">
               <Plus className="h-4 w-4" />
-              Tambah Tier
+              {t('btn_add')}
             </Button>
           </>
         }
       />
       <div className="flex items-center gap-3 flex-wrap">
         <GenerateEnglishButton type="all-pricing" onSuccess={fetchTiers} />
-        <span className="text-xs text-muted-foreground">— bulk translate semua tier sekaligus</span>
+        <span className="text-xs text-muted-foreground">{t('bulk_translate_hint')}</span>
       </div>
 
       {editing && (
@@ -262,9 +265,9 @@ export default function CmsPricingPage() {
 
             <div className="flex gap-3">
               <Button onClick={handleSave} disabled={saving}>
-                {saving ? 'Menyimpan…' : 'Simpan'}
+                {saving ? tc('saving') : tc('save')}
               </Button>
-              <Button variant="outline" onClick={() => setEditing(null)} disabled={saving}>Batal</Button>
+              <Button variant="outline" onClick={() => setEditing(null)} disabled={saving}>{tc('cancel')}</Button>
             </div>
           </CardContent>
         </Card>
@@ -279,9 +282,9 @@ export default function CmsPricingPage() {
       ) : tiers.length === 0 ? (
         <EmptyState
           icon={Tags}
-          title="Belum ada tier pricing"
-          description="Tambahkan tier pertama untuk ditampilkan di /pricing publik."
-          actions={[{ label: 'Tambah Tier', onClick: () => setEditing(emptyTier), icon: Plus }]}
+          title={t('empty_title')}
+          description={t('empty_desc')}
+          actions={[{ label: t('btn_add'), onClick: () => setEditing(emptyTier), icon: Plus }]}
         />
       ) : (
         <div className="space-y-3">
@@ -313,7 +316,7 @@ export default function CmsPricingPage() {
                     </Button>
                   )}
                   <Button size="sm" variant="outline" onClick={() => setEditing(t)}>Edit</Button>
-                  <Button size="sm" variant="destructive" onClick={() => handleDelete(t.id)}>Hapus</Button>
+                  <Button size="sm" variant="destructive" onClick={() => handleDelete(t.id)}>{tc('delete')}</Button>
                 </div>
               </CardContent>
             </Card>

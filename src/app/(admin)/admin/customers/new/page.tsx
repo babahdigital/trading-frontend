@@ -8,19 +8,18 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth/auth-context';
 import { ArrowLeft, Check, ChevronRight, KeyRound, Server, User, AlertTriangle } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
-const STEPS = [
-  { label: 'Buat Akun', icon: User },
-  { label: 'Buat Lisensi', icon: KeyRound },
-  { label: 'Register VPS', icon: Server },
-  { label: 'Selesai', icon: Check },
-];
+// Step labels are injected at render-time via useTranslations.
+const STEP_ICONS = [User, KeyRound, Server, Check];
 
 interface CreatedUser { id: string; email: string; name: string | null }
 interface CreatedLicense { id: string; licenseKey: string; type: string; expiresAt: string }
 interface CreatedVps { id: string; name: string; host: string }
 
 export default function NewCustomerPage() {
+  const t = useTranslations('admin.customers_new');
+  const tc = useTranslations('admin.common');
   const { getAuthHeaders } = useAuth();
   const [step, setStep] = useState(0);
   const [error, setError] = useState('');
@@ -62,7 +61,7 @@ export default function NewCustomerPage() {
       });
       if (res.status === 401) { window.location.href = '/login'; return; }
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Gagal membuat akun');
+      if (!res.ok) throw new Error(data.error || t('error_create_account'));
       setCreatedUser({ id: data.id, email: data.email, name: data.name });
       setStep(1);
     } catch (err: unknown) {
@@ -91,7 +90,7 @@ export default function NewCustomerPage() {
       });
       if (res.status === 401) { window.location.href = '/login'; return; }
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Gagal membuat lisensi');
+      if (!res.ok) throw new Error(data.error || t('error_create_license'));
       setCreatedLicense({ id: data.id, licenseKey: data.licenseKey, type: data.type, expiresAt: data.expiresAt });
       setStep(2);
     } catch (err: unknown) {
@@ -104,7 +103,7 @@ export default function NewCustomerPage() {
           if (delRes.ok) {
             setCreatedUser(null);
             setStep(0);
-            setWarnings((w) => [...w, 'Akun customer telah di-rollback karena pembuatan lisensi gagal.']);
+            setWarnings((w) => [...w, t('rollback_account')]);
           } else {
             setWarnings((w) => [...w, `Rollback gagal: akun ${createdUser.email} tetap tersimpan. Hapus manual di halaman Users.`]);
           }
@@ -137,7 +136,7 @@ export default function NewCustomerPage() {
       });
       if (res.status === 401) { window.location.href = '/login'; return; }
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Gagal register VPS');
+      if (!res.ok) throw new Error(data.error || t('error_register_vps'));
       setCreatedVps({ id: data.id, name: data.name, host: data.host });
 
       // Step 3b: Link license to VPS (non-blocking but show warning on failure)
@@ -220,18 +219,20 @@ export default function NewCustomerPage() {
       <div className="flex items-center gap-3 mb-8">
         <Link href="/admin/customers">
           <Button variant="ghost" size="sm">
-            <ArrowLeft className="w-4 h-4 mr-1" /> Kembali
+            <ArrowLeft className="w-4 h-4 mr-1" /> {t('back')}
           </Button>
         </Link>
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Tambah Customer</h2>
-          <p className="text-muted-foreground">Wizard provisioning customer baru</p>
+          <h2 className="text-3xl font-bold tracking-tight">{t('title')}</h2>
+          <p className="text-muted-foreground">{t('subtitle')}</p>
         </div>
       </div>
 
       {/* Step Indicator */}
       <div className="flex items-center justify-between mb-8">
-        {STEPS.map((s, i) => (
+        {([t('step_account'), t('step_license'), t('step_vps'), t('step_done')] as string[]).map((label, i) => {
+          const StepIcon = STEP_ICONS[i];
+          return (
           <div key={i} className="flex items-center">
             <div className={cn(
               'flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors',
@@ -239,16 +240,17 @@ export default function NewCustomerPage() {
               i === step ? 'bg-primary/20 border-primary text-primary' :
               'border-border text-muted-foreground'
             )}>
-              {i < step ? <Check className="w-5 h-5" /> : <s.icon className="w-5 h-5" />}
+              {i < step ? <Check className="w-5 h-5" /> : <StepIcon className="w-5 h-5" />}
             </div>
             <span className={cn('ml-2 text-sm hidden sm:inline',
               i <= step ? 'text-foreground font-medium' : 'text-muted-foreground'
-            )}>{s.label}</span>
-            {i < STEPS.length - 1 && (
+            )}>{label}</span>
+            {i < STEP_ICONS.length - 1 && (
               <ChevronRight className="mx-3 w-4 h-4 text-muted-foreground" />
             )}
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {error && (
@@ -258,10 +260,10 @@ export default function NewCustomerPage() {
       {/* Already-created resources notice when retrying after failure */}
       {step > 0 && step < 3 && (
         <div className="rounded-md bg-blue-500/10 border border-blue-500/20 p-3 text-sm text-blue-400 mb-6">
-          <p className="font-medium mb-1">Resource yang sudah dibuat:</p>
+          <p className="font-medium mb-1">{t('created_resources')}</p>
           {createdUser && <p>• Akun: {createdUser.email} (ID: {createdUser.id.slice(0, 8)}...)</p>}
           {createdLicense && <p>• Lisensi: {createdLicense.licenseKey}</p>}
-          <p className="mt-2 text-xs">Jika proses gagal, resource di atas tetap tersimpan. Anda bisa melanjutkan atau mengelolanya di halaman masing-masing.</p>
+          <p className="mt-2 text-xs">{t('created_resources_note')}</p>
         </div>
       )}
 
@@ -269,30 +271,30 @@ export default function NewCustomerPage() {
       {step === 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Langkah 1: Buat Akun Customer</CardTitle>
+            <CardTitle>{t('step1_title')}</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleStep1} className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Email *</label>
+                  <label className="text-sm font-medium text-muted-foreground">{t('label_email')} *</label>
                   <Input type="email" value={userForm.email} onChange={(e) => setUserForm({ ...userForm, email: e.target.value })} placeholder="customer@example.com" required />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Password *</label>
-                  <Input type="password" autoComplete="new-password" value={userForm.password} onChange={(e) => setUserForm({ ...userForm, password: e.target.value })} placeholder="Min 8 karakter" required />
+                  <label className="text-sm font-medium text-muted-foreground">{t('label_password')} *</label>
+                  <Input type="password" autoComplete="new-password" value={userForm.password} onChange={(e) => setUserForm({ ...userForm, password: e.target.value })} placeholder={t('placeholder_password')} required />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Nama</label>
-                  <Input value={userForm.name} onChange={(e) => setUserForm({ ...userForm, name: e.target.value })} placeholder="Nama lengkap" />
+                  <label className="text-sm font-medium text-muted-foreground">{t('label_name')}</label>
+                  <Input value={userForm.name} onChange={(e) => setUserForm({ ...userForm, name: e.target.value })} placeholder={t('placeholder_name')} />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">MT5 Account</label>
-                  <Input value={userForm.mt5Account} onChange={(e) => setUserForm({ ...userForm, mt5Account: e.target.value })} placeholder="Nomor akun MT5" />
+                  <label className="text-sm font-medium text-muted-foreground">{t('label_mt5')}</label>
+                  <Input value={userForm.mt5Account} onChange={(e) => setUserForm({ ...userForm, mt5Account: e.target.value })} placeholder={t('placeholder_mt5')} />
                 </div>
               </div>
               <Button type="submit" disabled={submitting}>
-                {submitting ? 'Membuat...' : 'Buat Akun & Lanjut'}
+                {submitting ? t('btn_creating') : t('btn_create_account')}
               </Button>
             </form>
           </CardContent>
@@ -303,13 +305,13 @@ export default function NewCustomerPage() {
       {step === 1 && (
         <Card>
           <CardHeader>
-            <CardTitle>Langkah 2: Buat Lisensi</CardTitle>
+            <CardTitle>{t('step2_title')}</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleStep2} className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Tipe Lisensi *</label>
+                  <label className="text-sm font-medium text-muted-foreground">{t('label_license_type')} *</label>
                   <select
                     value={licenseForm.type}
                     onChange={(e) => setLicenseForm({ ...licenseForm, type: e.target.value })}
@@ -322,7 +324,7 @@ export default function NewCustomerPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Perpanjang Otomatis</label>
+                  <label className="text-sm font-medium text-muted-foreground">{t('label_auto_renew')}</label>
                   <div className="flex items-center gap-2 h-10">
                     <input
                       type="checkbox"
@@ -330,22 +332,22 @@ export default function NewCustomerPage() {
                       onChange={(e) => setLicenseForm({ ...licenseForm, autoRenew: e.target.checked })}
                       className="rounded"
                     />
-                    <span className="text-sm">Ya, perpanjang otomatis</span>
+                    <span className="text-sm">{t('auto_renew_yes')}</span>
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Mulai *</label>
+                  <label className="text-sm font-medium text-muted-foreground">{t('label_starts')} *</label>
                   <Input type="date" value={licenseForm.startsAt} onChange={(e) => setLicenseForm({ ...licenseForm, startsAt: e.target.value })} required />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Berakhir *</label>
+                  <label className="text-sm font-medium text-muted-foreground">{t('label_expires')} *</label>
                   <Input type="date" value={licenseForm.expiresAt} onChange={(e) => setLicenseForm({ ...licenseForm, expiresAt: e.target.value })} required />
                 </div>
               </div>
               <div className="flex gap-3">
-                <Button variant="outline" type="button" onClick={() => setStep(0)}>Kembali</Button>
+                <Button variant="outline" type="button" onClick={() => setStep(0)}>{tc('back')}</Button>
                 <Button type="submit" disabled={submitting}>
-                  {submitting ? 'Membuat...' : 'Buat Lisensi & Lanjut'}
+                  {submitting ? t('btn_creating') : t('btn_create_license')}
                 </Button>
               </div>
             </form>
@@ -357,36 +359,36 @@ export default function NewCustomerPage() {
       {step === 2 && (
         <Card>
           <CardHeader>
-            <CardTitle>Langkah 3: Register VPS</CardTitle>
+            <CardTitle>{t('step3_title')}</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleStep3} className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Nama VPS *</label>
-                  <Input value={vpsForm.name} onChange={(e) => setVpsForm({ ...vpsForm, name: e.target.value })} placeholder="vps-customer-01" required />
+                  <label className="text-sm font-medium text-muted-foreground">{t('label_vps_name')} *</label>
+                  <Input value={vpsForm.name} onChange={(e) => setVpsForm({ ...vpsForm, name: e.target.value })} placeholder={t('placeholder_vps_name')} required />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Host *</label>
+                  <label className="text-sm font-medium text-muted-foreground">{t('label_host')} *</label>
                   <Input value={vpsForm.host} onChange={(e) => setVpsForm({ ...vpsForm, host: e.target.value })} placeholder="vps-customer-01.babahalgo.internal" required />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Port</label>
+                  <label className="text-sm font-medium text-muted-foreground">{t('label_port')}</label>
                   <Input type="number" value={vpsForm.port} onChange={(e) => setVpsForm({ ...vpsForm, port: e.target.value })} placeholder="8000" />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Backend URL *</label>
+                  <label className="text-sm font-medium text-muted-foreground">{t('label_backend_url')} *</label>
                   <Input value={vpsForm.backendBaseUrl} onChange={(e) => setVpsForm({ ...vpsForm, backendBaseUrl: e.target.value })} placeholder="https://vps-customer-01.babahalgo.internal:8000" required />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="text-sm font-medium text-muted-foreground">Admin Token *</label>
-                  <Input type="password" autoComplete="off" value={vpsForm.adminToken} onChange={(e) => setVpsForm({ ...vpsForm, adminToken: e.target.value })} placeholder="Token autentikasi VPS backend" required />
+                  <label className="text-sm font-medium text-muted-foreground">{t('label_admin_token')} *</label>
+                  <Input type="password" autoComplete="off" value={vpsForm.adminToken} onChange={(e) => setVpsForm({ ...vpsForm, adminToken: e.target.value })} placeholder={t('placeholder_admin_token')} required />
                 </div>
               </div>
               <div className="flex gap-3">
-                <Button variant="outline" type="button" onClick={() => setStep(1)}>Kembali</Button>
+                <Button variant="outline" type="button" onClick={() => setStep(1)}>{tc('back')}</Button>
                 <Button type="submit" disabled={submitting}>
-                  {submitting ? 'Mendaftarkan...' : 'Register VPS & Selesai'}
+                  {submitting ? t('btn_registering') : t('btn_register_vps')}
                 </Button>
               </div>
             </form>
@@ -398,19 +400,19 @@ export default function NewCustomerPage() {
       {step === 3 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-green-400">Provisioning Selesai!</CardTitle>
+            <CardTitle className="text-green-400">{t('done_title')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {warnings.length > 0 && (
                 <div className="rounded-md bg-yellow-500/10 border border-yellow-500/20 p-3 text-sm text-yellow-400">
                   <div className="flex items-center gap-2 font-medium mb-1">
-                    <AlertTriangle className="w-4 h-4" /> Peringatan
+                    <AlertTriangle className="w-4 h-4" /> {t('warning_title')}
                   </div>
                   {warnings.map((w, i) => <p key={i}>• {w}</p>)}
                 </div>
               )}
-              <SummarySection title="Akun Customer" items={[
+              <SummarySection title="{t('summary_account')}" items={[
                 { label: 'Email', value: createdUser?.email || '-' },
                 { label: 'Nama', value: createdUser?.name || '-' },
               ]} />
@@ -425,10 +427,10 @@ export default function NewCustomerPage() {
               ]} />
               <div className="flex gap-3 pt-4">
                 <Link href="/admin/customers">
-                  <Button>Kembali ke Daftar Customer</Button>
+                  <Button>{t('btn_back_to_list')}</Button>
                 </Link>
                 <Button variant="outline" onClick={resetWizard}>
-                  Tambah Customer Lain
+                  {t('btn_add_another')}
                 </Button>
               </div>
             </div>

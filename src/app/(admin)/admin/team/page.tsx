@@ -77,9 +77,9 @@ export default function AdminTeamPage() {
   async function toggleActive(user: TeamMember) {
     if (user.role === 'SUPER_ADMIN') return;
     const ok = await confirm({
-      title: user.isActive ? 'Deaktifkan akun?' : 'Aktifkan akun?',
+      title: user.isActive ? t('confirm_deactivate') : t('confirm_activate'),
       description: user.email,
-      confirmLabel: user.isActive ? 'Deaktifkan' : 'Aktifkan',
+      confirmLabel: user.isActive ? t('btn_deactivate') : t('btn_activate'),
       tone: user.isActive ? 'warning' : 'default',
     });
     if (!ok) return;
@@ -96,10 +96,10 @@ export default function AdminTeamPage() {
         const body = await res.json().catch(() => ({}));
         throw new Error(body.error || `HTTP ${res.status}`);
       }
-      toast.push({ tone: 'success', title: user.isActive ? 'Akun dinonaktifkan' : 'Akun diaktifkan' });
+      toast.push({ tone: 'success', title: user.isActive ? t('toast_deactivated') : t('toast_activated') });
       await load();
     } catch (err) {
-      toast.push({ tone: 'error', title: 'Gagal update', description: err instanceof Error ? err.message : 'Unknown' });
+      toast.push({ tone: 'error', title: t('toast_update_failed'), description: err instanceof Error ? err.message : 'Unknown' });
     } finally {
       setBusy(null);
     }
@@ -167,7 +167,7 @@ export default function AdminTeamPage() {
                     <div className="flex flex-col">
                       <span className="font-medium text-foreground">{u.name || u.email}</span>
                       {u.name && <span className="text-xs text-muted-foreground">{u.email}</span>}
-                      {!u.isActive && <span className="text-[10px] uppercase tracking-wider text-destructive mt-0.5">Nonaktif</span>}
+                      {!u.isActive && <span className="text-[10px] uppercase tracking-wider text-destructive mt-0.5">{t('label_inactive')}</span>}
                     </div>
                   </td>
                   <td className="py-3 px-4" data-label="Peran">
@@ -178,16 +178,16 @@ export default function AdminTeamPage() {
                   </td>
                   <td className="py-3 px-4 text-muted-foreground" data-label="Permissions">
                     {u.role === 'SUPER_ADMIN'
-                      ? 'Semua (bypass)'
+                      ? t('permissions_bypass')
                       : u.role === 'ADMIN' && permsCount === 0
-                        ? 'Penuh (legacy)'
+                        ? t('permissions_legacy')
                         : permsCount === 0
-                          ? <span className="text-destructive">Tidak ada</span>
-                          : `${permsCount} permission`}
+                          ? <span className="text-destructive">{t('permissions_none')}</span>
+                          : t('permissions_count', { count: permsCount })}
                   </td>
                   <td className="py-3 px-4 text-muted-foreground" data-label="Login Terakhir">{formatRelative(u.lastLoginAt)}</td>
                   <td className="py-3 px-4 text-muted-foreground text-xs" data-label="Dibuat oleh">
-                    {u.createdBy ? (u.createdBy.name || u.createdBy.email) : '— bootstrap'}
+                    {u.createdBy ? (u.createdBy.name || u.createdBy.email) : t('bootstrap')}
                   </td>
                   <td className="py-3 px-4 text-right" data-label="Aksi">
                     <div className="inline-flex items-center gap-1">
@@ -220,7 +220,7 @@ export default function AdminTeamPage() {
       </div>
 
       <div className="rounded-lg border border-border bg-muted/20 p-4 text-sm">
-        <h3 className="font-semibold text-foreground mb-2">Catatan keamanan RBAC</h3>
+        <h3 className="font-semibold text-foreground mb-2">{t('security_title')}</h3>
         <ul className="space-y-1.5 text-muted-foreground text-xs leading-relaxed list-disc ml-4">
           <li>Hanya <strong className="text-foreground">SUPER_ADMIN</strong> bisa membuat akun baru. Akun ini di-bootstrap via DB SQL, tidak via UI.</li>
           <li>Permission preset di halaman create memberikan bundle siap pakai (Support, Ops, Editor, Publisher, Admin Penuh).</li>

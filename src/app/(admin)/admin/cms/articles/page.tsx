@@ -157,7 +157,7 @@ export default function CmsArticlesPage() {
             </div>
             <div className="flex items-center gap-6">
               <label className="flex items-center gap-2 text-sm">
-                <input type="checkbox" checked={editing.isPublished} onChange={(e) => setEditing({ ...editing, isPublished: e.target.checked, publishedAt: e.target.checked ? new Date().toISOString() : null })} />
+                <input type="checkbox" className="h-4 w-4 rounded border-input accent-amber-500" checked={editing.isPublished} onChange={(e) => setEditing({ ...editing, isPublished: e.target.checked, publishedAt: e.target.checked ? new Date().toISOString() : null })} />
                 Published
               </label>
             </div>

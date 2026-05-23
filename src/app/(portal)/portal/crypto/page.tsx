@@ -20,6 +20,7 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { Skeleton } from '@/components/ui/skeleton';
 import { ShopProductsSection } from '@/components/portal/shop-products-section';
 
 interface CryptoSubscription {
@@ -129,9 +130,9 @@ export default function CryptoOverviewPage() {
   if (loading) {
     return (
       <div className="space-y-3">
-        <div className="h-8 w-1/3 bg-white/10 rounded animate-pulse" />
-        <div className="h-32 bg-white/5 rounded animate-pulse" />
-        <div className="h-24 bg-white/5 rounded animate-pulse" />
+        <Skeleton className="h-8 w-1/3" />
+        <Skeleton className="h-32" />
+        <Skeleton className="h-24" />
       </div>
     );
   }

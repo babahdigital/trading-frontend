@@ -199,7 +199,7 @@ export default function CmsChangelogPage() {
               <Textarea value={editing.body_en ?? ''} onChange={(e) => setEditing({ ...editing, body_en: e.target.value })} rows={6} />
             </div>
             <label className="inline-flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={editing.isPublished}
+              <input type="checkbox" className="h-4 w-4 rounded border-input accent-amber-500" checked={editing.isPublished}
                 onChange={(e) => setEditing({ ...editing, isPublished: e.target.checked })} />
               Publish now
             </label>

@@ -140,7 +140,7 @@ export default function CryptoConnectPage() {
                 type="checkbox"
                 checked={testnet}
                 onChange={(e) => setTestnet(e.target.checked)}
-                className="h-4 w-4 rounded border-input"
+                className="h-4 w-4 rounded border-input accent-amber-500"
               />
               <span className="text-sm">
                 {t('testnet_label_pre')} <span className="font-mono">{t('testnet_label_main')}</span> {t('testnet_label_post')}

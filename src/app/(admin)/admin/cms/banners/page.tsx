@@ -169,7 +169,7 @@ export default function CmsBannersPage() {
             </div>
             <div className="flex items-center gap-4">
               <label className="flex items-center gap-2 text-sm">
-                <input type="checkbox" checked={editing.isActive} onChange={(e) => setEditing({ ...editing, isActive: e.target.checked })} />
+                <input type="checkbox" className="h-4 w-4 rounded border-input accent-amber-500" checked={editing.isActive} onChange={(e) => setEditing({ ...editing, isActive: e.target.checked })} />
                 Active
               </label>
             </div>
@@ -214,8 +214,8 @@ export default function CmsBannersPage() {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button size="sm" variant="outline" onClick={() => setEditing(b)}>Edit</Button>
-                    <Button size="sm" variant="destructive" onClick={() => handleDelete(b.id)}>Hapus</Button>
+                    <Button size="sm" variant="outline" onClick={() => setEditing(b)} aria-label={`Edit ${b.title}`}>Edit</Button>
+                    <Button size="sm" variant="destructive" onClick={() => handleDelete(b.id)} aria-label={`Hapus ${b.title}`}>Hapus</Button>
                   </div>
                 </CardContent>
               </Card>

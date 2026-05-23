@@ -172,7 +172,7 @@ export default function CmsPopupsPage() {
               onChange={(url) => setEditing({ ...editing, imageUrl: url })}
             />
             <div className="flex items-center gap-4">
-              <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={editing.isActive} onChange={(e) => setEditing({ ...editing, isActive: e.target.checked })} /> Active</label>
+              <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="h-4 w-4 rounded border-input accent-amber-500" checked={editing.isActive} onChange={(e) => setEditing({ ...editing, isActive: e.target.checked })} /> Active</label>
             </div>
             <div className="flex gap-3">
               <Button onClick={handleSave} disabled={saving}>
@@ -212,8 +212,8 @@ export default function CmsPopupsPage() {
                     <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${ab.cls}`}>{ab.label}</span>
                   </div>
                   <div className="flex gap-2">
-                    <Button size="sm" variant="outline" onClick={() => setEditing(p)}>Edit</Button>
-                    <Button size="sm" variant="destructive" onClick={() => handleDelete(p.id)}>Hapus</Button>
+                    <Button size="sm" variant="outline" onClick={() => setEditing(p)} aria-label={`Edit ${p.title}`}>Edit</Button>
+                    <Button size="sm" variant="destructive" onClick={() => handleDelete(p.id)} aria-label={`Hapus ${p.title}`}>Hapus</Button>
                   </div>
                 </CardContent>
               </Card>

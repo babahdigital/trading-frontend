@@ -17,7 +17,7 @@ const bodySchema = z.object({
  * POST /api/client/crypto/notifications/whatsapp/confirm
  *
  * Submit OTP code to verify the WhatsApp number bound on the crypto
- * preferences record. Phase 2 backend stub accepts only "000000".
+ * preferences record. Real Fonnte OTP is now live.
  */
 export async function POST(request: NextRequest) {
   try {

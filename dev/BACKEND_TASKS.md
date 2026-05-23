@@ -78,36 +78,31 @@
 
 ## CRYPTO BACKEND (VPS2/VPS3 — trading-crypto)
 
-### TASK C-1: Crypto Notification Endpoint
-**File FE**: `src/app/api/crypto/notifications/log/route.ts:29`
-**Status**: FE return empty payload "Backend belum configured"
-
-**Yang perlu di backend**:
-1. Endpoint `GET /api/tenants/{id}/notifications` — return notification log
-2. Events: trade executed, SL hit, TP hit, kill-switch, daily summary
-3. FE sudah punya notification hub di portal
+### TASK C-1: Crypto Notification Endpoint ✅ DONE (2026-05-24)
+**File FE**: `src/app/api/crypto/notifications/log/route.ts`
+**Status**: Backend `GET /api/tenants/{id}/notifications` live. FE proxy sudah wired dan forwarding ke backend.
 
 ---
 
-### TASK C-2: WhatsApp OTP Integration
-**File FE**: `src/i18n/messages/id.json:3667`
-**Status**: FE show "Masukkan kode 000000 untuk testing" — OTP belum real
-
-**Yang perlu di backend**:
-1. Integrate Fonnte API untuk kirim OTP via WhatsApp
-2. Endpoint `POST /api/whatsapp/send-otp` — generate + send 6-digit OTP
-3. FE sudah punya verify flow, tinggal connect ke real OTP
+### TASK C-2: WhatsApp OTP Integration ✅ DONE (2026-05-24)
+**File FE**: `src/i18n/messages/id.json`, `src/i18n/messages/en.json`
+**Status**: Real Fonnte OTP now live. FE testing stubs ("000000") removed, verify flow fully operational.
 
 ---
 
-### TASK C-3: Micro Tier SKU
-**File FE**: `src/lib/tiers/tier-config.ts:14,80`
-**Status**: `monthlyPrice: 0` dengan comment "backend belum ship SKU"
+### TASK C-3: Micro Tier SKU ✅ DONE (2026-05-24)
+**File FE**: `src/lib/tiers/tier-config.ts`
+**Status**: SKU `CRYPTO_MICRO` shipped at $4.99/mo. FE `monthlyPrice` updated from 0 to 4.99.
 
-**Yang perlu di backend**:
-1. Register SKU `CRYPTO_MICRO` di billing/subscription system
-2. Set pricing: ~$4-5/mo, 1 slot, 2x leverage
-3. FE sudah punya tier config, tinggal set `monthlyPrice` setelah backend ready
+---
+
+---
+
+### NOTE: AI Tables Dropped (2026-05-24)
+Backend permanently dropped `ai.advice_log`, `ai.budget_usage`, `ai.prompt_registry`.
+Still alive: `ai_learn.*` (regime, kelly, calibration, markout).
+FE references updated: i18n strings now reference "internal audit system" instead of `ai.advice_log`.
+Daily research worker (`daily-research.ts`) updated to source from `ai_learn.markout` instead of `advice_log`.
 
 ---
 
@@ -115,18 +110,18 @@
 
 ### Harus Segera (security + core feature)
 1. **F-1**: Per-user tenant token — security risk jika bocor
-2. **C-2**: WhatsApp OTP — customer onboarding blocker
+2. ~~**C-2**: WhatsApp OTP~~ — ✅ DONE 2026-05-24
 
 ### Sebelum Customer Onboarding
 3. **F-5**: Tenant audit trail — ops visibility
-4. **C-1**: Crypto notification — customer engagement
+4. ~~**C-1**: Crypto notification~~ — ✅ DONE 2026-05-24
 
 ### Nice-to-Have (bisa setelah launch)
 5. **F-2**: AI state per-pair — dashboard polish
 6. **F-3**: Max consecutive loss — performance stats
 7. **F-4**: Average hold time — performance stats
 8. **F-6**: OAuth — convenience login
-9. **C-3**: Micro tier — market expansion
+9. ~~**C-3**: Micro tier~~ — ✅ DONE 2026-05-24
 
 ---
 

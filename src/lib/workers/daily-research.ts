@@ -6,7 +6,7 @@
  *
  *   Mon (1) → Weekly Market Recap (VPS1 weekly-recap + signals stats)
  *   Tue (2) → AI Lesson of the Day (one observation_log entry → narrative)
- *   Wed (3) → Trade Case Study (one high-confidence advice_log → narrative)
+ *   Wed (3) → Trade Case Study (one high-confidence trade from ai_learn.markout → narrative)
  *   Thu (4) → Correlation Insight (pair-briefs aggregate)
  *   Fri (5) → Risk Management Insight (observation_log patterns)
  *   Sat (6) → Strategy Deep-Dive (rotating SMC/Wyckoff/Fib)

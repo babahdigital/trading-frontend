@@ -1,5 +1,5 @@
 /**
- * FE proxy untuk backend crypto notification log endpoint (rc25+).
+ * FE proxy untuk backend crypto notification log endpoint (live since rc25).
  *
  * Backend trading-crypto v0.8.0-rc25:
  *   GET /api/tenants/{id}/notifications/log?since_id=N&limit=100
@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
   if (!userId) return NextResponse.json({ code: 'unauthorized', error: 'Unauthorized' }, { status: 401 });
 
   if (!cryptoBackendConfigured()) {
-    // Backend belum configured — return empty payload supaya FE polling tidak crash.
+    // Crypto backend env vars not configured — return empty payload so FE polling doesn't crash.
     return NextResponse.json({
       items: [],
       next_since_id: 0,

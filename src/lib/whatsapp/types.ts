@@ -97,7 +97,7 @@ export interface CryptoNotificationPrefsPatch {
 }
 
 export interface CryptoOtpVerifyResult {
-  /** "otp_send_stub" during Phase 2; "otp_sent" once Phase 3 wires Fonnte. */
+  /** "otp_sent" when Fonnte delivers the OTP; "otp_send_stub" if backend falls back to stub mode. */
   status: string;
   detail?: string;
   /** Friendly hint to surface in the UI. */

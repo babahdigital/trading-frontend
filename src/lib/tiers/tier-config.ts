@@ -11,7 +11,7 @@
  * Backend (trading-forex Phase 14V) currently exposes:
  *   TIER_ORDER = ("beta", "starter", "pro", "vip", "dedicated")
  *   beta ≈ free  (alias)
- *   micro MISSING — backend belum ship SKU handler.
+ *   micro → $4.99/mo — SKU CRYPTO_MICRO live (shipped 2026-05-24).
  *
  * Strategi gating ini di FE adalah ADVISORY: yang authoritative tetap backend
  * (PATCH /api/forex/me/engines validation). FE pakai untuk hide feature dari
@@ -77,7 +77,7 @@ export const TIERS: Record<TierName, TierConfig> = {
     name: 'micro',
     labelKey: 'tiers.micro.label',
     minEquity: 100,
-    monthlyPrice: 0, // backend belum ship SKU — placeholder, contact-sales gating
+    monthlyPrice: 4.99,
     realTrading: true,
     strategies: ['qm_perfect_adx', 'pivot_mean_reversion'],
     pairs: ['BTCUSD', 'ETHUSD', 'EURUSD', 'USDJPY', 'XAUUSD'],

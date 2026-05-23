@@ -223,19 +223,27 @@ async function generateOneTopic(topic: BlogTopic): Promise<{ articleId: string }
     + '3) Fokus 100% edukasi trading: fundamental, teknikal, strategi, risk management. '
     + '4) Gunakan data faktual, contoh historis nyata, referensi akademis. '
     + '5) Tulis perspektif netral seperti Bloomberg Research / Financial Times. '
-    + '6) Target: trader global (bukan hanya Indonesia). Konten harus universal dan profesional. '
+    + '6) Target: trader global. Konten universal dan profesional. '
     + '7) Sertakan minimal 4 heading (##) dan tulis minimal ' + topic.targetLengthWords + ' kata. '
-    + '\n\nFORMATTING SKILLS: '
-    + '- Gunakan **tabel markdown** untuk perbandingan data (| Header | Header |). '
-    + '- Gunakan **rumus** dalam format: `Rumus: Position Size = (Account × Risk%) / (Entry - SL)`. '
-    + '- Gunakan **blockquote** (>) untuk insight kunci atau kutipan penting. '
-    + '- Gunakan **bold** (*text*) untuk penekanan, JANGAN gunakan underscore (_text_). '
-    + '- JANGAN PERNAH menulis variabel dengan underscore (win_rate → Win Rate, stop_loss → Stop Loss). '
-    + '- Gunakan **numbered list** untuk langkah-langkah dan **bullet list** untuk fitur/poin. '
-    + '- Sertakan **key takeaway** di akhir setiap section utama. '
-    + '- Judul harus SEO-friendly, menarik, dan membuat pembaca ingin klik. '
-    + '- Kalimat pembuka harus hook yang kuat (statistik mengejutkan, pertanyaan provokatif, atau fakta kontra-intuitif). '
-    + '- Paragraf pendek (2-3 kalimat max) untuk readability. '
+    + '\n\nFORMAT YANG DIBOLEHKAN: '
+    + '- **Tabel markdown** untuk perbandingan data (| Header | Header |). '
+    + '- **Blockquote** (>) untuk insight kunci atau kutipan penting. '
+    + '- **Bold** (**text**) untuk penekanan. '
+    + '- **Numbered list** untuk langkah-langkah. **Bullet list** untuk poin-poin. '
+    + '- **Inline code** (`code`) untuk angka penting atau rumus SEDERHANA satu baris. '
+    + '\n\nFORMAT YANG DILARANG (tidak render di web kami): '
+    + '- JANGAN gunakan LaTeX (\\text{}, \\frac{}, $$...$$). '
+    + '- JANGAN gunakan ASCII art, ASCII flowchart, atau ASCII diagram. '
+    + '- JANGAN gunakan underscore untuk italic (_text_) — gunakan *text*. '
+    + '- JANGAN menulis variabel dengan underscore (win_rate → Win Rate). '
+    + '- JANGAN buat diagram alur dengan panah teks (-->, ===>, |, v). '
+    + '- Untuk rumus: tulis sebagai kalimat natural. Contoh: "Position Size dihitung dengan membagi risiko per trade (Account × Risk Percent) dengan jarak Stop Loss dalam pips." '
+    + '- Untuk proses/alur: jelaskan dalam numbered list, BUKAN diagram. '
+    + '\n\nGAYA PENULISAN: '
+    + '- Judul SEO-friendly dan menarik. '
+    + '- Kalimat pembuka: hook kuat (statistik, pertanyaan, fakta kontra-intuitif). '
+    + '- Paragraf pendek (2-3 kalimat). '
+    + '- Key takeaway di akhir setiap section. '
     + '- Akhiri dengan disclaimer trading standar.';
 
   const aiStart = Date.now();
@@ -266,7 +274,7 @@ async function generateOneTopic(topic: BlogTopic): Promise<{ articleId: string }
   // Self-heal: auto-append disclaimer if AI omitted it (common failure).
   const DISCLAIMER = 'Konten edukasi — bukan saran investasi. Trading forex melibatkan risiko kehilangan modal.';
   let healed = markdown.trim()
-    // Clean up snake_case variables that AI sometimes outputs
+    // Clean up snake_case variables
     .replace(/\bwin_rate\b/gi, 'Win Rate')
     .replace(/\bstop_loss\b/gi, 'Stop Loss')
     .replace(/\btake_profit\b/gi, 'Take Profit')
@@ -276,7 +284,21 @@ async function generateOneTopic(topic: BlogTopic): Promise<{ articleId: string }
     .replace(/\bposition_size\b/gi, 'Position Size')
     .replace(/\blot_size\b/gi, 'Lot Size')
     .replace(/\bentry_price\b/gi, 'Entry Price')
-    .replace(/\bexit_price\b/gi, 'Exit Price');
+    .replace(/\bexit_price\b/gi, 'Exit Price')
+    // Strip LaTeX that doesn't render in our markdown
+    .replace(/\\text\{([^}]+)\}/g, '$1')
+    .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '($1 / $2)')
+    .replace(/\\times/g, '×')
+    .replace(/\\div/g, '÷')
+    .replace(/\\pm/g, '±')
+    .replace(/\\approx/g, '≈')
+    .replace(/\\geq/g, '≥')
+    .replace(/\\leq/g, '≤')
+    // Clean ASCII art arrows that look bad in web
+    .replace(/^.*-{3,}>.*$/gm, (line) => {
+      if (/^\|/.test(line) || /\|$/.test(line)) return '';
+      return line;
+    });
 
   const hasDisclaimer = /bukan saran investasi|risiko kehilangan|not investment advice/i.test(healed);
   if (!hasDisclaimer) {

@@ -101,15 +101,14 @@ interface Ticker {
 
 // Expanded ticker universe — 22 symbols. Indonesia blue-chip stocks (IDR)
 // + global commodity/crypto/forex (USD).
+// Crypto curated ke 4 majors (Pak Abdullah 2026-05-23: "persingkat untuk
+// crypto banyak sekali"). BTC + ETH + SOL + XRP = market-cap top 4 + liquid.
+// Drop: BNB (regional), ADA/DOGE/AVAX (lower significance untuk ticker).
 const CRYPTO_MAP: Array<{ id: string; symbol: string; label: string }> = [
   { id: 'bitcoin',      symbol: 'BTCUSDT', label: 'BTC' },
   { id: 'ethereum',     symbol: 'ETHUSDT', label: 'ETH' },
-  { id: 'ripple',       symbol: 'XRPUSDT', label: 'XRP' },
   { id: 'solana',       symbol: 'SOLUSDT', label: 'SOL' },
-  { id: 'binancecoin',  symbol: 'BNBUSDT', label: 'BNB' },
-  { id: 'cardano',      symbol: 'ADAUSDT', label: 'ADA' },
-  { id: 'dogecoin',     symbol: 'DOGEUSDT', label: 'DOGE' },
-  { id: 'avalanche-2',  symbol: 'AVAXUSDT', label: 'AVAX' },
+  { id: 'ripple',       symbol: 'XRPUSDT', label: 'XRP' },
 ];
 
 const YAHOO_MAP: Array<{ ticker: string; symbol: string; label: string; group: 'commodity' | 'forex' | 'index'; stooq: string }> = [

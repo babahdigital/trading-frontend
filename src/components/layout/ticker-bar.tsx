@@ -63,7 +63,7 @@ const EDGE_PADDING_PX = 12;
 // (e.g. cache hanya 3 commodity items dari schema lama).
 const CACHE_KEY = 'babah.ticker.cache.v3';
 const CACHE_MAX_AGE_MS = 30 * 60 * 1000; // 30 min — server tetap fetch berkala
-const MIN_TICKER_COUNT = 20; // reject cache yang under-populated
+const MIN_TICKER_COUNT = 15; // reject cache yang under-populated (4 crypto + 5 commodity + ≥6 forex/index)
 // Animation continuity — preserve scroll position across page refreshes
 // supaya tidak restart dari 0% setiap navigation.
 const ANIM_ANCHOR_KEY = 'babah.ticker.anim-anchor';
@@ -380,82 +380,16 @@ export function TickerBar() {
   const repeated = useMemo(() => [...tickers, ...tickers], [tickers]);
 
   // ───────────────────────────────────────────────────────────────────
-  // Marquee mount latch — flip ONCE when data ready.
-  //
-  // Critical: marquee div HARUS mount with full real content (no skeleton
-  // swap, no partial→full data swap). Width change while animation runs
-  // = translate-50% recompute = visible blip mid-loop.
-  //
-  // Strategy:
-  //   - Marquee div tidak ada di DOM sampai tickers.length >= MIN.
-  //   - Saat data ready, mount sekali. CSS animation auto-start from 0%.
-  //   - WAAPI seek immediately ke elapsed % duration (continuity).
-  //   - Subsequent data updates: in-place value updates (same item count,
-  //     similar width). No re-mount.
+  // Marquee mount latch — flip ONCE when data ready, prevent width-swap blip.
   // ───────────────────────────────────────────────────────────────────
   useEffect(() => {
-    // One-way latch — flip ONCE when data ready, never flip back.
-    // Necessary state update untuk trigger marquee mount in JSX.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!marqueeMounted && tickers.length >= MIN_TICKER_COUNT) setMarqueeMounted(true);
   }, [tickers.length, marqueeMounted]);
 
-  // ───────────────────────────────────────────────────────────────────
-  // JS-driven animation via requestAnimationFrame.
-  //
-  // Pak Abdullah feedback 2026-05-23: blip persists walau pakai CSS
-  // animation + WAAPI seek + mount latch. Audit menemukan CSS animation
-  // punya browser-specific quirks ketika ancestor position/className
-  // berubah (mode top → bottom-fixed flip).
-  //
-  // Final solution: drop CSS animation entirely. Hitung translate setiap
-  // frame berdasarkan (Date.now() - anchor) % duration. Browser cuma render
-  // transform, tidak manage animation timeline. Zero restart possible
-  // karena tidak ada animation timeline yang bisa di-reset oleh state.
-  // ───────────────────────────────────────────────────────────────────
-  useEffect(() => {
-    if (!marqueeMounted) return;
-    if (typeof window === 'undefined') return;
-    const el = marqueeRef.current;
-    if (!el) return;
-
-    const mobile = window.innerWidth < 640;
-    const durationMs = (mobile ? ANIM_DURATION_MOBILE_S : ANIM_DURATION_DESKTOP_S) * 1000;
-    const anchor = getAnimAnchor();
-    let raf = 0;
-    let paused = false;
-    let reducedMotion = false;
-
-    // Respect reduced-motion preference
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-    reducedMotion = mq.matches;
-    const onMqChange = (e: MediaQueryListEvent) => { reducedMotion = e.matches; };
-    mq.addEventListener('change', onMqChange);
-
-    const tick = () => {
-      if (!paused && !reducedMotion) {
-        const elapsed = (Date.now() - anchor) % durationMs;
-        const progress = elapsed / durationMs; // 0..1
-        // translate3d untuk GPU compositing — smooth + battery-friendly
-        el.style.transform = `translate3d(${(-50 * progress).toFixed(4)}%, 0, 0)`;
-      }
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-
-    // Hover pause — direct DOM event, no React state
-    const onEnter = () => { paused = true; };
-    const onLeave = () => { paused = false; };
-    el.addEventListener('mouseenter', onEnter);
-    el.addEventListener('mouseleave', onLeave);
-
-    return () => {
-      cancelAnimationFrame(raf);
-      el.removeEventListener('mouseenter', onEnter);
-      el.removeEventListener('mouseleave', onLeave);
-      mq.removeEventListener('change', onMqChange);
-    };
-  }, [marqueeMounted]);
+  // Pure CSS animation (defined in <style> block below). No JS animation
+  // logic — browser fully manages timeline. Continuity across refresh
+  // SACRIFICED untuk eliminate ALL possible JS-induced blip sources.
 
   // Mode visual
   const mode: 'top' | 'bottom-fixed' | 'hidden' =
@@ -528,7 +462,7 @@ export function TickerBar() {
         {marqueeMounted ? (
           <div
             ref={marqueeRef}
-            className="ticker-marquee flex whitespace-nowrap py-2 will-change-transform"
+            className="ticker-marquee-anim flex whitespace-nowrap py-2 will-change-transform"
           >
             {repeated.map((t, i) => (
               <TickerItem key={`${t.symbol}-${i}`} t={t} />
@@ -549,10 +483,31 @@ export function TickerBar() {
         className="pointer-events-none absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-slate-950 to-transparent z-10"
       />
 
-      {/* No CSS animation — JS-driven via requestAnimationFrame loop
-          (useEffect[marqueeMounted] above). Setiap frame compute transform
-          dari (Date.now() - sessionAnchor) % duration. Zero restart possible
-          karena tidak ada animation timeline yang bisa di-reset. */}
+      {/* Pure CSS animation. Browser fully owns timeline. No JS injection,
+          no manual style.transform, no rAF loop, no WAAPI manipulation.
+          Animation auto-starts at 0% setiap kali element mount. */}
+      <style>{`
+        @keyframes ticker-scroll {
+          0%   { transform: translate3d(0, 0, 0); }
+          100% { transform: translate3d(-50%, 0, 0); }
+        }
+        .ticker-marquee-anim {
+          animation: ticker-scroll 40s linear infinite;
+        }
+        @media (max-width: 639px) {
+          .ticker-marquee-anim {
+            animation-duration: 28s;
+          }
+        }
+        .ticker-marquee-anim:hover {
+          animation-play-state: paused;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .ticker-marquee-anim {
+            animation: none;
+          }
+        }
+      `}</style>
     </div>
   );
 }

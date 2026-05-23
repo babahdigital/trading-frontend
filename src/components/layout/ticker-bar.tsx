@@ -296,19 +296,28 @@ export function TickerBar() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Footer observer
+  // Footer observer — debounced to prevent layout thrashing.
+  // Without debounce, ticker show/hide changes page height which triggers
+  // IntersectionObserver again → rapid true/false/true loop → page shakes.
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const footer = document.getElementById('enterprise-footer');
     if (!footer) return;
+    let timer: ReturnType<typeof setTimeout> | null = null;
     const obs = new IntersectionObserver(
       (entries) => {
-        for (const e of entries) setFooterVisible(e.isIntersecting);
+        for (const e of entries) {
+          if (timer) clearTimeout(timer);
+          const visible = e.isIntersecting;
+          // Hysteresis: show→hide fast (100ms), hide→show slow (300ms)
+          // prevents oscillation at the boundary
+          timer = setTimeout(() => setFooterVisible(visible), visible ? 300 : 100);
+        }
       },
-      { threshold: 0, rootMargin: '0px 0px -40px 0px' },
+      { threshold: 0.1, rootMargin: '0px 0px 0px 0px' },
     );
     obs.observe(footer);
-    return () => obs.disconnect();
+    return () => { obs.disconnect(); if (timer) clearTimeout(timer); };
   }, []);
 
   // StickyCtaBar coordination — ticker bottom-fixed sit ABOVE sticky-cta

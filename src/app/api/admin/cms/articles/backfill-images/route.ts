@@ -53,8 +53,13 @@ function truncateAtWord(text: string, maxLen: number): string {
 }
 
 export async function GET(request: NextRequest) {
-  const denied = requireAdmin(request);
-  if (denied) return denied;
+  // Dual auth: admin JWT OR cron secret (for automated backfill)
+  const cronSecret = request.headers.get('x-cron-secret');
+  const validCron = cronSecret && process.env.CRON_SECRET && cronSecret === process.env.CRON_SECRET;
+  if (!validCron) {
+    const denied = requireAdmin(request);
+    if (denied) return denied;
+  }
 
   const url = new URL(request.url);
   const limit = Math.min(Math.max(parseInt(url.searchParams.get('limit') ?? '5', 10), 1), 20);

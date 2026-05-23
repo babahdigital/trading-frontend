@@ -46,7 +46,14 @@ const GROUP_COLOR: Record<Ticker['group'], string> = {
 // items duplicated set = ~3.1s/item average — readable tapi feel live.
 const ANIM_DURATION_S = 75;
 const SCROLL_THRESHOLD = 120;
-const CHAT_ICON_RESERVE_PX = 80;
+// Right-edge reserve untuk chat FAB:
+//   - Mobile (<640px): icon 56px @ right-4 (16px) = 72px total
+//   - Desktop (≥640px): icon 56px @ right-6 (24px) = 80px total
+// Saat chat icon tidak visible (public pages tanpa active session),
+// reserve diciutkan ke padding tipis (12px) — tidak ada FAB to avoid.
+const CHAT_RESERVE_MOBILE_PX = 72;
+const CHAT_RESERVE_DESKTOP_PX = 80;
+const EDGE_PADDING_PX = 12;
 const CACHE_KEY = 'babah.ticker.cache.v2';
 const CACHE_MAX_AGE_MS = 5 * 60 * 1000;
 
@@ -156,10 +163,40 @@ export function TickerBar() {
   const [scrolled, setScrolled] = useState(false);
   const [footerVisible, setFooterVisible] = useState(false);
   const [stickyCtaHeight, setStickyCtaHeight] = useState(0);
+  const [chatIconVisible, setChatIconVisible] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const tickerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setHydrated(true);
+  }, []);
+
+  // Viewport tracker untuk responsive right-reserve.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const update = () => setIsMobile(window.innerWidth < 640);
+    update();
+    window.addEventListener('resize', update, { passive: true });
+    return () => window.removeEventListener('resize', update);
+  }, []);
+
+  // Chat icon visibility — listen ke event yang di-dispatch oleh
+  // chat-widget-mount. Saat icon visible, right reserve naik ke chat FAB
+  // width+offset. Saat hidden, reserve minimal (edge padding only).
+  // Public marketing pages start with chatIconVisible=false (chat only
+  // mounts setelah user klik footer "Chat AI").
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    // Initial probe — kalau button sudah ada di DOM saat mount.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (document.querySelector('button[aria-label="Open chat assistant"]')) setChatIconVisible(true);
+
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<{ visible: boolean }>).detail;
+      if (detail) setChatIconVisible(!!detail.visible);
+    };
+    window.addEventListener('babahalgo:chat-icon-state', handler);
+    return () => window.removeEventListener('babahalgo:chat-icon-state', handler);
   }, []);
 
   // Data fetcher — in-place update: kalau symbols sama, hanya replace value.
@@ -256,7 +293,10 @@ export function TickerBar() {
       if (!el) return setStickyCtaHeight(0);
       const rect = el.getBoundingClientRect();
       const inView = rect.top < window.innerHeight && rect.bottom > 0;
-      setStickyCtaHeight(inView ? Math.ceil(rect.height) : 0);
+      // Math.round (not ceil) untuk avoid sub-pixel gap antara ticker bottom
+      // dan sticky-cta top. Pak Abdullah 2026-05-22: "ada padding bottom tipis
+      // tidak mepet dengan sticky-cta-bar" — gap dari Math.ceil over-rounding.
+      setStickyCtaHeight(inView ? Math.round(rect.height) : 0);
     };
 
     const attach = (el: HTMLElement) => {
@@ -310,11 +350,26 @@ export function TickerBar() {
     : scrolled ? 'bottom-fixed'
     : 'top';
 
-  // Compose inline style untuk bottom-fixed mode
+  // Compose inline style untuk bottom-fixed mode.
+  //   - Right reserve dinamis: kalau chat FAB visible, sediain ruang;
+  //     kalau hidden, hanya edge padding tipis (Pak Abdullah 2026-05-22:
+  //     "blok kanan terlalu lebar saat fading out tick bar").
+  //   - Stacking dengan sticky-cta: bottom = stickyCtaHeight (Math.round-ed
+  //     untuk avoid 1px gap dari sub-pixel rounding).
   const bottomFixedStyle: React.CSSProperties = {};
   if (mode === 'bottom-fixed') {
-    bottomFixedStyle.right = `${CHAT_ICON_RESERVE_PX}px`;
-    if (stickyCtaHeight > 0) bottomFixedStyle.bottom = `${stickyCtaHeight}px`;
+    const reserve = chatIconVisible
+      ? (isMobile ? CHAT_RESERVE_MOBILE_PX : CHAT_RESERVE_DESKTOP_PX)
+      : EDGE_PADDING_PX;
+    bottomFixedStyle.right = `${reserve}px`;
+    // ALWAYS set bottom — kalau ada sticky-cta, ticker sit di atas-nya;
+    // kalau tidak, ticker sit di bottom viewport (0). Sebelumnya bottom
+    // hanya di-set saat stickyCtaHeight>0, menyebabkan landing page (tanpa
+    // sticky-cta) tidak punya bottom style → fixed element default ke
+    // flow position (TOP) = invisible saat scrolled.
+    // Pak Abdullah 2026-05-22: "tick price di halaman / harusnya muncul
+    // di bawah saat di scroll" — root cause fixed di sini.
+    bottomFixedStyle.bottom = `${stickyCtaHeight}px`;
   }
 
   // Decide content untuk inner marquee:

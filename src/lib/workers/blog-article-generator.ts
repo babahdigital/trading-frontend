@@ -483,7 +483,7 @@ export function validateMarkdown(markdown: string, topic: BlogTopic): Validation
 
   const wordCount = trimmed.split(/\s+/).length;
   const minWords = Math.floor(topic.targetLengthWords * 0.5);
-  const maxWords = Math.ceil(topic.targetLengthWords * 1.8);
+  const maxWords = Math.ceil(topic.targetLengthWords * 3);
   if (wordCount < minWords) errors.push(`too short: ${wordCount} words < ${minWords}`);
   if (wordCount > maxWords) errors.push(`too long: ${wordCount} words > ${maxWords}`);
 

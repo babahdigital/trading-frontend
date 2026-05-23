@@ -179,33 +179,11 @@ const TickerItem = memo(function TickerItem({ t }: { t: Ticker }) {
     && a.currency === b.currency;
 });
 
-// Skeleton items — 8 placeholder, same outer container supaya transition
-// dari skeleton ke real marquee tidak unmount outer animation host.
-function SkeletonItems() {
-  // Varied widths simulate dynamic content (mimics real items where
-  // BTC=7digit, OIL=2digit, XAUUSD=4digit, etc).
-  const widths: [string, string, string][] = [
-    ['w-7', 'w-12', 'w-10'],
-    ['w-9', 'w-16', 'w-11'],
-    ['w-6', 'w-10', 'w-9'],
-    ['w-10', 'w-14', 'w-12'],
-    ['w-8', 'w-12', 'w-10'],
-    ['w-7', 'w-16', 'w-11'],
-    ['w-9', 'w-11', 'w-9'],
-    ['w-6', 'w-14', 'w-10'],
-  ];
-  return (
-    <>
-      {widths.map(([wLabel, wPrice, wChange], i) => (
-        <div key={`skel-${i}`} className="inline-flex items-center gap-2 px-2.5 sm:px-3.5 shrink-0">
-          <span className={cn('inline-block h-3 rounded bg-slate-800/60 animate-pulse', wLabel)} />
-          <span className={cn('inline-block h-3 rounded bg-slate-800/40 animate-pulse', wPrice)} />
-          <span className={cn('inline-block h-3 rounded bg-slate-800/30 animate-pulse', wChange)} />
-        </div>
-      ))}
-    </>
-  );
-}
+// Skeleton replaced dengan inline "Loading market data…" placeholder
+// di render. Reason: skeleton items punya width berbeda dari real items,
+// menyebabkan width change saat swap → CSS animation translate-50%
+// jump = visible blip mid-loop. Drop skeleton, marquee mount only saat
+// data ready (≥MIN_TICKER_COUNT). Pre-mount = static placeholder text.
 
 export function TickerBar() {
   const [tickers, setTickers] = useState<Ticker[]>(() => readCache() ?? []);
@@ -216,6 +194,11 @@ export function TickerBar() {
   const [stickyCtaHeight, setStickyCtaHeight] = useState(0);
   const [chatIconVisible, setChatIconVisible] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  // Marquee mount latch — flips false→true ONCE when data ready (≥MIN_TICKER_COUNT).
+  // After true, never flips back. Prevents marquee re-mount yang triggers
+  // CSS animation restart. Also prevents width change saat content swap
+  // (skeleton→real) yang menyebabkan translate-50% jump.
+  const [marqueeMounted, setMarqueeMounted] = useState(false);
   const tickerRef = useRef<HTMLDivElement>(null);
   const marqueeRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<Animation | null>(null);
@@ -397,32 +380,38 @@ export function TickerBar() {
   const repeated = useMemo(() => [...tickers, ...tickers], [tickers]);
 
   // ───────────────────────────────────────────────────────────────────
-  // Animation: Pure CSS (browser-managed) + WAAPI seek-once for continuity.
+  // Marquee mount latch — flip ONCE when data ready.
   //
-  // Root cause iterasi sebelumnya:
-  //   - Inline style={{animation:...}}: re-applied setiap re-render → reset
-  //   - WAAPI via useEffect dengan deps[tickers.length]: cleanup+recreate
-  //     saat data arrives → blip visible
+  // Critical: marquee div HARUS mount with full real content (no skeleton
+  // swap, no partial→full data swap). Width change while animation runs
+  // = translate-50% recompute = visible blip mid-loop.
   //
-  // Solusi sekarang:
-  //   - Pure CSS animation in <style> tag (browser fully manages lifecycle)
-  //   - Responsive duration via @media query (no JS)
-  //   - WAAPI ONLY untuk seek currentTime once on mount (continuity)
-  //   - No cleanup, no recreate — animation runs for component lifetime
-  //   - State changes (scroll/footer/sticky/chat/mobile/data) zero impact
-  //     pada animation karena animasi tidak punya React dependency.
+  // Strategy:
+  //   - Marquee div tidak ada di DOM sampai tickers.length >= MIN.
+  //   - Saat data ready, mount sekali. CSS animation auto-start from 0%.
+  //   - WAAPI seek immediately ke elapsed % duration (continuity).
+  //   - Subsequent data updates: in-place value updates (same item count,
+  //     similar width). No re-mount.
   // ───────────────────────────────────────────────────────────────────
   useEffect(() => {
+    // One-way latch — flip ONCE when data ready, never flip back.
+    // Necessary state update untuk trigger marquee mount in JSX.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (!marqueeMounted && tickers.length >= MIN_TICKER_COUNT) setMarqueeMounted(true);
+  }, [tickers.length, marqueeMounted]);
+
+  // WAAPI seek — runs ONCE saat marquee div pertama kali mount.
+  // After this, animation berjalan secara CSS-only, immune dari React state.
+  useEffect(() => {
+    if (!marqueeMounted) return;
     if (typeof window === 'undefined') return;
     const el = marqueeRef.current;
     if (!el) return;
-    // Wait one frame supaya browser sudah apply CSS animation styles
-    let rafId = 0;
+    let rafCount = 0;
     const seek = () => {
       const anims = el.getAnimations();
       if (anims.length === 0) {
-        // CSS belum diterapkan, retry next frame (max 5 tries)
-        if (rafId++ < 5) requestAnimationFrame(seek);
+        if (rafCount++ < 5) requestAnimationFrame(seek);
         return;
       }
       const anim = anims[0];
@@ -435,7 +424,7 @@ export function TickerBar() {
       animationRef.current = anim;
     };
     requestAnimationFrame(seek);
-  }, []); // empty deps — run ONCE on mount, never re-attempt
+  }, [marqueeMounted]);
 
   // Hover pause — bind ke DOM langsung via marquee ref event listeners
   // (no React state needed, no animation recreation).
@@ -481,13 +470,8 @@ export function TickerBar() {
     bottomFixedStyle.bottom = `${stickyCtaHeight}px`;
   }
 
-  // Decide content untuk inner marquee:
-  //   - kalau hydrated DAN punya tickers → render real marquee items
-  //   - kalau hydrated tapi tickers kosong (initial fetch + no cache) → skeleton
-  //   - kalau gagal >2x + 0 cache → dismissed (container tetap mount, opacity-0)
+  // Dismissed state — gagal fetch >2x dan no cache. Container fade out.
   const dismissed = failCount > 2 && tickers.length === 0;
-  const showSkeleton = hydrated && tickers.length === 0 && !dismissed;
-  const showMarquee = hydrated && tickers.length > 0;
 
   return (
     <div
@@ -517,31 +501,30 @@ export function TickerBar() {
         className="pointer-events-none absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-slate-950 to-transparent z-10"
       />
 
-      <div className="relative z-0">
-        {/* Marquee track — animation attached via Web Animations API (WAAPI)
-            di useEffect, NOT inline style. Decouples animation timeline dari
-            React render cycle → re-render karena state change (tickers/isMobile/
-            footerVisible/dst) tidak restart animation.
-            Resume mid-loop via sessionStorage anchor. */}
-        <div
-          ref={marqueeRef}
-          className="ticker-marquee flex whitespace-nowrap py-2 will-change-transform"
-        >
-          {showMarquee
-            ? repeated.map((t, i) => (
-                // Key includes index supaya React reconcile duplicated set
-                // sebagai separate items (bukan key conflict).
-                <TickerItem key={`${t.symbol}-${i}`} t={t} />
-              ))
-            : showSkeleton
-              ? (
-                <>
-                  <SkeletonItems />
-                  <SkeletonItems />
-                </>
-              )
-              : null}
-        </div>
+      {/* Reserve fixed height untuk prevent layout shift saat marquee
+          belum mount. min-h-[32px] = ~ticker visual height (py-2 + text-xs). */}
+      <div className="relative z-0 min-h-[32px]">
+        {/* Marquee mounts ONLY setelah data ready (≥MIN_TICKER_COUNT).
+            Mount once dengan full real content → CSS animation runs at
+            stable width → no translate-50% jump. WAAPI seek (useEffect
+            marqueeMounted) seek currentTime ke elapsed % duration untuk
+            continuity. */}
+        {marqueeMounted ? (
+          <div
+            ref={marqueeRef}
+            className="ticker-marquee flex whitespace-nowrap py-2 will-change-transform"
+          >
+            {repeated.map((t, i) => (
+              <TickerItem key={`${t.symbol}-${i}`} t={t} />
+            ))}
+          </div>
+        ) : (
+          // Pre-mount: render minimal placeholder (no animation, no skeleton).
+          // Width reserved via min-h. Eliminates skeleton→real swap blip.
+          <div className="flex items-center justify-center py-2 text-[10px] text-foreground/30 font-mono">
+            Loading market data…
+          </div>
+        )}
       </div>
 
       {/* Right edge fade */}

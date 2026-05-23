@@ -98,7 +98,7 @@ export function ArticleCardImage({
           alt={alt}
           fill
           sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+          className="object-cover object-center transition-transform duration-500 group-hover:scale-[1.04]"
           quality={85}
         />
         {/* Dark gradient overlay at bottom for text readability when image present */}

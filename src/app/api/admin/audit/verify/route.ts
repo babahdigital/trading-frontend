@@ -30,6 +30,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ source: 'backend', ...body });
   } catch (err) {
     log.warn(`Audit verify error: ${err instanceof Error ? err.message : 'unknown'}`);
-    return NextResponse.json({ error: 'backend_unreachable' }, { status: 503 });
+    return NextResponse.json({ code: 'service_unavailable', error: 'backend_unreachable' }, { status: 503 });
   }
 }

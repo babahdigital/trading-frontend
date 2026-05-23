@@ -27,7 +27,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     const vps = await prisma.vpsInstance.findUnique({ where: { id } });
     if (!vps) {
-      return NextResponse.json({ error: 'VPS instance not found' }, { status: 404 });
+      return NextResponse.json({ code: 'not_found', error: 'VPS instance not found' }, { status: 404 });
     }
 
     if (vps.status !== 'ONLINE') {
@@ -83,6 +83,6 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     });
   } catch (error) {
     log.error('Code version check error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ code: 'internal_error', error: 'Internal server error' }, { status: 500 });
   }
 }

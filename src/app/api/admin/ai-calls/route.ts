@@ -76,6 +76,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     log.error('List AI call logs error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ code: 'internal_error', error: 'Internal server error' }, { status: 500 });
   }
 }

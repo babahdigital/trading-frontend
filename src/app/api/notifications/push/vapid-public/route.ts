@@ -12,6 +12,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
+  try {
   const publicKey = process.env.VAPID_PUBLIC_KEY;
   if (!publicKey) {
     return NextResponse.json(
@@ -23,4 +24,8 @@ export async function GET() {
     );
   }
   return NextResponse.json({ publicKey });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }

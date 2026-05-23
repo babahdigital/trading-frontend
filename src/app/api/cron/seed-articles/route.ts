@@ -98,8 +98,9 @@ const articles: Array<{
 ];
 
 export async function GET(req: NextRequest) {
+  try {
   if (!authorized(req)) {
-    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+    return NextResponse.json({ code: 'unauthorized', error: 'unauthorized' }, { status: 401 });
   }
 
   const results: string[] = [];
@@ -125,6 +126,10 @@ export async function GET(req: NextRequest) {
   }
 
   return NextResponse.json({ status: 'ok', seeded: results.length, articles: results });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }
 
 export const POST = GET;

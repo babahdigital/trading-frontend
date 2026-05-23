@@ -37,7 +37,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     const vps = await prisma.vpsInstance.findUnique({ where: { id } });
     if (!vps) {
-      return NextResponse.json({ error: 'VPS instance not found' }, { status: 404 });
+      return NextResponse.json({ code: 'not_found', error: 'VPS instance not found' }, { status: 404 });
     }
 
     // Encrypt the sync token with AES-256-GCM (same master key as admin tokens)
@@ -68,7 +68,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     });
   } catch (error) {
     log.error('Mint sync token error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ code: 'internal_error', error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -85,11 +85,11 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
     const vps = await prisma.vpsInstance.findUnique({ where: { id } });
     if (!vps) {
-      return NextResponse.json({ error: 'VPS instance not found' }, { status: 404 });
+      return NextResponse.json({ code: 'not_found', error: 'VPS instance not found' }, { status: 404 });
     }
 
     if (!vps.syncTokenCiphertext) {
-      return NextResponse.json({ error: 'No sync token to revoke' }, { status: 400 });
+      return NextResponse.json({ code: 'bad_request', error: 'No sync token to revoke' }, { status: 400 });
     }
 
     await prisma.vpsInstance.update({
@@ -117,7 +117,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     });
   } catch (error) {
     log.error('Revoke sync token error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ code: 'internal_error', error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -142,7 +142,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     });
 
     if (!vps) {
-      return NextResponse.json({ error: 'VPS instance not found' }, { status: 404 });
+      return NextResponse.json({ code: 'not_found', error: 'VPS instance not found' }, { status: 404 });
     }
 
     const hasSyncToken = !!(vps.syncTokenCiphertext && vps.syncTokenIv && vps.syncTokenTag);
@@ -166,6 +166,6 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     });
   } catch (error) {
     log.error('Check sync token error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ code: 'internal_error', error: 'Internal server error' }, { status: 500 });
   }
 }

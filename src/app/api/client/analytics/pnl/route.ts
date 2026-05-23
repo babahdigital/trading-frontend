@@ -38,6 +38,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (err) {
     log.error(`PnL series error: ${err instanceof Error ? err.message : 'unknown'}`);
-    return NextResponse.json({ error: 'Service unavailable' }, { status: 503 });
+    return NextResponse.json({ code: 'service_unavailable', error: 'Service unavailable' }, { status: 503 });
   }
 }

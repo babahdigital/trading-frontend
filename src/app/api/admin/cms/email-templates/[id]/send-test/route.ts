@@ -25,7 +25,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const { id } = await params;
 
   const tpl = await prisma.emailTemplate.findUnique({ where: { id } });
-  if (!tpl) return NextResponse.json({ error: 'template_not_found' }, { status: 404 });
+  if (!tpl) return NextResponse.json({ code: 'not_found', error: 'template_not_found' }, { status: 404 });
 
   const body = await request.json().catch(() => null);
   const parsed = schema.safeParse(body);
@@ -43,6 +43,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     return NextResponse.json({ success: true, messageId: result.messageId });
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown';
-    return NextResponse.json({ error: 'send_failed', message: msg }, { status: 502 });
+    return NextResponse.json({ code: 'send_failed', error: msg }, { status: 502 });
   }
 }

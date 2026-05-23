@@ -118,6 +118,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (err) {
     log.error(`analytics summary error: ${err instanceof Error ? err.message : 'unknown'}`);
-    return NextResponse.json({ error: 'internal_error' }, { status: 500 });
+    return NextResponse.json({ code: 'internal_error', error: 'internal_error' }, { status: 500 });
   }
 }

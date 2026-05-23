@@ -17,11 +17,11 @@ import { readKycDoc, type KycDocKind } from '@/lib/kyc/storage';
 export async function GET(request: NextRequest) {
   try {
     const userId = request.headers.get('x-user-id');
-    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!userId) return NextResponse.json({ code: 'unauthorized', error: 'Unauthorized' }, { status: 401 });
 
     const kindRaw = request.nextUrl.searchParams.get('kind');
     if (kindRaw !== 'front' && kindRaw !== 'back' && kindRaw !== 'selfie') {
-      return NextResponse.json({ error: 'invalid_kind' }, { status: 400 });
+      return NextResponse.json({ code: 'bad_request', error: 'invalid_kind' }, { status: 400 });
     }
     const kind = kindRaw as KycDocKind;
 
@@ -29,17 +29,17 @@ export async function GET(request: NextRequest) {
       where: { userId },
       select: { documentFrontUrl: true, documentBackUrl: true, selfieUrl: true },
     });
-    if (!kyc) return NextResponse.json({ error: 'not_found' }, { status: 404 });
+    if (!kyc) return NextResponse.json({ code: 'not_found', error: 'not_found' }, { status: 404 });
 
     const filename = kind === 'front'
       ? kyc.documentFrontUrl
       : kind === 'back'
         ? kyc.documentBackUrl
         : kyc.selfieUrl;
-    if (!filename) return NextResponse.json({ error: 'not_found' }, { status: 404 });
+    if (!filename) return NextResponse.json({ code: 'not_found', error: 'not_found' }, { status: 404 });
 
     const file = await readKycDoc({ userId, filename });
-    if (!file) return NextResponse.json({ error: 'not_found' }, { status: 404 });
+    if (!file) return NextResponse.json({ code: 'not_found', error: 'not_found' }, { status: 404 });
 
     return new NextResponse(file.buffer as unknown as BodyInit, {
       status: 200,

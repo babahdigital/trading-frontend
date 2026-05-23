@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
 
   const reviewerId = request.headers.get('x-user-id');
   if (!reviewerId) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    return NextResponse.json({ code: 'forbidden', error: 'Forbidden' }, { status: 403 });
   }
 
   let body: z.infer<typeof ProvisionBody>;
@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
     select: { id: true, email: true },
   });
   if (!targetUser) {
-    return NextResponse.json({ error: 'user_not_found' }, { status: 404 });
+    return NextResponse.json({ code: 'not_found', error: 'user_not_found' }, { status: 404 });
   }
 
   const existingSub = await prisma.cryptoBotSubscription.findUnique({

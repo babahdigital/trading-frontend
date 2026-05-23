@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 300;
 
 export async function GET() {
+  try {
   const now = new Date();
   const popups = await prisma.popup.findMany({
     where: {
@@ -21,4 +22,8 @@ export async function GET() {
   return NextResponse.json(popups, {
     headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60' },
   });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }

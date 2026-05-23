@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ vpsInstances, total, page, limit });
   } catch (error) {
     log.error('List VPS error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ code: 'internal_error', error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -111,6 +111,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(vpsInstance, { status: 201 });
   } catch (error) {
     log.error('Register VPS error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ code: 'internal_error', error: 'Internal server error' }, { status: 500 });
   }
 }

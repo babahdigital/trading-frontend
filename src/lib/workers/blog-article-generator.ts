@@ -220,7 +220,7 @@ async function generateOneTopic(topic: BlogTopic): Promise<{ articleId: string }
     model: or.chat(REASONING_MODEL),
     prompt,
     temperature: 0.4,
-    maxOutputTokens: Math.ceil(topic.targetLengthWords * 3),
+    maxOutputTokens: Math.max(8192, Math.ceil(topic.targetLengthWords * 6)),
   });
   const latencyMs = Date.now() - aiStart;
 

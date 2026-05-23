@@ -25,7 +25,7 @@ const log = createLogger('api/kyc/upload');
  */
 export async function POST(request: NextRequest) {
   const userId = request.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!userId) return NextResponse.json({ code: 'unauthorized', error: 'Unauthorized' }, { status: 401 });
 
   // Block kalau KYC sudah disetujui — dokumen approved tidak boleh di-rotate
   // via wizard (admin yang harus reset kalau perlu update).
@@ -34,26 +34,26 @@ export async function POST(request: NextRequest) {
     select: { status: true, documentFrontUrl: true, documentBackUrl: true, selfieUrl: true },
   });
   if (existing?.status === 'APPROVED') {
-    return NextResponse.json({ error: 'already_approved', message: 'KYC sudah disetujui — hubungi support untuk update dokumen.' }, { status: 409 });
+    return NextResponse.json({ code: 'already_approved', error: 'KYC sudah disetujui — hubungi support untuk update dokumen.' }, { status: 409 });
   }
 
   let formData: FormData;
   try {
     formData = await request.formData();
   } catch {
-    return NextResponse.json({ error: 'invalid_multipart' }, { status: 400 });
+    return NextResponse.json({ code: 'bad_request', error: 'invalid_multipart' }, { status: 400 });
   }
 
   const kindRaw = formData.get('kind');
   const file = formData.get('file');
 
   if (typeof kindRaw !== 'string' || (kindRaw !== 'front' && kindRaw !== 'back' && kindRaw !== 'selfie')) {
-    return NextResponse.json({ error: 'invalid_kind' }, { status: 400 });
+    return NextResponse.json({ code: 'bad_request', error: 'invalid_kind' }, { status: 400 });
   }
   const kind = kindRaw as KycDocKind;
 
   if (!(file instanceof File)) {
-    return NextResponse.json({ error: 'file_required' }, { status: 400 });
+    return NextResponse.json({ code: 'bad_request', error: 'file_required' }, { status: 400 });
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());

@@ -19,6 +19,7 @@ function csvEscape(v: string | null | undefined): string {
 }
 
 export async function GET(request: NextRequest) {
+  try {
   const denied = requireAdmin(request);
   if (denied) return denied;
 
@@ -103,20 +104,25 @@ export async function GET(request: NextRequest) {
       bySource: Object.fromEntries(bySource.map((b) => [b.source, b._count._all])),
     },
   });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }
 
 export async function PUT(request: NextRequest) {
+  try {
   const denied = requireAdmin(request);
   if (denied) return denied;
 
   const body = await request.json().catch(() => null);
   if (!body || typeof body !== 'object') {
-    return NextResponse.json({ error: 'invalid_body' }, { status: 400 });
+    return NextResponse.json({ code: 'bad_request', error: 'invalid_body' }, { status: 400 });
   }
   const { id, status } = body as { id?: string; status?: string };
-  if (!id) return NextResponse.json({ error: 'id_required' }, { status: 400 });
+  if (!id) return NextResponse.json({ code: 'bad_request', error: 'id_required' }, { status: 400 });
   if (status && !VALID_STATUSES.includes(status as SubscriberStatus)) {
-    return NextResponse.json({ error: 'invalid_status' }, { status: 400 });
+    return NextResponse.json({ code: 'bad_request', error: 'invalid_status' }, { status: 400 });
   }
 
   const updated = await prisma.subscriber.update({
@@ -126,4 +132,8 @@ export async function PUT(request: NextRequest) {
     },
   });
   return NextResponse.json(updated);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }

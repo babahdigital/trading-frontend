@@ -20,23 +20,28 @@ const bodySchema = z.object({
  * preferences record. Phase 2 backend stub accepts only "000000".
  */
 export async function POST(request: NextRequest) {
+  try {
   const gate = await requireCryptoEligible(request, { allowPaused: true });
   if (!gate.ok) return gate.response;
   const tenantId = gate.subscription.cryptoTenantId;
   if (!tenantId) {
-    return NextResponse.json({ error: 'no_crypto_tenant' }, { status: 503 });
+    return NextResponse.json({ code: 'service_unavailable', error: 'no_crypto_tenant' }, { status: 503 });
   }
 
   const body = await request.json().catch(() => null);
   const parsed = bodySchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.errors[0]?.message ?? 'invalid_payload' }, { status: 400 });
+    return NextResponse.json({ code: 'validation_error', error: parsed.error.errors[0]?.message ?? 'invalid_payload' }, { status: 400 });
   }
 
   const result = await confirmCryptoWhatsappOtp(tenantId, gate.userId, parsed.data.code);
   if (!result.ok) {
     log.warn(`crypto OTP confirm failed (status=${result.status}): ${result.error}`);
-    return NextResponse.json({ error: result.error }, { status: result.status });
+    return NextResponse.json({ code: 'upstream_error', error: result.error }, { status: result.status });
   }
   return NextResponse.json(result.result);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }

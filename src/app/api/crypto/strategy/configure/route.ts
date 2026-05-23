@@ -9,6 +9,7 @@ import { NextResponse } from 'next/server';
  * remains customer-controllable via /api/crypto/leverage.
  */
 export async function POST() {
+  try {
   return NextResponse.json(
     {
       error: 'gone',
@@ -17,4 +18,8 @@ export async function POST() {
     },
     { status: 410 },
   );
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }

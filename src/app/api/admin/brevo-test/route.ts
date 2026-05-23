@@ -24,13 +24,13 @@ export const runtime = 'nodejs';
 export async function POST(req: Request) {
   const allowedToken = process.env.ADMIN_TOKEN || process.env.CRON_SECRET;
   if (!allowedToken) {
-    return NextResponse.json({ error: 'Admin test disabled (ADMIN_TOKEN/CRON_SECRET unset)' }, { status: 404 });
+    return NextResponse.json({ code: 'not_found', error: 'Admin test disabled (ADMIN_TOKEN/CRON_SECRET unset)' }, { status: 404 });
   }
 
   const auth = req.headers.get('authorization') || '';
   const provided = auth.startsWith('Bearer ') ? auth.slice(7) : '';
   if (provided !== allowedToken) {
-    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+    return NextResponse.json({ code: 'unauthorized', error: 'unauthorized' }, { status: 401 });
   }
 
   const body = await req.json().catch(() => ({}));
@@ -91,13 +91,13 @@ export async function POST(req: Request) {
 export async function GET(req: Request) {
   const allowedToken = process.env.ADMIN_TOKEN || process.env.CRON_SECRET;
   if (!allowedToken) {
-    return NextResponse.json({ error: 'Admin test disabled (ADMIN_TOKEN/CRON_SECRET unset)' }, { status: 404 });
+    return NextResponse.json({ code: 'not_found', error: 'Admin test disabled (ADMIN_TOKEN/CRON_SECRET unset)' }, { status: 404 });
   }
 
   const auth = req.headers.get('authorization') || '';
   const provided = auth.startsWith('Bearer ') ? auth.slice(7) : '';
   if (provided !== allowedToken) {
-    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+    return NextResponse.json({ code: 'unauthorized', error: 'unauthorized' }, { status: 401 });
   }
 
   // Inline config check tanpa import getEmailConfig untuk speed

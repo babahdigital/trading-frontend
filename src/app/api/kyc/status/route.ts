@@ -7,7 +7,7 @@ import { prisma } from '@/lib/db/prisma';
 export async function GET(request: NextRequest) {
   try {
     const userId = request.headers.get('x-user-id');
-    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!userId) return NextResponse.json({ code: 'unauthorized', error: 'Unauthorized' }, { status: 401 });
 
     const kyc = await prisma.userKyc.findUnique({
       where: { userId },

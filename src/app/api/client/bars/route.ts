@@ -35,10 +35,10 @@ export async function GET(request: NextRequest) {
   const limitRaw = request.nextUrl.searchParams.get('limit');
 
   if (!symbol) {
-    return NextResponse.json({ error: 'symbol query param required' }, { status: 400 });
+    return NextResponse.json({ code: 'bad_request', error: 'symbol query param required' }, { status: 400 });
   }
   if (!isTimeframe(timeframeRaw)) {
-    return NextResponse.json({ error: `Invalid timeframe. Expected one of ${VALID_TIMEFRAMES.join(', ')}` }, { status: 400 });
+    return NextResponse.json({ code: 'bad_request', error: `Invalid timeframe. Expected one of ${VALID_TIMEFRAMES.join(', ')}` }, { status: 400 });
   }
   const limit = Math.max(1, Math.min(1000, limitRaw ? parseInt(limitRaw, 10) : 200));
 

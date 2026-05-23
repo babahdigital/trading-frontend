@@ -94,6 +94,7 @@ function modelMinRank(min: ModelDescriptor['min_tier']): number {
 }
 
 export async function GET(request: NextRequest) {
+  try {
   const gate = await requireSignalEligible(request);
   if (!gate.ok) return gate.response;
 
@@ -105,4 +106,8 @@ export async function GET(request: NextRequest) {
     count: available.length,
     models: available,
   });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }

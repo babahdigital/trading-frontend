@@ -17,7 +17,7 @@ const DEFAULT_PREF = {
 export async function GET(req: NextRequest) {
   try {
     const userId = await getUserIdFromRequest(req);
-    if (!userId) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+    if (!userId) return NextResponse.json({ code: 'unauthorized', error: 'unauthorized' }, { status: 401 });
 
     const [pref, logs] = await Promise.all([
       prisma.notificationPreference.findUnique({ where: { userId } }),
@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   try {
     const userId = await getUserIdFromRequest(req);
-    if (!userId) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+    if (!userId) return NextResponse.json({ code: 'unauthorized', error: 'unauthorized' }, { status: 401 });
 
     const body = await req.json().catch(() => ({}));
     const data: Record<string, unknown> = {};

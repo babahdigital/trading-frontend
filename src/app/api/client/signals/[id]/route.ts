@@ -21,7 +21,7 @@ export async function GET(
   if (!gate.ok) return gate.response;
 
   const { id } = await params;
-  if (!id) return NextResponse.json({ error: 'Signal ID required' }, { status: 400 });
+  if (!id) return NextResponse.json({ code: 'bad_request', error: 'Signal ID required' }, { status: 400 });
 
   // Try master backend (`/v1/signals/{uuid}` per backend signals_api router)
   try {
@@ -31,7 +31,7 @@ export async function GET(
       return NextResponse.json({ source: 'backend', signal: body.signal ?? body });
     }
     if (res.status === 404) {
-      return NextResponse.json({ error: 'Signal not found' }, { status: 404 });
+      return NextResponse.json({ code: 'not_found', error: 'Signal not found' }, { status: 404 });
     }
     log.warn(`Signal detail backend HTTP ${res.status}`);
   } catch (err) {
@@ -44,12 +44,12 @@ export async function GET(
     const signal = await prisma.signalAuditLog.findUnique({
       where: { sourceId: numericId },
     });
-    if (!signal) return NextResponse.json({ error: 'Signal not found' }, { status: 404 });
+    if (!signal) return NextResponse.json({ code: 'not_found', error: 'Signal not found' }, { status: 404 });
     return NextResponse.json({
       source: 'local-fallback',
       signal: { ...signal, sourceId: signal.sourceId.toString() },
     });
   } catch {
-    return NextResponse.json({ error: 'Signal not found' }, { status: 404 });
+    return NextResponse.json({ code: 'not_found', error: 'Signal not found' }, { status: 404 });
   }
 }

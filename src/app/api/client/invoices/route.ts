@@ -6,8 +6,9 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 export async function GET(req: NextRequest) {
+  try {
   const userId = await getUserIdFromRequest(req);
-  if (!userId) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  if (!userId) return NextResponse.json({ code: 'unauthorized', error: 'unauthorized' }, { status: 401 });
 
   const [invoices, subs, licenses] = await Promise.all([
     prisma.invoice.findMany({
@@ -41,4 +42,8 @@ export async function GET(req: NextRequest) {
     })),
     licenses,
   });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }

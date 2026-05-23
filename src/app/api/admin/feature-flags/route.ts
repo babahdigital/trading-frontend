@@ -12,7 +12,7 @@ import { prisma } from '@/lib/db/prisma';
 import { listFeatureFlags, setFeatureFlag } from '@/lib/feature-flags';
 
 function unauthorized() {
-  return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  return NextResponse.json({ code: 'unauthorized', error: 'unauthorized' }, { status: 401 });
 }
 
 function isAdmin(req: NextRequest): boolean {
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json().catch(() => ({}));
     const { name, value, type } = body as { name?: string; value?: string; type?: 'boolean' | 'string' | 'number' | 'json' };
     if (!name || value === undefined) {
-      return NextResponse.json({ error: 'name and value required' }, { status: 400 });
+      return NextResponse.json({ code: 'bad_request', error: 'name and value required' }, { status: 400 });
     }
     await setFeatureFlag(name, String(value), type ?? 'string');
     return NextResponse.json({ ok: true, name, value, type: type ?? 'string' });
@@ -48,7 +48,7 @@ export async function DELETE(req: NextRequest) {
   try {
     if (!isAdmin(req)) return unauthorized();
     const name = req.nextUrl.searchParams.get('name');
-    if (!name) return NextResponse.json({ error: 'name query param required' }, { status: 400 });
+    if (!name) return NextResponse.json({ code: 'bad_request', error: 'name query param required' }, { status: 400 });
     const key = `feature:${name.toLowerCase()}`;
     await prisma.siteSetting.deleteMany({ where: { key } });
     return NextResponse.json({ ok: true, deleted: name });

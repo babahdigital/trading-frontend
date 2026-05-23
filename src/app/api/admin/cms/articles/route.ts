@@ -24,20 +24,26 @@ const articleSchema = z.object({
 });
 
 export async function GET(request: NextRequest) {
+  try {
   const denied = requireAdmin(request);
   if (denied) return denied;
 
   const articles = await prisma.article.findMany({ orderBy: { createdAt: 'desc' } });
   return NextResponse.json(articles);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }
 
 export async function POST(request: NextRequest) {
+  try {
   const denied = requireAdmin(request);
   if (denied) return denied;
 
   const body = await request.json();
   const parsed = articleSchema.safeParse(body);
-  if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+  if (!parsed.success) return NextResponse.json({ code: 'validation_error', error: parsed.error.flatten() }, { status: 400 });
 
   const { publishedAt, ...rest } = parsed.data;
   const article = await prisma.article.create({
@@ -48,30 +54,44 @@ export async function POST(request: NextRequest) {
   });
   revalidatePath('/research');
   return NextResponse.json(article, { status: 201 });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }
 
 export async function PUT(request: NextRequest) {
+  try {
   const denied = requireAdmin(request);
   if (denied) return denied;
 
   const body = await request.json();
   const { id, ...data } = body;
-  if (!id) return NextResponse.json({ error: 'id is required' }, { status: 400 });
+  if (!id) return NextResponse.json({ code: 'bad_request', error: 'id is required' }, { status: 400 });
 
   if (data.publishedAt) data.publishedAt = new Date(data.publishedAt);
   const article = await prisma.article.update({ where: { id }, data });
   revalidatePath('/research');
   return NextResponse.json(article);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }
 
 export async function DELETE(request: NextRequest) {
+  try {
   const denied = requireAdmin(request);
   if (denied) return denied;
 
   const id = request.nextUrl.searchParams.get('id');
-  if (!id) return NextResponse.json({ error: 'id is required' }, { status: 400 });
+  if (!id) return NextResponse.json({ code: 'bad_request', error: 'id is required' }, { status: 400 });
 
   await prisma.article.delete({ where: { id } });
   revalidatePath('/research');
   return NextResponse.json({ success: true });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }

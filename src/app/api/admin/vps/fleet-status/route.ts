@@ -71,6 +71,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ summary, fleet, latestVersion });
   } catch (error) {
     log.error('Fleet status error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ code: 'internal_error', error: 'Internal server error' }, { status: 500 });
   }
 }

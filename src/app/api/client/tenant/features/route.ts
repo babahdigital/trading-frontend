@@ -51,7 +51,7 @@ async function resolveUserContext(request: NextRequest): Promise<
 > {
   const userId = request.headers.get('x-user-id');
   if (!userId) {
-    return { ok: false, response: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) };
+    return { ok: false, response: NextResponse.json({ code: 'unauthorized', error: 'Unauthorized' }, { status: 401 }) };
   }
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -61,7 +61,7 @@ async function resolveUserContext(request: NextRequest): Promise<
     },
   });
   if (!user) {
-    return { ok: false, response: NextResponse.json({ error: 'User not found' }, { status: 404 }) };
+    return { ok: false, response: NextResponse.json({ code: 'not_found', error: 'User not found' }, { status: 404 }) };
   }
   return {
     ok: true,

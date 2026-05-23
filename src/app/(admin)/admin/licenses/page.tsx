@@ -194,7 +194,7 @@ export default function LicensesPage() {
                   value={form.userId}
                   onChange={(e) => updateForm('userId', e.target.value)}
                   required
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                 >
                   <option value="">Pilih user…</option>
                   {users.map((u) => (
@@ -209,7 +209,7 @@ export default function LicensesPage() {
                   value={form.type}
                   onChange={(e) => updateForm('type', e.target.value)}
                   required
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                 >
                   {LICENSE_TYPES.map((t) => (
                     <option key={t} value={t}>{t.replace(/_/g, ' ')}</option>
@@ -230,7 +230,7 @@ export default function LicensesPage() {
                   id="lic-vps"
                   value={form.vpsInstanceId}
                   onChange={(e) => updateForm('vpsInstanceId', e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                 >
                   <option value="">— Tidak ada —</option>
                   {vpsList.map((v) => (

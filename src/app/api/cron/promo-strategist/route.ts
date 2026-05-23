@@ -371,7 +371,7 @@ function fallbackCopy(args: { eventName?: string; action: string; discountPercen
 
 export async function POST(request: NextRequest) {
   if (!authorize(request)) {
-    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+    return NextResponse.json({ code: 'unauthorized', error: 'unauthorized' }, { status: 401 });
   }
 
   // 0. Auto-cleanup expired (status flip + DB purge > 90 days)

@@ -12,8 +12,9 @@ function authorized(req: NextRequest): boolean {
 }
 
 export async function GET(req: NextRequest) {
+  try {
   if (!authorized(req)) {
-    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+    return NextResponse.json({ code: 'unauthorized', error: 'unauthorized' }, { status: 401 });
   }
 
   const seeded: string[] = [];
@@ -58,6 +59,10 @@ export async function GET(req: NextRequest) {
     seeded,
     updated_slugs: updated,
   });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }
 
 export const POST = GET;

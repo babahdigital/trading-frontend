@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
+  try {
   const url = request.nextUrl;
   const pair = url.searchParams.get('pair');
   const outcome = url.searchParams.get('outcome');
@@ -52,4 +53,8 @@ export async function GET(request: NextRequest) {
   }));
 
   return NextResponse.json({ items: serialized, total, limit, offset });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }

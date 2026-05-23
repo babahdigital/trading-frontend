@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ events, total, page, limit });
   } catch (error) {
     log.error('List kill switch events error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ code: 'internal_error', error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     const { licenseId } = body;
 
     if (!licenseId) {
-      return NextResponse.json({ error: 'licenseId is required' }, { status: 400 });
+      return NextResponse.json({ code: 'bad_request', error: 'licenseId is required' }, { status: 400 });
     }
 
     const license = await prisma.license.findUnique({
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!license) {
-      return NextResponse.json({ error: 'License not found' }, { status: 404 });
+      return NextResponse.json({ code: 'not_found', error: 'License not found' }, { status: 404 });
     }
 
     if (!license.vpsInstanceId) {
@@ -123,6 +123,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     log.error('Kill switch error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ code: 'internal_error', error: 'Internal server error' }, { status: 500 });
   }
 }

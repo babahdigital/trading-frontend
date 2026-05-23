@@ -230,7 +230,7 @@ export default function UsersPage() {
                   value={form.role}
                   onChange={(e) => updateForm('role', e.target.value)}
                   required
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                 >
                   {ROLE_OPTIONS.filter(r => r.value !== 'SUPER_ADMIN').map(r => (
                     <option key={r.value} value={r.value}>{r.label}</option>
@@ -307,7 +307,7 @@ export default function UsersPage() {
                             onChange={(e) => handleChangeRole(user, e.target.value)}
                             aria-label={`Ubah role ${user.email}`}
                             className={cn(
-                              'px-2 py-1 rounded text-xs font-medium border-0 cursor-pointer disabled:cursor-not-allowed',
+                              'px-2 py-1 rounded text-xs font-medium border-0 cursor-pointer disabled:cursor-not-allowed ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
                               roleMeta.cls,
                             )}
                           >
@@ -421,7 +421,7 @@ export default function UsersPage() {
                         disabled={isSuperAdmin}
                         onChange={(e) => handleChangeRole(user, e.target.value)}
                         aria-label={`Ubah role ${user.email}`}
-                        className="flex-1 h-8 px-2 rounded border border-input bg-background text-xs disabled:opacity-50"
+                        className="flex-1 h-8 px-2 rounded border border-input bg-background text-xs disabled:opacity-50 ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                       >
                         {ROLE_OPTIONS.map((r) => (
                           <option key={r.value} value={r.value} disabled={r.value === 'SUPER_ADMIN' && !isSuperAdmin}>

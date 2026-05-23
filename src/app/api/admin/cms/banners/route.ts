@@ -21,20 +21,26 @@ const bannerSchema = z.object({
 });
 
 export async function GET(request: NextRequest) {
+  try {
   const denied = requireAdmin(request);
   if (denied) return denied;
 
   const banners = await prisma.banner.findMany({ orderBy: { createdAt: 'desc' } });
   return NextResponse.json(banners);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }
 
 export async function POST(request: NextRequest) {
+  try {
   const denied = requireAdmin(request);
   if (denied) return denied;
 
   const body = await request.json();
   const parsed = bannerSchema.safeParse(body);
-  if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+  if (!parsed.success) return NextResponse.json({ code: 'validation_error', error: parsed.error.flatten() }, { status: 400 });
 
   const data = {
     ...parsed.data,
@@ -44,15 +50,20 @@ export async function POST(request: NextRequest) {
   const banner = await prisma.banner.create({ data });
   revalidatePath('/');
   return NextResponse.json(banner, { status: 201 });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }
 
 export async function PUT(request: NextRequest) {
+  try {
   const denied = requireAdmin(request);
   if (denied) return denied;
 
   const body = await request.json();
   const { id, ...rest } = body;
-  if (!id) return NextResponse.json({ error: 'id is required' }, { status: 400 });
+  if (!id) return NextResponse.json({ code: 'bad_request', error: 'id is required' }, { status: 400 });
 
   const data = {
     ...rest,
@@ -62,16 +73,25 @@ export async function PUT(request: NextRequest) {
   const banner = await prisma.banner.update({ where: { id }, data });
   revalidatePath('/');
   return NextResponse.json(banner);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }
 
 export async function DELETE(request: NextRequest) {
+  try {
   const denied = requireAdmin(request);
   if (denied) return denied;
 
   const id = request.nextUrl.searchParams.get('id');
-  if (!id) return NextResponse.json({ error: 'id is required' }, { status: 400 });
+  if (!id) return NextResponse.json({ code: 'bad_request', error: 'id is required' }, { status: 400 });
 
   await prisma.banner.delete({ where: { id } });
   revalidatePath('/');
   return NextResponse.json({ success: true });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }

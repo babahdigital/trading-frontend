@@ -16,6 +16,7 @@ const schema = z.object({
 });
 
 export async function POST(req: NextRequest) {
+  try {
   const userId = await getUserIdFromRequest(req);
   if (!userId) {
     return NextResponse.json({ code: 'unauthorized', error: 'Unauthorized' }, { status: 401 });
@@ -85,4 +86,8 @@ export async function POST(req: NextRequest) {
     { code: 'password_changed', message: 'Password updated. Please sign in again.' },
     { status: 200 },
   );
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }

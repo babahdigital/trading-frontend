@@ -33,7 +33,7 @@ const HOURLY_TOKEN_CAP = 3;
 export async function POST(request: NextRequest) {
   const userId = request.headers.get('x-user-id');
   if (!userId) {
-    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+    return NextResponse.json({ code: 'unauthorized', error: 'unauthorized' }, { status: 401 });
   }
 
   try {
@@ -42,10 +42,10 @@ export async function POST(request: NextRequest) {
       select: { id: true, email: true, name: true, emailVerifiedAt: true },
     });
     if (!user) {
-      return NextResponse.json({ error: 'user_not_found' }, { status: 404 });
+      return NextResponse.json({ code: 'not_found', error: 'user_not_found' }, { status: 404 });
     }
     if (user.emailVerifiedAt) {
-      return NextResponse.json({ error: 'already_verified' }, { status: 409 });
+      return NextResponse.json({ code: 'conflict', error: 'already_verified' }, { status: 409 });
     }
 
     // Soft cap: max N token gen per hour per user
@@ -88,6 +88,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true, message: 'Verification email sent' });
   } catch (err) {
     log.error(`resend-verification error: ${err instanceof Error ? err.message : 'unknown'}`);
-    return NextResponse.json({ error: 'internal_error' }, { status: 500 });
+    return NextResponse.json({ code: 'internal_error', error: 'internal_error' }, { status: 500 });
   }
 }

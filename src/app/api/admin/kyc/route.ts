@@ -6,6 +6,7 @@ import { prisma } from '@/lib/db/prisma';
 import { requireAdmin } from '@/lib/auth/require-admin';
 
 export async function GET(request: NextRequest) {
+  try {
   const guard = requireAdmin(request);
   if (guard) return guard;
 
@@ -36,4 +37,8 @@ export async function GET(request: NextRequest) {
   });
 
   return NextResponse.json({ items, count: items.length });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }

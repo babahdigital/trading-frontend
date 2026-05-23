@@ -68,8 +68,8 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown';
     if (msg.includes('Unique constraint')) {
-      return NextResponse.json({ error: 'slug_exists' }, { status: 409 });
+      return NextResponse.json({ code: 'conflict', error: 'slug_exists' }, { status: 409 });
     }
-    return NextResponse.json({ error: 'create_failed', message: msg }, { status: 500 });
+    return NextResponse.json({ code: 'create_failed', error: msg }, { status: 500 });
   }
 }

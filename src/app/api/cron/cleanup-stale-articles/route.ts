@@ -30,7 +30,7 @@ function authorized(req: NextRequest): boolean {
 
 export async function GET(request: NextRequest) {
   if (!authorized(request)) {
-    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+    return NextResponse.json({ code: 'unauthorized', error: 'unauthorized' }, { status: 401 });
   }
 
   const minLength = parseInt(request.nextUrl.searchParams.get('minLength') ?? '3000', 10);

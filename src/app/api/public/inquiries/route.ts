@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const parsed = inquirySchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+      return NextResponse.json({ code: 'validation_error', error: parsed.error.flatten() }, { status: 400 });
     }
 
     let phone: string | null = null;
@@ -68,6 +68,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, id: inquiry.id }, { status: 201 });
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ code: 'internal_error', error: 'Internal server error' }, { status: 500 });
   }
 }

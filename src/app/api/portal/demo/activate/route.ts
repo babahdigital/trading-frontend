@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
   try {
     const userId = request.headers.get('x-user-id');
     if (!userId) {
-      return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+      return NextResponse.json({ code: 'unauthorized', error: 'unauthorized' }, { status: 401 });
     }
 
     const serviceParam = request.nextUrl.searchParams.get('service')?.toLowerCase();

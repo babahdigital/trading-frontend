@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
+    return NextResponse.json({ code: 'bad_request', error: 'invalid_json' }, { status: 400 });
   }
 
   const parsed = subscribeSchema.safeParse(body);
@@ -89,20 +89,20 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true, id: sub.id }, { status: 201 });
   } catch (err) {
     log.error(`subscribe failed: ${err instanceof Error ? err.message : 'unknown'}`);
-    return NextResponse.json({ error: 'internal_error' }, { status: 500 });
+    return NextResponse.json({ code: 'internal_error', error: 'internal_error' }, { status: 500 });
   }
 }
 
 export async function DELETE(request: NextRequest) {
   const endpoint = request.nextUrl.searchParams.get('endpoint');
   if (!endpoint) {
-    return NextResponse.json({ error: 'endpoint_required' }, { status: 400 });
+    return NextResponse.json({ code: 'bad_request', error: 'endpoint_required' }, { status: 400 });
   }
   try {
     await prisma.pushSubscription.deleteMany({ where: { endpoint } });
     return NextResponse.json({ ok: true });
   } catch (err) {
     log.error(`unsubscribe failed: ${err instanceof Error ? err.message : 'unknown'}`);
-    return NextResponse.json({ error: 'internal_error' }, { status: 500 });
+    return NextResponse.json({ code: 'internal_error', error: 'internal_error' }, { status: 500 });
   }
 }

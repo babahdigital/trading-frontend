@@ -16,6 +16,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 
 export async function GET(request: NextRequest) {
+  try {
   const tierFilter = request.nextUrl.searchParams.get('tier')?.toLowerCase();
   const localeParam = request.nextUrl.searchParams.get('locale')?.toLowerCase();
   // Default locale = id (Indonesia is primary market)
@@ -122,4 +123,8 @@ export async function GET(request: NextRequest) {
       'Cache-Control': 'public, max-age=60, s-maxage=300, stale-while-revalidate=86400',
     },
   });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }

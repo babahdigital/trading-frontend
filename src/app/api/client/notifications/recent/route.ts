@@ -57,7 +57,7 @@ interface OutboundItem {
  */
 export async function GET(request: NextRequest) {
   const userId = request.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!userId) return NextResponse.json({ code: 'unauthorized', error: 'Unauthorized' }, { status: 401 });
 
   const limit = Math.min(Math.max(parseInt(request.nextUrl.searchParams.get('limit') ?? '50', 10) || 50, 1), 200);
   const cursor = request.nextUrl.searchParams.get('cursor') ?? '';
@@ -174,6 +174,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ source: 'local-fallback', items, count: items.length, next_cursor: null });
   } catch (err) {
     log.error(`Notifications fallback error: ${err instanceof Error ? err.message : 'unknown'}`);
-    return NextResponse.json({ error: 'service_unavailable' }, { status: 503 });
+    return NextResponse.json({ code: 'service_unavailable', error: 'service_unavailable' }, { status: 503 });
   }
 }

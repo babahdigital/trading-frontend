@@ -113,6 +113,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ customers, total, page, limit });
   } catch (error) {
     log.error('List customers error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ code: 'internal_error', error: 'Internal server error' }, { status: 500 });
   }
 }

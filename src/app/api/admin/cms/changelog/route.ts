@@ -7,15 +7,21 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 export async function GET(req: NextRequest) {
+  try {
   const guard = requireAdmin(req);
   if (guard) return guard;
   const entries = await prisma.changelog.findMany({
     orderBy: { releasedAt: 'desc' },
   });
   return NextResponse.json(entries);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }
 
 export async function POST(req: NextRequest) {
+  try {
   const guard = requireAdmin(req);
   if (guard) return guard;
   const body = await req.json();
@@ -33,4 +39,8 @@ export async function POST(req: NextRequest) {
   });
   revalidatePath('/changelog');
   return NextResponse.json(entry, { status: 201 });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }

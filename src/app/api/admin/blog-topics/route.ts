@@ -38,6 +38,7 @@ const createSchema = z.object({
 });
 
 export async function GET(request: NextRequest) {
+  try {
   const denied = requireAdmin(request);
   if (denied) return denied;
 
@@ -58,21 +59,26 @@ export async function GET(request: NextRequest) {
   });
 
   return NextResponse.json(topics);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }
 
 export async function POST(request: NextRequest) {
+  try {
   const denied = requireAdmin(request);
   if (denied) return denied;
 
   const body = await request.json();
   const parsed = createSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json({ code: 'validation_error', error: parsed.error.flatten() }, { status: 400 });
   }
 
   const existing = await prisma.blogTopic.findUnique({ where: { slug: parsed.data.slug } });
   if (existing) {
-    return NextResponse.json({ error: `Topic with slug "${parsed.data.slug}" already exists` }, { status: 409 });
+    return NextResponse.json({ code: 'conflict', error: `Topic with slug "${parsed.data.slug}" already exists` }, { status: 409 });
   }
 
   const topic = await prisma.blogTopic.create({
@@ -84,4 +90,8 @@ export async function POST(request: NextRequest) {
   });
 
   return NextResponse.json(topic, { status: 201 });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }

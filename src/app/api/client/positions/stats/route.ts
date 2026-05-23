@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
 
   const license = await checkLicense(licenseId);
   if (!license && !subscriptionId) {
-    return NextResponse.json({ error: 'License or subscription required' }, { status: 403 });
+    return NextResponse.json({ code: 'forbidden', error: 'License or subscription required' }, { status: 403 });
   }
 
   try {

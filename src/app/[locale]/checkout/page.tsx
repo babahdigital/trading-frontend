@@ -9,9 +9,16 @@
  *      Xendit invoice → redirect ke gateway hosted form spesifik
  *   5. Webhook → activate subscription → /portal/billing/success
  */
+import dynamic from 'next/dynamic';
 import { redirect } from 'next/navigation';
-import { InlineCheckout } from '@/components/checkout/inline-checkout';
 import type { Metadata } from 'next';
+
+const InlineCheckout = dynamic(
+  () => import('@/components/checkout/inline-checkout').then((mod) => mod.InlineCheckout),
+  {
+    loading: () => <div className="min-h-[400px] animate-pulse bg-muted/20 rounded-lg" />,
+  },
+);
 
 export const metadata: Metadata = {
   title: 'Checkout',

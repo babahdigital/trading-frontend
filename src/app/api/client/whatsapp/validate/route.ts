@@ -29,19 +29,19 @@ interface FonnteValidateResponse {
 export async function POST(request: NextRequest) {
   const userId = request.headers.get('x-user-id');
   if (!userId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ code: 'unauthorized', error: 'Unauthorized' }, { status: 401 });
   }
 
   const body = await request.json().catch(() => null);
   const parsed = bodySchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.errors[0]?.message ?? 'invalid_payload' }, { status: 400 });
+    return NextResponse.json({ code: 'validation_error', error: parsed.error.errors[0]?.message ?? 'invalid_payload' }, { status: 400 });
   }
 
   const token = process.env.FONNTE_TOKEN;
   if (!token) {
     log.warn('FONNTE_TOKEN missing — validate endpoint disabled');
-    return NextResponse.json({ error: 'whatsapp_validate_unconfigured' }, { status: 503 });
+    return NextResponse.json({ code: 'service_unavailable', error: 'whatsapp_validate_unconfigured' }, { status: 503 });
   }
 
   const e164 = parsed.data.e164;
@@ -61,12 +61,12 @@ export async function POST(request: NextRequest) {
     });
     const data = (await upstream.json().catch(() => null)) as FonnteValidateResponse | null;
     if (!upstream.ok || !data) {
-      return NextResponse.json({ error: 'fonnte_unreachable' }, { status: 502 });
+      return NextResponse.json({ code: 'bad_gateway', error: 'fonnte_unreachable' }, { status: 502 });
     }
     const registered = Array.isArray(data.registered) && data.registered.includes(target);
     return NextResponse.json({ registered, reason: data.reason });
   } catch (err) {
     log.error('Fonnte validate failed', err);
-    return NextResponse.json({ error: 'fonnte_unreachable' }, { status: 502 });
+    return NextResponse.json({ code: 'bad_gateway', error: 'fonnte_unreachable' }, { status: 502 });
   }
 }

@@ -24,8 +24,9 @@ function authorized(req: NextRequest): boolean {
 }
 
 export async function GET(request: NextRequest) {
+  try {
   if (!authorized(request)) {
-    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+    return NextResponse.json({ code: 'unauthorized', error: 'unauthorized' }, { status: 401 });
   }
 
   const created: string[] = [];
@@ -46,6 +47,10 @@ export async function GET(request: NextRequest) {
     created,
     skipped,
   });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }
 
 export const POST = GET;

@@ -21,7 +21,7 @@ export const runtime = 'nodejs';
 export async function GET(req: NextRequest) {
   try {
     const userId = await getUserIdFromRequest(req);
-    if (!userId) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+    if (!userId) return NextResponse.json({ code: 'unauthorized', error: 'unauthorized' }, { status: 401 });
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
         createdAt: true, lastLoginAt: true,
       },
     });
-    if (!user) return NextResponse.json({ error: 'not found' }, { status: 404 });
+    if (!user) return NextResponse.json({ code: 'not_found', error: 'not found' }, { status: 404 });
     return NextResponse.json(user);
   } catch {
     return NextResponse.json({ code: 'internal_error', error: 'Internal server error' }, { status: 500 });
@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   try {
     const userId = await getUserIdFromRequest(req);
-    if (!userId) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+    if (!userId) return NextResponse.json({ code: 'unauthorized', error: 'unauthorized' }, { status: 401 });
     const body = await req.json().catch(() => ({}));
     const parsed = profileSchema.safeParse(body);
     if (!parsed.success) {

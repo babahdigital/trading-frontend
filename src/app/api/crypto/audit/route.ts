@@ -6,6 +6,7 @@ import { prisma } from '@/lib/db/prisma';
 import { requireCryptoEligible } from '@/lib/auth/crypto-eligibility';
 
 export async function GET(request: NextRequest) {
+  try {
   const gate = await requireCryptoEligible(request, { allowPaused: true });
   if (!gate.ok) return gate.response;
 
@@ -19,4 +20,8 @@ export async function GET(request: NextRequest) {
   });
 
   return NextResponse.json({ source: 'local', items: entries, count: entries.length });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }

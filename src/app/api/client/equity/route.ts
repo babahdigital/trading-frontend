@@ -113,6 +113,6 @@ export async function GET(request: NextRequest) {
     );
   } catch (error) {
     log.error(`Client equity error: ${error instanceof Error ? error.message : 'unknown'}`);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ code: 'internal_error', error: 'Internal server error' }, { status: 500 });
   }
 }

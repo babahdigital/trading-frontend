@@ -67,7 +67,7 @@ export async function GET(
     });
 
     if (!vps) {
-      return NextResponse.json({ error: 'VPS not found' }, { status: 404 });
+      return NextResponse.json({ code: 'not_found', error: 'VPS not found' }, { status: 404 });
     }
 
     const latestVersion = process.env.VPS_LATEST_CODE_VERSION || null;
@@ -84,6 +84,6 @@ export async function GET(
     });
   } catch (error) {
     log.error('VPS detail error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ code: 'internal_error', error: 'Internal server error' }, { status: 500 });
   }
 }

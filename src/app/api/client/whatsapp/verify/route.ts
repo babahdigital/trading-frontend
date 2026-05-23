@@ -88,13 +88,13 @@ async function sendOtp(product: 'forex' | 'crypto', e164: string, otp: string): 
 export async function POST(request: NextRequest) {
   const userId = request.headers.get('x-user-id');
   if (!userId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ code: 'unauthorized', error: 'Unauthorized' }, { status: 401 });
   }
 
   const body = await request.json().catch(() => null);
   const parsed = bodySchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.errors[0]?.message ?? 'invalid_payload' }, { status: 400 });
+    return NextResponse.json({ code: 'validation_error', error: parsed.error.errors[0]?.message ?? 'invalid_payload' }, { status: 400 });
   }
 
   const { product, e164 } = parsed.data;
@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
     where: { userId, product, createdAt: { gt: since } },
   });
   if (recentCount >= MAX_REQUESTS_PER_WINDOW) {
-    return NextResponse.json({ error: 'rate_limited_try_again_soon' }, { status: 429 });
+    return NextResponse.json({ code: 'rate_limited', error: 'rate_limited_try_again_soon' }, { status: 429 });
   }
 
   const otp = generateOtp();

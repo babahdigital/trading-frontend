@@ -20,6 +20,7 @@ const VALID_CATEGORIES = ['SIGNAL', 'CRYPTO', 'VPS', 'DEMO', 'INSTITUTIONAL'] as
 type CategoryFilter = (typeof VALID_CATEGORIES)[number];
 
 export async function GET(request: NextRequest) {
+  try {
   const categoryParam = request.nextUrl.searchParams.get('category')?.toUpperCase();
   const productSlug = request.nextUrl.searchParams.get('product')?.toLowerCase();
 
@@ -68,4 +69,8 @@ export async function GET(request: NextRequest) {
       'Cache-Control': 'public, max-age=60, s-maxage=300, stale-while-revalidate=86400',
     },
   });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }

@@ -9,6 +9,7 @@ import type { ChatLeadStatus, Prisma } from '@prisma/client';
 const VALID_STATUSES: ChatLeadStatus[] = ['NEW', 'CONVERTED', 'CONTACTED', 'ARCHIVED'];
 
 export async function GET(request: NextRequest) {
+  try {
   const denied = requireAdmin(request);
   if (denied) return denied;
 
@@ -54,20 +55,25 @@ export async function GET(request: NextRequest) {
     limit,
     counts: Object.fromEntries(byStatus.map((b) => [b.status, b._count._all])),
   });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }
 
 export async function PUT(request: NextRequest) {
+  try {
   const denied = requireAdmin(request);
   if (denied) return denied;
 
   const body = await request.json().catch(() => null);
   if (!body || typeof body !== 'object') {
-    return NextResponse.json({ error: 'invalid_body' }, { status: 400 });
+    return NextResponse.json({ code: 'bad_request', error: 'invalid_body' }, { status: 400 });
   }
   const { id, status, notes } = body as { id?: string; status?: string; notes?: string };
-  if (!id) return NextResponse.json({ error: 'id_required' }, { status: 400 });
+  if (!id) return NextResponse.json({ code: 'bad_request', error: 'id_required' }, { status: 400 });
   if (status && !VALID_STATUSES.includes(status as ChatLeadStatus)) {
-    return NextResponse.json({ error: 'invalid_status' }, { status: 400 });
+    return NextResponse.json({ code: 'bad_request', error: 'invalid_status' }, { status: 400 });
   }
 
   const updated = await prisma.chatLead.update({
@@ -78,4 +84,8 @@ export async function PUT(request: NextRequest) {
     },
   });
   return NextResponse.json(updated);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }

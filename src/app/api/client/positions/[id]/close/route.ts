@@ -39,11 +39,11 @@ export async function POST(
     where: { id: licenseId, status: 'ACTIVE', expiresAt: { gt: new Date() } },
   });
   if (!license) {
-    return NextResponse.json({ error: 'License not found or expired' }, { status: 403 });
+    return NextResponse.json({ code: 'forbidden', error: 'License not found or expired' }, { status: 403 });
   }
 
   const { id } = await params;
-  if (!id) return NextResponse.json({ error: 'Position ID required' }, { status: 400 });
+  if (!id) return NextResponse.json({ code: 'bad_request', error: 'Position ID required' }, { status: 400 });
 
   let body: z.infer<typeof CloseBody> = {};
   if (request.headers.get('content-type')?.includes('application/json')) {
@@ -82,6 +82,6 @@ export async function POST(
     return NextResponse.json({ ok: true, position_id: id, ...(typeof payload === 'object' ? payload : {}) });
   } catch (err) {
     log.error(`Close position ${id} error: ${err instanceof Error ? err.message : 'unknown'}`);
-    return NextResponse.json({ error: 'Backend unreachable' }, { status: 503 });
+    return NextResponse.json({ code: 'service_unavailable', error: 'Backend unreachable' }, { status: 503 });
   }
 }

@@ -35,7 +35,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   if (!authorize(request)) {
-    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+    return NextResponse.json({ code: 'unauthorized', error: 'unauthorized' }, { status: 401 });
   }
 
   const { id } = await params;
@@ -55,7 +55,7 @@ export async function POST(
     include: { calendarEvent: { select: { templateKey: true, name: true } } },
   });
   if (!promo) {
-    return NextResponse.json({ error: 'promotion_not_found' }, { status: 404 });
+    return NextResponse.json({ code: 'not_found', error: 'promotion_not_found' }, { status: 404 });
   }
 
   // Resolve templateKey (Pak Abdullah audit 2026-05-22 — expand mapping):

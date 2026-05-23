@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback, useMemo, type FormEvent } fro
 import { useChat, type UIMessage } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import {
   MessageCircle, X, Send, Bot, User as UserIcon, AlertTriangle, RotateCcw, ArrowDown,
   Sparkles, ShieldCheck, Trash2, Minus,
@@ -79,96 +79,7 @@ interface QuickReply {
   message: string;
 }
 
-interface CopyBundle {
-  title: string;
-  subtitle: string;
-  status_online: string;
-  status_offline: string;
-  greeting: string;
-  placeholder: string;
-  send_aria: string;
-  close_aria: string;
-  minimize_aria: string;
-  clear_aria: string;
-  clear_confirm: string;
-  open_aria: string;
-  scroll_to_latest: string;
-  retry: string;
-  footer: string;
-  error_generic: string;
-  unavailable_title: string;
-  unavailable_desc: string;
-  rate_limit_title: string;
-  rate_limit_desc: string;
-  contact_link: string;
-  quick_replies: QuickReply[];
-}
-
-const COPY: Record<'id' | 'en', CopyBundle> = {
-  id: {
-    title: 'Babah AI',
-    subtitle: 'Asisten institusional · Forex & Crypto',
-    status_online: 'Online',
-    status_offline: 'Offline',
-    greeting:
-      'Halo! Saya Babah — asisten AI BabahAlgo. Saya bisa bantu jelaskan layanan Robot Meta (Forex MT5), Robot Crypto (Binance), pricing tier, konsep SMC Scalper / SMC Swing / Pivot Mean Reversion, kerangka risiko institusional (vol-target + 6-layer exit + multi-stage kill-switch), atau alur onboarding KYC. Ada yang ingin ditanyakan?',
-    placeholder: 'Tulis pertanyaan…',
-    send_aria: 'Kirim pesan',
-    close_aria: 'Tutup chat (hapus sesi)',
-    minimize_aria: 'Kecilkan ke ikon',
-    clear_aria: 'Bersihkan riwayat chat',
-    clear_confirm: 'Hapus riwayat chat? Aksi ini tidak bisa dibatalkan.',
-    open_aria: 'Buka asisten Babah AI',
-    scroll_to_latest: 'Pesan terbaru',
-    retry: 'Coba lagi',
-    footer: 'Powered by BabahAlgo AI · Bukan saran investasi',
-    error_generic: 'Maaf, terjadi gangguan. Silakan coba lagi.',
-    unavailable_title: 'Asisten Sedang Tidak Tersedia',
-    unavailable_desc:
-      'Asisten AI sementara tidak bisa diakses. Tim kami siap membantu Anda secara langsung.',
-    rate_limit_title: 'Terlalu banyak pesan',
-    rate_limit_desc: 'Tunggu sebentar lalu kirim pesan lagi (maksimal 20 pesan per menit).',
-    contact_link: 'Hubungi tim kami →',
-    quick_replies: [
-      { label: 'Harga Paket', message: 'Berapa harga paket Robot Meta dan Robot Crypto?' },
-      { label: 'SMC vs Pivot Mean Rev', message: 'Apa beda strategi SMC Scalper, SMC Swing, dan Pivot Mean Reversion di Robot Meta?' },
-      { label: 'Crypto Bot', message: 'Bagaimana cara kerja Robot Crypto Binance? Modal saya tetap aman?' },
-      { label: 'Kerangka Risiko', message: 'Jelaskan kerangka risiko Robot Meta: vol-target sizing, 6-layer exit engine, multi-stage kill-switch (NORMAL → fast 1h → PROBATION → NORMAL).' },
-      { label: 'Cara Daftar', message: 'Bagaimana cara mendaftar dan onboarding KYC?' },
-    ],
-  },
-  en: {
-    title: 'Babah AI',
-    subtitle: 'Institutional concierge · Forex & Crypto',
-    status_online: 'Online',
-    status_offline: 'Offline',
-    greeting:
-      "Hi! I'm Babah — BabahAlgo's AI assistant. I can walk you through Robot Meta (Forex MT5), Robot Crypto (Binance), pricing tiers, SMC Scalper / SMC Swing / Pivot Mean Reversion concepts, the institutional risk framework (vol-target sizing + 6-layer exit + multi-stage kill-switch), or our KYC onboarding flow. What would you like to know?",
-    placeholder: 'Type a question…',
-    send_aria: 'Send message',
-    close_aria: 'Close chat (clear session)',
-    minimize_aria: 'Minimize to icon',
-    clear_aria: 'Clear chat history',
-    clear_confirm: 'Clear chat history? This action cannot be undone.',
-    open_aria: 'Open Babah AI assistant',
-    scroll_to_latest: 'Latest',
-    retry: 'Retry',
-    footer: 'Powered by BabahAlgo AI · Not investment advice',
-    error_generic: 'Sorry, something went wrong. Please try again.',
-    unavailable_title: 'Assistant Unavailable',
-    unavailable_desc: 'The AI assistant is temporarily unreachable. Our team is ready to help you directly.',
-    rate_limit_title: 'Too many messages',
-    rate_limit_desc: 'Please wait a moment before sending another message (max 20 messages per minute).',
-    contact_link: 'Contact our team →',
-    quick_replies: [
-      { label: 'Pricing', message: 'What are the prices for Robot Meta and Robot Crypto?' },
-      { label: 'SMC vs Pivot Mean Rev', message: 'How do SMC Scalper, SMC Swing, and Pivot Mean Reversion strategies differ inside Robot Meta?' },
-      { label: 'Crypto Bot', message: 'How does the Binance Crypto Bot work? Does my capital stay safe?' },
-      { label: 'Risk Framework', message: "Explain Robot Meta's risk framework: vol-target sizing, 6-layer exit engine, multi-stage kill-switch (NORMAL → fast 1h → PROBATION → NORMAL)." },
-      { label: 'Get Started', message: 'How do I sign up and complete KYC?' },
-    ],
-  },
-};
+const QUICK_REPLY_KEYS = ['pricing', 'smc', 'crypto', 'risk', 'register'] as const;
 
 function getTextContent(msg: UIMessage): string {
   return msg.parts
@@ -194,8 +105,13 @@ interface ChatWidgetProps {
 export function ChatWidget({ open, onOpenChange, hideFab = false }: ChatWidgetProps = {}) {
   const pathname = usePathname();
   const locale = useLocale() as 'id' | 'en';
-  const copy = COPY[locale === 'id' ? 'id' : 'en'];
+  const t = useTranslations('chat.widget');
   const confirm = useConfirm();
+
+  const quickReplies: QuickReply[] = useMemo(
+    () => QUICK_REPLY_KEYS.map((k) => ({ label: t(`qr_${k}_label`), message: t(`qr_${k}_msg`) })),
+    [t],
+  );
 
   const [internalOpen, setInternalOpen] = useState(false);
   const isOpen = open !== undefined ? open : internalOpen;
@@ -219,15 +135,16 @@ export function ChatWidget({ open, onOpenChange, hideFab = false }: ChatWidgetPr
   const inputRef = useRef<HTMLInputElement>(null);
   const lockedScrollY = useRef(0);
 
+  const greetingText = t('greeting');
   const initialMessages = useMemo<UIMessage[]>(
     () => [
       {
         id: 'greeting',
         role: 'assistant',
-        parts: [{ type: 'text', text: copy.greeting }],
+        parts: [{ type: 'text', text: greetingText }],
       },
     ],
-    [copy.greeting],
+    [greetingText],
   );
 
   const transport = useMemo(
@@ -490,7 +407,7 @@ export function ChatWidget({ open, onOpenChange, hideFab = false }: ChatWidgetPr
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={handleOpen}
-            aria-label={copy.open_aria}
+            aria-label={t('open_aria')}
             className={cn(
               // z-[100]: harus di ATAS sticky nav (z-80) dan portal mobile menu (z-90)
               'fixed z-[100] inline-flex items-center justify-center',
@@ -528,7 +445,7 @@ export function ChatWidget({ open, onOpenChange, hideFab = false }: ChatWidgetPr
             transition={{ duration: 0.22, ease: [0.25, 0.1, 0.25, 1] }}
             role="dialog"
             aria-modal="true"
-            aria-label={copy.title}
+            aria-label={t('title')}
             className={cn(
               // z-[100]: panel chat harus selalu di atas nav (z-80) dan
               // portal mobile menu (z-90) — kalau lebih rendah, panel tampak
@@ -561,10 +478,10 @@ export function ChatWidget({ open, onOpenChange, hideFab = false }: ChatWidgetPr
                   />
                 </div>
                 <div className="min-w-0">
-                  <p className="font-semibold text-sm text-foreground truncate">{copy.title}</p>
+                  <p className="font-semibold text-sm text-foreground truncate">{t('title')}</p>
                   <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1">
                     <ShieldCheck className="h-3 w-3 text-[hsl(var(--profit))]" strokeWidth={2.25} aria-hidden />
-                    <span className="truncate">{copy.subtitle}</span>
+                    <span className="truncate">{t('subtitle')}</span>
                   </p>
                 </div>
               </div>
@@ -574,10 +491,10 @@ export function ChatWidget({ open, onOpenChange, hideFab = false }: ChatWidgetPr
                     type="button"
                     onClick={async () => {
                       const ok = await confirm({
-                        title: locale === 'id' ? 'Hapus riwayat chat?' : 'Clear chat history?',
-                        description: copy.clear_confirm,
-                        confirmLabel: locale === 'id' ? 'Hapus' : 'Clear',
-                        cancelLabel: locale === 'id' ? 'Batal' : 'Cancel',
+                        title: t('clear_title'),
+                        description: t('clear_confirm'),
+                        confirmLabel: t('clear_label'),
+                        cancelLabel: t('cancel_label'),
                         tone: 'destructive',
                       });
                       if (!ok) return;
@@ -591,8 +508,8 @@ export function ChatWidget({ open, onOpenChange, hideFab = false }: ChatWidgetPr
                       'active:scale-95 transition-all',
                       'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                     )}
-                    aria-label={copy.clear_aria}
-                    title={copy.clear_aria}
+                    aria-label={t('clear_aria')}
+                    title={t('clear_aria')}
                   >
                     <Trash2 className="h-4 w-4" strokeWidth={2.25} />
                   </button>
@@ -609,8 +526,8 @@ export function ChatWidget({ open, onOpenChange, hideFab = false }: ChatWidgetPr
                     'active:scale-95 transition-all',
                     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                   )}
-                  aria-label={copy.minimize_aria}
-                  title={copy.minimize_aria}
+                  aria-label={t('minimize_aria')}
+                  title={t('minimize_aria')}
                 >
                   <Minus className="h-5 w-5" strokeWidth={2.5} />
                 </button>
@@ -627,8 +544,8 @@ export function ChatWidget({ open, onOpenChange, hideFab = false }: ChatWidgetPr
                     'active:scale-95 transition-all',
                     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500',
                   )}
-                  aria-label={copy.close_aria}
-                  title={copy.close_aria}
+                  aria-label={t('close_aria')}
+                  title={t('close_aria')}
                 >
                   <X className="h-5 w-5" strokeWidth={2.5} />
                 </button>
@@ -663,7 +580,7 @@ export function ChatWidget({ open, onOpenChange, hideFab = false }: ChatWidgetPr
               aria-live="polite"
               aria-atomic="false"
               aria-relevant="additions text"
-              aria-label={copy.title}
+              aria-label={t('title')}
               className="flex-1 overflow-y-auto overscroll-contain px-4 py-5 space-y-4 relative"
             >
               {messages.map((msg) => {
@@ -744,30 +661,30 @@ export function ChatWidget({ open, onOpenChange, hideFab = false }: ChatWidgetPr
                   >
                     {isServiceDown ? (
                       <>
-                        <p className="font-semibold">{copy.unavailable_title}</p>
-                        <p className="text-foreground/75 text-xs leading-relaxed">{copy.unavailable_desc}</p>
+                        <p className="font-semibold">{t('unavailable_title')}</p>
+                        <p className="text-foreground/75 text-xs leading-relaxed">{t('unavailable_desc')}</p>
                         <a
                           href="/contact"
                           className="inline-flex items-center gap-1 text-xs font-semibold text-[hsl(var(--primary))] hover:underline"
                         >
-                          {copy.contact_link}
+                          {t('contact_link')}
                         </a>
                       </>
                     ) : isRateLimited ? (
                       <>
-                        <p className="font-semibold">{copy.rate_limit_title}</p>
-                        <p className="text-foreground/75 text-xs leading-relaxed">{copy.rate_limit_desc}</p>
+                        <p className="font-semibold">{t('rate_limit_title')}</p>
+                        <p className="text-foreground/75 text-xs leading-relaxed">{t('rate_limit_desc')}</p>
                         <button
                           type="button"
                           onClick={handleRetry}
                           className="inline-flex items-center gap-1.5 text-xs font-semibold text-[hsl(var(--primary))] hover:underline"
                         >
-                          <RotateCcw className="h-3 w-3" strokeWidth={2.25} /> {copy.retry}
+                          <RotateCcw className="h-3 w-3" strokeWidth={2.25} /> {t('retry')}
                         </button>
                       </>
                     ) : (
                       <>
-                        <p>{copy.error_generic}</p>
+                        <p>{t('error_generic')}</p>
                         {errorText ? (
                           <p className="text-foreground/55 text-[11px] leading-relaxed font-mono break-words">
                             {errorText.length > 160 ? errorText.slice(0, 160) + '…' : errorText}
@@ -778,7 +695,7 @@ export function ChatWidget({ open, onOpenChange, hideFab = false }: ChatWidgetPr
                           onClick={handleRetry}
                           className="inline-flex items-center gap-1.5 text-xs font-semibold text-[hsl(var(--primary))] hover:underline"
                         >
-                          <RotateCcw className="h-3 w-3" strokeWidth={2.25} /> {copy.retry}
+                          <RotateCcw className="h-3 w-3" strokeWidth={2.25} /> {t('retry')}
                         </button>
                       </>
                     )}
@@ -798,10 +715,10 @@ export function ChatWidget({ open, onOpenChange, hideFab = false }: ChatWidgetPr
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 8 }}
                   onClick={() => scrollToBottom('smooth')}
-                  aria-label={copy.scroll_to_latest}
+                  aria-label={t('scroll_to_latest')}
                   className="absolute right-4 bottom-[120px] sm:bottom-[110px] z-10 inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-card border border-primary/40 text-[hsl(var(--primary))] text-xs font-semibold shadow-lg hover:bg-primary/10"
                 >
-                  <ArrowDown className="h-3 w-3" strokeWidth={2.25} /> {copy.scroll_to_latest}
+                  <ArrowDown className="h-3 w-3" strokeWidth={2.25} /> {t('scroll_to_latest')}
                 </motion.button>
               )}
             </AnimatePresence>
@@ -809,7 +726,7 @@ export function ChatWidget({ open, onOpenChange, hideFab = false }: ChatWidgetPr
             {/* Quick replies (only before user input + when service up) */}
             {messages.length <= 1 && !isServiceDown && (
               <div className="px-3 pb-2 pt-1 flex gap-2 overflow-x-auto no-scrollbar shrink-0">
-                {copy.quick_replies.map((qr) => (
+                {quickReplies.map((qr) => (
                   <button
                     type="button"
                     key={qr.label}
@@ -833,9 +750,9 @@ export function ChatWidget({ open, onOpenChange, hideFab = false }: ChatWidgetPr
                 ref={inputRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder={copy.placeholder}
+                placeholder={t('placeholder')}
                 disabled={isLoading || isServiceDown}
-                aria-label={copy.placeholder}
+                aria-label={t('placeholder')}
                 onKeyDown={(e) => {
                   // Enter submits; Shift+Enter newline (input is single-line so
                   // newline character disallowed — Shift+Enter just no-op untuk
@@ -860,7 +777,7 @@ export function ChatWidget({ open, onOpenChange, hideFab = false }: ChatWidgetPr
                   'disabled:opacity-40 disabled:cursor-not-allowed',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card',
                 )}
-                aria-label={copy.send_aria}
+                aria-label={t('send_aria')}
               >
                 <Send className="h-4 w-4" strokeWidth={2.25} />
               </button>
@@ -869,7 +786,7 @@ export function ChatWidget({ open, onOpenChange, hideFab = false }: ChatWidgetPr
 
             {/* Footer */}
             <div className="px-4 py-2 text-center border-t border-border bg-muted/20 shrink-0 pb-[max(env(safe-area-inset-bottom),0.5rem)]">
-              <p className="text-[10px] text-muted-foreground">{copy.footer}</p>
+              <p className="text-[10px] text-muted-foreground">{t('footer')}</p>
             </div>
           </motion.div>
         )}

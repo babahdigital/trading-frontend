@@ -16,17 +16,22 @@ const log = createLogger('api/client/crypto/notifications/whatsapp/verify');
  * `whatsapp_number` via PATCH on the prefs endpoint.
  */
 export async function POST(request: NextRequest) {
+  try {
   const gate = await requireCryptoEligible(request, { allowPaused: true });
   if (!gate.ok) return gate.response;
   const tenantId = gate.subscription.cryptoTenantId;
   if (!tenantId) {
-    return NextResponse.json({ error: 'no_crypto_tenant' }, { status: 503 });
+    return NextResponse.json({ code: 'service_unavailable', error: 'no_crypto_tenant' }, { status: 503 });
   }
 
   const result = await requestCryptoWhatsappOtp(tenantId, gate.userId);
   if (!result.ok) {
     log.warn(`crypto OTP request failed (status=${result.status}): ${result.error}`);
-    return NextResponse.json({ error: result.error }, { status: result.status });
+    return NextResponse.json({ code: 'upstream_error', error: result.error }, { status: result.status });
   }
   return NextResponse.json(result.result);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }

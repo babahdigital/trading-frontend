@@ -136,6 +136,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ source: 'backend', ok: true, verified: true, ...payload });
   } catch (err) {
     log.error(`Key submit error: ${err instanceof Error ? err.message : 'unknown'}`);
-    return NextResponse.json({ error: 'backend_unreachable' }, { status: 503 });
+    return NextResponse.json({ code: 'service_unavailable', error: 'backend_unreachable' }, { status: 503 });
   }
 }

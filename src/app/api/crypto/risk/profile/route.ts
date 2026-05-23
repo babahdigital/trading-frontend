@@ -9,6 +9,7 @@ import { NextResponse } from 'next/server';
  * sekarang admin-runtime-config (operator-managed via /api/admin/config).
  */
 export async function GET() {
+  try {
   return NextResponse.json(
     {
       error: 'gone',
@@ -17,9 +18,14 @@ export async function GET() {
     },
     { status: 410 },
   );
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }
 
 export async function POST() {
+  try {
   return NextResponse.json(
     {
       error: 'gone',
@@ -28,4 +34,8 @@ export async function POST() {
     },
     { status: 410 },
   );
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }

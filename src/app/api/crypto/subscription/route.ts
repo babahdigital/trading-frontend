@@ -11,8 +11,9 @@ import { cryptoBackendConfigured } from '@/lib/proxy/crypto-client';
  * uses this to render the "subscribe" CTA).
  */
 export async function GET(request: NextRequest) {
+  try {
   const userId = request.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!userId) return NextResponse.json({ code: 'unauthorized', error: 'Unauthorized' }, { status: 401 });
 
   const sub = await prisma.cryptoBotSubscription.findUnique({
     where: { userId },
@@ -44,4 +45,8 @@ export async function GET(request: NextRequest) {
         }
       : null,
   });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }

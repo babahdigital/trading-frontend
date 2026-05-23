@@ -54,8 +54,9 @@ function generateRecoveryCodes(n = 8): string[] {
 }
 
 export async function GET(req: NextRequest) {
+  try {
   const userId = await getUserIdFromRequest(req);
-  if (!userId) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  if (!userId) return NextResponse.json({ code: 'unauthorized', error: 'unauthorized' }, { status: 401 });
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { email: true, twoFaEnabled: true },
@@ -64,11 +65,16 @@ export async function GET(req: NextRequest) {
     enabled: !!user?.twoFaEnabled,
     email: user?.email ?? null,
   });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }
 
 export async function POST(req: NextRequest) {
+  try {
   const userId = await getUserIdFromRequest(req);
-  if (!userId) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  if (!userId) return NextResponse.json({ code: 'unauthorized', error: 'unauthorized' }, { status: 401 });
 
   const body = await req.json().catch(() => ({}));
   const action = body.action as 'setup' | 'verify' | 'disable';
@@ -89,9 +95,9 @@ export async function POST(req: NextRequest) {
   if (action === 'verify') {
     const code = String(body.code ?? '');
     const user = await prisma.user.findUnique({ where: { id: userId }, select: { twoFaSecret: true } });
-    if (!user?.twoFaSecret) return NextResponse.json({ error: 'no setup in progress' }, { status: 400 });
+    if (!user?.twoFaSecret) return NextResponse.json({ code: 'bad_request', error: 'no setup in progress' }, { status: 400 });
     if (!verifyTotp(user.twoFaSecret, code)) {
-      return NextResponse.json({ error: 'invalid code' }, { status: 400 });
+      return NextResponse.json({ code: 'bad_request', error: 'invalid code' }, { status: 400 });
     }
     const recoveryCodes = generateRecoveryCodes();
     await prisma.user.update({
@@ -104,20 +110,20 @@ export async function POST(req: NextRequest) {
   if (action === 'disable') {
     const password = String(body.password ?? '');
     const code = String(body.code ?? '');
-    if (!password) return NextResponse.json({ error: 'password required' }, { status: 400 });
+    if (!password) return NextResponse.json({ code: 'bad_request', error: 'password required' }, { status: 400 });
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: { passwordHash: true, twoFaSecret: true, twoFaEnabled: true },
     });
-    if (!user) return NextResponse.json({ error: 'user not found' }, { status: 404 });
+    if (!user) return NextResponse.json({ code: 'not_found', error: 'user not found' }, { status: 404 });
 
     const validPw = await verifyPassword(password, user.passwordHash);
-    if (!validPw) return NextResponse.json({ error: 'invalid password' }, { status: 403 });
+    if (!validPw) return NextResponse.json({ code: 'forbidden', error: 'invalid password' }, { status: 403 });
 
     if (user.twoFaEnabled && user.twoFaSecret) {
       if (!verifyTotp(user.twoFaSecret, code)) {
-        return NextResponse.json({ error: 'invalid 2FA code' }, { status: 403 });
+        return NextResponse.json({ code: 'forbidden', error: 'invalid 2FA code' }, { status: 403 });
       }
     }
 
@@ -128,5 +134,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true });
   }
 
-  return NextResponse.json({ error: 'invalid action' }, { status: 400 });
+  return NextResponse.json({ code: 'bad_request', error: 'invalid action' }, { status: 400 });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }

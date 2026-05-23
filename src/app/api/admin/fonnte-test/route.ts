@@ -23,13 +23,13 @@ export async function POST(req: Request) {
   // Auth: prefer ADMIN_TOKEN, fallback ke CRON_SECRET (sudah set di container).
   const allowedToken = process.env.ADMIN_TOKEN || process.env.CRON_SECRET;
   if (!allowedToken) {
-    return NextResponse.json({ error: 'Admin test disabled (ADMIN_TOKEN/CRON_SECRET unset)' }, { status: 404 });
+    return NextResponse.json({ code: 'not_found', error: 'Admin test disabled (ADMIN_TOKEN/CRON_SECRET unset)' }, { status: 404 });
   }
 
   const auth = req.headers.get('authorization') || '';
   const provided = auth.startsWith('Bearer ') ? auth.slice(7) : '';
   if (provided !== allowedToken) {
-    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+    return NextResponse.json({ code: 'unauthorized', error: 'unauthorized' }, { status: 401 });
   }
 
   const fonnteToken = process.env.FONNTE_TOKEN;
@@ -113,13 +113,13 @@ export async function POST(req: Request) {
 export async function GET(req: Request) {
   const allowedToken = process.env.ADMIN_TOKEN || process.env.CRON_SECRET;
   if (!allowedToken) {
-    return NextResponse.json({ error: 'Admin test disabled (ADMIN_TOKEN/CRON_SECRET unset)' }, { status: 404 });
+    return NextResponse.json({ code: 'not_found', error: 'Admin test disabled (ADMIN_TOKEN/CRON_SECRET unset)' }, { status: 404 });
   }
 
   const auth = req.headers.get('authorization') || '';
   const provided = auth.startsWith('Bearer ') ? auth.slice(7) : '';
   if (provided !== allowedToken) {
-    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+    return NextResponse.json({ code: 'unauthorized', error: 'unauthorized' }, { status: 401 });
   }
 
   const fonnteToken = process.env.FONNTE_TOKEN;

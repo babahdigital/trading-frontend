@@ -17,12 +17,13 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  try {
   const userId = request.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!userId) return NextResponse.json({ code: 'unauthorized', error: 'Unauthorized' }, { status: 401 });
 
   const { id: logId } = await params;
   if (!logId || !/^\d+$/.test(logId)) {
-    return NextResponse.json({ error: 'invalid_log_id' }, { status: 400 });
+    return NextResponse.json({ code: 'bad_request', error: 'invalid_log_id' }, { status: 400 });
   }
 
   if (!cryptoBackendConfigured()) {
@@ -61,4 +62,8 @@ export async function POST(
 
   const data = await res.json().catch(() => ({}));
   return NextResponse.json({ ok: true, ...data });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }

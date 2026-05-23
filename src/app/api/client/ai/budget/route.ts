@@ -28,6 +28,7 @@ const TIER_BUDGETS: Record<string, { tokens: number; usd: number }> = {
 const COST_PER_TOKEN = 0.000_002; // rough blended estimate
 
 export async function GET(request: NextRequest) {
+  try {
   const gate = await requireSignalEligible(request);
   if (!gate.ok) return gate.response;
 
@@ -82,4 +83,8 @@ export async function GET(request: NextRequest) {
       .map(([purpose, v]) => ({ purpose, calls: v.calls, tokens: v.tokens }))
       .sort((a, b) => b.tokens - a.tokens),
   });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }

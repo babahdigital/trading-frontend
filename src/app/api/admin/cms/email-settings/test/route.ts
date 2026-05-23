@@ -72,6 +72,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, messageId: result.messageId });
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown_error';
-    return NextResponse.json({ error: 'send_failed', message: msg }, { status: 502 });
+    return NextResponse.json({ code: 'send_failed', error: msg }, { status: 502 });
   }
 }

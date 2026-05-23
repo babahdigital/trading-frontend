@@ -23,12 +23,12 @@ export async function GET(
 ) {
   const userId = request.headers.get('x-user-id');
   if (!userId) {
-    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+    return NextResponse.json({ code: 'unauthorized', error: 'unauthorized' }, { status: 401 });
   }
 
   const { orderId } = await params;
   if (!orderId || orderId.length < 3) {
-    return NextResponse.json({ error: 'invalid_order_id' }, { status: 400 });
+    return NextResponse.json({ code: 'bad_request', error: 'invalid_order_id' }, { status: 400 });
   }
   const includeInstrument = request.nextUrl.searchParams.get('include') === 'instrument';
 
@@ -50,7 +50,7 @@ export async function GET(
     });
 
     if (!invoice) {
-      return NextResponse.json({ error: 'not_found' }, { status: 404 });
+      return NextResponse.json({ code: 'not_found', error: 'not_found' }, { status: 404 });
     }
 
     const meta = (invoice.metadata as Record<string, unknown> | null) ?? {};
@@ -71,6 +71,6 @@ export async function GET(
     });
   } catch (err) {
     log.error(`invoice lookup error: ${err instanceof Error ? err.message : 'unknown'}`);
-    return NextResponse.json({ error: 'internal_error' }, { status: 500 });
+    return NextResponse.json({ code: 'internal_error', error: 'internal_error' }, { status: 500 });
   }
 }

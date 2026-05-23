@@ -15,58 +15,8 @@
 
 import { useState, type FormEvent } from 'react';
 import { Bot, ShieldCheck, Loader2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
-
-interface LeadCopy {
-  intro_title: string;
-  intro_body: string;
-  name_label: string;
-  name_placeholder: string;
-  email_label: string;
-  email_placeholder: string;
-  consent_label: string;
-  submit: string;
-  submitting: string;
-  privacy: string;
-  error_required: string;
-  error_email: string;
-  error_submit: string;
-}
-
-const COPY: Record<'id' | 'en', LeadCopy> = {
-  id: {
-    intro_title: 'Sebelum mulai',
-    intro_body:
-      'Boleh kenalan dulu? Datanya kami pakai untuk follow-up via email kalau Anda butuh bantuan tim manusia. Tidak dibagikan ke pihak luar.',
-    name_label: 'Nama',
-    name_placeholder: 'Nama lengkap',
-    email_label: 'Email',
-    email_placeholder: 'nama@email.com',
-    consent_label: 'Kirim juga riset & update produk via email (opsional).',
-    submit: 'Mulai chat',
-    submitting: 'Menyimpan…',
-    privacy: 'Dengan melanjutkan Anda menyetujui Kebijakan Privasi kami.',
-    error_required: 'Mohon lengkapi nama dan email.',
-    error_email: 'Format email belum valid.',
-    error_submit: 'Gagal menyimpan. Silakan coba lagi.',
-  },
-  en: {
-    intro_title: 'Before we start',
-    intro_body:
-      "Quick intro? We'll use this only to follow up via email if you need a human teammate. Never shared with third parties.",
-    name_label: 'Name',
-    name_placeholder: 'Full name',
-    email_label: 'Email',
-    email_placeholder: 'you@email.com',
-    consent_label: 'Also send research and product updates by email (optional).',
-    submit: 'Start chat',
-    submitting: 'Saving…',
-    privacy: 'By continuing you agree to our Privacy Policy.',
-    error_required: 'Please provide your name and email.',
-    error_email: 'That email format looks off.',
-    error_submit: 'Failed to save. Please try again.',
-  },
-};
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
@@ -77,7 +27,7 @@ interface ChatLeadFormProps {
 }
 
 export function ChatLeadForm({ locale, referrerPath, onSubmitted }: ChatLeadFormProps) {
-  const copy = COPY[locale];
+  const t = useTranslations('chat.lead');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [consent, setConsent] = useState(true);
@@ -89,11 +39,11 @@ export function ChatLeadForm({ locale, referrerPath, onSubmitted }: ChatLeadForm
     setError(null);
 
     if (!name.trim() || !email.trim()) {
-      setError(copy.error_required);
+      setError(t('error_required'));
       return;
     }
     if (!EMAIL_RE.test(email.trim())) {
-      setError(copy.error_email);
+      setError(t('error_email'));
       return;
     }
 
@@ -111,7 +61,7 @@ export function ChatLeadForm({ locale, referrerPath, onSubmitted }: ChatLeadForm
         }),
       });
       if (!res.ok) {
-        setError(copy.error_submit);
+        setError(t('error_submit'));
         setSubmitting(false);
         return;
       }
@@ -131,7 +81,7 @@ export function ChatLeadForm({ locale, referrerPath, onSubmitted }: ChatLeadForm
       }
       onSubmitted();
     } catch {
-      setError(copy.error_submit);
+      setError(t('error_submit'));
       setSubmitting(false);
     }
   };
@@ -143,19 +93,19 @@ export function ChatLeadForm({ locale, referrerPath, onSubmitted }: ChatLeadForm
           <Bot className="h-4 w-4 text-[hsl(var(--primary))]" strokeWidth={2.25} />
         </div>
         <div>
-          <p className="text-sm font-semibold text-foreground">{copy.intro_title}</p>
-          <p className="text-xs text-muted-foreground leading-relaxed mt-1">{copy.intro_body}</p>
+          <p className="text-sm font-semibold text-foreground">{t('intro_title')}</p>
+          <p className="text-xs text-muted-foreground leading-relaxed mt-1">{t('intro_body')}</p>
         </div>
       </div>
 
       <div className="space-y-3">
         <label className="block">
-          <span className="block text-xs font-medium text-foreground/85 mb-1">{copy.name_label}</span>
+          <span className="block text-xs font-medium text-foreground/85 mb-1">{t('name_label')}</span>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder={copy.name_placeholder}
+            placeholder={t('name_placeholder')}
             autoComplete="name"
             required
             disabled={submitting}
@@ -169,12 +119,12 @@ export function ChatLeadForm({ locale, referrerPath, onSubmitted }: ChatLeadForm
         </label>
 
         <label className="block">
-          <span className="block text-xs font-medium text-foreground/85 mb-1">{copy.email_label}</span>
+          <span className="block text-xs font-medium text-foreground/85 mb-1">{t('email_label')}</span>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder={copy.email_placeholder}
+            placeholder={t('email_placeholder')}
             autoComplete="email"
             inputMode="email"
             required
@@ -196,7 +146,7 @@ export function ChatLeadForm({ locale, referrerPath, onSubmitted }: ChatLeadForm
             disabled={submitting}
             className="mt-0.5 h-4 w-4 rounded border-border text-primary focus:ring-2 focus:ring-ring"
           />
-          <span className="text-[11px] text-foreground/75 leading-relaxed">{copy.consent_label}</span>
+          <span className="text-[11px] text-foreground/75 leading-relaxed">{t('consent_label')}</span>
         </label>
       </div>
 
@@ -219,16 +169,16 @@ export function ChatLeadForm({ locale, referrerPath, onSubmitted }: ChatLeadForm
       >
         {submitting ? (
           <>
-            <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2.25} /> {copy.submitting}
+            <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2.25} /> {t('submitting')}
           </>
         ) : (
-          copy.submit
+          t('submit')
         )}
       </button>
 
       <p className="text-[10px] text-muted-foreground text-center inline-flex items-center gap-1 justify-center w-full">
         <ShieldCheck className="h-3 w-3 text-[hsl(var(--profit))]" strokeWidth={2.25} aria-hidden />
-        <span>{copy.privacy}</span>
+        <span>{t('privacy')}</span>
       </p>
     </form>
   );

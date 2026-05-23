@@ -7,6 +7,7 @@ import { NextResponse } from 'next/server';
  * DEPRECATED — folded into /api/crypto/overview per Sprint X+1.2.
  */
 export async function GET() {
+  try {
   return NextResponse.json(
     {
       error: 'gone',
@@ -15,4 +16,8 @@ export async function GET() {
     },
     { status: 410 },
   );
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }

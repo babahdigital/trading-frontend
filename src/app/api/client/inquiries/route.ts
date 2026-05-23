@@ -16,10 +16,11 @@ const inquirySchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  try {
   const body = await request.json();
   const parsed = inquirySchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json({ code: 'validation_error', error: parsed.error.flatten() }, { status: 400 });
   }
 
   // Normalize phone ke E.164 — apapun input (0812.., +62.., +1..) jadi
@@ -61,4 +62,8 @@ export async function POST(request: NextRequest) {
   }
 
   return NextResponse.json({ success: true, id: inquiry.id }, { status: 201 });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }

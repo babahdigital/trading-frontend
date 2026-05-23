@@ -22,6 +22,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { recommendTier } from '@/lib/crypto/recommend-tier';
 
 export async function GET(req: NextRequest) {
+  try {
   const equityParam = req.nextUrl.searchParams.get('equity');
   if (!equityParam) {
     return NextResponse.json(
@@ -48,4 +49,8 @@ export async function GET(req: NextRequest) {
       },
     },
   );
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }

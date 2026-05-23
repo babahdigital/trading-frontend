@@ -21,8 +21,9 @@ import { proxyToCryptoBackend, cryptoBackendConfigured } from '@/lib/proxy/crypt
 import { prisma } from '@/lib/db/prisma';
 
 export async function GET(request: NextRequest) {
+  try {
   const userId = request.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!userId) return NextResponse.json({ code: 'unauthorized', error: 'Unauthorized' }, { status: 401 });
 
   if (!cryptoBackendConfigured()) {
     // Backend belum configured — return empty payload supaya FE polling tidak crash.
@@ -93,4 +94,8 @@ export async function GET(request: NextRequest) {
     has_more: Boolean(data.has_more),
     source: 'backend',
   });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }

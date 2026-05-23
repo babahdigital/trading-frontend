@@ -7,15 +7,21 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
   const guard = requireAdmin(req);
   if (guard) return guard;
   const { id } = await params;
   const entry = await prisma.changelog.findUnique({ where: { id } });
-  if (!entry) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  if (!entry) return NextResponse.json({ code: 'not_found', error: 'Not found' }, { status: 404 });
   return NextResponse.json(entry);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
   const guard = requireAdmin(req);
   if (guard) return guard;
   const { id } = await params;
@@ -28,13 +34,22 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const entry = await prisma.changelog.update({ where: { id }, data });
   revalidatePath('/changelog');
   return NextResponse.json(entry);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
   const guard = requireAdmin(req);
   if (guard) return guard;
   const { id } = await params;
   await prisma.changelog.delete({ where: { id } });
   revalidatePath('/changelog');
   return NextResponse.json({ ok: true });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }

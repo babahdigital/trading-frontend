@@ -31,6 +31,7 @@ function presenceOf(name: string): 'configured' | 'missing' {
 }
 
 export async function GET(request: NextRequest) {
+  try {
   const denied = requireAdmin(request);
   if (denied) return denied;
 
@@ -116,4 +117,8 @@ export async function GET(request: NextRequest) {
     },
     generatedAt: new Date().toISOString(),
   });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }

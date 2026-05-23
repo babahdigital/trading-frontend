@@ -22,7 +22,7 @@ export async function POST(
 
   const { id } = await params;
   if (!id || !/^[\w-]+$/.test(id)) {
-    return NextResponse.json({ error: 'invalid_position_id' }, { status: 400 });
+    return NextResponse.json({ code: 'bad_request', error: 'invalid_position_id' }, { status: 400 });
   }
 
   await prisma.cryptoAuditTrail.create({
@@ -54,6 +54,6 @@ export async function POST(
     return NextResponse.json({ source: 'backend', ok: true, status: 'closing', position_id: id });
   } catch (err) {
     log.warn(`Position close error: ${err instanceof Error ? err.message : 'unknown'}`);
-    return NextResponse.json({ error: 'backend_unreachable' }, { status: 503 });
+    return NextResponse.json({ code: 'service_unavailable', error: 'backend_unreachable' }, { status: 503 });
   }
 }

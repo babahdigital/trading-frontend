@@ -22,15 +22,15 @@ export async function POST(request: NextRequest) {
     const file = formData.get('file') as File | null;
 
     if (!file) {
-      return NextResponse.json({ error: 'File diperlukan' }, { status: 400 });
+      return NextResponse.json({ code: 'bad_request', error: 'File diperlukan' }, { status: 400 });
     }
 
     if (file.size > MAX_SIZE) {
-      return NextResponse.json({ error: 'Ukuran file maksimal 5MB' }, { status: 400 });
+      return NextResponse.json({ code: 'bad_request', error: 'Ukuran file maksimal 5MB' }, { status: 400 });
     }
 
     if (!ALLOWED_TYPES.includes(file.type)) {
-      return NextResponse.json({ error: 'Hanya file gambar yang diperbolehkan (JPEG, PNG, WebP, GIF, SVG)' }, { status: 400 });
+      return NextResponse.json({ code: 'bad_request', error: 'Hanya file gambar yang diperbolehkan (JPEG, PNG, WebP, GIF, SVG)' }, { status: 400 });
     }
 
     // Generate unique filename
@@ -50,6 +50,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ url, filename }, { status: 201 });
   } catch (error) {
     log.error('Upload error:', error);
-    return NextResponse.json({ error: 'Gagal mengupload file' }, { status: 500 });
+    return NextResponse.json({ code: 'internal_error', error: 'Gagal mengupload file' }, { status: 500 });
   }
 }

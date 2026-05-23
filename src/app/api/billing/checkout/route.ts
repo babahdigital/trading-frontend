@@ -190,9 +190,10 @@ export async function POST(req: NextRequest) {
     : pricing.description;
   const localizedDescription = localizeDescription(baseDescription, locale);
 
-  // Idempotency: if this key already produced an invoice, return existing (no duplicate charge).
+  // Idempotency: if this key already produced a non-DRAFT invoice, return existing (no duplicate charge).
+  // DRAFT invoices are orphans from a previous provider failure — skip them so the user can retry.
   const existing = await prisma.invoice.findFirst({
-    where: { userId, metadata: { path: ['idempotencyKey'], equals: idempotencyKey } },
+    where: { userId, status: { not: 'DRAFT' }, metadata: { path: ['idempotencyKey'], equals: idempotencyKey } },
   });
   if (existing) {
     const meta = (existing.metadata ?? {}) as Record<string, unknown>;
@@ -209,13 +210,17 @@ export async function POST(req: NextRequest) {
   const orderId = `ORD-${randomUUID().slice(0, 8).toUpperCase()}`;
   const dueAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
+  // Create as DRAFT — only promote to DUE after provider API succeeds.
+  // If provider call fails, the cleanup deletes the orphan. If the server
+  // crashes between create and provider call, the DRAFT invoice is skipped
+  // by the idempotency check so the user can safely retry.
   await prisma.invoice.create({
     data: {
       id: orderId,
       userId,
       number: orderId,
       amountUsd: idrToUsd(finalAmount),
-      status: 'DUE',
+      status: 'DRAFT',
       dueAt,
       description: localizedDescription,
       subscriptionId: null,
@@ -256,6 +261,7 @@ export async function POST(req: NextRequest) {
     await prisma.invoice.update({
       where: { id: orderId },
       data: {
+        status: 'DUE',
         metadata: {
           tier, amountIdr: finalAmount, originalAmountIdr: pricing.amountIdr,
           provider, idempotencyKey, clientSupplied,
@@ -296,6 +302,7 @@ export async function POST(req: NextRequest) {
   await prisma.invoice.update({
     where: { id: orderId },
     data: {
+      status: 'DUE',
       metadata: {
         tier, amountIdr: finalAmount, originalAmountIdr: pricing.amountIdr,
         provider, idempotencyKey, clientSupplied, locale,

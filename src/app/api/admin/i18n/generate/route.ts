@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
   try {
     if (type === 'landing-section') {
       const section = await prisma.landingSection.findUnique({ where: { id } });
-      if (!section) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+      if (!section) return NextResponse.json({ code: 'not_found', error: 'Not found' }, { status: 404 });
 
       const [title_en, subtitle_en, content_en] = await Promise.all([
         translateText(section.title),
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
 
     if (type === 'pricing-tier') {
       const tier = await prisma.pricingTier.findUnique({ where: { id } });
-      if (!tier) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+      if (!tier) return NextResponse.json({ code: 'not_found', error: 'Not found' }, { status: 404 });
 
       const [name_en, subtitle_en, features_en, ctaLabel_en] = await Promise.all([
         translateText(tier.name),
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
 
     if (type === 'faq') {
       const faq = await prisma.faq.findUnique({ where: { id } });
-      if (!faq) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+      if (!faq) return NextResponse.json({ code: 'not_found', error: 'Not found' }, { status: 404 });
 
       const [question_en, answer_en] = await Promise.all([
         translateText(faq.question),
@@ -160,7 +160,7 @@ export async function POST(request: NextRequest) {
 
     if (type === 'article') {
       const article = await prisma.article.findUnique({ where: { id } });
-      if (!article) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+      if (!article) return NextResponse.json({ code: 'not_found', error: 'Not found' }, { status: 404 });
 
       const [title_en, excerpt_en, body_en] = await Promise.all([
         translateText(article.title),
@@ -178,7 +178,7 @@ export async function POST(request: NextRequest) {
 
     if (type === 'page-meta') {
       const meta = await prisma.pageMeta.findUnique({ where: { id } });
-      if (!meta) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+      if (!meta) return NextResponse.json({ code: 'not_found', error: 'Not found' }, { status: 404 });
 
       const [title_en, description_en, ogTitle_en, ogDescription_en] = await Promise.all([
         translateText(meta.title),
@@ -232,7 +232,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, translated });
     }
 
-    return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
+    return NextResponse.json({ code: 'bad_request', error: 'Invalid type' }, { status: 400 });
   } catch (err) {
     return NextResponse.json(
       { error: 'Translation failed', details: String(err) },

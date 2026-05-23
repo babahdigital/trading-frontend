@@ -11,6 +11,7 @@ export const revalidate = 3600;
 const VALID_CATEGORIES = new Set<FaqCategory>(['GENERAL', 'PRICING', 'TECHNICAL', 'SECURITY']);
 
 export async function GET(request: NextRequest) {
+  try {
   const locale = request.nextUrl.searchParams.get('locale') ?? 'id';
   const categoryParam = request.nextUrl.searchParams.get('category');
   const category =
@@ -28,4 +29,8 @@ export async function GET(request: NextRequest) {
   return NextResponse.json(localized, {
     headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=600' },
   });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }

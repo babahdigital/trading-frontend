@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
   const email = body.email ?? searchParams.get('email');
 
   if (!token && !email) {
-    return NextResponse.json({ error: 'token_or_email_required' }, { status: 400 });
+    return NextResponse.json({ code: 'bad_request', error: 'token_or_email_required' }, { status: 400 });
   }
 
   await processUnsubscribe(token, email);
@@ -97,7 +97,7 @@ export async function GET(req: NextRequest) {
   const email = searchParams.get('email');
 
   if (!token && !email) {
-    return NextResponse.json({ error: 'token_or_email_required' }, { status: 400 });
+    return NextResponse.json({ code: 'bad_request', error: 'token_or_email_required' }, { status: 400 });
   }
 
   await processUnsubscribe(token, email);

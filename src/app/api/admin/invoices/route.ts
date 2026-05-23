@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(enriched);
   } catch (error) {
     log.error('List invoices error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ code: 'internal_error', error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -74,24 +74,24 @@ export async function PATCH(request: NextRequest) {
   try {
     const contentType = request.headers.get('content-type');
     if (!contentType || !contentType.includes('application/json')) {
-      return NextResponse.json({ error: 'Content-Type must be application/json' }, { status: 400 });
+      return NextResponse.json({ code: 'bad_request', error: 'Content-Type must be application/json' }, { status: 400 });
     }
 
     const body = await request.json().catch(() => null);
     if (!body) {
-      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+      return NextResponse.json({ code: 'bad_request', error: 'Invalid JSON body' }, { status: 400 });
     }
 
     const parsed = patchSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json({ error: parsed.error.errors[0].message }, { status: 400 });
+      return NextResponse.json({ code: 'validation_error', error: parsed.error.errors[0].message }, { status: 400 });
     }
 
     const { id, status } = parsed.data;
 
     const existing = await prisma.invoice.findUnique({ where: { id } });
     if (!existing) {
-      return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
+      return NextResponse.json({ code: 'not_found', error: 'Invoice not found' }, { status: 404 });
     }
 
     const beforeStatus = existing.status;
@@ -117,6 +117,6 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ ...updated, amountUsd: Number(updated.amountUsd) });
   } catch (error) {
     log.error('Update invoice error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ code: 'internal_error', error: 'Internal server error' }, { status: 500 });
   }
 }

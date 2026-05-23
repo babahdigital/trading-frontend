@@ -21,7 +21,7 @@ const PatchBody = z.object({
  */
 export async function PATCH(request: NextRequest) {
   const userId = request.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!userId) return NextResponse.json({ code: 'unauthorized', error: 'Unauthorized' }, { status: 401 });
 
   let body: z.infer<typeof PatchBody>;
   try {
@@ -50,6 +50,6 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ source: 'backend', ...payload });
   } catch (err) {
     log.warn(`notification-lang error: ${err instanceof Error ? err.message : 'unknown'}`);
-    return NextResponse.json({ error: 'backend_unreachable' }, { status: 503 });
+    return NextResponse.json({ code: 'service_unavailable', error: 'backend_unreachable' }, { status: 503 });
   }
 }

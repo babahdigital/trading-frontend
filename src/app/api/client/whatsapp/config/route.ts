@@ -31,48 +31,58 @@ const patchSchema = z
 function userIdOrUnauthorized(request: NextRequest): string | NextResponse {
   const userId = request.headers.get('x-user-id');
   if (!userId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ code: 'unauthorized', error: 'Unauthorized' }, { status: 401 });
   }
   return userId;
 }
 
 export async function GET(request: NextRequest) {
+  try {
   const userIdResult = userIdOrUnauthorized(request);
   if (userIdResult instanceof NextResponse) return userIdResult;
 
   const productParse = productSchema.safeParse(request.nextUrl.searchParams.get('product'));
   if (!productParse.success) {
-    return NextResponse.json({ error: 'invalid_product' }, { status: 400 });
+    return NextResponse.json({ code: 'bad_request', error: 'invalid_product' }, { status: 400 });
   }
 
   const result = await fetchWhatsappConfig(productParse.data, userIdResult);
   if (!result.ok) {
     log.warn(`fetch failed for ${productParse.data} (status=${result.status}): ${result.error}`);
-    return NextResponse.json({ error: result.error }, { status: result.status });
+    return NextResponse.json({ code: 'upstream_error', error: result.error }, { status: result.status });
   }
   return NextResponse.json(result.config);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }
 
 export async function PATCH(request: NextRequest) {
+  try {
   const userIdResult = userIdOrUnauthorized(request);
   if (userIdResult instanceof NextResponse) return userIdResult;
 
   const productParse = productSchema.safeParse(request.nextUrl.searchParams.get('product'));
   if (!productParse.success) {
-    return NextResponse.json({ error: 'invalid_product' }, { status: 400 });
+    return NextResponse.json({ code: 'bad_request', error: 'invalid_product' }, { status: 400 });
   }
 
   const body = await request.json().catch(() => null);
   const parsed = patchSchema.safeParse(body);
   if (!parsed.success) {
     const message = parsed.error.errors[0]?.message ?? 'invalid_payload';
-    return NextResponse.json({ error: message }, { status: 400 });
+    return NextResponse.json({ code: 'bad_request', error: message }, { status: 400 });
   }
 
   const result = await updateWhatsappConfig(productParse.data, userIdResult, parsed.data);
   if (!result.ok) {
     log.warn(`patch failed for ${productParse.data} (status=${result.status}): ${result.error}`);
-    return NextResponse.json({ error: result.error }, { status: result.status });
+    return NextResponse.json({ code: 'upstream_error', error: result.error }, { status: result.status });
   }
   return NextResponse.json(result.config);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }

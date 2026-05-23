@@ -1,10 +1,25 @@
+import nextDynamic from 'next/dynamic';
 import { prisma } from '@/lib/db/prisma';
 import { getPageMetadataWithStructuredData } from '@/lib/seo';
-import { LandingClient } from '@/components/landing-client';
 import { BannerBar } from '@/components/cms/banner-bar';
 import { PopupManager } from '@/components/cms/popup-manager';
 import { localizeLandingSection, localizePricingTier, localizeFaq } from '@/lib/i18n/localize-cms';
 import { getPricingOverrides } from '@/lib/pricing-db';
+
+const LandingClient = nextDynamic(
+  () => import('@/components/landing-client').then((mod) => mod.LandingClient),
+  {
+    loading: () => (
+      <div className="min-h-screen animate-pulse space-y-8 px-6 py-16">
+        <div className="mx-auto max-w-4xl space-y-4">
+          <div className="h-10 w-3/4 rounded-lg bg-muted/30" />
+          <div className="h-6 w-1/2 rounded-lg bg-muted/20" />
+          <div className="h-64 rounded-xl bg-muted/20" />
+        </div>
+      </div>
+    ),
+  },
+);
 
 export const dynamic = 'force-dynamic';
 

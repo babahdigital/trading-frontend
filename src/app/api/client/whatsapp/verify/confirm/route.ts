@@ -28,15 +28,16 @@ const bodySchema = z.object({
  * verification and the number is bound, no extra "save" click needed.
  */
 export async function POST(request: NextRequest) {
+  try {
   const userId = request.headers.get('x-user-id');
   if (!userId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ code: 'unauthorized', error: 'Unauthorized' }, { status: 401 });
   }
 
   const body = await request.json().catch(() => null);
   const parsed = bodySchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.errors[0]?.message ?? 'invalid_payload' }, { status: 400 });
+    return NextResponse.json({ code: 'validation_error', error: parsed.error.errors[0]?.message ?? 'invalid_payload' }, { status: 400 });
   }
 
   const { product, verificationId, otp, routingTarget } = parsed.data;
@@ -46,19 +47,19 @@ export async function POST(request: NextRequest) {
   });
 
   if (!verification || verification.userId !== userId || verification.product !== product) {
-    return NextResponse.json({ error: 'verification_not_found' }, { status: 404 });
+    return NextResponse.json({ code: 'not_found', error: 'verification_not_found' }, { status: 404 });
   }
 
   if (verification.consumedAt) {
-    return NextResponse.json({ error: 'verification_already_used' }, { status: 410 });
+    return NextResponse.json({ code: 'gone', error: 'verification_already_used' }, { status: 410 });
   }
 
   if (verification.expiresAt < new Date()) {
-    return NextResponse.json({ error: 'verification_expired' }, { status: 410 });
+    return NextResponse.json({ code: 'gone', error: 'verification_expired' }, { status: 410 });
   }
 
   if (verification.attempts >= OTP_CONSTANTS.MAX_ATTEMPTS) {
-    return NextResponse.json({ error: 'verification_too_many_attempts' }, { status: 429 });
+    return NextResponse.json({ code: 'rate_limited', error: 'verification_too_many_attempts' }, { status: 429 });
   }
 
   const expectedHash = hashOtp(otp);
@@ -67,7 +68,7 @@ export async function POST(request: NextRequest) {
       where: { id: verification.id },
       data: { attempts: { increment: 1 } },
     });
-    return NextResponse.json({ error: 'invalid_otp' }, { status: 400 });
+    return NextResponse.json({ code: 'bad_request', error: 'invalid_otp' }, { status: 400 });
   }
 
   // Mark consumed, then PATCH backend config to bind the verified target.
@@ -92,4 +93,8 @@ export async function POST(request: NextRequest) {
   }
 
   return NextResponse.json({ verified: true, config: update.config });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }

@@ -153,7 +153,7 @@ export default function CmsPopupsPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium mb-1 block">Trigger</label>
-                <select className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm" value={editing.trigger} onChange={(e) => setEditing({ ...editing, trigger: e.target.value })} aria-label="Trigger">
+                <select className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2" value={editing.trigger} onChange={(e) => setEditing({ ...editing, trigger: e.target.value })} aria-label="Trigger">
                   <option value="DELAY">Delay (ms)</option>
                   <option value="EXIT_INTENT">Exit Intent</option>
                   <option value="SCROLL">Scroll %</option>

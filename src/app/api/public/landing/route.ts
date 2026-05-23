@@ -8,6 +8,7 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 3600;
 
 export async function GET(request: NextRequest) {
+  try {
   const locale = request.nextUrl.searchParams.get('locale') ?? 'id';
   const sections = await prisma.landingSection.findMany({
     where: { isVisible: true },
@@ -20,4 +21,8 @@ export async function GET(request: NextRequest) {
   return NextResponse.json(localized, {
     headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=600' },
   });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }

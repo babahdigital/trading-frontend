@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
   if (guard) return guard;
 
   const reviewerId = request.headers.get('x-user-id');
-  if (!reviewerId) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  if (!reviewerId) return NextResponse.json({ code: 'forbidden', error: 'Forbidden' }, { status: 403 });
 
   let body: z.infer<typeof PromotionSchema>;
   try {
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
   const startsAt = new Date(body.startsAt);
   const endsAt = new Date(body.endsAt);
   if (endsAt.getTime() <= startsAt.getTime()) {
-    return NextResponse.json({ error: 'invalid_schedule', message: 'endsAt must be after startsAt' }, { status: 400 });
+    return NextResponse.json({ code: 'invalid_schedule', error: 'endsAt must be after startsAt' }, { status: 400 });
   }
 
   const { aiContext, ...rest } = body;
@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true, promotion: promo }, { status: 201 });
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
-      return NextResponse.json({ error: 'duplicate_slug' }, { status: 409 });
+      return NextResponse.json({ code: 'conflict', error: 'duplicate_slug' }, { status: 409 });
     }
     throw err;
   }
@@ -161,10 +161,10 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ ok: true, promotion: promo });
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
-      return NextResponse.json({ error: 'not_found' }, { status: 404 });
+      return NextResponse.json({ code: 'not_found', error: 'not_found' }, { status: 404 });
     }
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
-      return NextResponse.json({ error: 'duplicate_slug' }, { status: 409 });
+      return NextResponse.json({ code: 'conflict', error: 'duplicate_slug' }, { status: 409 });
     }
     throw err;
   }
@@ -175,7 +175,7 @@ export async function DELETE(request: NextRequest) {
   if (guard) return guard;
 
   const id = request.nextUrl.searchParams.get('id');
-  if (!id) return NextResponse.json({ error: 'id is required' }, { status: 400 });
+  if (!id) return NextResponse.json({ code: 'bad_request', error: 'id is required' }, { status: 400 });
 
   try {
     await prisma.promotion.delete({ where: { id } });
@@ -187,7 +187,7 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ ok: true });
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
-      return NextResponse.json({ error: 'not_found' }, { status: 404 });
+      return NextResponse.json({ code: 'not_found', error: 'not_found' }, { status: 404 });
     }
     throw err;
   }

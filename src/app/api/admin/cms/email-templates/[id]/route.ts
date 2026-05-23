@@ -20,7 +20,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   if (denied) return denied;
   const { id } = await params;
   const tpl = await prisma.emailTemplate.findUnique({ where: { id } });
-  if (!tpl) return NextResponse.json({ error: 'not_found' }, { status: 404 });
+  if (!tpl) return NextResponse.json({ code: 'not_found', error: 'not_found' }, { status: 404 });
   return NextResponse.json({ template: tpl });
 }
 
@@ -68,7 +68,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.json({ success: true, template: tpl });
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'unknown';
-    return NextResponse.json({ error: 'update_failed', message: msg }, { status: 500 });
+    return NextResponse.json({ code: 'update_failed', error: msg }, { status: 500 });
   }
 }
 

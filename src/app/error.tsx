@@ -3,21 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { AlertOctagon, RotateCcw, Home } from 'lucide-react';
-
-/**
- * Root error boundary — fallback when no locale segment caught the error.
- * Detects locale from document.cookie (NEXT_LOCALE) or navigator.language.
- * Pages under /[locale]/ have their own next-intl-aware error.tsx.
- */
-function readClientLocale(): 'id' | 'en' {
-  if (typeof document === 'undefined') return 'id';
-  const m = document.cookie.match(/(?:^|;\s*)NEXT_LOCALE=(id|en)/);
-  if (m) return m[1] as 'id' | 'en';
-  const lang = navigator.language?.toLowerCase() ?? '';
-  if (lang.startsWith('id')) return 'id';
-  if (lang.startsWith('en')) return 'en';
-  return 'id';
-}
+import { readClientLocale } from '@/lib/locale/client-detect';
 
 const COPY = {
   id: {

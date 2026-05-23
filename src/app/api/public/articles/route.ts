@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 
 export async function GET(request: NextRequest) {
+  try {
   const slug = request.nextUrl.searchParams.get('slug');
 
   if (slug) {
@@ -14,7 +15,7 @@ export async function GET(request: NextRequest) {
         publishedAt: true,
       },
     });
-    if (!article) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    if (!article) return NextResponse.json({ code: 'not_found', error: 'Not found' }, { status: 404 });
     return NextResponse.json(article);
   }
 
@@ -28,4 +29,8 @@ export async function GET(request: NextRequest) {
     },
   });
   return NextResponse.json(articles);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }

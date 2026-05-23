@@ -39,12 +39,12 @@ export async function POST(req: NextRequest) {
 
   if (!verifySignature(order_id, status_code, gross_amount, signature_key)) {
     log.warn(`Invalid signature for order ${order_id}`);
-    return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+    return NextResponse.json({ code: 'unauthorized', error: 'Invalid signature' }, { status: 401 });
   }
 
   const invoice = await prisma.invoice.findUnique({ where: { id: order_id } });
   if (!invoice) {
-    return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
+    return NextResponse.json({ code: 'not_found', error: 'Invoice not found' }, { status: 404 });
   }
 
   if (

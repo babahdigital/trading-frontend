@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
       `Invalid Xendit callback token — got_len=${callbackToken.length} got_suffix=...${callbackToken.slice(-4)} `
       + `env_set=${envToken.length > 0} env_len=${envToken.length} env_suffix=...${envToken.slice(-4)}`,
     );
-    return NextResponse.json({ error: 'Invalid callback token' }, { status: 401 });
+    return NextResponse.json({ code: 'unauthorized', error: 'Invalid callback token' }, { status: 401 });
   }
 
   const body = await req.json();

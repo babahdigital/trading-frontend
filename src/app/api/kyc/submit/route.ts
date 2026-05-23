@@ -29,7 +29,7 @@ const SubmitBody = z.object({
 
 export async function POST(request: NextRequest) {
   const userId = request.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!userId) return NextResponse.json({ code: 'unauthorized', error: 'Unauthorized' }, { status: 401 });
 
   let body: z.infer<typeof SubmitBody>;
   try {
@@ -43,21 +43,21 @@ export async function POST(request: NextRequest) {
 
   const dob = new Date(body.dateOfBirth);
   if (Number.isNaN(dob.getTime())) {
-    return NextResponse.json({ error: 'invalid_dob' }, { status: 400 });
+    return NextResponse.json({ code: 'bad_request', error: 'invalid_dob' }, { status: 400 });
   }
   // Min age check — 18 years
   const ageMs = Date.now() - dob.getTime();
   const ageYears = ageMs / (365.25 * 24 * 60 * 60 * 1000);
   if (ageYears < 18) {
-    return NextResponse.json({ error: 'age_below_minimum', message: 'Usia minimum 18 tahun.' }, { status: 400 });
+    return NextResponse.json({ code: 'age_below_minimum', error: 'Usia minimum 18 tahun.' }, { status: 400 });
   }
 
   const existing = await prisma.userKyc.findUnique({ where: { userId } });
   if (existing && existing.status === 'APPROVED') {
-    return NextResponse.json({ error: 'already_approved' }, { status: 409 });
+    return NextResponse.json({ code: 'conflict', error: 'already_approved' }, { status: 409 });
   }
   if (existing && existing.status === 'PENDING_REVIEW') {
-    return NextResponse.json({ error: 'review_in_progress', message: 'KYC sedang ditinjau, mohon tunggu.' }, { status: 409 });
+    return NextResponse.json({ code: 'review_in_progress', error: 'KYC sedang ditinjau, mohon tunggu.' }, { status: 409 });
   }
 
   // Validasi dokumen wajib (upload-before-submit flow).

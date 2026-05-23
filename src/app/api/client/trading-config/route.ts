@@ -13,7 +13,7 @@ const log = createLogger('api/client/trading-config');
  */
 export async function GET(request: NextRequest) {
   const userId = request.headers.get('x-user-id');
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!userId) return NextResponse.json({ code: 'unauthorized', error: 'Unauthorized' }, { status: 401 });
 
   try {
     const res = await proxyToMasterBackend('signals', '/api/forex/me/trading-config', { method: 'GET' });
@@ -26,6 +26,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ source: 'backend', ...body });
   } catch (err) {
     log.warn(`Trading config error: ${err instanceof Error ? err.message : 'unknown'}`);
-    return NextResponse.json({ error: 'backend_unreachable' }, { status: 503 });
+    return NextResponse.json({ code: 'service_unavailable', error: 'backend_unreachable' }, { status: 503 });
   }
 }

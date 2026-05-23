@@ -52,6 +52,7 @@ const WORKER_SCOPES: Array<{
 ];
 
 export async function GET() {
+  try {
   const [dbOk, vps1, workerRunsPerScope, consumerStates, recentChecks] = await Promise.all([
     prisma.$queryRaw`SELECT 1`.then(() => true).catch(() => false),
     getHealth(),
@@ -165,4 +166,8 @@ export async function GET() {
       buildTime: process.env.BUILD_TIMESTAMP ?? null,
     },
   });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }

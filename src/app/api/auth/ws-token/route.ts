@@ -64,7 +64,7 @@ async function readSession(): Promise<SessionPayload | null> {
 export async function GET() {
   const session = await readSession();
   if (!session?.sub) {
-    return NextResponse.json({ error: 'Unauthenticated' }, { status: 401 });
+    return NextResponse.json({ code: 'unauthorized', error: 'Unauthenticated' }, { status: 401 });
   }
 
   // MVP: tenant API token disimpan sebagai env var server-side. Wave-30

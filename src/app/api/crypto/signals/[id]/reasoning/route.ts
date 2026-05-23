@@ -29,7 +29,7 @@ export async function GET(
 
   const { id: signalId } = await params;
   if (!signalId || !/^[a-zA-Z0-9_-]{1,64}$/.test(signalId)) {
-    return NextResponse.json({ error: 'invalid_signal_id' }, { status: 400 });
+    return NextResponse.json({ code: 'bad_request', error: 'invalid_signal_id' }, { status: 400 });
   }
 
   if (!cryptoBackendConfigured()) {

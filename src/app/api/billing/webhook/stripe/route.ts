@@ -112,25 +112,25 @@ export async function POST(req: NextRequest) {
   const secret = process.env.STRIPE_WEBHOOK_SECRET;
   if (!secret) {
     log.error('STRIPE_WEBHOOK_SECRET not configured');
-    return NextResponse.json({ error: 'webhook_unconfigured' }, { status: 503 });
+    return NextResponse.json({ code: 'service_unavailable', error: 'webhook_unconfigured' }, { status: 503 });
   }
 
   const signature = req.headers.get('stripe-signature') ?? '';
   if (!signature) {
-    return NextResponse.json({ error: 'missing_signature' }, { status: 400 });
+    return NextResponse.json({ code: 'bad_request', error: 'missing_signature' }, { status: 400 });
   }
 
   const rawBody = await req.text();
   if (!verifyStripeSignature(rawBody, signature, secret)) {
     log.warn('Stripe signature invalid');
-    return NextResponse.json({ error: 'invalid_signature' }, { status: 401 });
+    return NextResponse.json({ code: 'unauthorized', error: 'invalid_signature' }, { status: 401 });
   }
 
   let event: StripeEvent;
   try {
     event = JSON.parse(rawBody) as StripeEvent;
   } catch {
-    return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
+    return NextResponse.json({ code: 'bad_request', error: 'invalid_json' }, { status: 400 });
   }
 
   log.info(`Stripe event ${event.type} id=${event.id}`);
@@ -193,7 +193,7 @@ export async function POST(req: NextRequest) {
     log.error(`Stripe handler error event=${event.id}:`, err);
     // Return 500 supaya Stripe retry — kalau handler crash karena DB issue,
     // jangan ack supaya next retry mungkin sukses.
-    return NextResponse.json({ error: 'handler_error' }, { status: 500 });
+    return NextResponse.json({ code: 'internal_error', error: 'handler_error' }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true });

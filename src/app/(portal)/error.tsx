@@ -3,20 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { AlertOctagon, RotateCcw, ArrowLeft } from 'lucide-react';
-
-/**
- * Portal error boundary — institutional design matching root error.tsx.
- * Detects locale from document.cookie (NEXT_LOCALE) or navigator.language.
- */
-function readClientLocale(): 'id' | 'en' {
-  if (typeof document === 'undefined') return 'id';
-  const m = document.cookie.match(/(?:^|;\s*)NEXT_LOCALE=(id|en)/);
-  if (m) return m[1] as 'id' | 'en';
-  const lang = navigator.language?.toLowerCase() ?? '';
-  if (lang.startsWith('id')) return 'id';
-  if (lang.startsWith('en')) return 'en';
-  return 'id';
-}
+import { readClientLocale } from '@/lib/locale/client-detect';
 
 const COPY = {
   id: {

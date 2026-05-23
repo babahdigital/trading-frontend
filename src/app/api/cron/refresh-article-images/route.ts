@@ -44,7 +44,7 @@ interface ProcessResult {
 
 export async function POST(request: NextRequest) {
   if (!authorized(request)) {
-    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+    return NextResponse.json({ code: 'unauthorized', error: 'unauthorized' }, { status: 401 });
   }
 
   const url = new URL(request.url);
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (err) {
     log.error(`Article query failed: ${err instanceof Error ? err.message : 'unknown'}`);
-    return NextResponse.json({ error: 'db_failure' }, { status: 500 });
+    return NextResponse.json({ code: 'internal_error', error: 'db_failure' }, { status: 500 });
   }
 
   if (articles.length === 0) {

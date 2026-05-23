@@ -27,7 +27,7 @@ export async function GET(
     where: { id },
     include: { user: { select: { email: true, name: true, createdAt: true } } },
   });
-  if (!kyc) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  if (!kyc) return NextResponse.json({ code: 'not_found', error: 'Not found' }, { status: 404 });
   return NextResponse.json({ kyc });
 }
 
@@ -39,7 +39,7 @@ export async function PATCH(
   if (guard) return guard;
   const reviewerId = request.headers.get('x-user-id');
   if (!reviewerId) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    return NextResponse.json({ code: 'forbidden', error: 'Forbidden' }, { status: 403 });
   }
 
   const { id } = await params;
@@ -54,9 +54,9 @@ export async function PATCH(
   }
 
   const existing = await prisma.userKyc.findUnique({ where: { id } });
-  if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  if (!existing) return NextResponse.json({ code: 'not_found', error: 'Not found' }, { status: 404 });
   if (existing.status === 'APPROVED' && body.decision !== 'APPROVED') {
-    return NextResponse.json({ error: 'cannot_revert_approval' }, { status: 409 });
+    return NextResponse.json({ code: 'conflict', error: 'cannot_revert_approval' }, { status: 409 });
   }
 
   const updated = await prisma.userKyc.update({

@@ -17,6 +17,20 @@ import { Input } from '@/components/ui/input';
 import type { ServiceDescriptor } from '@/lib/register/service-registry';
 import { track } from '@/lib/analytics/track';
 
+function getPasswordStrength(pw: string): { score: number; label: string; color: string } {
+  let score = 0;
+  if (pw.length >= 8) score++;
+  if (pw.length >= 12) score++;
+  if (/[A-Z]/.test(pw)) score++;
+  if (/[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+
+  if (score <= 1) return { score, label: 'Lemah', color: 'bg-rose-500' };
+  if (score <= 2) return { score, label: 'Cukup', color: 'bg-amber-500' };
+  if (score <= 3) return { score, label: 'Baik', color: 'bg-emerald-500' };
+  return { score, label: 'Kuat', color: 'bg-emerald-600' };
+}
+
 interface SignupWizardProps {
   service: ServiceDescriptor;
   initialTier?: string;
@@ -196,6 +210,24 @@ export function SignupWizard({ service, initialTier, isDemoMode = false, locale 
                   placeholder={t('placeholder_password_short')}
                   autoComplete="new-password"
                 />
+                {form.password.length > 0 && (() => {
+                  const strength = getPasswordStrength(form.password);
+                  return (
+                    <div className="mt-2 space-y-1">
+                      <div className="flex h-1.5 rounded-full bg-muted overflow-hidden">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <div
+                            key={i}
+                            className={`flex-1 ${i > 0 ? 'ml-0.5' : ''} rounded-full transition-colors ${
+                              i < strength.score ? strength.color : 'bg-transparent'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <p className="text-[11px] text-foreground/50">{strength.label}</p>
+                    </div>
+                  );
+                })()}
               </div>
               <button
                 type="button"

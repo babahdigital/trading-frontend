@@ -13,20 +13,26 @@ const settingSchema = z.object({
 });
 
 export async function GET(request: NextRequest) {
+  try {
   const denied = requireAdmin(request);
   if (denied) return denied;
 
   const settings = await prisma.siteSetting.findMany({ orderBy: { key: 'asc' } });
   return NextResponse.json(settings);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }
 
 export async function PUT(request: NextRequest) {
+  try {
   const denied = requireAdmin(request);
   if (denied) return denied;
 
   const body = await request.json();
   const parsed = settingSchema.safeParse(body);
-  if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+  if (!parsed.success) return NextResponse.json({ code: 'validation_error', error: parsed.error.flatten() }, { status: 400 });
 
   const setting = await prisma.siteSetting.upsert({
     where: { key: parsed.data.key },
@@ -35,4 +41,8 @@ export async function PUT(request: NextRequest) {
   });
   revalidatePath('/');
   return NextResponse.json(setting);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }

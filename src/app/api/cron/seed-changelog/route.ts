@@ -91,6 +91,7 @@ const SEED_ENTRIES: Array<{
 ];
 
 export async function GET(req: Request) {
+  try {
   // Auth strategy:
   // 1. Kalau Bearer token match CRON_SECRET → allowed (strict mode).
   // 2. Kalau DB Changelog table kosong → allowed tanpa auth (bootstrap mode).
@@ -146,4 +147,8 @@ export async function GET(req: Request) {
     skipped,
     totalSeedEntries: SEED_ENTRIES.length,
   });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }

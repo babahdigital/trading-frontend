@@ -11,6 +11,7 @@ import { FOREX_COOKIE_NAMES, clearForexCookies } from '@/lib/forex/cookies';
  * underlying backend `/auth/logout` is idempotent — replays are no-ops.
  */
 export async function POST(request: NextRequest) {
+  try {
   const access = request.cookies.get(FOREX_COOKIE_NAMES.ACCESS)?.value;
   const refresh = request.cookies.get(FOREX_COOKIE_NAMES.REFRESH)?.value;
   if (access && refresh) {
@@ -18,4 +19,8 @@ export async function POST(request: NextRequest) {
   }
   const response = NextResponse.json({ ok: true, revoked: true });
   return clearForexCookies(response);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }

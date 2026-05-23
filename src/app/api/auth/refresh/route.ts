@@ -16,12 +16,12 @@ export async function POST(request: NextRequest) {
       refreshToken = (body as { refreshToken?: string }).refreshToken ?? '';
     }
     if (!refreshToken) {
-      return NextResponse.json({ error: 'Refresh token required' }, { status: 400 });
+      return NextResponse.json({ code: 'bad_request', error: 'Refresh token required' }, { status: 400 });
     }
 
     const decoded = await verifyRefreshToken(refreshToken);
     if (!decoded) {
-      return NextResponse.json({ error: 'Invalid refresh token' }, { status: 401 });
+      return NextResponse.json({ code: 'unauthorized', error: 'Invalid refresh token' }, { status: 401 });
     }
 
     const session = await prisma.session.findUnique({
@@ -30,11 +30,11 @@ export async function POST(request: NextRequest) {
     });
 
     if (!session || session.revokedAt) {
-      return NextResponse.json({ error: 'Session revoked or not found' }, { status: 401 });
+      return NextResponse.json({ code: 'unauthorized', error: 'Session revoked or not found' }, { status: 401 });
     }
 
     if (session.expiresAt < new Date()) {
-      return NextResponse.json({ error: 'Session expired' }, { status: 401 });
+      return NextResponse.json({ code: 'unauthorized', error: 'Session expired' }, { status: 401 });
     }
 
     const user = session.user;
@@ -76,6 +76,6 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     log.error('Refresh error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ code: 'internal_error', error: 'Internal server error' }, { status: 500 });
   }
 }

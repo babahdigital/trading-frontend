@@ -83,7 +83,7 @@ async function resolveRecipients(audience: string): Promise<Recipient[]> {
 export async function POST(req: NextRequest) {
   try {
     if (!isAdmin(req)) {
-      return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+      return NextResponse.json({ code: 'unauthorized', error: 'unauthorized' }, { status: 401 });
     }
 
     const body = await req.json().catch(() => ({}));
@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
     };
 
     if (!promoId) {
-      return NextResponse.json({ error: 'promoId required' }, { status: 400 });
+      return NextResponse.json({ code: 'bad_request', error: 'promoId required' }, { status: 400 });
     }
 
     const promo = await prisma.promotion.findUnique({
@@ -114,7 +114,7 @@ export async function POST(req: NextRequest) {
       },
     });
     if (!promo) {
-      return NextResponse.json({ error: 'promo_not_found' }, { status: 404 });
+      return NextResponse.json({ code: 'not_found', error: 'promo_not_found' }, { status: 404 });
     }
 
     const recipients = await resolveRecipients(audience);

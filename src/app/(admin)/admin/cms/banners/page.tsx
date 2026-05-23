@@ -154,7 +154,7 @@ export default function CmsBannersPage() {
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="text-sm font-medium mb-1 block">Position</label>
-                <select className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm" value={editing.position} onChange={(e) => setEditing({ ...editing, position: e.target.value })} aria-label="Position">
+                <select className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2" value={editing.position} onChange={(e) => setEditing({ ...editing, position: e.target.value })} aria-label="Position">
                   <option value="TOP">Top</option>
                   <option value="BOTTOM">Bottom</option>
                   <option value="FLOATING">Floating</option>

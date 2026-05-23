@@ -97,7 +97,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (err) {
     log.error(`DB query failed: ${err instanceof Error ? err.message : 'unknown'}`);
-    return NextResponse.json({ error: 'db_failure' }, { status: 500 });
+    return NextResponse.json({ code: 'internal_error', error: 'db_failure' }, { status: 500 });
   }
 
   if (articles.length === 0) {

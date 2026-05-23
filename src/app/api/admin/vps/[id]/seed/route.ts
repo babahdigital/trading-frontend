@@ -28,7 +28,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     const vps = await prisma.vpsInstance.findUnique({ where: { id } });
     if (!vps) {
-      return NextResponse.json({ error: 'VPS instance not found' }, { status: 404 });
+      return NextResponse.json({ code: 'not_found', error: 'VPS instance not found' }, { status: 404 });
     }
 
     const daysMarketHistory = (body as Record<string, unknown>).days_market_history ?? 90;
@@ -97,7 +97,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     });
   } catch (error) {
     log.error('Seed generation error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ code: 'internal_error', error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -125,7 +125,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     });
 
     if (!vps) {
-      return NextResponse.json({ error: 'VPS instance not found' }, { status: 404 });
+      return NextResponse.json({ code: 'not_found', error: 'VPS instance not found' }, { status: 404 });
     }
 
     const isExpired = vps.seedUrlExpiresAt
@@ -143,6 +143,6 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     });
   } catch (error) {
     log.error('Seed info error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ code: 'internal_error', error: 'Internal server error' }, { status: 500 });
   }
 }

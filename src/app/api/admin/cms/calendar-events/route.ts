@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(events);
   } catch (error) {
     log.error('List calendar events error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ code: 'internal_error', error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const parsed = calendarEventSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+      return NextResponse.json({ code: 'validation_error', error: parsed.error.flatten() }, { status: 400 });
     }
 
     const { eventDate, ...rest } = parsed.data;
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(event, { status: 201 });
   } catch (error) {
     log.error('Create calendar event error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ code: 'internal_error', error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -68,12 +68,12 @@ export async function PATCH(request: NextRequest) {
     const body = await request.json();
     const { id, ...data } = body;
     if (!id) {
-      return NextResponse.json({ error: 'id is required' }, { status: 400 });
+      return NextResponse.json({ code: 'bad_request', error: 'id is required' }, { status: 400 });
     }
 
     const parsed = calendarEventSchema.partial().safeParse(data);
     if (!parsed.success) {
-      return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+      return NextResponse.json({ code: 'validation_error', error: parsed.error.flatten() }, { status: 400 });
     }
 
     const updateData = { ...parsed.data } as Record<string, unknown>;
@@ -88,7 +88,7 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json(event);
   } catch (error) {
     log.error('Update calendar event error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ code: 'internal_error', error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -99,13 +99,13 @@ export async function DELETE(request: NextRequest) {
   try {
     const id = request.nextUrl.searchParams.get('id');
     if (!id) {
-      return NextResponse.json({ error: 'id is required' }, { status: 400 });
+      return NextResponse.json({ code: 'bad_request', error: 'id is required' }, { status: 400 });
     }
 
     await prisma.calendarEvent.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (error) {
     log.error('Delete calendar event error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ code: 'internal_error', error: 'Internal server error' }, { status: 500 });
   }
 }

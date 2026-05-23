@@ -41,7 +41,7 @@ export async function GET(
   });
 
   if (!brief) {
-    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    return NextResponse.json({ code: 'not_found', error: 'Not found' }, { status: 404 });
   }
 
   const tier = await getUserTier(request);

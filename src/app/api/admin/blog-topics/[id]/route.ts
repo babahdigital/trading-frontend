@@ -26,6 +26,7 @@ const updateSchema = z.object({
 });
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
   const denied = requireAdmin(request);
   if (denied) return denied;
 
@@ -38,11 +39,16 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       },
     },
   });
-  if (!topic) return NextResponse.json({ error: 'not found' }, { status: 404 });
+  if (!topic) return NextResponse.json({ code: 'not_found', error: 'not found' }, { status: 404 });
   return NextResponse.json(topic);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
   const denied = requireAdmin(request);
   if (denied) return denied;
 
@@ -50,11 +56,11 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   const body = await request.json();
   const parsed = updateSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json({ code: 'validation_error', error: parsed.error.flatten() }, { status: 400 });
   }
 
   const existing = await prisma.blogTopic.findUnique({ where: { id } });
-  if (!existing) return NextResponse.json({ error: 'not found' }, { status: 404 });
+  if (!existing) return NextResponse.json({ code: 'not_found', error: 'not found' }, { status: 404 });
 
   const data = { ...parsed.data } as Record<string, unknown>;
   if (parsed.data.dataSources !== undefined) {
@@ -67,16 +73,25 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   });
   revalidatePath('/research');
   return NextResponse.json(topic);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
   const denied = requireAdmin(request);
   if (denied) return denied;
 
   const { id } = await params;
   const existing = await prisma.blogTopic.findUnique({ where: { id } });
-  if (!existing) return NextResponse.json({ error: 'not found' }, { status: 404 });
+  if (!existing) return NextResponse.json({ code: 'not_found', error: 'not found' }, { status: 404 });
 
   await prisma.blogTopic.delete({ where: { id } });
   return NextResponse.json({ success: true });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });
+  }
 }

@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ licenses, total, page, limit });
   } catch (error) {
     log.error('List licenses error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ code: 'internal_error', error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -63,24 +63,24 @@ export async function PATCH(request: NextRequest) {
   try {
     const contentType = request.headers.get('content-type');
     if (!contentType || !contentType.includes('application/json')) {
-      return NextResponse.json({ error: 'Content-Type must be application/json' }, { status: 400 });
+      return NextResponse.json({ code: 'bad_request', error: 'Content-Type must be application/json' }, { status: 400 });
     }
 
     const body = await request.json().catch(() => null);
     if (!body) {
-      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+      return NextResponse.json({ code: 'bad_request', error: 'Invalid JSON body' }, { status: 400 });
     }
 
     const parsed = patchSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json({ error: parsed.error.errors[0].message }, { status: 400 });
+      return NextResponse.json({ code: 'validation_error', error: parsed.error.errors[0].message }, { status: 400 });
     }
 
     const { id, vpsInstanceId, status, expiresAt, autoRenew } = parsed.data;
 
     const existing = await prisma.license.findUnique({ where: { id } });
     if (!existing) {
-      return NextResponse.json({ error: 'License not found' }, { status: 404 });
+      return NextResponse.json({ code: 'not_found', error: 'License not found' }, { status: 404 });
     }
 
     // Snapshot before-values for audit
@@ -115,7 +115,7 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json(updated);
   } catch (error) {
     log.error('Update license error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ code: 'internal_error', error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
     const { userId, type, vpsInstanceId, startsAt, expiresAt, autoRenew, metadata } = body;
 
     if (!userId || !type || !startsAt || !expiresAt) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+      return NextResponse.json({ code: 'bad_request', error: 'Missing required fields' }, { status: 400 });
     }
 
     const license = await prisma.license.create({
@@ -157,7 +157,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(license, { status: 201 });
   } catch (error) {
     log.error('Create license error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ code: 'internal_error', error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -169,12 +169,12 @@ export async function DELETE(request: NextRequest) {
     const id = searchParams.get('id');
 
     if (!id) {
-      return NextResponse.json({ error: 'Missing license id' }, { status: 400 });
+      return NextResponse.json({ code: 'bad_request', error: 'Missing license id' }, { status: 400 });
     }
 
     const existing = await prisma.license.findUnique({ where: { id } });
     if (!existing) {
-      return NextResponse.json({ error: 'License not found' }, { status: 404 });
+      return NextResponse.json({ code: 'not_found', error: 'License not found' }, { status: 404 });
     }
 
     // Check for FK dependencies that would block deletion
@@ -199,6 +199,6 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error) {
     log.error('Delete license error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ code: 'internal_error', error: 'Internal server error' }, { status: 500 });
   }
 }

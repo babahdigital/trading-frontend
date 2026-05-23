@@ -39,7 +39,7 @@ export async function GET(
   const { filename } = await params;
 
   if (!filename || !FILENAME_RE.test(filename) || filename.includes('..')) {
-    return NextResponse.json({ error: 'Invalid filename' }, { status: 400 });
+    return NextResponse.json({ code: 'bad_request', error: 'Invalid filename' }, { status: 400 });
   }
 
   const fullPath = path.join(UPLOAD_DIR, filename);
@@ -47,13 +47,13 @@ export async function GET(
   // Defensive resolve untuk memastikan tidak escape UPLOAD_DIR
   const resolved = path.resolve(fullPath);
   if (!resolved.startsWith(path.resolve(UPLOAD_DIR))) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    return NextResponse.json({ code: 'forbidden', error: 'Forbidden' }, { status: 403 });
   }
 
   try {
     const stats = await stat(resolved);
     if (!stats.isFile()) {
-      return NextResponse.json({ error: 'Not a file' }, { status: 404 });
+      return NextResponse.json({ code: 'not_found', error: 'Not a file' }, { status: 404 });
     }
     const buffer = await readFile(resolved);
     const ext = path.extname(filename).toLowerCase();
@@ -70,6 +70,6 @@ export async function GET(
       },
     });
   } catch {
-    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    return NextResponse.json({ code: 'not_found', error: 'Not found' }, { status: 404 });
   }
 }

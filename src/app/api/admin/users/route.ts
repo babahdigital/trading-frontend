@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ users, total, page, limit });
   } catch (error) {
     log.error('List users error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ code: 'internal_error', error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -51,12 +51,12 @@ export async function POST(request: NextRequest) {
     const { email, password, name, role, mt5Account } = body;
 
     if (!email || !password) {
-      return NextResponse.json({ error: 'Email and password required' }, { status: 400 });
+      return NextResponse.json({ code: 'bad_request', error: 'Email and password required' }, { status: 400 });
     }
 
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
-      return NextResponse.json({ error: 'Email already exists' }, { status: 409 });
+      return NextResponse.json({ code: 'conflict', error: 'Email already exists' }, { status: 409 });
     }
 
     const passwordHash = await hashPassword(password);
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(user, { status: 201 });
   } catch (error) {
     log.error('Create user error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ code: 'internal_error', error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -104,25 +104,25 @@ export async function PATCH(request: NextRequest) {
     const callerRole = request.headers.get('x-user-role');
 
     if (!id) {
-      return NextResponse.json({ error: 'Missing user id' }, { status: 400 });
+      return NextResponse.json({ code: 'bad_request', error: 'Missing user id' }, { status: 400 });
     }
     if (!role && typeof isActive !== 'boolean') {
-      return NextResponse.json({ error: 'Nothing to update' }, { status: 400 });
+      return NextResponse.json({ code: 'bad_request', error: 'Nothing to update' }, { status: 400 });
     }
 
     const existing = await prisma.user.findUnique({ where: { id } });
     if (!existing) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      return NextResponse.json({ code: 'not_found', error: 'User not found' }, { status: 404 });
     }
 
     // Immutable SUPER_ADMIN role
     if (existing.role === 'SUPER_ADMIN' && role && role !== 'SUPER_ADMIN') {
-      return NextResponse.json({ error: 'Cannot modify SUPER_ADMIN role' }, { status: 403 });
+      return NextResponse.json({ code: 'forbidden', error: 'Cannot modify SUPER_ADMIN role' }, { status: 403 });
     }
 
     // Hanya SUPER_ADMIN bisa promote ke ADMIN level
     if (role && ['ADMIN', 'SUPER_ADMIN'].includes(role) && callerRole !== 'SUPER_ADMIN') {
-      return NextResponse.json({ error: 'Only SUPER_ADMIN can promote to ADMIN level' }, { status: 403 });
+      return NextResponse.json({ code: 'forbidden', error: 'Only SUPER_ADMIN can promote to ADMIN level' }, { status: 403 });
     }
 
     const updateData: Record<string, unknown> = {};
@@ -153,7 +153,7 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json(updated);
   } catch (error) {
     log.error('Update user error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ code: 'internal_error', error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -165,17 +165,17 @@ export async function DELETE(request: NextRequest) {
     const id = searchParams.get('id');
 
     if (!id) {
-      return NextResponse.json({ error: 'Missing user id' }, { status: 400 });
+      return NextResponse.json({ code: 'bad_request', error: 'Missing user id' }, { status: 400 });
     }
 
     const existing = await prisma.user.findUnique({ where: { id } });
     if (!existing) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      return NextResponse.json({ code: 'not_found', error: 'User not found' }, { status: 404 });
     }
 
     // Only allow deleting CLIENT users (safety guard)
     if (existing.role !== 'CLIENT') {
-      return NextResponse.json({ error: 'Can only delete CLIENT users' }, { status: 403 });
+      return NextResponse.json({ code: 'forbidden', error: 'Can only delete CLIENT users' }, { status: 403 });
     }
 
     // Delete dependent licenses first, then user
@@ -193,6 +193,6 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error) {
     log.error('Delete user error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ code: 'internal_error', error: 'Internal server error' }, { status: 500 });
   }
 }

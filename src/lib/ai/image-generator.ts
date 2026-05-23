@@ -255,13 +255,32 @@ async function generateViaGemini(
     }
 
     const body = await res.json();
-    const imageData = body.choices?.[0]?.message?.content?.find(
-      (c: { type: string }) => c.type === 'image_url',
-    );
-    const imageUrl = imageData?.image_url?.url
-      ?? body.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    const msg = body.choices?.[0]?.message;
+    // OpenRouter Gemini image responses vary in structure:
+    //   A) content = [{type:'image_url', image_url:{url:'data:...'}}]
+    //   B) content = [{type:'image_url', image_url:{url:'https://...'}}]
+    //   C) images = [{image_url:{url:'data:...'}}]
+    //   D) content = [{inline_data:{mime_type:'image/png', data:'base64...'}}]
+    //   E) content = string (text-only response, no image)
+    let imageUrl: string | null = null;
+
+    const content = msg?.content;
+    if (Array.isArray(content)) {
+      const imgPart = content.find((c: Record<string, unknown>) =>
+        c.type === 'image_url' || c.inline_data,
+      );
+      if (imgPart?.image_url?.url) {
+        imageUrl = imgPart.image_url.url;
+      } else if (imgPart?.inline_data?.data) {
+        const mime = imgPart.inline_data.mime_type || 'image/png';
+        imageUrl = `data:${mime};base64,${imgPart.inline_data.data}`;
+      }
+    }
     if (!imageUrl) {
-      log.warn('Gemini image: no image in response');
+      imageUrl = msg?.images?.[0]?.image_url?.url ?? null;
+    }
+    if (!imageUrl) {
+      log.warn(`Gemini image: no image in response (content type: ${typeof content})`);
       return null;
     }
 

@@ -41,10 +41,11 @@ const GROUP_COLOR: Record<Ticker['group'], string> = {
   index:     'text-violet-400',
 };
 
-// Animation speed — 75s lebih nyaman dari 120s (Pak Abdullah feedback
-// 2026-05-22: "di mobile + windows lambat sekali percepat"). 75s × 24
-// items duplicated set = ~3.1s/item average — readable tapi feel live.
-const ANIM_DURATION_S = 75;
+// Animation speed — 45s feel "live" tanpa mata cepat lelah.
+// Iterasi: 120s → 75s → 45s (Pak Abdullah feedback 2026-05-23: 75s
+// masih terasa lambat di mobile + Windows desktop). 45s × 28 items
+// duplicated set = ~1.6s/item average — readable tapi proper pulse.
+const ANIM_DURATION_S = 45;
 const SCROLL_THRESHOLD = 120;
 // Right-edge reserve untuk chat FAB:
 //   - Mobile (<640px): icon 56px @ right-4 (16px) = 72px total
@@ -111,16 +112,20 @@ const TickerItem = memo(function TickerItem({ t }: { t: Ticker }) {
   const isUp = t.change24hPct >= 0;
   return (
     <div className="inline-flex items-center gap-2 px-2.5 sm:px-3.5 text-xs font-mono shrink-0">
-      <span className={cn('font-bold tracking-[0.04em] min-w-[32px]', GROUP_COLOR[t.group])}>
+      {/* No fixed min-w — let label content drive width (OIL=3char vs XAUUSD=6char
+          tidak perlu padding ekstra). tracking-[0.04em] keeps letter spacing tight. */}
+      <span className={cn('font-bold tracking-[0.04em]', GROUP_COLOR[t.group])}>
         {t.label}
       </span>
-      {/* min-w lock prevents layout shift saat angka berubah width. */}
-      <span className="text-foreground/95 tabular-nums min-w-[56px] text-right">
+      {/* tabular-nums alone prevents intra-item digit shift saat satu item's
+          price flicks. No fixed min-w — natural width per symbol (BTC=7 digit
+          tidak boros space buat XLM=0.34xxx). */}
+      <span className="text-foreground/95 tabular-nums">
         {formatPrice(t.last, t.group, t.symbol, t.currency)}
       </span>
       <span
         className={cn(
-          'tabular-nums px-1 py-0.5 rounded text-[10px] font-bold min-w-[52px] text-center',
+          'tabular-nums px-1.5 py-0.5 rounded text-[10px] font-bold',
           isUp
             ? 'bg-emerald-500/15 text-emerald-400'
             : 'bg-rose-500/15 text-rose-400',
@@ -143,13 +148,25 @@ const TickerItem = memo(function TickerItem({ t }: { t: Ticker }) {
 // Skeleton items — 8 placeholder, same outer container supaya transition
 // dari skeleton ke real marquee tidak unmount outer animation host.
 function SkeletonItems() {
+  // Varied widths simulate dynamic content (mimics real items where
+  // BTC=7digit, OIL=2digit, XAUUSD=4digit, etc).
+  const widths: [string, string, string][] = [
+    ['w-7', 'w-12', 'w-10'],
+    ['w-9', 'w-16', 'w-11'],
+    ['w-6', 'w-10', 'w-9'],
+    ['w-10', 'w-14', 'w-12'],
+    ['w-8', 'w-12', 'w-10'],
+    ['w-7', 'w-16', 'w-11'],
+    ['w-9', 'w-11', 'w-9'],
+    ['w-6', 'w-14', 'w-10'],
+  ];
   return (
     <>
-      {Array.from({ length: 8 }).map((_, i) => (
+      {widths.map(([wLabel, wPrice, wChange], i) => (
         <div key={`skel-${i}`} className="inline-flex items-center gap-2 px-2.5 sm:px-3.5 shrink-0">
-          <span className="inline-block h-3 w-8 rounded bg-slate-800/60 animate-pulse" />
-          <span className="inline-block h-3 w-14 rounded bg-slate-800/40 animate-pulse" />
-          <span className="inline-block h-3 w-10 rounded bg-slate-800/30 animate-pulse" />
+          <span className={cn('inline-block h-3 rounded bg-slate-800/60 animate-pulse', wLabel)} />
+          <span className={cn('inline-block h-3 rounded bg-slate-800/40 animate-pulse', wPrice)} />
+          <span className={cn('inline-block h-3 rounded bg-slate-800/30 animate-pulse', wChange)} />
         </div>
       ))}
     </>

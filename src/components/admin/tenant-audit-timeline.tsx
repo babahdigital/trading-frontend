@@ -11,8 +11,7 @@ import { cn } from '@/lib/utils';
 /**
  * Per-tenant audit timeline.
  *
- * Backend: GET /api/forex/admin/tenants/{id}/audit (Phase 14W pending).
- * Saat backend belum ship, render empty state + pending badge.
+ * Backend: GET /api/forex/admin/tenants/{id}/audit (shipped 2026-05-24).
  *
  * Event types mapped ke icon + color:
  *   - tenant_suspended: red Pause

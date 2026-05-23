@@ -108,20 +108,19 @@ Daily research worker (`daily-research.ts`) updated to source from `ai_learn.mar
 
 ## PRIORITAS
 
-### Harus Segera (security + core feature)
-1. **F-1**: Per-user tenant token — security risk jika bocor
-2. ~~**C-2**: WhatsApp OTP~~ — ✅ DONE 2026-05-24
+### ALL TASKS COMPLETED ✅
 
-### Sebelum Customer Onboarding
-3. **F-5**: Tenant audit trail — ops visibility
-4. ~~**C-1**: Crypto notification~~ — ✅ DONE 2026-05-24
-
-### Nice-to-Have (bisa setelah launch)
-5. **F-2**: AI state per-pair — dashboard polish
-6. **F-3**: Max consecutive loss — performance stats
-7. **F-4**: Average hold time — performance stats
-8. **F-6**: OAuth — convenience login
-9. ~~**C-3**: Micro tier~~ — ✅ DONE 2026-05-24
+| # | Task | Status |
+|---|------|--------|
+| F-1 | Per-user tenant token | ✅ DONE 2026-05-24 |
+| F-2 | AI state per-pair | ✅ DONE 2026-05-24 |
+| F-3 | Max consecutive loss | ✅ DONE 2026-05-24 |
+| F-4 | Average hold time | ✅ DONE 2026-05-24 |
+| F-5 | Tenant audit trail | ✅ DONE 2026-05-24 |
+| F-6 | OAuth callbacks | ✅ DONE 2026-05-24 |
+| C-1 | Crypto notification | ✅ DONE 2026-05-24 |
+| C-2 | WhatsApp OTP | ✅ DONE 2026-05-24 |
+| C-3 | Micro tier SKU | ✅ DONE 2026-05-24 |
 
 ---
 

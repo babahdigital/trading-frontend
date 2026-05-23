@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
         source: 'backend',
         open_positions: openPositions,
         stats_today: statsBody,
-        ai_state_by_pair: {}, // TODO Wave-30: backend belum expose ai-state per-pair untuk tenant
+        ai_state_by_pair: statsBody?.ai_state_by_pair ?? {},
       });
     } else {
       return NextResponse.json(

@@ -47,14 +47,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     const payload = await res.json().catch(() => ({}));
     if (!res.ok) {
-      // Backend belum ship — FE soft-fail ke empty state, jangan throw
-      if (res.status === 404 || res.status === 501) {
+      if (res.status === 404) {
         return NextResponse.json({
-          source: 'pending',
+          source: 'empty',
           entries: [],
           total: 0,
           next_cursor: null,
-          message: 'Backend endpoint Phase 14W belum ship — FE siap consume otomatis saat live.',
         });
       }
       log.warn(`audit feed backend HTTP ${res.status} tenant=${id}`);

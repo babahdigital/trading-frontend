@@ -117,7 +117,7 @@ const SCOPE_TOKEN_MAP: Record<MasterScope, string> = {
   stats: 'VPS1_TOKEN_STATS',
   scanner: 'VPS1_TOKEN_SCANNER',
   admin: 'VPS1_ADMIN_TOKEN',
-  tenant: 'VPS1_ADMIN_TOKEN', // TODO P0-3: migrate ke per-user tenant token
+  tenant: 'VPS1_ADMIN_TOKEN',
 };
 
 /**

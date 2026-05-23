@@ -41,6 +41,7 @@ interface BackendUmbrella {
   net_pnl_usd: number;
   avg_rr: number | null;
   avg_hold_minutes: number | null;
+  max_consecutive_loss: number | null;
   window_days: number;
 }
 
@@ -111,7 +112,7 @@ export async function GET(request: Request) {
             winRate: row.trades > 0 ? row.win_rate : null,
             avgRR: row.avg_rr,
             avgHoldMinutes: row.avg_hold_minutes,
-            maxConsecutiveLoss: null, // backend belum expose, akan ship Phase 14W
+            maxConsecutiveLoss: row.max_consecutive_loss ?? null,
             sampleSize: row.trades,
             lastUpdated: body.computed_at,
           };

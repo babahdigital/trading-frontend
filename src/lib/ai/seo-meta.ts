@@ -143,7 +143,7 @@ export async function generateSeoMeta(input: GenerateSeoMetaInput): Promise<SeoM
       model: or.chat(REASONING_MODEL),
       prompt,
       temperature: 0.3,
-      maxOutputTokens: 600,
+      maxOutputTokens: 1024,
     });
 
     // Parse JSON — robust extraction handling multiple AI output formats:

@@ -492,6 +492,7 @@ export function TickerBar() {
           100% { transform: translate3d(-50%, 0, 0); }
         }
         .ticker-marquee-anim {
+          width: max-content;
           animation: ticker-scroll 40s linear infinite;
         }
         @media (max-width: 639px) {

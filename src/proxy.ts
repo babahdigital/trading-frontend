@@ -31,9 +31,10 @@ const publicPaths = ['/login', '/admin/login', '/forgot-password', '/reset-passw
   // /api/v1/* — public versioned API (recommend-tier dst). No auth required;
   // route handlers self-validate input.
   '/api/v1/',
-  // /api/admin/cms/promotions/[id]/generate-image — dual auth (admin OR CRON).
-  // Middleware bypass — route handler self-authenticates.
+  // Dual auth routes (admin JWT OR CRON_SECRET) — middleware bypass,
+  // route handlers self-authenticate.
   '/api/admin/cms/promotions/',
+  '/api/admin/cms/articles/backfill-images',
   // Admin smoke test endpoints — pakai own Bearer CRON_SECRET auth di route handler,
   // tidak butuh JWT admin session. Bypass middleware JWT check.
   '/api/admin/sentry-test', '/api/admin/fonnte-test', '/api/admin/brevo-test',

@@ -41,11 +41,15 @@ const GROUP_COLOR: Record<Ticker['group'], string> = {
   index:     'text-violet-400',
 };
 
-// Animation speed — 45s feel "live" tanpa mata cepat lelah.
-// Iterasi: 120s → 75s → 45s (Pak Abdullah feedback 2026-05-23: 75s
-// masih terasa lambat di mobile + Windows desktop). 45s × 28 items
-// duplicated set = ~1.6s/item average — readable tapi proper pulse.
-const ANIM_DURATION_S = 45;
+// Animation speed — responsive per viewport.
+//   Mobile (<640px): 28s — viewport narrower, butuh pulse cepat supaya
+//     content flow feel "live" tidak terasa stuck di satu item.
+//   Desktop (≥640px): 40s — viewport wider, lebih banyak items visible,
+//     bisa slower untuk eye-comfort.
+// Iterasi: 120s → 75s → 45s → mobile 28 / desktop 40 (Pak Abdullah
+// feedback 2026-05-23: "di mobile masih lambat sekali").
+const ANIM_DURATION_MOBILE_S = 28;
+const ANIM_DURATION_DESKTOP_S = 40;
 const SCROLL_THRESHOLD = 120;
 // Right-edge reserve untuk chat FAB:
 //   - Mobile (<640px): icon 56px @ right-4 (16px) = 72px total
@@ -55,8 +59,14 @@ const SCROLL_THRESHOLD = 120;
 const CHAT_RESERVE_MOBILE_PX = 72;
 const CHAT_RESERVE_DESKTOP_PX = 80;
 const EDGE_PADDING_PX = 12;
-const CACHE_KEY = 'babah.ticker.cache.v2';
-const CACHE_MAX_AGE_MS = 5 * 60 * 1000;
+// Bumped to v3 — invalidate stale partial caches dari iterasi sebelumnya
+// (e.g. cache hanya 3 commodity items dari schema lama).
+const CACHE_KEY = 'babah.ticker.cache.v3';
+const CACHE_MAX_AGE_MS = 30 * 60 * 1000; // 30 min — server tetap fetch berkala
+const MIN_TICKER_COUNT = 20; // reject cache yang under-populated
+// Animation continuity — preserve scroll position across page refreshes
+// supaya tidak restart dari 0% setiap navigation.
+const ANIM_ANCHOR_KEY = 'babah.ticker.anim-anchor';
 
 function readCache(): Ticker[] | null {
   if (typeof window === 'undefined') return null;
@@ -66,6 +76,8 @@ function readCache(): Ticker[] | null {
     const parsed = JSON.parse(raw) as { ts: number; tickers: Ticker[] };
     if (!parsed?.ts || !Array.isArray(parsed.tickers)) return null;
     if (Date.now() - parsed.ts > CACHE_MAX_AGE_MS) return null;
+    // Reject under-populated cache (mis. stale schema dari versi lama)
+    if (parsed.tickers.length < MIN_TICKER_COUNT) return null;
     return parsed.tickers;
   } catch {
     return null;
@@ -73,12 +85,33 @@ function readCache(): Ticker[] | null {
 }
 
 function writeCache(tickers: Ticker[]): void {
-  if (typeof window === 'undefined' || tickers.length === 0) return;
+  if (typeof window === 'undefined' || tickers.length < MIN_TICKER_COUNT) return;
   try {
     localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), tickers }));
   } catch {
     /* quota / disabled — non-fatal */
   }
+}
+
+/**
+ * Animation anchor — persist a "virtual start timestamp" supaya animation
+ * looks continuous across page refreshes. Browser's CSS animation always
+ * starts at 0% on mount; kita compensate dengan negative animation-delay
+ * yang represent waktu yang sudah "berlalu" sejak anchor.
+ *
+ * Saved value = epoch ms saat ticker pertama kali shown di session/device.
+ * On refresh, compute elapsed = now - anchor, then delay = -(elapsed mod duration).
+ */
+function getAnimAnchor(): number {
+  if (typeof window === 'undefined') return Date.now();
+  try {
+    const raw = sessionStorage.getItem(ANIM_ANCHOR_KEY);
+    const parsed = raw ? parseInt(raw, 10) : NaN;
+    if (Number.isFinite(parsed) && parsed > 0) return parsed;
+  } catch { /* ignore */ }
+  const now = Date.now();
+  try { sessionStorage.setItem(ANIM_ANCHOR_KEY, String(now)); } catch { /* ignore */ }
+  return now;
 }
 
 function formatPrice(n: number, group: Ticker['group'], symbol: string, currency: Ticker['currency']): string {
@@ -361,6 +394,23 @@ export function TickerBar() {
   // memo TickerItem cegah cascade).
   const repeated = useMemo(() => [...tickers, ...tickers], [tickers]);
 
+  // Responsive duration + animation continuity calculation.
+  // Anchor = waktu pertama kali ticker mount di session (stored di
+  // sessionStorage). Elapsed since anchor = berapa detik animation "sudah
+  // berjalan" walau CSS animation baru di-mount. Negative animation-delay
+  // = CSS treats as if animation already played that duration → ticker
+  // appear di posisi mid-loop, NOT 0%.
+  //
+  // Captured once via useState initializer (pure — runs once on first
+  // render, no closure over mutable time).
+  const animDuration = isMobile ? ANIM_DURATION_MOBILE_S : ANIM_DURATION_DESKTOP_S;
+  const [mountElapsedSec] = useState<number>(() => {
+    if (typeof window === 'undefined') return 0;
+    const anchor = getAnimAnchor();
+    return (Date.now() - anchor) / 1000;
+  });
+  const animDelay = -(mountElapsedSec % animDuration);
+
   // Mode visual
   const mode: 'top' | 'bottom-fixed' | 'hidden' =
     !hydrated ? 'top'
@@ -428,11 +478,19 @@ export function TickerBar() {
 
       <div className="relative z-0">
         {/* Single marquee track — content swap, animation host TETAP mount.
-            Animation duration locked ke ANIM_DURATION_S = predictable speed
-            terlepas dari jumlah items. */}
+            animDelay (negative) sync animation position dengan session anchor
+            → looks continuous across refreshes (no reset to 0%).
+            animDuration responsive: mobile=28s, desktop=40s. */}
         <div
           className="ticker-marquee flex whitespace-nowrap py-2 will-change-transform"
-          style={{ animation: `ticker-scroll ${ANIM_DURATION_S}s linear infinite` }}
+          style={{
+            animationName: 'ticker-scroll',
+            animationDuration: `${animDuration}s`,
+            animationTimingFunction: 'linear',
+            animationIterationCount: 'infinite',
+            animationDelay: `${animDelay}s`,
+            animationFillMode: 'both',
+          }}
         >
           {showMarquee
             ? repeated.map((t, i) => (

@@ -397,56 +397,48 @@ export function TickerBar() {
   const repeated = useMemo(() => [...tickers, ...tickers], [tickers]);
 
   // ───────────────────────────────────────────────────────────────────
-  // Animation via Web Animations API (WAAPI).
+  // Animation: Pure CSS (browser-managed) + WAAPI seek-once for continuity.
   //
-  // Root cause iterasi sebelumnya: inline `style={{ animation... }}` di-render
-  // setiap kali state berubah (tickers data, isMobile, footerVisible, dst).
-  // Walau values sama, React re-mount style attr → CSS animation reset to 0%
-  // → visible blip mid-loop.
+  // Root cause iterasi sebelumnya:
+  //   - Inline style={{animation:...}}: re-applied setiap re-render → reset
+  //   - WAAPI via useEffect dengan deps[tickers.length]: cleanup+recreate
+  //     saat data arrives → blip visible
   //
-  // Solusi WAAPI: attach animation programmatic ke DOM via ref, persist
-  // via animationRef. Animation lives DI LUAR React render cycle — re-render
-  // tidak touch animation state. Continuity preserved via currentTime seek.
+  // Solusi sekarang:
+  //   - Pure CSS animation in <style> tag (browser fully manages lifecycle)
+  //   - Responsive duration via @media query (no JS)
+  //   - WAAPI ONLY untuk seek currentTime once on mount (continuity)
+  //   - No cleanup, no recreate — animation runs for component lifetime
+  //   - State changes (scroll/footer/sticky/chat/mobile/data) zero impact
+  //     pada animation karena animasi tidak punya React dependency.
   // ───────────────────────────────────────────────────────────────────
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const el = marqueeRef.current;
     if (!el) return;
-    // Hanya start animation kalau marquee punya konten real (showMarquee).
-    // Tunda sampai data ready supaya animasi mulai dari content yang valid.
-    if (tickers.length < MIN_TICKER_COUNT) return;
-    // Sudah ada animation aktif? Don't re-create (key to no-restart).
-    if (animationRef.current && animationRef.current.playState !== 'idle') return;
-
-    const mobile = window.innerWidth < 640;
-    const durationMs = (mobile ? ANIM_DURATION_MOBILE_S : ANIM_DURATION_DESKTOP_S) * 1000;
-    const anchor = getAnimAnchor();
-    const elapsedMs = Date.now() - anchor;
-    // Wrap elapsed ke dalam single loop duration (0..durationMs).
-    const currentTime = elapsedMs % durationMs;
-
-    const anim = el.animate(
-      [
-        { transform: 'translateX(0)' },
-        { transform: 'translateX(-50%)' },
-      ],
-      {
-        duration: durationMs,
-        iterations: Infinity,
-        easing: 'linear',
-      },
-    );
-    anim.currentTime = currentTime; // resume mid-loop dari anchor
-    animationRef.current = anim;
-
-    return () => {
-      anim.cancel();
-      animationRef.current = null;
+    // Wait one frame supaya browser sudah apply CSS animation styles
+    let rafId = 0;
+    const seek = () => {
+      const anims = el.getAnimations();
+      if (anims.length === 0) {
+        // CSS belum diterapkan, retry next frame (max 5 tries)
+        if (rafId++ < 5) requestAnimationFrame(seek);
+        return;
+      }
+      const anim = anims[0];
+      const timing = (anim.effect as KeyframeEffect | null)?.getTiming();
+      const durationMs = timing && typeof timing.duration === 'number' ? timing.duration : 0;
+      if (!durationMs) return;
+      const anchor = getAnimAnchor();
+      const elapsedMs = Date.now() - anchor;
+      anim.currentTime = elapsedMs % durationMs;
+      animationRef.current = anim;
     };
-  }, [tickers.length]); // re-attach hanya saat ticker count crosses threshold
+    requestAnimationFrame(seek);
+  }, []); // empty deps — run ONCE on mount, never re-attempt
 
   // Hover pause — bind ke DOM langsung via marquee ref event listeners
-  // (no React state needed).
+  // (no React state needed, no animation recreation).
   useEffect(() => {
     const el = marqueeRef.current;
     if (!el) return;
@@ -458,21 +450,6 @@ export function TickerBar() {
       el.removeEventListener('mouseenter', onEnter);
       el.removeEventListener('mouseleave', onLeave);
     };
-  }, []);
-
-  // Reduced-motion respect — pause animation kalau user prefer
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const apply = () => {
-      const a = animationRef.current;
-      if (!a) return;
-      if (mq.matches) a.pause();
-      else if (a.playState === 'paused') a.play();
-    };
-    apply();
-    mq.addEventListener('change', apply);
-    return () => mq.removeEventListener('change', apply);
   }, []);
 
   // Mode visual
@@ -573,8 +550,28 @@ export function TickerBar() {
         className="pointer-events-none absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-slate-950 to-transparent z-10"
       />
 
-      {/* WAAPI handles keyframes, hover-pause, reduced-motion via JS refs above.
-          No CSS animation rules needed — keeps render-stable for refresh continuity. */}
+      {/* Pure CSS animation — browser fully manages lifecycle.
+          React state changes tidak touch animation property → no restart.
+          WAAPI useEffect (above) only SEEKS currentTime once for continuity. */}
+      <style>{`
+        @keyframes ticker-scroll {
+          0%   { transform: translate3d(0, 0, 0); }
+          100% { transform: translate3d(-50%, 0, 0); }
+        }
+        .ticker-marquee {
+          animation: ticker-scroll 40s linear infinite;
+        }
+        @media (max-width: 639px) {
+          .ticker-marquee {
+            animation-duration: 28s;
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .ticker-marquee {
+            animation: none !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

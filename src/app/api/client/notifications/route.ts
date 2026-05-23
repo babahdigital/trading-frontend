@@ -15,42 +15,50 @@ const DEFAULT_PREF = {
 };
 
 export async function GET(req: NextRequest) {
-  const userId = await getUserIdFromRequest(req);
-  if (!userId) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  try {
+    const userId = await getUserIdFromRequest(req);
+    if (!userId) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
 
-  const [pref, logs] = await Promise.all([
-    prisma.notificationPreference.findUnique({ where: { userId } }),
-    prisma.notificationLog.findMany({
-      where: { userId },
-      orderBy: { createdAt: 'desc' },
-      take: 30,
-      select: { id: true, channel: true, category: true, status: true, createdAt: true, deliveredAt: true, errorMessage: true },
-    }),
-  ]);
+    const [pref, logs] = await Promise.all([
+      prisma.notificationPreference.findUnique({ where: { userId } }),
+      prisma.notificationLog.findMany({
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+        take: 30,
+        select: { id: true, channel: true, category: true, status: true, createdAt: true, deliveredAt: true, errorMessage: true },
+      }),
+    ]);
 
-  return NextResponse.json({
-    preference: pref ?? { userId, ...DEFAULT_PREF },
-    recent: logs,
-  });
+    return NextResponse.json({
+      preference: pref ?? { userId, ...DEFAULT_PREF },
+      recent: logs,
+    });
+  } catch {
+    return NextResponse.json({ code: 'internal_error', error: 'Internal server error' }, { status: 500 });
+  }
 }
 
 export async function PATCH(req: NextRequest) {
-  const userId = await getUserIdFromRequest(req);
-  if (!userId) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  try {
+    const userId = await getUserIdFromRequest(req);
+    if (!userId) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
 
-  const body = await req.json();
-  const data: Record<string, unknown> = {};
-  if ('channels' in body && Array.isArray(body.channels)) data.channels = body.channels;
-  if ('minConfidence' in body) data.minConfidence = body.minConfidence != null ? String(body.minConfidence) : null;
-  if ('language' in body) data.language = body.language;
-  if ('timezone' in body) data.timezone = body.timezone;
-  if ('quietHoursStart' in body) data.quietHoursStart = body.quietHoursStart || null;
-  if ('quietHoursEnd' in body) data.quietHoursEnd = body.quietHoursEnd || null;
+    const body = await req.json().catch(() => ({}));
+    const data: Record<string, unknown> = {};
+    if ('channels' in body && Array.isArray(body.channels)) data.channels = body.channels;
+    if ('minConfidence' in body) data.minConfidence = body.minConfidence != null ? String(body.minConfidence) : null;
+    if ('language' in body) data.language = body.language;
+    if ('timezone' in body) data.timezone = body.timezone;
+    if ('quietHoursStart' in body) data.quietHoursStart = body.quietHoursStart || null;
+    if ('quietHoursEnd' in body) data.quietHoursEnd = body.quietHoursEnd || null;
 
-  const pref = await prisma.notificationPreference.upsert({
-    where: { userId },
-    create: { userId, ...data } as never,
-    update: data,
-  });
-  return NextResponse.json(pref);
+    const pref = await prisma.notificationPreference.upsert({
+      where: { userId },
+      create: { userId, ...data } as never,
+      update: data,
+    });
+    return NextResponse.json(pref);
+  } catch {
+    return NextResponse.json({ code: 'internal_error', error: 'Internal server error' }, { status: 500 });
+  }
 }

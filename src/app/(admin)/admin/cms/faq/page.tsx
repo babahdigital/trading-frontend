@@ -171,7 +171,7 @@ export default function CmsFaqPage() {
         actions={
           <>
             <Button variant="outline" size="sm" asChild>
-              <Link href="/faq" target="_blank" className="gap-2">
+              <Link href="/contact#faq" target="_blank" className="gap-2">
                 <ExternalLink className="h-4 w-4" />
                 Preview
               </Link>

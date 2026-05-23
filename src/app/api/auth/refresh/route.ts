@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
-import { verifyRefreshToken, signJwt, signRefreshToken, type JwtPayload } from '@/lib/auth/jwt';
+import { verifyRefreshToken, signJwt, signRefreshToken, isAdminRole, type JwtPayload } from '@/lib/auth/jwt';
 import { AUTH_COOKIE_NAMES, setAuthCookies } from '@/lib/auth/cookies';
 import { randomUUID } from 'crypto';
 import { createLogger } from '@/lib/logger';
@@ -38,11 +38,13 @@ export async function POST(request: NextRequest) {
     }
 
     const user = session.user;
-    const scope = user.role === 'ADMIN' ? ['*'] : ['read:status', 'read:trades', 'read:equity'];
+    const scope = isAdminRole(user.role) ? ['*'] : ['read:status', 'read:trades', 'read:equity'];
 
+    const jwtId = randomUUID();
     const payload: JwtPayload = {
       sub: user.id,
-      role: user.role as 'ADMIN' | 'CLIENT',
+      role: user.role as JwtPayload['role'],
+      jti: jwtId,
       scope,
     };
 

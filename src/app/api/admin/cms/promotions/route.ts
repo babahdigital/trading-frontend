@@ -1,10 +1,11 @@
 /**
- * Admin Promotion CRUD — list + create.
+ * Admin Promotion CRUD — list + create + update + delete.
  *
- * GET  /api/admin/cms/promotions?status=DRAFT|SCHEDULED|ACTIVE|...
- * POST /api/admin/cms/promotions       — create new promo (manual atau strategist)
+ * GET    /api/admin/cms/promotions?status=DRAFT|SCHEDULED|ACTIVE|...
+ * POST   /api/admin/cms/promotions       — create new promo (manual atau strategist)
+ * PATCH  /api/admin/cms/promotions       — update promo (id in body)
+ * DELETE /api/admin/cms/promotions?id=X   — delete promo
  *
- * Per-promo update + delete: /api/admin/cms/promotions/[id]/route.ts
  * AI image gen: /api/admin/cms/promotions/[id]/generate-image
  */
 export const dynamic = 'force-dynamic';
@@ -114,6 +115,79 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
       return NextResponse.json({ error: 'duplicate_slug' }, { status: 409 });
+    }
+    throw err;
+  }
+}
+
+const UpdateSchema = PromotionSchema.partial().extend({
+  id: z.string().min(1),
+});
+
+export async function PATCH(request: NextRequest) {
+  const guard = requireAdmin(request);
+  if (guard) return guard;
+
+  let body: z.infer<typeof UpdateSchema>;
+  try {
+    body = UpdateSchema.parse(await request.json());
+  } catch (err) {
+    return NextResponse.json(
+      { error: 'invalid_body', details: err instanceof Error ? err.message : 'parse error' },
+      { status: 400 },
+    );
+  }
+
+  const { id, aiContext, startsAt, endsAt, applicableTiers, discountValue, ...rest } = body;
+
+  try {
+    const data: Record<string, unknown> = { ...rest };
+
+    if (startsAt !== undefined) data.startsAt = new Date(startsAt);
+    if (endsAt !== undefined) data.endsAt = new Date(endsAt);
+    if (discountValue !== undefined) data.discountValue = new Prisma.Decimal(discountValue);
+    if (applicableTiers !== undefined) data.applicableTiers = applicableTiers as Prisma.InputJsonValue;
+    if (aiContext !== undefined) data.aiContext = (aiContext ?? Prisma.JsonNull) as Prisma.InputJsonValue;
+
+    const promo = await prisma.promotion.update({
+      where: { id },
+      data,
+    });
+
+    revalidatePath('/');
+    revalidatePath('/pricing');
+    revalidatePath('/checkout');
+
+    return NextResponse.json({ ok: true, promotion: promo });
+  } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
+      return NextResponse.json({ error: 'not_found' }, { status: 404 });
+    }
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+      return NextResponse.json({ error: 'duplicate_slug' }, { status: 409 });
+    }
+    throw err;
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  const guard = requireAdmin(request);
+  if (guard) return guard;
+
+  const id = request.nextUrl.searchParams.get('id');
+  if (!id) return NextResponse.json({ error: 'id is required' }, { status: 400 });
+
+  try {
+    await prisma.promotion.delete({ where: { id } });
+
+    revalidatePath('/');
+    revalidatePath('/pricing');
+    revalidatePath('/checkout');
+
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
+      return NextResponse.json({ error: 'not_found' }, { status: 404 });
     }
     throw err;
   }

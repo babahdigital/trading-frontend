@@ -175,7 +175,7 @@ export function QrisDisplay({ orderId, qrString, amountIdr, expiresAt, locale, o
             <div className="relative">
               <div className="rounded-xl bg-white p-4 shadow-md">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={qrDataUrl} alt="QRIS" className="block w-56 h-56 sm:w-64 sm:h-64" />
+                <img src={qrDataUrl} alt="QRIS payment QR code — scan with any e-wallet app" className="block w-56 h-56 sm:w-64 sm:h-64" />
               </div>
               {isSettled && (
                 <div className="absolute inset-0 rounded-xl bg-emerald-500/85 flex items-center justify-center backdrop-blur-sm">

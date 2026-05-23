@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
-import { createHash } from 'crypto';
+import { createHash, timingSafeEqual } from 'crypto';
 import { activateSubscription, cancelSubscription } from '@/lib/subscription/lifecycle';
 import { createLogger } from '@/lib/logger';
 
@@ -20,7 +20,10 @@ function verifySignature(
   const expected = createHash('sha512')
     .update(`${orderId}${statusCode}${grossAmount}${serverKey}`)
     .digest('hex');
-  return expected === signatureKey;
+  const a = Buffer.from(expected);
+  const b = Buffer.from(signatureKey);
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(a, b);
 }
 
 export async function POST(req: NextRequest) {
@@ -57,6 +60,16 @@ export async function POST(req: NextRequest) {
     const tier = meta.tier as string;
     const localeMeta = meta.locale as string | undefined;
     const locale: 'id' | 'en' | undefined = localeMeta === 'en' ? 'en' : localeMeta === 'id' ? 'id' : undefined;
+
+    // Increment promo usage on PAID (deferred from checkout)
+    const promoApplied = meta.promoApplied as { slug: string } | null | undefined;
+    if (promoApplied?.slug) {
+      await prisma.promotion.updateMany({
+        where: { slug: promoApplied.slug, status: 'ACTIVE' },
+        data: { currentUsage: { increment: 1 } },
+      }).catch(() => undefined);
+    }
+
     if (tier) {
       await activateSubscription(invoice.userId, tier, { invoiceId: invoice.id, locale });
     }

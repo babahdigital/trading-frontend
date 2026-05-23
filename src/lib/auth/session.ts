@@ -36,7 +36,7 @@ export async function getUserIdFromRequest(req: NextRequest): Promise<string | n
  */
 export async function getUserContextFromRequest(
   req: NextRequest,
-): Promise<{ userId: string; role: 'ADMIN' | 'CLIENT' } | null> {
+): Promise<{ userId: string; role: string } | null> {
   const auth = req.headers.get('authorization');
   const bearer = auth?.replace(/^Bearer\s+/i, '');
   const cookieToken = req.cookies.get(AUTH_COOKIE_NAMES.ACCESS_TOKEN)?.value;
@@ -45,7 +45,7 @@ export async function getUserContextFromRequest(
   try {
     const { payload } = await jwtVerify(token, secret);
     const userId = (payload.sub as string) || (payload.userId as string);
-    const role = (payload.role as 'ADMIN' | 'CLIENT') || 'CLIENT';
+    const role = (payload.role as string) || 'CLIENT';
     if (!userId) return null;
     return { userId, role };
   } catch {

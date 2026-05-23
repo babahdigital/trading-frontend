@@ -1,4 +1,5 @@
 import { createLogger } from '@/lib/logger';
+import { timingSafeEqual } from 'crypto';
 
 const log = createLogger('xendit');
 
@@ -180,13 +181,16 @@ export async function createXenditInvoice(params: CreateInvoiceParams) {
   };
 }
 
-/** Verify Xendit webhook callback token */
+/** Verify Xendit webhook callback token (timing-safe) */
 export function verifyXenditWebhook(
   xCallbackToken: string,
 ): boolean {
   const webhookToken = process.env.XENDIT_WEBHOOK_TOKEN;
   if (!webhookToken) return false;
-  return xCallbackToken === webhookToken;
+  const a = Buffer.from(xCallbackToken);
+  const b = Buffer.from(webhookToken);
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(a, b);
 }
 
 // ════════════════════════════════════════════════════════════════════

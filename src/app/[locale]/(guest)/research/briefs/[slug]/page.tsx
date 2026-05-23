@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
+import { escapeHtml } from '@/lib/sanitize';
 
 interface BriefDetail {
   id: string;
@@ -62,10 +63,11 @@ function biasColor(bias: string | null): string {
 
 /** Simple Markdown to HTML */
 function renderMarkdown(md: string): string {
+  const safe = escapeHtml(md);
   // RegExp constructor (instead of literal) prevents Tailwind/Turbopack
   // scanner from misinterpreting markdown table separator character class.
   const tableRe = new RegExp('^(\\|.+\\|)\\n(\\|[\\-:| ]+\\|)\\n((?:\\|.+\\|\\n?)*)', 'gm');
-  return md
+  return safe
     .replace(tableRe, (_match, header: string, _sep: string, body: string) => {
       const ths = header.split('|').filter(Boolean).map((c: string) => `<th class="px-3 py-2 text-left text-xs font-medium text-foreground/60 border-b border-white/10">${c.trim()}</th>`).join('');
       const rows = body.trim().split('\n').map((row: string) => {

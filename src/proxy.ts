@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
 import createIntlMiddleware from 'next-intl/middleware';
 import { locales, defaultLocale } from '@/i18n/config';
+import { ADMIN_ROLES } from '@/lib/auth/jwt';
 import { resolveCountryByIp } from '@/lib/geoip/fallback';
 
 const secret = new TextEncoder().encode(process.env.JWT_SECRET);
@@ -372,9 +373,9 @@ export async function proxy(request: NextRequest) {
   try {
     const { payload } = await jwtVerify(token, secret);
 
-    // Admin routes require ADMIN role
+    // Admin routes require admin-level role (SUPER_ADMIN, ADMIN, OPERATOR)
     if (pathname.startsWith('/admin') || pathname.startsWith('/api/admin')) {
-      if (payload.role !== 'ADMIN') {
+      if (!(ADMIN_ROLES as readonly string[]).includes(payload.role as string)) {
         if (pathname.startsWith('/api/')) {
           return NextResponse.json({ code: 'forbidden', error: 'Forbidden' }, { status: 403 });
         }
@@ -384,7 +385,8 @@ export async function proxy(request: NextRequest) {
 
     // Portal/client routes: check role + license/subscription scope
     if (pathname.startsWith('/portal') || pathname.startsWith('/api/client')) {
-      if (payload.role !== 'CLIENT' && payload.role !== 'ADMIN') {
+      const portalAllowed = ['CLIENT', 'ADMIN', 'SUPER_ADMIN', 'OPERATOR'];
+      if (!portalAllowed.includes(payload.role as string)) {
         if (pathname.startsWith('/api/')) {
           return NextResponse.json({ code: 'forbidden', error: 'Forbidden' }, { status: 403 });
         }

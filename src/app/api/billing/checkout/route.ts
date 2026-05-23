@@ -170,7 +170,6 @@ export async function POST(req: NextRequest) {
       const calcDiscount = p.discountType === 'PERCENT'
         ? Math.round((pricing.amountIdr * value) / 100)
         : Math.min(value, pricing.amountIdr);
-      // Round ke 1000 ke bawah (psychological IDR display)
       discountedAmount = Math.max(0, Math.floor((pricing.amountIdr - calcDiscount) / 1000) * 1000);
       appliedPromo = {
         id: p.id,
@@ -179,12 +178,9 @@ export async function POST(req: NextRequest) {
         discountType: p.discountType,
         ...(p.discountType === 'PERCENT' ? { discountPercent: value } : { discountFixedIdr: value }),
       };
-      // Increment usage counter (best-effort, race-safe via atomic update)
-      await prisma.promotion.update({
-        where: { id: p.id },
-        data: { currentUsage: { increment: 1 } },
-      }).catch(() => undefined);
-      break; // apply first eligible only
+      // Usage increment DEFERRED to webhook on PAID — prevents inflation
+      // from abandoned/failed checkouts and concurrent race conditions.
+      break;
     }
   }
 

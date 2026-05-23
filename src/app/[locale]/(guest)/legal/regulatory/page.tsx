@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
+import { sanitizeHtml } from '@/lib/sanitize';
 
 const LEGAL_LINKS = [
   { href: '/legal/terms', labelKey: 'page_terms' as const },
@@ -25,7 +26,7 @@ export default function RegulatoryPage() {
         if (!res.ok) return;
         const data = await res.json();
         if (data && data.body) {
-          setCmsBody(data.body);
+          setCmsBody(sanitizeHtml(data.body));
         }
       } catch {
         // keep fallback

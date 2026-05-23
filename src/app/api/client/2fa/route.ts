@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { getUserIdFromRequest } from '@/lib/auth/session';
+import { verifyPassword } from '@/lib/auth/password';
+import { verifyTotp } from '@/lib/auth/totp';
 import { createHmac, randomBytes } from 'crypto';
 
 export const dynamic = 'force-dynamic';
@@ -42,27 +44,6 @@ function base32Decode(s: string): Buffer {
   return Buffer.from(out);
 }
 
-function totp(secretBase32: string, stepSeconds = 30, t = Date.now()): string {
-  const counter = Math.floor(t / 1000 / stepSeconds);
-  const key = base32Decode(secretBase32);
-  const buf = Buffer.alloc(8);
-  buf.writeBigUInt64BE(BigInt(counter), 0);
-  const hmac = createHmac('sha1', key).update(buf).digest();
-  const offset = hmac[hmac.length - 1] & 0xf;
-  const code = ((hmac[offset] & 0x7f) << 24)
-    | ((hmac[offset + 1] & 0xff) << 16)
-    | ((hmac[offset + 2] & 0xff) << 8)
-    | (hmac[offset + 3] & 0xff);
-  return (code % 1_000_000).toString().padStart(6, '0');
-}
-
-function verifyTotp(secretBase32: string, code: string): boolean {
-  if (!/^\d{6}$/.test(code)) return false;
-  const now = Date.now();
-  return totp(secretBase32, 30, now) === code
-      || totp(secretBase32, 30, now - 30_000) === code
-      || totp(secretBase32, 30, now + 30_000) === code;
-}
 
 function generateRecoveryCodes(n = 8): string[] {
   const codes: string[] = [];
@@ -121,6 +102,25 @@ export async function POST(req: NextRequest) {
   }
 
   if (action === 'disable') {
+    const password = String(body.password ?? '');
+    const code = String(body.code ?? '');
+    if (!password) return NextResponse.json({ error: 'password required' }, { status: 400 });
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { passwordHash: true, twoFaSecret: true, twoFaEnabled: true },
+    });
+    if (!user) return NextResponse.json({ error: 'user not found' }, { status: 404 });
+
+    const validPw = await verifyPassword(password, user.passwordHash);
+    if (!validPw) return NextResponse.json({ error: 'invalid password' }, { status: 403 });
+
+    if (user.twoFaEnabled && user.twoFaSecret) {
+      if (!verifyTotp(user.twoFaSecret, code)) {
+        return NextResponse.json({ error: 'invalid 2FA code' }, { status: 403 });
+      }
+    }
+
     await prisma.user.update({
       where: { id: userId },
       data: { twoFaEnabled: false, twoFaSecret: null, recoveryCodes: [] },

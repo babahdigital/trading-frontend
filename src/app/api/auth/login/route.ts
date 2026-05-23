@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { verifyPassword } from '@/lib/auth/password';
-import { signJwt, signRefreshToken, type JwtPayload } from '@/lib/auth/jwt';
+import { signJwt, signRefreshToken, isAdminRole, type JwtPayload } from '@/lib/auth/jwt';
 import { setAuthCookies, setLocaleCookie } from '@/lib/auth/cookies';
 import { forexLogin } from '@/lib/forex/auth';
 import { setForexCookies } from '@/lib/forex/cookies';
 import { ForexApiError } from '@/lib/forex/types';
 import { randomUUID } from 'crypto';
 import { createLogger } from '@/lib/logger';
+import { verifyTotp } from '@/lib/auth/totp';
 
 const log = createLogger('api/auth/login');
 
@@ -112,15 +113,32 @@ export async function POST(request: NextRequest) {
       return errorResponse('invalid_credentials', 'Invalid credentials', 401);
     }
 
+    if (!user.isActive) {
+      return errorResponse('account_disabled', 'Account is disabled', 403);
+    }
+
     const valid = await verifyPassword(password, user.passwordHash);
     if (!valid) {
       return errorResponse('invalid_credentials', 'Invalid credentials', 401);
     }
 
-    const scope = user.role === 'ADMIN' ? ['*'] : ['read:pamm_stats'];
+    // 2FA gate: if enabled, require TOTP code in request body
+    if (user.twoFaEnabled && user.twoFaSecret) {
+      const totpCode = body.totpCode as string | undefined;
+      if (!totpCode) {
+        return NextResponse.json({ code: '2fa_required', requires2FA: true }, { status: 403 });
+      }
+      if (!verifyTotp(user.twoFaSecret, totpCode)) {
+        return errorResponse('invalid_2fa_code', 'Invalid 2FA code', 403);
+      }
+    }
+
+    const scope = isAdminRole(user.role) ? ['*'] : ['read:pamm_stats'];
+    const jwtId = randomUUID();
     const payload: JwtPayload = {
       sub: user.id,
-      role: user.role as 'ADMIN' | 'CLIENT',
+      role: user.role as JwtPayload['role'],
+      jti: jwtId,
       scope,
     };
 
@@ -129,7 +147,6 @@ export async function POST(request: NextRequest) {
       signRefreshToken(user.id),
     ]);
 
-    const jwtId = randomUUID();
     await prisma.session.create({
       data: {
         userId: user.id,
@@ -171,7 +188,7 @@ export async function POST(request: NextRequest) {
     // browser as `forex_*_token` cookies so the portal can transact
     // against `/api/forex/*` without the browser ever holding the raw
     // api_token. Failure here NEVER blocks FE-side login.
-    if (user.forexApiToken && user.role !== 'ADMIN') {
+    if (user.forexApiToken && !isAdminRole(user.role)) {
       try {
         const forexTokens = await forexLogin({
           email: user.email,

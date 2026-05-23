@@ -2,9 +2,18 @@ import { SignJWT, jwtVerify } from 'jose';
 
 const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 
+export type JwtRole = 'SUPER_ADMIN' | 'ADMIN' | 'OPERATOR' | 'CLIENT';
+
+export const ADMIN_ROLES: readonly JwtRole[] = ['SUPER_ADMIN', 'ADMIN', 'OPERATOR'];
+
+export function isAdminRole(role: string): boolean {
+  return (ADMIN_ROLES as readonly string[]).includes(role);
+}
+
 export interface JwtPayload {
   sub: string;
-  role: 'ADMIN' | 'CLIENT';
+  role: JwtRole;
+  jti?: string;
   licenseId?: string;
   vpsInstanceId?: string;
   subscriptionId?: string;

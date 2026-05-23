@@ -136,7 +136,15 @@ export function CardForm({ amountIdr, tier, locale, promoSlug, customerEmail, on
   const brand = detectCardBrand(number);
   const digits = number.replace(/\D/g, '');
   const isCardValid = digits.length >= 13 && digits.length <= 16;
-  const isExpValid = /^(0[1-9]|1[0-2])$/.test(expMonth) && /^\d{4}$/.test(expYear) && parseInt(expYear, 10) >= new Date().getFullYear();
+  const isExpValid = (() => {
+    if (!/^(0[1-9]|1[0-2])$/.test(expMonth) || !/^\d{4}$/.test(expYear)) return false;
+    const now = new Date();
+    const y = parseInt(expYear, 10);
+    const m = parseInt(expMonth, 10);
+    if (y < now.getFullYear()) return false;
+    if (y === now.getFullYear() && m < now.getMonth() + 1) return false;
+    return true;
+  })();
   const isCvnValid = /^\d{3,4}$/.test(cvn);
   const isHolderValid = holder.trim().length >= 2;
   const canSubmit = sdkReady && !submitting && isCardValid && isExpValid && isCvnValid && isHolderValid;

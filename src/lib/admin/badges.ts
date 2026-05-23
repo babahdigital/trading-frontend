@@ -120,6 +120,19 @@ export function paymentStatusBadge(status?: string | null): BadgeMeta {
   }
 }
 
+// ─── Invoice status (DRAFT/DUE/PAID/OVERDUE/CANCELLED/REFUNDED) ──────────
+export function invoiceStatusBadge(status?: string | null): BadgeMeta {
+  switch (status) {
+    case 'DRAFT':      return build('Draft', 'neutral');
+    case 'DUE':        return build('Jatuh Tempo', 'warning');
+    case 'PAID':       return build('Lunas', 'success');
+    case 'OVERDUE':    return build('Terlambat', 'danger');
+    case 'CANCELLED':  return build('Dibatalkan', 'neutral');
+    case 'REFUNDED':   return build('Dikembalikan', 'info');
+    default:           return build(status || '-', 'neutral');
+  }
+}
+
 // ─── Trade outcome (WIN/LOSS/BREAKEVEN/OPEN) ──────────────────────────────
 export function tradeOutcomeBadge(outcome?: string | null): BadgeMeta {
   switch (outcome) {

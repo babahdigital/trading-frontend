@@ -20,27 +20,39 @@ function isAdmin(req: NextRequest): boolean {
 }
 
 export async function GET(req: NextRequest) {
-  if (!isAdmin(req)) return unauthorized();
-  const flags = await listFeatureFlags();
-  return NextResponse.json({ ok: true, flags });
+  try {
+    if (!isAdmin(req)) return unauthorized();
+    const flags = await listFeatureFlags();
+    return NextResponse.json({ ok: true, flags });
+  } catch {
+    return NextResponse.json({ code: 'internal_error', error: 'Internal server error' }, { status: 500 });
+  }
 }
 
 export async function POST(req: NextRequest) {
-  if (!isAdmin(req)) return unauthorized();
-  const body = await req.json();
-  const { name, value, type } = body as { name?: string; value?: string; type?: 'boolean' | 'string' | 'number' | 'json' };
-  if (!name || value === undefined) {
-    return NextResponse.json({ error: 'name and value required' }, { status: 400 });
+  try {
+    if (!isAdmin(req)) return unauthorized();
+    const body = await req.json().catch(() => ({}));
+    const { name, value, type } = body as { name?: string; value?: string; type?: 'boolean' | 'string' | 'number' | 'json' };
+    if (!name || value === undefined) {
+      return NextResponse.json({ error: 'name and value required' }, { status: 400 });
+    }
+    await setFeatureFlag(name, String(value), type ?? 'string');
+    return NextResponse.json({ ok: true, name, value, type: type ?? 'string' });
+  } catch {
+    return NextResponse.json({ code: 'internal_error', error: 'Internal server error' }, { status: 500 });
   }
-  await setFeatureFlag(name, String(value), type ?? 'string');
-  return NextResponse.json({ ok: true, name, value, type: type ?? 'string' });
 }
 
 export async function DELETE(req: NextRequest) {
-  if (!isAdmin(req)) return unauthorized();
-  const name = req.nextUrl.searchParams.get('name');
-  if (!name) return NextResponse.json({ error: 'name query param required' }, { status: 400 });
-  const key = `feature:${name.toLowerCase()}`;
-  await prisma.siteSetting.deleteMany({ where: { key } });
-  return NextResponse.json({ ok: true, deleted: name });
+  try {
+    if (!isAdmin(req)) return unauthorized();
+    const name = req.nextUrl.searchParams.get('name');
+    if (!name) return NextResponse.json({ error: 'name query param required' }, { status: 400 });
+    const key = `feature:${name.toLowerCase()}`;
+    await prisma.siteSetting.deleteMany({ where: { key } });
+    return NextResponse.json({ ok: true, deleted: name });
+  } catch {
+    return NextResponse.json({ code: 'internal_error', error: 'Internal server error' }, { status: 500 });
+  }
 }

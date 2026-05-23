@@ -139,10 +139,18 @@ export async function POST(req: NextRequest) {
       log.warn(`PDF invoice generation failed for ${external_id}: ${err instanceof Error ? err.message : 'unknown'}`);
     }
 
+    // Increment promo usage on PAID (deferred from checkout to prevent inflation)
+    if (promoApplied?.slug) {
+      await prisma.promotion.updateMany({
+        where: { slug: promoApplied.slug, status: 'ACTIVE' },
+        data: { currentUsage: { increment: 1 } },
+      }).catch(() => undefined);
+    }
+
     if (tier) {
       await activateSubscription(invoice.userId, tier, {
         invoiceId,
-        invoiceUrl: pdfUrl ?? invoiceUrl, // prefer PDF link kalau ada
+        invoiceUrl: pdfUrl ?? invoiceUrl,
         locale,
       });
     }

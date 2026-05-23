@@ -81,118 +81,122 @@ async function resolveRecipients(audience: string): Promise<Recipient[]> {
 }
 
 export async function POST(req: NextRequest) {
-  if (!isAdmin(req)) {
-    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-  }
+  try {
+    if (!isAdmin(req)) {
+      return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+    }
 
-  const body = await req.json();
-  const { promoId, audience = 'subscribers', locale = 'auto', dryRun = false } = body as {
-    promoId?: string;
-    audience?: 'subscribers' | 'users' | 'all';
-    locale?: 'id' | 'en' | 'auto';
-    dryRun?: boolean;
-  };
+    const body = await req.json().catch(() => ({}));
+    const { promoId, audience = 'subscribers', locale = 'auto', dryRun = false } = body as {
+      promoId?: string;
+      audience?: 'subscribers' | 'users' | 'all';
+      locale?: 'id' | 'en' | 'auto';
+      dryRun?: boolean;
+    };
 
-  if (!promoId) {
-    return NextResponse.json({ error: 'promoId required' }, { status: 400 });
-  }
+    if (!promoId) {
+      return NextResponse.json({ error: 'promoId required' }, { status: 400 });
+    }
 
-  const promo = await prisma.promotion.findUnique({
-    where: { id: promoId },
-    select: {
-      id: true, slug: true,
-      name: true, name_en: true,
-      popupTitle: true, popupTitle_en: true,
-      popupBody: true, popupBody_en: true,
-      description: true, description_en: true,
-      ctaLabel: true, ctaLabel_en: true,
-      ctaLink: true,
-      heroImageUrl: true, heroImageUrl_en: true,
-      discountType: true, discountValue: true,
-      endsAt: true,
-    },
-  });
-  if (!promo) {
-    return NextResponse.json({ error: 'promo_not_found' }, { status: 404 });
-  }
+    const promo = await prisma.promotion.findUnique({
+      where: { id: promoId },
+      select: {
+        id: true, slug: true,
+        name: true, name_en: true,
+        popupTitle: true, popupTitle_en: true,
+        popupBody: true, popupBody_en: true,
+        description: true, description_en: true,
+        ctaLabel: true, ctaLabel_en: true,
+        ctaLink: true,
+        heroImageUrl: true, heroImageUrl_en: true,
+        discountType: true, discountValue: true,
+        endsAt: true,
+      },
+    });
+    if (!promo) {
+      return NextResponse.json({ error: 'promo_not_found' }, { status: 404 });
+    }
 
-  const recipients = await resolveRecipients(audience);
+    const recipients = await resolveRecipients(audience);
 
-  if (dryRun) {
+    if (dryRun) {
+      return NextResponse.json({
+        ok: true,
+        dryRun: true,
+        audience,
+        recipientCount: recipients.length,
+        sample: recipients.slice(0, 5).map((r) => ({ email: r.email, locale: r.locale })),
+        promo: { id: promo.id, slug: promo.slug, name: promo.name },
+      });
+    }
+
+    // Build per-locale promo content once for efficiency
+    const renderFor = (recipientLocale: 'id' | 'en', recipientName?: string | null) => {
+      const targetLocale = locale === 'auto' ? recipientLocale : locale;
+      const isEn = targetLocale === 'en';
+      const promoTitle = (isEn && promo.popupTitle_en ? promo.popupTitle_en : promo.popupTitle) ?? (isEn && promo.name_en ? promo.name_en : promo.name);
+      const promoBody = (isEn && promo.popupBody_en ? promo.popupBody_en : promo.popupBody) ?? (isEn && promo.description_en ? promo.description_en : promo.description);
+      const ctaLabel = (isEn && promo.ctaLabel_en ? promo.ctaLabel_en : promo.ctaLabel) ?? (isEn ? 'See the offer' : 'Lihat penawaran');
+      const ctaUrl = `${APP_URL}${promo.ctaLink ?? '/pricing'}`;
+      const heroImage = isEn ? (promo.heroImageUrl_en ?? promo.heroImageUrl) : (promo.heroImageUrl ?? promo.heroImageUrl_en);
+      const heroFullUrl = heroImage?.startsWith('http') ? heroImage : (heroImage ? `${APP_URL}${heroImage}` : undefined);
+      const discountVal = Number(promo.discountValue);
+      const discountText = discountVal > 0
+        ? promo.discountType === 'PERCENT' ? `${discountVal}%` : `Rp ${discountVal.toLocaleString('id-ID')}`
+        : undefined;
+      const validUntil = promo.endsAt
+        ? promo.endsAt.toLocaleDateString(isEn ? 'en-US' : 'id-ID', { year: 'numeric', month: 'long', day: 'numeric' })
+        : undefined;
+
+      return renderPromoBroadcast(targetLocale, {
+        recipientName: recipientName ?? undefined,
+        promoTitle,
+        promoBody,
+        ctaLabel,
+        ctaUrl,
+        discountText,
+        heroImageUrl: heroFullUrl,
+        validUntil,
+      });
+    };
+
+    // Batch send dengan throttle
+    let sent = 0;
+    let failed = 0;
+    const errors: string[] = [];
+
+    for (let i = 0; i < recipients.length; i += BATCH_SIZE) {
+      const batch = recipients.slice(i, i + BATCH_SIZE);
+      await Promise.all(batch.map(async (r) => {
+        try {
+          const content = renderFor(r.locale, r.name);
+          await sendEmail(r.email, content.subject, content.html);
+          sent++;
+        } catch (err) {
+          failed++;
+          const msg = err instanceof Error ? err.message : 'unknown';
+          if (errors.length < 5) errors.push(`${r.email}: ${msg}`);
+        }
+      }));
+      // Throttle next batch
+      if (i + BATCH_SIZE < recipients.length) {
+        await new Promise((res) => setTimeout(res, BATCH_DELAY_MS));
+      }
+    }
+
+    log.info(`Promo broadcast ${promo.slug} → audience=${audience} recipients=${recipients.length} sent=${sent} failed=${failed}`);
+
     return NextResponse.json({
       ok: true,
-      dryRun: true,
+      promoId,
+      promoSlug: promo.slug,
       audience,
       recipientCount: recipients.length,
-      sample: recipients.slice(0, 5).map((r) => ({ email: r.email, locale: r.locale })),
-      promo: { id: promo.id, slug: promo.slug, name: promo.name },
+      sent,
+      failed,
+      errors: errors.length > 0 ? errors : undefined,
     });
+  } catch {
+    return NextResponse.json({ code: 'internal_error', error: 'Internal server error' }, { status: 500 });
   }
-
-  // Build per-locale promo content once for efficiency
-  const renderFor = (recipientLocale: 'id' | 'en', recipientName?: string | null) => {
-    const targetLocale = locale === 'auto' ? recipientLocale : locale;
-    const isEn = targetLocale === 'en';
-    const promoTitle = (isEn && promo.popupTitle_en ? promo.popupTitle_en : promo.popupTitle) ?? (isEn && promo.name_en ? promo.name_en : promo.name);
-    const promoBody = (isEn && promo.popupBody_en ? promo.popupBody_en : promo.popupBody) ?? (isEn && promo.description_en ? promo.description_en : promo.description);
-    const ctaLabel = (isEn && promo.ctaLabel_en ? promo.ctaLabel_en : promo.ctaLabel) ?? (isEn ? 'See the offer' : 'Lihat penawaran');
-    const ctaUrl = `${APP_URL}${promo.ctaLink ?? '/pricing'}`;
-    const heroImage = isEn ? (promo.heroImageUrl_en ?? promo.heroImageUrl) : (promo.heroImageUrl ?? promo.heroImageUrl_en);
-    const heroFullUrl = heroImage?.startsWith('http') ? heroImage : (heroImage ? `${APP_URL}${heroImage}` : undefined);
-    const discountVal = Number(promo.discountValue);
-    const discountText = discountVal > 0
-      ? promo.discountType === 'PERCENT' ? `${discountVal}%` : `Rp ${discountVal.toLocaleString('id-ID')}`
-      : undefined;
-    const validUntil = promo.endsAt
-      ? promo.endsAt.toLocaleDateString(isEn ? 'en-US' : 'id-ID', { year: 'numeric', month: 'long', day: 'numeric' })
-      : undefined;
-
-    return renderPromoBroadcast(targetLocale, {
-      recipientName: recipientName ?? undefined,
-      promoTitle,
-      promoBody,
-      ctaLabel,
-      ctaUrl,
-      discountText,
-      heroImageUrl: heroFullUrl,
-      validUntil,
-    });
-  };
-
-  // Batch send dengan throttle
-  let sent = 0;
-  let failed = 0;
-  const errors: string[] = [];
-
-  for (let i = 0; i < recipients.length; i += BATCH_SIZE) {
-    const batch = recipients.slice(i, i + BATCH_SIZE);
-    await Promise.all(batch.map(async (r) => {
-      try {
-        const content = renderFor(r.locale, r.name);
-        await sendEmail(r.email, content.subject, content.html);
-        sent++;
-      } catch (err) {
-        failed++;
-        const msg = err instanceof Error ? err.message : 'unknown';
-        if (errors.length < 5) errors.push(`${r.email}: ${msg}`);
-      }
-    }));
-    // Throttle next batch
-    if (i + BATCH_SIZE < recipients.length) {
-      await new Promise((res) => setTimeout(res, BATCH_DELAY_MS));
-    }
-  }
-
-  log.info(`Promo broadcast ${promo.slug} → audience=${audience} recipients=${recipients.length} sent=${sent} failed=${failed}`);
-
-  return NextResponse.json({
-    ok: true,
-    promoId,
-    promoSlug: promo.slug,
-    audience,
-    recipientCount: recipients.length,
-    sent,
-    failed,
-    errors: errors.length > 0 ? errors : undefined,
-  });
 }

@@ -10,6 +10,7 @@ import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { Menu, X, ChevronDown, ArrowRight, BookOpen, Users, FileCheck, ShieldCheck, Scale, Library, FileText, Bitcoin, TrendingUp, Sparkles, LayoutDashboard, LogOut } from 'lucide-react';
 import Image from 'next/image';
 import { STRATEGY_ICONS } from '@/components/icons/strategy-icons';
+import { isAdminRole } from '@/lib/auth/jwt';
 import { TickerBar } from '@/components/layout/ticker-bar';
 
 // ─── Mega Menu Data — labels/descs are i18n keys, resolved via t() at render ───
@@ -81,7 +82,7 @@ const COMPANY_MENU = {
 
 interface AuthState {
   loggedIn: boolean;
-  role: 'ADMIN' | 'CLIENT' | null;
+  role: string | null;
 }
 
 export function EnterpriseNav() {
@@ -253,7 +254,7 @@ export function EnterpriseNav() {
             {mounted && auth.loggedIn ? (
               <>
                 <Link
-                  href={auth.role === 'ADMIN' ? '/admin' : '/portal'}
+                  href={auth.role && isAdminRole(auth.role) ? '/admin' : '/portal'}
                   className="nav-link inline-flex items-center gap-1.5"
                 >
                   <LayoutDashboard className="w-4 h-4" />
@@ -597,7 +598,7 @@ function MobileMenu({
           {auth.loggedIn ? (
             <>
               <Link
-                href={auth.role === 'ADMIN' ? '/admin' : '/portal'}
+                href={auth.role && isAdminRole(auth.role) ? '/admin' : '/portal'}
                 className="inline-flex items-center justify-center gap-1.5 py-3 text-sm font-medium border border-border rounded-md text-foreground hover:bg-muted/60 transition-colors"
                 onClick={onClose}
               >

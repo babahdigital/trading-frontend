@@ -104,28 +104,28 @@ export async function POST(request: NextRequest) {
       const startsAt = new Date();
       const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
-      // Canonical pricing — rc29 (Pak Abdullah audit 2026-05-22 CRITICAL FIX).
-      // Sebelumnya CRYPTO_PRO=$199 + CRYPTO_HNWI=$499 (legacy 3-tier) BERBEDA
-      // dengan UI display (/pricing rc29 5-tier) $49 / $199. Customer billing
-      // 4× lipat dari yang ditampilkan = pricing dispute risk.
-      // Now: rc29 5-tier canonical (demo $0 / starter $9 / active $19 / pro $49
-      // / hnwi $199) matching pricing-format.ts + PricingTier DB.
-      const monthlyFeeUsd = (() => {
-        if (tier === 'DEMO' || tier === 'FREE') return 0;
-        // Signal/Forex tiers
-        if (tier === 'SIGNAL_VIP') return 299;
-        if (tier === 'SIGNAL_PRO') return 79;
-        if (tier === 'SIGNAL_STARTER' || tier === 'SIGNAL_BASIC') return 39;
-        // Crypto rc29 5-tier canonical
-        if (tier === 'CRYPTO_HNWI') return 199;
-        if (tier === 'CRYPTO_PRO') return 49;
-        if (tier === 'CRYPTO_ACTIVE') return 19;
-        if (tier === 'CRYPTO_STARTER') return 9;
-        // CRYPTO_BASIC = legacy alias → map to STARTER $9 (was $49 = old 3-tier).
-        // Existing grandfathered subscriptions unaffected (DB rows immutable).
-        if (tier === 'CRYPTO_BASIC') return 9;
-        return 0;
-      })();
+      // Resolve pricing from PricingTier DB (CMS single source of truth).
+      // Admin edits /admin/cms/pricing → register + checkout both use DB values.
+      const TIER_SLUG_MAP: Record<string, string> = {
+        SIGNAL_STARTER: 'signal-starter', SIGNAL_BASIC: 'signal-starter',
+        SIGNAL_PRO: 'signal-pro', SIGNAL_VIP: 'signal-vip',
+        CRYPTO_STARTER: 'crypto-starter', CRYPTO_ACTIVE: 'crypto-active',
+        CRYPTO_PRO: 'crypto-pro', CRYPTO_HNWI: 'crypto-hnwi',
+        CRYPTO_BASIC: 'crypto-starter',
+      };
+      let monthlyFeeUsd = 0;
+      if (tier !== 'DEMO' && tier !== 'FREE') {
+        const dbSlug = TIER_SLUG_MAP[tier];
+        if (dbSlug) {
+          const tierRow = await tx.pricingTier.findUnique({
+            where: { slug: dbSlug },
+            select: { priceUsd: true },
+          });
+          if (tierRow?.priceUsd != null) {
+            monthlyFeeUsd = tierRow.priceUsd;
+          }
+        }
+      }
       const profitSharePct = null; // Zero-custody — semua tier flat monthly fee
 
       const subscription = await tx.subscription.create({
@@ -142,6 +142,16 @@ export async function POST(request: NextRequest) {
             registeredAt: new Date().toISOString(),
             registrationTier: tier,
           },
+        },
+      });
+
+      // Auto-create default notification preferences
+      await tx.notificationPreference.create({
+        data: {
+          userId: user.id,
+          channels: ['INAPP'],
+          language: registrationLocale,
+          timezone: 'Asia/Jakarta',
         },
       });
 

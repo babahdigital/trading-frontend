@@ -42,88 +42,92 @@ function localizeDescription(text: string, locale: AppLocale): string {
 }
 
 export async function GET(req: NextRequest) {
-  const userId = req.headers.get('x-user-id');
-  if (!userId) {
-    return NextResponse.json({ code: 'unauthorized', error: 'Unauthorized' }, { status: 401 });
+  try {
+    const userId = req.headers.get('x-user-id');
+    if (!userId) {
+      return NextResponse.json({ code: 'unauthorized', error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const url = new URL(req.url);
+    const tier = (url.searchParams.get('tier') ?? '').toUpperCase();
+    const promoSlug = url.searchParams.get('promo') ?? undefined;
+    const locale = detectRequestLocale(req);
+
+    const slug = TIER_SLUG_MAP[tier];
+    if (!slug) {
+      return NextResponse.json({ code: 'invalid_tier', error: 'Invalid tier' }, { status: 400 });
+    }
+
+    const tierRow = await prisma.pricingTier.findUnique({
+      where: { slug },
+      select: { name: true, priceIdr: true, subtitle: true },
+    });
+    if (!tierRow || tierRow.priceIdr == null) {
+      return NextResponse.json({ code: 'tier_not_found', error: 'Tier not found' }, { status: 404 });
+    }
+
+    const originalAmountIdr = tierRow.priceIdr;
+    const description = tierRow.subtitle
+      ? `${tierRow.name} — ${tierRow.subtitle}`
+      : `${tierRow.name} — 1 Bulan`;
+
+    const now = new Date();
+    const candidatePromos = await prisma.promotion.findMany({
+      where: {
+        status: 'ACTIVE',
+        startsAt: { lte: now },
+        endsAt: { gte: now },
+        ...(promoSlug ? { slug: promoSlug } : {}),
+      },
+      orderBy: { startsAt: 'desc' },
+    });
+
+    const tierKebab = tier.toLowerCase().replace(/_/g, '-');
+    let appliedPromo: {
+      id: string;
+      slug: string;
+      discountValue: number;
+      discountType: 'PERCENT' | 'FIXED_IDR';
+    } | null = null;
+    let discountedAmount = originalAmountIdr;
+
+    for (const p of candidatePromos) {
+      const tiers = Array.isArray(p.applicableTiers) ? (p.applicableTiers as string[]) : [];
+      const eligible = tiers.length === 0 || tiers.includes(tierKebab);
+      const underQuota = p.maxUsage === 0 || p.currentUsage < p.maxUsage;
+      if (!eligible || !underQuota) continue;
+      const value = Number(p.discountValue);
+      const calcDiscount = p.discountType === 'PERCENT'
+        ? Math.round((originalAmountIdr * value) / 100)
+        : Math.min(value, originalAmountIdr);
+      discountedAmount = Math.max(0, Math.floor((originalAmountIdr - calcDiscount) / 1000) * 1000);
+      appliedPromo = {
+        id: p.id,
+        slug: p.slug,
+        discountValue: value,
+        discountType: p.discountType as 'PERCENT' | 'FIXED_IDR',
+      };
+      break;
+    }
+
+    // Customer email for Card tokenization (Xendit.js requires card_holder_email
+    // or card_holder_phone_number — we always pass email of logged-in user).
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true, name: true },
+    });
+
+    return NextResponse.json({
+      tier,
+      description: localizeDescription(description, locale),
+      originalAmountIdr,
+      amountIdr: discountedAmount,
+      amountUsd: idrToUsd(discountedAmount),
+      discount: appliedPromo,
+      locale,
+      customer: user ? { email: user.email, name: user.name } : null,
+    });
+  } catch {
+    return NextResponse.json({ code: 'internal_error', error: 'Internal server error' }, { status: 500 });
   }
-
-  const url = new URL(req.url);
-  const tier = (url.searchParams.get('tier') ?? '').toUpperCase();
-  const promoSlug = url.searchParams.get('promo') ?? undefined;
-  const locale = detectRequestLocale(req);
-
-  const slug = TIER_SLUG_MAP[tier];
-  if (!slug) {
-    return NextResponse.json({ code: 'invalid_tier', error: 'Invalid tier' }, { status: 400 });
-  }
-
-  const tierRow = await prisma.pricingTier.findUnique({
-    where: { slug },
-    select: { name: true, priceIdr: true, subtitle: true },
-  });
-  if (!tierRow || tierRow.priceIdr == null) {
-    return NextResponse.json({ code: 'tier_not_found', error: 'Tier not found' }, { status: 404 });
-  }
-
-  const originalAmountIdr = tierRow.priceIdr;
-  const description = tierRow.subtitle
-    ? `${tierRow.name} — ${tierRow.subtitle}`
-    : `${tierRow.name} — 1 Bulan`;
-
-  const now = new Date();
-  const candidatePromos = await prisma.promotion.findMany({
-    where: {
-      status: 'ACTIVE',
-      startsAt: { lte: now },
-      endsAt: { gte: now },
-      ...(promoSlug ? { slug: promoSlug } : {}),
-    },
-    orderBy: { startsAt: 'desc' },
-  });
-
-  const tierKebab = tier.toLowerCase().replace(/_/g, '-');
-  let appliedPromo: {
-    id: string;
-    slug: string;
-    discountValue: number;
-    discountType: 'PERCENT' | 'FIXED_IDR';
-  } | null = null;
-  let discountedAmount = originalAmountIdr;
-
-  for (const p of candidatePromos) {
-    const tiers = Array.isArray(p.applicableTiers) ? (p.applicableTiers as string[]) : [];
-    const eligible = tiers.length === 0 || tiers.includes(tierKebab);
-    const underQuota = p.maxUsage === 0 || p.currentUsage < p.maxUsage;
-    if (!eligible || !underQuota) continue;
-    const value = Number(p.discountValue);
-    const calcDiscount = p.discountType === 'PERCENT'
-      ? Math.round((originalAmountIdr * value) / 100)
-      : Math.min(value, originalAmountIdr);
-    discountedAmount = Math.max(0, Math.floor((originalAmountIdr - calcDiscount) / 1000) * 1000);
-    appliedPromo = {
-      id: p.id,
-      slug: p.slug,
-      discountValue: value,
-      discountType: p.discountType as 'PERCENT' | 'FIXED_IDR',
-    };
-    break;
-  }
-
-  // Customer email for Card tokenization (Xendit.js requires card_holder_email
-  // or card_holder_phone_number — we always pass email of logged-in user).
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { email: true, name: true },
-  });
-
-  return NextResponse.json({
-    tier,
-    description: localizeDescription(description, locale),
-    originalAmountIdr,
-    amountIdr: discountedAmount,
-    amountUsd: idrToUsd(discountedAmount),
-    discount: appliedPromo,
-    locale,
-    customer: user ? { email: user.email, name: user.name } : null,
-  });
 }

@@ -33,6 +33,7 @@ import {
   MessageSquare, Mail, Star, Globe, Inbox, BookOpen, Layers, Sparkles, User, Crown,
   Building2, ChevronDown, ChevronRight, Menu, X, Cog, MonitorSmartphone, Activity,
   PanelLeftClose, PanelLeftOpen, Search as SearchIcon, ShieldCheck,
+  Receipt, Calendar, Brain, Cpu, Megaphone,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -58,6 +59,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: '/admin/kyc', label: 'KYC Review', icon: ShieldCheck },
       { href: '/admin/licenses', label: 'Licenses', icon: KeyRound },
       { href: '/admin/kill-switch', label: 'Kill Switch', icon: Zap },
+      { href: '/admin/invoices', label: 'Invoices', icon: Receipt },
     ],
   },
   {
@@ -69,6 +71,8 @@ const NAV_GROUPS: NavGroup[] = [
       { href: '/admin/vps', label: 'VPS Instances', icon: Server },
       { href: '/admin/audit', label: 'Audit Log', icon: ScrollText },
       { href: '/admin/analytics', label: 'Analytics & PMF', icon: Activity },
+      { href: '/admin/workers', label: 'Worker Health', icon: Cpu },
+      { href: '/admin/ai-calls', label: 'AI Call Log', icon: Brain },
     ],
   },
   {
@@ -90,9 +94,11 @@ const NAV_GROUPS: NavGroup[] = [
       { href: '/admin/cms/pricing', label: 'Pricing', icon: DollarSign },
       { href: '/admin/cms/banners', label: 'Banners', icon: ImageIcon },
       { href: '/admin/cms/popups', label: 'Popups', icon: MessageSquare },
+      { href: '/admin/cms/promotions', label: 'Promotions', icon: Megaphone },
       { href: '/admin/cms/testimonials', label: 'Testimonials', icon: Star },
       { href: '/admin/cms/seo', label: 'SEO / Meta', icon: Globe },
       { href: '/admin/cms/pages', label: 'Page Content', icon: Layers },
+      { href: '/admin/cms/calendar-events', label: 'Calendar Events', icon: Calendar },
     ],
   },
   {

@@ -3,12 +3,7 @@ export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
-
-function requireAdmin(request: NextRequest): NextResponse | null {
-  const role = request.headers.get('x-user-role');
-  if (role !== 'ADMIN') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-  return null;
-}
+import { requireAdmin } from '@/lib/auth/require-admin';
 
 export async function GET(request: NextRequest) {
   const guard = requireAdmin(request);

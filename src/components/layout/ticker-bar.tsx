@@ -46,15 +46,7 @@ const GROUP_COLOR: Record<Ticker['group'], string> = {
 // comfortable reading speed (Bloomberg/Reuters-style ticker pace).
 const ANIM_DURATION_MOBILE_S = 60;
 const ANIM_DURATION_DESKTOP_S = 80;
-// SCROLL_THRESHOLD removed — ticker always fixed bottom
-// Right-edge reserve untuk chat FAB:
-//   - Mobile (<640px): icon 56px @ right-4 (16px) = 72px total
-//   - Desktop (≥640px): icon 56px @ right-6 (24px) = 80px total
-// Saat chat icon tidak visible (public pages tanpa active session),
-// reserve diciutkan ke padding tipis (12px) — tidak ada FAB to avoid.
-const CHAT_RESERVE_MOBILE_PX = 72;
-const CHAT_RESERVE_DESKTOP_PX = 80;
-const EDGE_PADDING_PX = 12;
+// Chat reserve + scroll threshold REMOVED — sticky positioning handles all.
 // Bumped to v3 — invalidate stale partial caches dari iterasi sebelumnya
 // (e.g. cache hanya 3 commodity items dari schema lama).
 const CACHE_KEY = 'babah.ticker.cache.v3';
@@ -185,51 +177,16 @@ export function TickerBar() {
   const [tickers, setTickers] = useState<Ticker[]>(() => readCache() ?? []);
   const [failCount, setFailCount] = useState(0);
   const [hydrated, setHydrated] = useState(false);
-  // scrolled state removed — ticker always fixed bottom (no top/bottom transition)
-  const [footerVisible, setFooterVisible] = useState(false);
-  const [stickyCtaHeight, setStickyCtaHeight] = useState(0);
-  const [chatIconVisible, setChatIconVisible] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  // Marquee mount latch — flips false→true ONCE when data ready (≥MIN_TICKER_COUNT).
-  // After true, never flips back. Prevents marquee re-mount yang triggers
-  // CSS animation restart. Also prevents width change saat content swap
-  // (skeleton→real) yang menyebabkan translate-50% jump.
   const [marqueeMounted, setMarqueeMounted] = useState(false);
   const tickerRef = useRef<HTMLDivElement>(null);
-  const marqueeRef = useRef<HTMLDivElement>(null);
-  const animationRef = useRef<Animation | null>(null);
 
   useEffect(() => {
     setHydrated(true);
   }, []);
 
-  // Viewport tracker untuk responsive right-reserve.
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const update = () => setIsMobile(window.innerWidth < 640);
-    update();
-    window.addEventListener('resize', update, { passive: true });
-    return () => window.removeEventListener('resize', update);
-  }, []);
-
-  // Chat icon visibility — listen ke event yang di-dispatch oleh
-  // chat-widget-mount. Saat icon visible, right reserve naik ke chat FAB
-  // width+offset. Saat hidden, reserve minimal (edge padding only).
-  // Public marketing pages start with chatIconVisible=false (chat only
-  // mounts setelah user klik footer "Chat AI").
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    // Initial probe — kalau button sudah ada di DOM saat mount.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (document.querySelector('button[aria-label="Open chat assistant"]')) setChatIconVisible(true);
-
-    const handler = (e: Event) => {
-      const detail = (e as CustomEvent<{ visible: boolean }>).detail;
-      if (detail) setChatIconVisible(!!detail.visible);
-    };
-    window.addEventListener('babahalgo:chat-icon-state', handler);
-    return () => window.removeEventListener('babahalgo:chat-icon-state', handler);
-  }, []);
+  // All viewport/chat-icon/footer/stickyCtaBar observers REMOVED.
+  // Ticker is now sticky bottom-0 (like StickyCtaBar) — browser handles
+  // stacking naturally. Zero JS measurement, zero oscillation.
 
   // Data fetcher — in-place update: kalau symbols sama, hanya replace value.
   useEffect(() => {
@@ -279,39 +236,7 @@ export function TickerBar() {
     return () => { cancelled = true; if (timer) clearInterval(timer); };
   }, []);
 
-  // Scroll detector removed — ticker always fixed bottom, no scroll-dependent mode switch
-
-  // Unified bottom-stack observer — one rAF-throttled scroll handler
-  // measures both footer visibility and StickyCtaBar offset. No
-  // IntersectionObserver (caused oscillation), no MutationObserver
-  // (overkill). Simple, predictable, zero layout thrashing.
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    let ticking = false;
-    const onScroll = () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => {
-        ticking = false;
-        const footer = document.getElementById('enterprise-footer');
-        if (footer) {
-          const footerRect = footer.getBoundingClientRect();
-          setFooterVisible(footerRect.top < window.innerHeight - 60);
-        }
-        const cta = document.getElementById('sticky-cta-bar');
-        if (cta) {
-          const ctaRect = cta.getBoundingClientRect();
-          const stuckAtBottom = ctaRect.bottom >= window.innerHeight - 2;
-          setStickyCtaHeight(stuckAtBottom ? Math.round(ctaRect.height) : 0);
-        } else {
-          setStickyCtaHeight(0);
-        }
-      });
-    };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+  // No scroll handlers needed — sticky positioning handles everything.
 
   // Memoize repeated array — only re-compute saat tickers REFERENCE berubah
   // (in-place value updates dengan stable order tetap trigger ini, tapi
@@ -326,29 +251,7 @@ export function TickerBar() {
     if (!marqueeMounted && tickers.length >= MIN_TICKER_COUNT) setMarqueeMounted(true);
   }, [tickers.length, marqueeMounted]);
 
-  // Pure CSS animation (defined in <style> block below). No JS animation
-  // logic — browser fully manages timeline. Continuity across refresh
-  // SACRIFICED untuk eliminate ALL possible JS-induced blip sources.
-
-  // Mode visual — simplified: always fixed bottom, fade out near footer.
-  // Previous 3-mode system (top/bottom-fixed/hidden) caused layout shifts
-  // because ticker entered/left document flow on scroll threshold.
-  const mode: 'visible' | 'hidden' =
-    !hydrated ? 'visible'
-    : footerVisible ? 'hidden'
-    : 'visible';
-
-  // Position style — fixed bottom, stacked above StickyCtaBar when present.
-  const rightReserve = chatIconVisible
-    ? (isMobile ? CHAT_RESERVE_MOBILE_PX : CHAT_RESERVE_DESKTOP_PX)
-    : EDGE_PADDING_PX;
-  const fixedStyle: React.CSSProperties = {
-    left: 0,
-    right: rightReserve,
-    bottom: stickyCtaHeight,
-  };
-
-  // Dismissed state — gagal fetch >2x dan no cache. Container fade out.
+  // Dismissed state — gagal fetch >2x dan no cache.
   const dismissed = failCount > 2 && tickers.length === 0;
 
   return (
@@ -358,16 +261,14 @@ export function TickerBar() {
         'overflow-hidden border-amber-500/15',
         'bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950',
         'text-foreground isolate',
-        // ALWAYS fixed bottom — never in document flow (zero layout shifts).
-        // z-[25] = BELOW sticky-cta (z-30) so ticker never covers CTA button.
-        'fixed z-[25] border-t shadow-[0_-4px_20px_rgba(0,0,0,0.4)]',
-        'transition-opacity duration-300',
-        (mode === 'hidden' || dismissed) && 'opacity-0 pointer-events-none',
+        // sticky bottom-0 — same pattern as StickyCtaBar. Browser handles
+        // stacking naturally. Ticker sits BELOW StickyCtaBar in DOM order
+        // (rendered after main content, before footer). Never hidden.
+        'sticky bottom-0 left-0 right-0 z-[25] border-t',
+        dismissed && 'hidden',
       )}
-      style={fixedStyle}
       role="region"
       aria-label="Live market ticker"
-      aria-hidden={mode === 'hidden' || dismissed}
     >
       {/* Left-edge fade */}
       <span
@@ -385,7 +286,6 @@ export function TickerBar() {
             continuity. */}
         {marqueeMounted ? (
           <div
-            ref={marqueeRef}
             className="ticker-marquee-anim flex whitespace-nowrap py-2 will-change-transform"
           >
             {repeated.map((t, i) => (

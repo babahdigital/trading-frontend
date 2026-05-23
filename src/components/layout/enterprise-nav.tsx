@@ -11,7 +11,7 @@ import { Menu, X, ChevronDown, ArrowRight, BookOpen, Users, FileCheck, ShieldChe
 import Image from 'next/image';
 import { STRATEGY_ICONS } from '@/components/icons/strategy-icons';
 import { isAdminRole } from '@/lib/auth/jwt';
-import { TickerBar } from '@/components/layout/ticker-bar';
+// TickerBar moved to layout level (sticky bottom-0, rendered before footer)
 
 // ─── Mega Menu Data — labels/descs are i18n keys, resolved via t() at render ───
 const PLATFORM_MENU = {
@@ -188,8 +188,6 @@ export function EnterpriseNav() {
 
   return (
     <>
-      {/* Live market ticker — sticky atas nav, refresh tiap 60s */}
-      <TickerBar />
       <nav
         ref={menuRef}
         role="navigation"

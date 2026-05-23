@@ -261,10 +261,9 @@ export function TickerBar() {
         'overflow-hidden border-amber-500/15',
         'bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950',
         'text-foreground isolate',
-        // sticky bottom-0 — same pattern as StickyCtaBar. Browser handles
-        // stacking naturally. Ticker sits BELOW StickyCtaBar in DOM order
-        // (rendered after main content, before footer). Never hidden.
-        'sticky bottom-0 left-0 right-0 z-[25] border-t',
+        // Fixed bottom — always visible at viewport bottom like Bloomberg
+        // terminal. Never hides. z-[25] below StickyCtaBar (z-30).
+        'fixed bottom-0 left-0 right-0 z-[25] border-t',
         dismissed && 'hidden',
       )}
       role="region"

@@ -3,6 +3,7 @@ import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { locales } from '@/i18n/config';
 import { CookieConsent } from '@/components/cookie-consent';
+import { TickerBar } from '@/components/layout/ticker-bar';
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
@@ -23,6 +24,7 @@ export default async function LocaleLayout({
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
       {children}
+      <TickerBar />
       <CookieConsent />
     </NextIntlClientProvider>
   );

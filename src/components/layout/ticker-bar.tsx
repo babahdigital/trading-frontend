@@ -41,15 +41,11 @@ const GROUP_COLOR: Record<Ticker['group'], string> = {
   index:     'text-violet-400',
 };
 
-// Animation speed — responsive per viewport.
-//   Mobile (<640px): 28s — viewport narrower, butuh pulse cepat supaya
-//     content flow feel "live" tidak terasa stuck di satu item.
-//   Desktop (≥640px): 40s — viewport wider, lebih banyak items visible,
-//     bisa slower untuk eye-comfort.
-// Iterasi: 120s → 75s → 45s → mobile 28 / desktop 40 (Pak Abdullah
-// feedback 2026-05-23: "di mobile masih lambat sekali").
-const ANIM_DURATION_MOBILE_S = 28;
-const ANIM_DURATION_DESKTOP_S = 40;
+// Animation speed — with width:max-content fix, duration = time to scroll
+// full content width (~4800px for 28 symbols). Target ~55-65 px/s for
+// comfortable reading speed (Bloomberg/Reuters-style ticker pace).
+const ANIM_DURATION_MOBILE_S = 60;
+const ANIM_DURATION_DESKTOP_S = 80;
 const SCROLL_THRESHOLD = 120;
 // Right-edge reserve untuk chat FAB:
 //   - Mobile (<640px): icon 56px @ right-4 (16px) = 72px total
@@ -493,11 +489,11 @@ export function TickerBar() {
         }
         .ticker-marquee-anim {
           width: max-content;
-          animation: ticker-scroll 40s linear infinite;
+          animation: ticker-scroll 80s linear infinite;
         }
         @media (max-width: 639px) {
           .ticker-marquee-anim {
-            animation-duration: 28s;
+            animation-duration: 60s;
           }
         }
         .ticker-marquee-anim:hover {

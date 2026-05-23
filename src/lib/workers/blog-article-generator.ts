@@ -216,15 +216,27 @@ async function generateOneTopic(topic: BlogTopic): Promise<{ articleId: string }
     .replaceAll('{{TARGET_WORDS}}', String(topic.targetLengthWords));
 
   const systemPrompt =
-    'Kamu adalah analis riset trading profesional dan edukator pasar keuangan. '
+    'Kamu adalah analis riset trading profesional dan edukator pasar keuangan global. '
     + 'ATURAN KETAT: '
-    + '1) JANGAN PERNAH menyebut nama produk, platform, bot, atau layanan apapun (termasuk BabahAlgo). '
-    + '2) JANGAN PERNAH mempromosikan layanan signal, copy trade, VPS, PAMM, atau subscription. '
-    + '3) Fokus 100% pada edukasi trading: analisis fundamental, teknikal, strategi, risk management. '
-    + '4) Gunakan data faktual, contoh historis nyata, dan referensi akademis. '
-    + '5) Tulis dalam perspektif netral seperti Bloomberg Research atau Financial Times. '
-    + '6) Target pembaca: trader Indonesia yang ingin belajar, bukan calon pelanggan. '
-    + '7) Sertakan minimal 3 heading (##) dan tulis minimal ' + topic.targetLengthWords + ' kata.';
+    + '1) JANGAN PERNAH menyebut nama produk, platform, bot, atau layanan apapun. '
+    + '2) JANGAN promosi signal, copy trade, VPS, PAMM, profit sharing, atau subscription. '
+    + '3) Fokus 100% edukasi trading: fundamental, teknikal, strategi, risk management. '
+    + '4) Gunakan data faktual, contoh historis nyata, referensi akademis. '
+    + '5) Tulis perspektif netral seperti Bloomberg Research / Financial Times. '
+    + '6) Target: trader global (bukan hanya Indonesia). Konten harus universal dan profesional. '
+    + '7) Sertakan minimal 4 heading (##) dan tulis minimal ' + topic.targetLengthWords + ' kata. '
+    + '\n\nFORMATTING SKILLS: '
+    + '- Gunakan **tabel markdown** untuk perbandingan data (| Header | Header |). '
+    + '- Gunakan **rumus** dalam format: `Rumus: Position Size = (Account × Risk%) / (Entry - SL)`. '
+    + '- Gunakan **blockquote** (>) untuk insight kunci atau kutipan penting. '
+    + '- Gunakan **bold** (*text*) untuk penekanan, JANGAN gunakan underscore (_text_). '
+    + '- JANGAN PERNAH menulis variabel dengan underscore (win_rate → Win Rate, stop_loss → Stop Loss). '
+    + '- Gunakan **numbered list** untuk langkah-langkah dan **bullet list** untuk fitur/poin. '
+    + '- Sertakan **key takeaway** di akhir setiap section utama. '
+    + '- Judul harus SEO-friendly, menarik, dan membuat pembaca ingin klik. '
+    + '- Kalimat pembuka harus hook yang kuat (statistik mengejutkan, pertanyaan provokatif, atau fakta kontra-intuitif). '
+    + '- Paragraf pendek (2-3 kalimat max) untuk readability. '
+    + '- Akhiri dengan disclaimer trading standar.';
 
   const aiStart = Date.now();
   const { text: markdown, usage } = await generateText({
@@ -253,10 +265,22 @@ async function generateOneTopic(topic: BlogTopic): Promise<{ articleId: string }
 
   // Self-heal: auto-append disclaimer if AI omitted it (common failure).
   const DISCLAIMER = 'Konten edukasi — bukan saran investasi. Trading forex melibatkan risiko kehilangan modal.';
-  let healed = markdown.trim();
+  let healed = markdown.trim()
+    // Clean up snake_case variables that AI sometimes outputs
+    .replace(/\bwin_rate\b/gi, 'Win Rate')
+    .replace(/\bstop_loss\b/gi, 'Stop Loss')
+    .replace(/\btake_profit\b/gi, 'Take Profit')
+    .replace(/\brisk_reward\b/gi, 'Risk Reward')
+    .replace(/\bprofit_factor\b/gi, 'Profit Factor')
+    .replace(/\bmax_drawdown\b/gi, 'Max Drawdown')
+    .replace(/\bposition_size\b/gi, 'Position Size')
+    .replace(/\blot_size\b/gi, 'Lot Size')
+    .replace(/\bentry_price\b/gi, 'Entry Price')
+    .replace(/\bexit_price\b/gi, 'Exit Price');
+
   const hasDisclaimer = /bukan saran investasi|risiko kehilangan|not investment advice/i.test(healed);
   if (!hasDisclaimer) {
-    healed = `${healed}\n\n_${DISCLAIMER}_`;
+    healed = `${healed}\n\n---\n\n*${DISCLAIMER}*`;
     log.info(`Auto-appended disclaimer for ${topic.slug}`);
   }
 

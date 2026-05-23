@@ -68,10 +68,13 @@ function applyInline(s: string): string {
     .replace(/\$([^$\n]+?)\$/g, (_m, expr: string) => `<span class="formula-inline">${expr}</span>`)
     // mark / highlight ==text==
     .replace(/==([^=]+)==/g, '<mark>$1</mark>')
-    // bold + italic
+    // bold + italic (* and _ variants)
     .replace(/\*\*\*([^*]+)\*\*\*/g, '<strong><em>$1</em></strong>')
+    .replace(/___([^_]+)___/g, '<strong><em>$1</em></strong>')
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/__([^_]+)__/g, '<strong>$1</strong>')
     .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+    .replace(/(?<!\w)_([^_]+)_(?!\w)/g, '<em>$1</em>')
     // inline code `code`
     .replace(/`([^`]+)`/g, (_m, code: string) => `<code>${escapeHtml(code)}</code>`);
 }

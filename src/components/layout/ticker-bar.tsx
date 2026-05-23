@@ -46,7 +46,7 @@ const GROUP_COLOR: Record<Ticker['group'], string> = {
 // comfortable reading speed (Bloomberg/Reuters-style ticker pace).
 const ANIM_DURATION_MOBILE_S = 60;
 const ANIM_DURATION_DESKTOP_S = 80;
-const SCROLL_THRESHOLD = 120;
+// SCROLL_THRESHOLD removed — ticker always fixed bottom
 // Right-edge reserve untuk chat FAB:
 //   - Mobile (<640px): icon 56px @ right-4 (16px) = 72px total
 //   - Desktop (≥640px): icon 56px @ right-6 (24px) = 80px total
@@ -185,7 +185,7 @@ export function TickerBar() {
   const [tickers, setTickers] = useState<Ticker[]>(() => readCache() ?? []);
   const [failCount, setFailCount] = useState(0);
   const [hydrated, setHydrated] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  // scrolled state removed — ticker always fixed bottom (no top/bottom transition)
   const [footerVisible, setFooterVisible] = useState(false);
   const [stickyCtaHeight, setStickyCtaHeight] = useState(0);
   const [chatIconVisible, setChatIconVisible] = useState(false);
@@ -279,22 +279,7 @@ export function TickerBar() {
     return () => { cancelled = true; if (timer) clearInterval(timer); };
   }, []);
 
-  // Scroll detector
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    let ticking = false;
-    const onScroll = () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => {
-        setScrolled(window.scrollY > SCROLL_THRESHOLD);
-        ticking = false;
-      });
-    };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+  // Scroll detector removed — ticker always fixed bottom, no scroll-dependent mode switch
 
   // Footer observer — debounced to prevent layout thrashing.
   // Without debounce, ticker show/hide changes page height which triggers
@@ -396,12 +381,13 @@ export function TickerBar() {
   // logic — browser fully manages timeline. Continuity across refresh
   // SACRIFICED untuk eliminate ALL possible JS-induced blip sources.
 
-  // Mode visual
-  const mode: 'top' | 'bottom-fixed' | 'hidden' =
-    !hydrated ? 'top'
+  // Mode visual — simplified: always fixed bottom, fade out near footer.
+  // Previous 3-mode system (top/bottom-fixed/hidden) caused layout shifts
+  // because ticker entered/left document flow on scroll threshold.
+  const mode: 'visible' | 'hidden' =
+    !hydrated ? 'visible'
     : footerVisible ? 'hidden'
-    : scrolled ? 'bottom-fixed'
-    : 'top';
+    : 'visible';
 
   // Compose inline style untuk bottom-fixed mode.
   //   - Right reserve dinamis: kalau chat FAB visible, sediain ruang;
@@ -409,21 +395,11 @@ export function TickerBar() {
   //     "blok kanan terlalu lebar saat fading out tick bar").
   //   - Stacking dengan sticky-cta: bottom = stickyCtaHeight (Math.round-ed
   //     untuk avoid 1px gap dari sub-pixel rounding).
-  const bottomFixedStyle: React.CSSProperties = {};
-  if (mode === 'bottom-fixed') {
-    const reserve = chatIconVisible
-      ? (isMobile ? CHAT_RESERVE_MOBILE_PX : CHAT_RESERVE_DESKTOP_PX)
-      : EDGE_PADDING_PX;
-    bottomFixedStyle.right = `${reserve}px`;
-    // ALWAYS set bottom — kalau ada sticky-cta, ticker sit di atas-nya;
-    // kalau tidak, ticker sit di bottom viewport (0). Sebelumnya bottom
-    // hanya di-set saat stickyCtaHeight>0, menyebabkan landing page (tanpa
-    // sticky-cta) tidak punya bottom style → fixed element default ke
-    // flow position (TOP) = invisible saat scrolled.
-    // Pak Abdullah 2026-05-22: "tick price di halaman / harusnya muncul
-    // di bawah saat di scroll" — root cause fixed di sini.
-    bottomFixedStyle.bottom = `${stickyCtaHeight}px`;
-  }
+  // Position style — always fixed bottom with dynamic right reserve + stickyCtaBar offset
+  const fixedStyle: React.CSSProperties = {
+    right: `${chatIconVisible ? (isMobile ? CHAT_RESERVE_MOBILE_PX : CHAT_RESERVE_DESKTOP_PX) : EDGE_PADDING_PX}px`,
+    bottom: `${stickyCtaHeight}px`,
+  };
 
   // Dismissed state — gagal fetch >2x dan no cache. Container fade out.
   const dismissed = failCount > 2 && tickers.length === 0;
@@ -432,20 +408,15 @@ export function TickerBar() {
     <div
       ref={tickerRef}
       className={cn(
-        'overflow-hidden border-amber-500/15 transition-all duration-300',
+        'overflow-hidden border-amber-500/15',
         'bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950',
         'text-foreground isolate',
-        mode === 'top' && 'relative w-full border-b z-[40]',
-        // Ticker bottom-fixed = data display unobtrusive — z-[40] supaya
-        // BELOW: nav z-80, mega menu z-85, cookie z-90, mobile menu z-90,
-        // chat icon z-100, modals z-100, CMS banner z-50. ABOVE: sticky-cta
-        // z-30 (handled via measure offset). Pak Abdullah audit 2026-05-22:
-        // ticker tidak boleh menutupi menu/UI interaktif apapun.
-        mode === 'bottom-fixed' && 'fixed left-0 right-0 z-[40] border-t shadow-[0_-4px_20px_rgba(0,0,0,0.4)]',
-        mode === 'hidden' && 'opacity-0 pointer-events-none',
-        dismissed && 'opacity-0 pointer-events-none',
+        // ALWAYS fixed bottom — never in document flow (zero layout shifts)
+        'fixed left-0 z-[40] border-t shadow-[0_-4px_20px_rgba(0,0,0,0.4)]',
+        'transition-opacity duration-300',
+        (mode === 'hidden' || dismissed) && 'opacity-0 pointer-events-none',
       )}
-      style={mode === 'bottom-fixed' ? bottomFixedStyle : undefined}
+      style={fixedStyle}
       role="region"
       aria-label="Live market ticker"
       aria-hidden={mode === 'hidden' || dismissed}

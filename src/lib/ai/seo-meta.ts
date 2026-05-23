@@ -8,14 +8,14 @@
  */
 
 import { generateText } from 'ai';
-import { getOpenRouter, REASONING_MODEL } from './openrouter';
+import { getOpenRouter, DEFAULT_MODEL } from './openrouter';
 import { createLogger } from '@/lib/logger';
 import { prisma } from '@/lib/db/prisma';
 import type { Prisma } from '@prisma/client';
 
 const log = createLogger('seo-meta');
 
-const MODEL_LABEL = `openrouter/${REASONING_MODEL.split('/').pop()}`;
+const MODEL_LABEL = `openrouter/${DEFAULT_MODEL.split('/').pop()}`;
 
 const META_PROMPT_ID = `Berikan metadata SEO untuk artikel berikut. Output WAJIB format JSON dengan 2 key:
   "metaTitle": maksimal 60 karakter, keyword utama di awal, engaging & profesional, tanpa clickbait. Gunakan format seperti "Panduan: ...", "Strategi: ...", atau "[Keyword]: Cara/Analisis ..." untuk CTR tinggi
@@ -140,7 +140,7 @@ export async function generateSeoMeta(input: GenerateSeoMetaInput): Promise<SeoM
   const start = Date.now();
   try {
     const { text, usage } = await generateText({
-      model: or.chat(REASONING_MODEL),
+      model: or.chat(DEFAULT_MODEL),
       prompt,
       temperature: 0.3,
       maxOutputTokens: 1024,

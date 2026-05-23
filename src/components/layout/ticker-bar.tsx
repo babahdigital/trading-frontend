@@ -281,87 +281,36 @@ export function TickerBar() {
 
   // Scroll detector removed — ticker always fixed bottom, no scroll-dependent mode switch
 
-  // Footer observer — debounced to prevent layout thrashing.
-  // Without debounce, ticker show/hide changes page height which triggers
-  // IntersectionObserver again → rapid true/false/true loop → page shakes.
+  // Unified bottom-stack observer — one rAF-throttled scroll handler
+  // measures both footer visibility and StickyCtaBar offset. No
+  // IntersectionObserver (caused oscillation), no MutationObserver
+  // (overkill). Simple, predictable, zero layout thrashing.
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const footer = document.getElementById('enterprise-footer');
-    if (!footer) return;
-    let timer: ReturnType<typeof setTimeout> | null = null;
-    const obs = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          if (timer) clearTimeout(timer);
-          const visible = e.isIntersecting;
-          // Hysteresis: show→hide fast (100ms), hide→show slow (300ms)
-          // prevents oscillation at the boundary
-          timer = setTimeout(() => setFooterVisible(visible), visible ? 300 : 100);
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        ticking = false;
+        const footer = document.getElementById('enterprise-footer');
+        if (footer) {
+          const footerRect = footer.getBoundingClientRect();
+          setFooterVisible(footerRect.top < window.innerHeight - 60);
         }
-      },
-      { threshold: 0.1, rootMargin: '0px 0px 0px 0px' },
-    );
-    obs.observe(footer);
-    return () => { obs.disconnect(); if (timer) clearTimeout(timer); };
-  }, []);
-
-  // StickyCtaBar coordination — ticker bottom-fixed sit ABOVE sticky-cta
-  // (presisi berdampingan, no overlap). Pakai IntersectionObserver +
-  // ResizeObserver + MutationObserver supaya detect per route navigation.
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    let intersectObs: IntersectionObserver | null = null;
-    let resizeObs: ResizeObserver | null = null;
-    let scrollHandler: (() => void) | null = null;
-    let currentEl: HTMLElement | null = null;
-
-    const measure = (el: HTMLElement | null) => {
-      if (!el) return setStickyCtaHeight(0);
-      const rect = el.getBoundingClientRect();
-      const inView = rect.top < window.innerHeight && rect.bottom > 0;
-      // Math.round (not ceil) untuk avoid sub-pixel gap antara ticker bottom
-      // dan sticky-cta top. Pak Abdullah 2026-05-22: "ada padding bottom tipis
-      // tidak mepet dengan sticky-cta-bar" — gap dari Math.ceil over-rounding.
-      setStickyCtaHeight(inView ? Math.round(rect.height) : 0);
+        const cta = document.getElementById('sticky-cta-bar');
+        if (cta) {
+          const ctaRect = cta.getBoundingClientRect();
+          const stuckAtBottom = ctaRect.bottom >= window.innerHeight - 2;
+          setStickyCtaHeight(stuckAtBottom ? Math.round(ctaRect.height) : 0);
+        } else {
+          setStickyCtaHeight(0);
+        }
+      });
     };
-
-    const attach = (el: HTMLElement) => {
-      currentEl = el;
-      measure(el);
-      intersectObs = new IntersectionObserver(() => measure(el), { threshold: [0, 0.1, 1] });
-      intersectObs.observe(el);
-      resizeObs = new ResizeObserver(() => measure(el));
-      resizeObs.observe(el);
-      scrollHandler = () => measure(el);
-      window.addEventListener('scroll', scrollHandler, { passive: true });
-    };
-
-    const detach = () => {
-      intersectObs?.disconnect();
-      resizeObs?.disconnect();
-      if (scrollHandler) window.removeEventListener('scroll', scrollHandler);
-      currentEl = null;
-      setStickyCtaHeight(0);
-    };
-
-    const tryAttach = () => {
-      const el = document.getElementById('sticky-cta-bar');
-      if (el && el !== currentEl) {
-        detach();
-        attach(el);
-      } else if (!el && currentEl) {
-        detach();
-      }
-    };
-
-    tryAttach();
-    const mutObs = new MutationObserver(tryAttach);
-    mutObs.observe(document.body, { childList: true, subtree: true });
-
-    return () => {
-      mutObs.disconnect();
-      detach();
-    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
   // Memoize repeated array — only re-compute saat tickers REFERENCE berubah
@@ -389,16 +338,14 @@ export function TickerBar() {
     : footerVisible ? 'hidden'
     : 'visible';
 
-  // Compose inline style untuk bottom-fixed mode.
-  //   - Right reserve dinamis: kalau chat FAB visible, sediain ruang;
-  //     kalau hidden, hanya edge padding tipis (Pak Abdullah 2026-05-22:
-  //     "blok kanan terlalu lebar saat fading out tick bar").
-  //   - Stacking dengan sticky-cta: bottom = stickyCtaHeight (Math.round-ed
-  //     untuk avoid 1px gap dari sub-pixel rounding).
-  // Position style — always fixed bottom with dynamic right reserve + stickyCtaBar offset
+  // Position style — fixed bottom, stacked above StickyCtaBar when present.
+  const rightReserve = chatIconVisible
+    ? (isMobile ? CHAT_RESERVE_MOBILE_PX : CHAT_RESERVE_DESKTOP_PX)
+    : EDGE_PADDING_PX;
   const fixedStyle: React.CSSProperties = {
-    right: `${chatIconVisible ? (isMobile ? CHAT_RESERVE_MOBILE_PX : CHAT_RESERVE_DESKTOP_PX) : EDGE_PADDING_PX}px`,
-    bottom: `${stickyCtaHeight}px`,
+    left: 0,
+    right: rightReserve,
+    bottom: stickyCtaHeight,
   };
 
   // Dismissed state — gagal fetch >2x dan no cache. Container fade out.
@@ -411,8 +358,9 @@ export function TickerBar() {
         'overflow-hidden border-amber-500/15',
         'bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950',
         'text-foreground isolate',
-        // ALWAYS fixed bottom — never in document flow (zero layout shifts)
-        'fixed left-0 z-[40] border-t shadow-[0_-4px_20px_rgba(0,0,0,0.4)]',
+        // ALWAYS fixed bottom — never in document flow (zero layout shifts).
+        // z-[25] = BELOW sticky-cta (z-30) so ticker never covers CTA button.
+        'fixed z-[25] border-t shadow-[0_-4px_20px_rgba(0,0,0,0.4)]',
         'transition-opacity duration-300',
         (mode === 'hidden' || dismissed) && 'opacity-0 pointer-events-none',
       )}

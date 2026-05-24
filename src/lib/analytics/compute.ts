@@ -86,7 +86,7 @@ export async function computePerformance(period: Period, pair?: string): Promise
 
   const total_trades = wins.length + losses.length + breakevens.length;
   const win_rate = total_trades > 0 ? wins.length / total_trades : 0;
-  const profit_factor = total_loss < 0 ? Math.abs(total_win / total_loss) : 0;
+  const profit_factor = total_loss < -0.01 ? Math.abs(total_win / total_loss) : 0;
 
   return {
     total_trades,
@@ -99,8 +99,8 @@ export async function computePerformance(period: Period, pair?: string): Promise
     avg_win_usd: wins.length > 0 ? r2(total_win / wins.length) : 0,
     avg_loss_usd: losses.length > 0 ? r2(total_loss / losses.length) : 0,
     profit_factor: r2(profit_factor),
-    best_trade_usd: all_pnl.length > 0 ? r2(Math.max(...all_pnl)) : 0,
-    worst_trade_usd: all_pnl.length > 0 ? r2(Math.min(...all_pnl)) : 0,
+    best_trade_usd: all_pnl.length > 0 ? r2(Math.max(...all_pnl.filter(Number.isFinite))) : 0,
+    worst_trade_usd: all_pnl.length > 0 ? r2(Math.min(...all_pnl.filter(Number.isFinite))) : 0,
   };
 }
 

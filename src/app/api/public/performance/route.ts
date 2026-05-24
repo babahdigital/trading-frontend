@@ -278,7 +278,7 @@ async function buildFromLocal(): Promise<{ equity: EquityPoint[]; kpi: KPI; curr
     winRate: perf.total_trades > 0 ? `${(perf.win_rate * 100).toFixed(1)}%` : '—',
     maxDrawdown: maxDdPct > 0 ? `-${maxDdPct.toFixed(1)}%` : '—',
     avgHoldTime: '—',
-    recoveryFactor: maxDdPct > 0 && perf.total_pnl_usd > 0 ? (perf.total_pnl_usd / (peak * maxDdPct / 100)).toFixed(1) : '—',
+    recoveryFactor: peak > 0 && maxDdPct > 0 && perf.total_pnl_usd > 0 ? (perf.total_pnl_usd / (peak * maxDdPct / 100)).toFixed(1) : '—',
   };
 
   return { equity, kpi, currentEquity: 0 };

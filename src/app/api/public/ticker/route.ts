@@ -21,7 +21,7 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 import { NextResponse } from 'next/server';
-import { readFile, writeFile, mkdir } from 'fs/promises';
+import { readFile, writeFile, mkdir, rename } from 'fs/promises';
 import path from 'path';
 import { createLogger } from '@/lib/logger';
 
@@ -80,10 +80,9 @@ async function persistToFile(tickers: Ticker[]): Promise<void> {
   try {
     await mkdir(path.dirname(CACHE_FILE), { recursive: true });
     const payload: PersistedCache = { ts: Date.now(), tickers };
-    // Atomic write via temp + rename (no partial-write risk)
     const tmp = CACHE_FILE + '.tmp';
     await writeFile(tmp, JSON.stringify(payload), 'utf-8');
-    await writeFile(CACHE_FILE, JSON.stringify(payload), 'utf-8').catch(() => writeFile(CACHE_FILE, JSON.stringify(payload)));
+    await rename(tmp, CACHE_FILE);
     lastFileWrite = Date.now();
   } catch (err) {
     log.warn(`Cache persist fail: ${err instanceof Error ? err.message : 'unknown'}`);
@@ -496,7 +495,8 @@ export async function GET() {
   await ensureHydrated();
 
   // 2. Determine cache freshness
-  const oldestCacheTs = Math.min(...Array.from(lastGood.values()).map((c) => c.ts), Date.now());
+  const cacheTimestamps = Array.from(lastGood.values()).map((c) => c.ts);
+  const oldestCacheTs = cacheTimestamps.length > 0 ? Math.min(...cacheTimestamps) : Date.now();
   const cacheAgeMs = Date.now() - oldestCacheTs;
   const cacheFresh = cacheAgeMs < CACHE_FRESH_MS && lastGood.size >= 16; // 16+ symbols = healthy cache
   const cacheExpired = cacheAgeMs > CACHE_STALE_MS;

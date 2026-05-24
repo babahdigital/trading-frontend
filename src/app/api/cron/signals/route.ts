@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
   const result = await runSignalConsumer();
   return NextResponse.json({
     ...result,
-    lastSeenId: result.lastSeenId.toString(),
+    lastSeenId: result.lastSeenId ? result.lastSeenId.toString() : '0',
   });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Internal server error';

@@ -132,7 +132,6 @@ export function useNotificationLog(): UseNotificationLogResult {
       };
       if (!isMounted.current) return { hasMore: false };
       if (data.items.length > 0) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setEvents((prev) => [...data.items, ...prev].slice(0, 200));
         const newCursor = data.next_since_id ?? data.items[data.items.length - 1].id;
         setLastId(newCursor);

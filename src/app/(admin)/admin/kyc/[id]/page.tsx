@@ -76,6 +76,7 @@ export default function AdminKycDetailPage({ params }: { params: Promise<{ id: s
     }
   }, [getAuthHeaders, id]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { void fetchDetail(); }, [fetchDetail]);
 
   async function submitReview() {

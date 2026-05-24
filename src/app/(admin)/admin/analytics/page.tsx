@@ -78,7 +78,7 @@ export default function AdminAnalyticsPage() {
     } finally {
       setLoading(false);
     }
-  }, [windowDays, getAuthHeaders]);
+  }, [windowDays, getAuthHeaders, t]);
 
   useEffect(() => {
     // `load` callback drives setState (loading/data/error) — intentional pattern

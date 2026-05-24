@@ -101,7 +101,6 @@ export default function KycPage() {
         if (res.ok) {
           const body = await res.json();
           setSummary(body.kyc);
-          // eslint-disable-next-line react-hooks/set-state-in-effect
           setDocState((prev) => ({
             front: { ...prev.front, uploaded: Boolean(body.kyc?.hasFront) },
             back: { ...prev.back, uploaded: Boolean(body.kyc?.hasBack) },

@@ -173,7 +173,6 @@ export function ShopProductsSection({ scope }: ShopProductsSectionProps = {}) {
     }
     if (!active) {
       // No active sub → expand SIGNAL (default upsell entry)
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setExpanded(new Set<CategoryKey>(['SIGNAL']));
     }
   }, [loading, tiers.length, active, scope]);

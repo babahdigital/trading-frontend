@@ -27,7 +27,7 @@
  */
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useToast } from '@/components/ui/toast';
 import { useNotificationLog, parseChannelHint, type NotificationLogItem } from '@/lib/hooks/use-notification-log';
 
@@ -43,34 +43,11 @@ export function NotificationDispatcher() {
   const toast = useToast();
   const dispatched = useRef<Map<number, DispatchedItem>>(new Map());
 
-  useEffect(() => {
-    for (const event of events) {
-      if (dispatched.current.has(event.id)) continue;
-      if (event.read_at) {
-        // Sudah read di sesi lain (cross-tab atau previous mount) — skip dispatch.
-        dispatched.current.set(event.id, { id: event.id, dispatched_at: Date.now() });
-        continue;
-      }
-      void dispatchEvent(event);
-      dispatched.current.set(event.id, { id: event.id, dispatched_at: Date.now() });
-    }
-
-    // Trim tracker supaya tidak grow unbounded
-    if (dispatched.current.size > MAX_TRACKED) {
-      const entries = Array.from(dispatched.current.entries())
-        .sort((a, b) => b[1].dispatched_at - a[1].dispatched_at)
-        .slice(0, MAX_TRACKED);
-      dispatched.current = new Map(entries);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [events]);
-
-  async function dispatchEvent(event: NotificationLogItem) {
+  const dispatchEvent = useCallback(async (event: NotificationLogItem) => {
     const channels = parseChannelHint(event.channel_hint, event.severity);
     const shouldShowToast = channels.includes('in_app');
 
     if (shouldShowToast) {
-      // Severity → toast tone mapping
       const tone =
         event.severity === 'critical' ? 'error' :
         event.severity === 'warning' ? 'warning' :
@@ -80,24 +57,33 @@ export function NotificationDispatcher() {
           tone,
           title: event.subject ?? event.message.split('\n')[0].slice(0, 80),
           description: event.subject ? event.message : undefined,
-          durationMs: event.severity === 'critical' ? 0 : 6_000, // critical = sticky
+          durationMs: event.severity === 'critical' ? 0 : 6_000,
         });
       } catch {
         // Toast provider not mounted yet — silent
       }
-      // Auto mark-as-read setelah in-app surfaced (badge counter update)
       void markAsRead(event.id);
     }
+  }, [toast, markAsRead]);
 
-    // WhatsApp + Email adapter integration — Phase 2:
-    // - 'whatsapp' channel: call /api/client/notifications/dispatch dengan
-    //   payload {channel:'whatsapp', message, phone:user.phone}. Backend
-    //   forward ke Fonnte adapter.
-    // - 'email' channel: call /api/client/notifications/dispatch dengan
-    //   {channel:'email', subject, message, to:user.email}. Backend
-    //   forward ke Brevo adapter.
-    // Telegram di-handle backend langsung (rc25 TelegramSink) — FE skip.
-  }
+  useEffect(() => {
+    for (const event of events) {
+      if (dispatched.current.has(event.id)) continue;
+      if (event.read_at) {
+        dispatched.current.set(event.id, { id: event.id, dispatched_at: Date.now() });
+        continue;
+      }
+      void dispatchEvent(event);
+      dispatched.current.set(event.id, { id: event.id, dispatched_at: Date.now() });
+    }
+
+    if (dispatched.current.size > MAX_TRACKED) {
+      const entries = Array.from(dispatched.current.entries())
+        .sort((a, b) => b[1].dispatched_at - a[1].dispatched_at)
+        .slice(0, MAX_TRACKED);
+      dispatched.current = new Map(entries);
+    }
+  }, [events, dispatchEvent]);
 
   // No-render component
   return null;

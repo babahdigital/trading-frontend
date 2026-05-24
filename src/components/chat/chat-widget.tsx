@@ -9,6 +9,7 @@ import {
   MessageCircle, X, Send, Bot, User as UserIcon, AlertTriangle, RotateCcw, ArrowDown,
   Sparkles, ShieldCheck, Trash2, Minus,
 } from 'lucide-react';
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { ChatLeadForm } from './chat-lead-form';
@@ -115,10 +116,10 @@ export function ChatWidget({ open, onOpenChange, hideFab = false }: ChatWidgetPr
 
   const [internalOpen, setInternalOpen] = useState(false);
   const isOpen = open !== undefined ? open : internalOpen;
-  const setIsOpen = (next: boolean, reason: 'close' | 'minimize' | 'user-toggle' = 'user-toggle') => {
+  const setIsOpen = useCallback((next: boolean, reason: 'close' | 'minimize' | 'user-toggle' = 'user-toggle') => {
     if (onOpenChange) onOpenChange(next, reason);
     if (open === undefined) setInternalOpen(next);
-  };
+  }, [onOpenChange, open]);
   const [hasNewMessage, setHasNewMessage] = useState(false);
   // Hide chat bubble saat mobile nav menu open — supaya tidak overlap dengan
   // last menu items di bottom. Observe DOM untuk #mobile-nav-panel presence.
@@ -185,7 +186,7 @@ export function ChatWidget({ open, onOpenChange, hideFab = false }: ChatWidgetPr
     const handleOpen = () => setIsOpen(true);
     window.addEventListener('babahalgo:open-chat', handleOpen);
     return () => window.removeEventListener('babahalgo:open-chat', handleOpen);
-  }, []);
+  }, [setIsOpen]);
 
   // Hydrate persisted history on mount (per locale). Falls back to
   // greeting-only when storage is empty / expired / different locale.
@@ -316,7 +317,7 @@ export function ChatWidget({ open, onOpenChange, hideFab = false }: ChatWidgetPr
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [isOpen]);
+  }, [isOpen, setIsOpen]);
 
   // Hydrate lead-cleared status. Logged-in user (cookie session) di-bypass:
   // /api/chat/lead/status return { authenticated: true } → skip gate.
@@ -663,12 +664,12 @@ export function ChatWidget({ open, onOpenChange, hideFab = false }: ChatWidgetPr
                       <>
                         <p className="font-semibold">{t('unavailable_title')}</p>
                         <p className="text-foreground/75 text-xs leading-relaxed">{t('unavailable_desc')}</p>
-                        <a
+                        <Link
                           href="/contact"
                           className="inline-flex items-center gap-1 text-xs font-semibold text-[hsl(var(--primary))] hover:underline"
                         >
                           {t('contact_link')}
-                        </a>
+                        </Link>
                       </>
                     ) : isRateLimited ? (
                       <>

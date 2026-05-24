@@ -6,7 +6,7 @@
 // CI/CD. Fix incremental di refactor session.
 import next from 'eslint-config-next';
 
-export default [
+const config = [
   ...next,
   {
     ignores: [
@@ -38,3 +38,5 @@ export default [
     },
   },
 ];
+
+export default config;

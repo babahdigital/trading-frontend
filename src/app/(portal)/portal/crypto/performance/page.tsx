@@ -119,6 +119,7 @@ export default function CryptoPerformancePage() {
     }
   }, [getAuthHeaders, period, tShared]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { void fetchData(); }, [fetchData]);
 
   // Adapter — transform crypto series[] → EquityCurve expected shape

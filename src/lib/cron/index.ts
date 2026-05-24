@@ -1,6 +1,7 @@
 import { runKillSwitchCron } from './kill-switch';
 import { runHealthCheckCron } from './health-check';
 import { runWhatsappVerificationCleanup } from './whatsapp-cleanup';
+import { runWorkerRunCleanup } from './worker-run-cleanup';
 import { runSignalConsumer } from '@/lib/consumers/signal';
 import { runTradeEventsConsumer } from '@/lib/consumers/trade-events';
 import { runResearchIngester } from '@/lib/ingesters/research';
@@ -168,6 +169,12 @@ export function initCronJobs() {
     try { await runWhatsappVerificationCleanup(); } catch (err) { log.error('WA verification cleanup error:', err); }
   }, 6 * 60 * 60 * 1000);
   setTimeout(() => runWhatsappVerificationCleanup().catch((err) => log.error('WA verification cleanup startup error:', err)), 120_000);
+
+  // WorkerRun cleanup — every 24 hours (prune zero-item OK rows older than 30 days)
+  setInterval(async () => {
+    try { await runWorkerRunCleanup(); } catch (err) { log.error('WorkerRun cleanup error:', err); }
+  }, 24 * 60 * 60 * 1000);
+  setTimeout(() => runWorkerRunCleanup().catch((err) => log.error('WorkerRun cleanup startup error:', err)), 150_000);
 
   log.info('Cron jobs initialized.');
 }

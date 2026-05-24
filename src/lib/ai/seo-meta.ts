@@ -1,12 +1,3 @@
-/**
- * SEO meta generator — derives metaTitle + metaDescription from article
- * body using OpenRouter. Targets:
- *   - metaTitle: 50-60 chars, keyword-front-loaded, no clickbait.
- *   - metaDescription: 150-160 chars, summarises value + CTA-implicit.
- *
- * Returns null on any failure — caller falls back to title/excerpt.
- */
-
 import { generateText } from 'ai';
 import { getOpenRouter, DEFAULT_MODEL } from './openrouter';
 import { createLogger } from '@/lib/logger';
@@ -58,69 +49,67 @@ export interface GenerateSeoMetaInput {
   language: 'id' | 'en';
 }
 
-/**
- * Robust JSON extractor for AI-generated SEO metadata.
- *
- * Handles common AI response issues:
- *   - Markdown code fences (```json ... ```)
- *   - Explanatory preamble/postamble text around JSON
- *   - Trailing commas before closing brace
- *   - Smart/curly quotes in values
- *
- * Returns null if extraction fails — caller falls back gracefully.
- */
-function extractSeoJson(raw: string): Partial<SeoMeta> | null {
-  // Step 1: Strip markdown code fences (```json ... ``` or ``` ... ```)
+interface ExtractResult {
+  data: Partial<SeoMeta> | null;
+  error: string | null;
+}
+
+function extractSeoJson(raw: string): ExtractResult {
   let text = raw
     .trim()
     .replace(/^```(?:json)?\s*/i, '')
     .replace(/\s*```\s*$/i, '')
     .trim();
 
-  // Step 2: Try direct parse first (best case)
   try {
     const obj = JSON.parse(text);
-    if (obj && typeof obj === 'object') return obj as Partial<SeoMeta>;
-  } catch {
-    // fallthrough
-  }
+    if (obj && typeof obj === 'object') return { data: obj as Partial<SeoMeta>, error: null };
+  } catch (e1) {
+    const firstBrace = text.indexOf('{');
+    const lastBrace = text.lastIndexOf('}');
+    if (firstBrace !== -1 && lastBrace > firstBrace) {
+      let candidate = text.slice(firstBrace, lastBrace + 1);
+      candidate = candidate.replace(/,\s*}/g, '}');
+      // Fix smart/curly quotes that some AI models emit
+      candidate = candidate.replace(/[“”„‟″‶]/g, '"');
+      candidate = candidate.replace(/[‘’‚‛′‵]/g, "'");
 
-  // Step 3: Extract JSON object from anywhere in the response text.
-  // Find the first `{` and last `}` to isolate the JSON object.
-  const firstBrace = text.indexOf('{');
-  const lastBrace = text.lastIndexOf('}');
-  if (firstBrace !== -1 && lastBrace > firstBrace) {
-    let candidate = text.slice(firstBrace, lastBrace + 1);
-
-    // Fix trailing commas before closing brace: `,"metaDescription": "..."}` is ok,
-    // but `"...",}` is not — strip trailing comma.
-    candidate = candidate.replace(/,\s*}/g, '}');
-
-    // Fix smart/curly quotes that some AI models emit
-    candidate = candidate.replace(/[“”„‟″‶]/g, '"');
-    candidate = candidate.replace(/[‘’‚‛′‵]/g, "'");
-
-    try {
-      const obj = JSON.parse(candidate);
-      if (obj && typeof obj === 'object') return obj as Partial<SeoMeta>;
-    } catch {
-      // fallthrough
+      try {
+        const obj = JSON.parse(candidate);
+        if (obj && typeof obj === 'object') return { data: obj as Partial<SeoMeta>, error: null };
+      } catch (e2) {
+        const titleMatch = raw.match(/"metaTitle"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+        const descMatch = raw.match(/"metaDescription"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+        if (titleMatch && descMatch) {
+          return {
+            data: {
+              metaTitle: titleMatch[1].replace(/\\"/g, '"').replace(/\\n/g, ' '),
+              metaDescription: descMatch[1].replace(/\\"/g, '"').replace(/\\n/g, ' '),
+            },
+            error: null,
+          };
+        }
+        const msg = e2 instanceof Error ? e2.message : 'unknown';
+        return { data: null, error: 'JSON parse failed after brace extraction: ' + msg };
+      }
     }
+
+    const titleMatch = raw.match(/"metaTitle"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+    const descMatch = raw.match(/"metaDescription"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+    if (titleMatch && descMatch) {
+      return {
+        data: {
+          metaTitle: titleMatch[1].replace(/\\"/g, '"').replace(/\\n/g, ' '),
+          metaDescription: descMatch[1].replace(/\\"/g, '"').replace(/\\n/g, ' '),
+        },
+        error: null,
+      };
+    }
+    const msg1 = e1 instanceof Error ? e1.message : 'unknown';
+    return { data: null, error: 'Direct JSON parse failed: ' + msg1 + ' | No brace-wrapped JSON found' };
   }
 
-  // Step 4: Regex fallback — extract metaTitle and metaDescription individually.
-  // This handles cases where JSON is deeply malformed but the key-value pairs
-  // are identifiable.
-  const titleMatch = raw.match(/"metaTitle"\s*:\s*"((?:[^"\\]|\\.)*)"/);
-  const descMatch = raw.match(/"metaDescription"\s*:\s*"((?:[^"\\]|\\.)*)"/);
-  if (titleMatch && descMatch) {
-    return {
-      metaTitle: titleMatch[1].replace(/\\"/g, '"').replace(/\\n/g, ' '),
-      metaDescription: descMatch[1].replace(/\\"/g, '"').replace(/\\n/g, ' '),
-    };
-  }
-
-  return null;
+  return { data: null, error: 'No JSON object detected in response' };
 }
 
 export async function generateSeoMeta(input: GenerateSeoMetaInput): Promise<SeoMeta | null> {
@@ -146,16 +135,21 @@ export async function generateSeoMeta(input: GenerateSeoMetaInput): Promise<SeoM
       maxOutputTokens: 1024,
     });
 
-    // Parse JSON — robust extraction handling multiple AI output formats:
-    //   1. Clean JSON (ideal)
-    //   2. JSON wrapped in markdown code fences (```json ... ```)
-    //   3. JSON embedded in explanatory text
-    //   4. Malformed JSON with trailing commas or unescaped chars
-    const parsed = extractSeoJson(text);
-    if (!parsed) {
-      log.warn(`SEO meta JSON extraction failed for "${input.title.slice(0, 40)}" — raw response: ${text.slice(0, 300)}`);
+    const extracted = extractSeoJson(text);
+    if (extracted.error) {
+      const title = input.title.slice(0, 40);
+      log.warn('SEO meta JSON extraction failed for "' + title + '" - ' + extracted.error + ' - raw: ' + text.slice(0, 200));
     }
+    const parsed = extracted.data;
     const success = !!(parsed?.metaTitle && parsed?.metaDescription);
+    let logError: string | undefined;
+    if (!success) {
+      const missing = [
+        !parsed?.metaTitle ? 'metaTitle' : '',
+        !parsed?.metaDescription ? 'metaDescription' : '',
+      ].filter(Boolean).join(', ');
+      logError = extracted.error || ('Missing keys: ' + missing);
+    }
     await prisma.aiCallLog
       .create({
         data: {
@@ -165,20 +159,19 @@ export async function generateSeoMeta(input: GenerateSeoMetaInput): Promise<SeoM
           outputTokens: usage?.outputTokens ?? 0,
           latencyMs: Date.now() - start,
           success,
+          errorMessage: logError,
           metadata: { language: input.language, category: input.category } as Prisma.InputJsonValue,
         },
       })
-      .catch((err) => log.warn(`AiCallLog write failed: ${err instanceof Error ? err.message : 'unknown'}`));
+      .catch((e) => log.warn('AiCallLog write failed: ' + (e instanceof Error ? e.message : 'unknown')));
 
     if (!success) {
-      log.warn(`SEO meta missing keys for "${input.title.slice(0, 40)}"`);
+      log.warn('SEO meta missing keys for "' + input.title.slice(0, 40) + '"');
       return null;
     }
 
-    // Enforce strict SEO length limits: metaTitle <= 60 chars, metaDescription <= 160 chars.
-    // Truncate at word boundary to avoid mid-word cuts in SERPs.
-    const rawTitle = parsed.metaTitle!;
-    const rawDesc = parsed.metaDescription!;
+    const rawTitle = parsed!.metaTitle!;
+    const rawDesc = parsed!.metaDescription!;
     return {
       metaTitle: rawTitle.length <= 60 ? rawTitle : rawTitle.slice(0, 60).replace(/\s+\S*$/, '').trim(),
       metaDescription: rawDesc.length <= 160 ? rawDesc : rawDesc.slice(0, 160).replace(/\s+\S*$/, '').trim(),
@@ -198,7 +191,7 @@ export async function generateSeoMeta(input: GenerateSeoMetaInput): Promise<SeoM
         },
       })
       .catch(() => {});
-    log.warn(`SEO meta gen failed for "${input.title.slice(0, 40)}": ${err instanceof Error ? err.message : 'unknown'}`);
+    log.warn('SEO meta gen failed for "' + input.title.slice(0, 40) + '": ' + (err instanceof Error ? err.message : 'unknown'));
     return null;
   }
 }

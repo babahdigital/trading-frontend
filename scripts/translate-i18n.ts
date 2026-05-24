@@ -41,6 +41,40 @@ const args = process.argv.slice(2);
 const FORCE = args.includes('--force');
 const DRY = args.includes('--dry');
 
+// Pinned translations: short UI labels where AI tends to drift between synonyms.
+// These override any AI translation to ensure consistency across runs.
+const PINNED_TRANSLATIONS: Record<string, string> = {
+  'Tutup': 'Close',
+  'Cari': 'Search',
+  'Sebelumnya': 'Previous',
+  'Selanjutnya': 'Next',
+  'Hapus': 'Clear',
+  'Keluar': 'Logout',
+  'Masuk': 'Login',
+  'Daftar': 'Sign Up',
+  'Kirim': 'Submit',
+  'Simpan': 'Save',
+  'Batal': 'Cancel',
+  'Ya': 'Yes',
+  'Tidak': 'No',
+  'Muat Lebih': 'Load More',
+  'Coba lagi': 'Retry',
+  'Berakhir': 'Expires',
+  'Mulai': 'Starts',
+  'Lisensi': 'Licenses',
+  'Dokumen': 'Document',
+  'Aktif': 'Active',
+  'Nonaktif': 'Inactive',
+  'Terapkan': 'Apply',
+  'Tambah': 'Add',
+  'Edit': 'Edit',
+  'Perbarui': 'Update',
+  'Unduh': 'Download',
+  'Unggah': 'Upload',
+  'Semua': 'All',
+  '/bln': '/mo',
+};
+
 const SYSTEM_PROMPT = `You are translating a fintech/trading platform UI from Indonesian to English.
 
 Rules:
@@ -76,7 +110,7 @@ async function translateBatch(items: { key: string; id: string }[]): Promise<{ k
       model: or('google/gemini-2.5-flash-lite'),
       system: SYSTEM_PROMPT,
       prompt: `Translate this Indonesian UI string to English. Output ONLY the translation, nothing else.\n\nInput: ${item.id}`,
-      temperature: 0.2,
+      temperature: 0,
     });
     let en = text.trim();
     // Strip surrounding quotes if model added them
@@ -177,16 +211,18 @@ async function main() {
     const existingEn = getByPath(enJson, key);
     const cachedEn = cache[value];
 
-    if (FORCE) {
+    // Pinned translations take absolute priority — no AI variance allowed
+    const pinned = PINNED_TRANSLATIONS[value];
+    if (pinned) {
+      setByPath(out, key, pinned);
+      cache[value] = pinned;
+    } else if (FORCE) {
       toTranslate.push({ key, id: value });
     } else if (cachedEn && (!existingEn || existingEn === '__needs_translation__')) {
-      // Use cache hit
       setByPath(out, key, cachedEn);
     } else if (cachedEn && existingEn !== cachedEn) {
-      // Cache exists but en.json is out of sync — refresh from cache
       setByPath(out, key, cachedEn);
     } else if (typeof existingEn === 'string' && existingEn.length > 0 && existingEn !== '__needs_translation__') {
-      // en.json already has a translation; trust it. Refresh cache for next runs.
       cache[value] = existingEn;
     } else {
       toTranslate.push({ key, id: value });

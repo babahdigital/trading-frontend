@@ -40,7 +40,8 @@ export async function GET(request: NextRequest) {
   const qs = new URLSearchParams();
   const since = url.searchParams.get('since');
   const unreadOnly = url.searchParams.get('unread_only');
-  const limit = url.searchParams.get('limit') || '50';
+  const limitRaw = parseInt(url.searchParams.get('limit') || '50', 10) || 50;
+  const limit = String(Math.min(Math.max(1, limitRaw), 200));
   if (since) qs.set('since', since);
   if (unreadOnly === 'true' || unreadOnly === '1') qs.set('unread_only', 'true');
   qs.set('limit', limit);

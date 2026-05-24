@@ -26,6 +26,7 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db/prisma';
 import { createLogger } from '@/lib/logger';
 import { USD_IDR_RATE } from '@/lib/payment/rates';
+import { REASONING_MODEL } from '@/lib/ai/openrouter';
 
 const log = createLogger('cron/promo-strategist');
 
@@ -320,7 +321,7 @@ Output ONLY raw JSON (tanpa code fence, tanpa explanation).`;
         // Migrated 2026-05-21 (Pak Abdullah directive): Claude Opus 4.1 → Gemini
         // 3.5 Flash. Consolidate ke Gemini stack — lebih murah, 1M context,
         // reasoning cukup untuk promo copy + decision matrix.
-        model: 'google/gemini-3.5-flash',
+        model: REASONING_MODEL,
         messages: [
           { role: 'system', content: 'You are a senior marketing copywriter for institutional fintech. Output JSON only.' },
           { role: 'user', content: userPrompt },

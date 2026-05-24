@@ -75,8 +75,8 @@ interface ContactInfo {
 
 const FALLBACK_CONTACT: ContactInfo = {
   email: 'hello@babahalgo.com',
-  whatsappUrl: 'https://wa.me/6281234567890',
-  whatsappLabel: 'WhatsApp',
+  whatsappUrl: null,
+  whatsappLabel: null,
   telegramUrl: 'https://t.me/babahalgo',
 };
 

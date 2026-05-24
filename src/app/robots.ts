@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 
-const BASE_URL = 'https://babahalgo.com';
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://babahalgo.com';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;

@@ -17,7 +17,7 @@ export interface FinancialProductSchema {
   image?: string;
 }
 
-const SITE_BASE = 'https://babahalgo.com';
+const SITE_BASE = process.env.NEXT_PUBLIC_APP_URL || 'https://babahalgo.com';
 
 export function organizationSchema() {
   return {

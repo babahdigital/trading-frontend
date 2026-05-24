@@ -142,7 +142,7 @@ export default async function ContactPage() {
                   <ChannelCard
                     icon={<MessageCircle className="w-5 h-5" />}
                     title={t('channel_wa_title')}
-                    href="https://wa.me/6281234567890"
+                    href="https://t.me/babahalgo"
                     value={t('channel_wa_value')}
                   />
                   <ChannelCard

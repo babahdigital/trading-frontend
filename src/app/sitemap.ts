@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next';
 import { prisma } from '@/lib/db/prisma';
 import { locales, defaultLocale } from '@/i18n/config';
 
-const BASE_URL = 'https://babahalgo.com';
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://babahalgo.com';
 
 // Force dynamic rendering — sitemap reflects current DB state on every
 // request. Cloudflare CDN + crawler request frequency naturally bound

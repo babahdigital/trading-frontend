@@ -5,6 +5,8 @@ const FAQ_KEYS = [
   { qKey: 'faq_q4', aKey: 'faq_a4' },
   { qKey: 'faq_q5', aKey: 'faq_a5' },
   { qKey: 'faq_q6', aKey: 'faq_a6' },
+  { qKey: 'faq_q7', aKey: 'faq_a7' },
+  { qKey: 'faq_q8', aKey: 'faq_a8' },
 ] as const;
 
 interface FaqSectionProps {

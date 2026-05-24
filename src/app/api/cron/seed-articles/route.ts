@@ -1,15 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
+import { verifyCronSecret } from '@/lib/auth/cron';
 import { ArticleCategory } from '@prisma/client';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
-
-function authorized(req: NextRequest): boolean {
-  const header = req.headers.get('x-cron-secret') ?? req.nextUrl.searchParams.get('secret');
-  const expected = process.env.CRON_SECRET;
-  return !!expected && header === expected;
-}
 
 const articles: Array<{
   slug: string;
@@ -99,7 +94,7 @@ const articles: Array<{
 
 export async function GET(req: NextRequest) {
   try {
-  if (!authorized(req)) {
+  if (!verifyCronSecret(req)) {
     return NextResponse.json({ code: 'unauthorized', error: 'unauthorized' }, { status: 401 });
   }
 

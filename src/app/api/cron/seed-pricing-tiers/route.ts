@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server';
+import { verifyCronSecret } from '@/lib/auth/cron';
 import { prisma } from '@/lib/db/prisma';
 import { createLogger } from '@/lib/logger';
 
@@ -159,14 +160,8 @@ const DEPRECATED_SLUGS = [
   'signal-basic', 'signal-standard', // old $49 names
 ];
 
-function authorized(req: NextRequest): boolean {
-  const header = req.headers.get('x-cron-secret') ?? req.nextUrl.searchParams.get('secret');
-  const expected = process.env.CRON_SECRET;
-  return !!expected && header === expected;
-}
-
 export async function GET(request: NextRequest) {
-  if (!authorized(request)) {
+  if (!verifyCronSecret(request)) {
     return NextResponse.json({ code: 'unauthorized', error: 'unauthorized' }, { status: 401 });
   }
 

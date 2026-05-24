@@ -4,6 +4,7 @@ export const runtime = 'nodejs';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { generateSeoMeta } from '@/lib/ai/seo-meta';
+import { verifyCronSecret } from '@/lib/auth/cron';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('backfill-seo-meta');
@@ -19,14 +20,8 @@ const log = createLogger('backfill-seo-meta');
  *   force   — '1' to overwrite even if already set
  */
 
-function authorized(req: NextRequest): boolean {
-  const header = req.headers.get('x-cron-secret') ?? req.nextUrl.searchParams.get('secret');
-  const expected = process.env.CRON_SECRET;
-  return !!expected && header === expected;
-}
-
 export async function GET(request: NextRequest) {
-  if (!authorized(request)) {
+  if (!verifyCronSecret(request)) {
     return NextResponse.json({ code: 'unauthorized', error: 'unauthorized' }, { status: 401 });
   }
 

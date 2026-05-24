@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { generateArticleImage } from '@/lib/ai/image-generator';
+import { verifyCronSecret } from '@/lib/auth/cron';
 import { createLogger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
@@ -29,12 +30,6 @@ const log = createLogger('cron/refresh-article-images');
  * kecuali only_null=false atau slug spesifik.
  */
 
-function authorized(req: NextRequest): boolean {
-  const header = req.headers.get('x-cron-secret') ?? req.nextUrl.searchParams.get('secret');
-  const expected = process.env.CRON_SECRET;
-  return !!expected && header === expected;
-}
-
 interface ProcessResult {
   slug: string;
   status: 'regenerated' | 'skipped' | 'failed';
@@ -43,7 +38,7 @@ interface ProcessResult {
 }
 
 export async function POST(request: NextRequest) {
-  if (!authorized(request)) {
+  if (!verifyCronSecret(request)) {
     return NextResponse.json({ code: 'unauthorized', error: 'unauthorized' }, { status: 401 });
   }
 

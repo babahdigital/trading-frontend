@@ -1,18 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { runTradeEventsConsumer } from '@/lib/consumers/trade-events';
+import { verifyCronSecret } from '@/lib/auth/cron';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-function authorized(req: NextRequest): boolean {
-  const header = req.headers.get('x-cron-secret') ?? req.nextUrl.searchParams.get('secret');
-  const expected = process.env.CRON_SECRET;
-  return !!expected && header === expected;
-}
-
 export async function GET(req: NextRequest) {
   try {
-  if (!authorized(req)) {
+  if (!verifyCronSecret(req)) {
     return NextResponse.json({ code: 'unauthorized', error: 'unauthorized' }, { status: 401 });
   }
   const result = await runTradeEventsConsumer();

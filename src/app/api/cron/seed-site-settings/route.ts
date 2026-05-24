@@ -3,6 +3,7 @@ export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
+import { verifyCronSecret } from '@/lib/auth/cron';
 
 /**
  * Seed default SiteSetting rows so the admin UI shows them as
@@ -17,15 +18,9 @@ const DEFAULTS: Array<{ key: string; value: string; type: string }> = [
   { key: 'telegram_url', value: 'https://t.me/babahalgo', type: 'string' },
 ];
 
-function authorized(req: NextRequest): boolean {
-  const header = req.headers.get('x-cron-secret') ?? req.nextUrl.searchParams.get('secret');
-  const expected = process.env.CRON_SECRET;
-  return !!expected && header === expected;
-}
-
 export async function GET(request: NextRequest) {
   try {
-  if (!authorized(request)) {
+  if (!verifyCronSecret(request)) {
     return NextResponse.json({ code: 'unauthorized', error: 'unauthorized' }, { status: 401 });
   }
 

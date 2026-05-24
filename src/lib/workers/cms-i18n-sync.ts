@@ -36,6 +36,13 @@ const log = createLogger('cms-i18n-sync');
 // per tick worst case, but typical steady-state is 0-2 stale rows.
 const BATCH_SIZE = 20;
 
+// Buffer en_synced_at 1s ahead to prevent @updatedAt race: Prisma
+// @updatedAt fires on the SAME update, causing updatedAt >= en_synced_at
+// → row appears perpetually stale → infinite retranslation loop.
+function syncedNow(): Date {
+  return new Date(Date.now() + 1000);
+}
+
 const SYSTEM_PROMPT = `You are translating a fintech/trading platform CMS from Indonesian to English.
 
 Rules:
@@ -155,7 +162,7 @@ async function syncFaq(): Promise<{ ok: number; failed: number }> {
       ]);
       await prisma.faq.update({
         where: { id: f.id },
-        data: { question_en: qEn, answer_en: aEn, en_synced_at: new Date() },
+        data: { question_en: qEn, answer_en: aEn, en_synced_at: syncedNow() },
       });
       ok++;
     } catch (err) {
@@ -196,7 +203,7 @@ async function syncPricingTier(): Promise<{ ok: number; failed: number }> {
           subtitle_en,
           ctaLabel_en,
           features_en: features_en.length > 0 ? (features_en as Prisma.InputJsonValue) : Prisma.JsonNull,
-          en_synced_at: new Date(),
+          en_synced_at: syncedNow(),
         },
       });
       ok++;
@@ -235,7 +242,7 @@ async function syncLandingSection(): Promise<{ ok: number; failed: number }> {
           title_en,
           subtitle_en,
           content_en: (content_en as Prisma.InputJsonValue) ?? Prisma.JsonNull,
-          en_synced_at: new Date(),
+          en_synced_at: syncedNow(),
         },
       });
       ok++;
@@ -279,7 +286,7 @@ async function syncArticle(): Promise<{ ok: number; failed: number }> {
           body_en,
           metaTitle_en,
           metaDescription_en,
-          en_synced_at: new Date(),
+          en_synced_at: syncedNow(),
         },
       });
       ok++;
@@ -320,7 +327,7 @@ async function syncPageMeta(): Promise<{ ok: number; failed: number }> {
           description_en,
           ogTitle_en,
           ogDescription_en,
-          en_synced_at: new Date(),
+          en_synced_at: syncedNow(),
         },
       });
       ok++;

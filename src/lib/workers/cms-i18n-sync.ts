@@ -360,3 +360,28 @@ export async function runCmsI18nSync(): Promise<void> {
     );
   }
 }
+
+export type CmsSyncTarget = 'faq' | 'pricing' | 'landing' | 'article' | 'pageMeta';
+
+export async function triggerCmsI18nSync(target?: CmsSyncTarget): Promise<void> {
+  if (!process.env.OPENROUTER_API_KEY) return;
+  try {
+    if (!target) {
+      await runCmsI18nSync();
+      return;
+    }
+    const syncMap: Record<CmsSyncTarget, () => Promise<{ ok: number; failed: number }>> = {
+      faq: syncFaq,
+      pricing: syncPricingTier,
+      landing: syncLandingSection,
+      article: syncArticle,
+      pageMeta: syncPageMeta,
+    };
+    const result = await syncMap[target]();
+    if (result.ok > 0 || result.failed > 0) {
+      log.info(`CMS i18n on-demand (${target}): ok=${result.ok} failed=${result.failed}`);
+    }
+  } catch (err) {
+    log.error(`CMS i18n on-demand error: ${err instanceof Error ? err.message : 'unknown'}`);
+  }
+}

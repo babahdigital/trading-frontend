@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/db/prisma';
 import { z } from 'zod';
 import { requireAdmin } from '@/lib/auth/require-admin';
+import { triggerCmsI18nSync } from '@/lib/workers/cms-i18n-sync';
 
 const pageMetaSchema = z.object({
   path: z.string().min(1),
@@ -53,6 +54,7 @@ export async function POST(request: NextRequest) {
     },
   });
   revalidatePath(parsed.data.path);
+  void triggerCmsI18nSync('pageMeta');
   return NextResponse.json(page, { status: 201 });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Internal server error';
@@ -92,6 +94,7 @@ export async function PUT(request: NextRequest) {
   const page = await prisma.pageMeta.update({ where: { id }, data: { ...data, ...syncOverride } });
   if (data.path) revalidatePath(data.path);
   revalidatePath('/');
+  void triggerCmsI18nSync('pageMeta');
   return NextResponse.json(page);
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Internal server error';

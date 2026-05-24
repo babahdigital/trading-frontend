@@ -128,7 +128,7 @@ export function initCronJobs() {
     ? openRouterConfigured
     : cmsI18nFlag === '1' || cmsI18nFlag.toLowerCase() === 'true';
   if (cmsI18nEnabled) {
-    const cmsI18nIntervalMs = parseInt(process.env.CMS_I18N_AUTO_INTERVAL_MS || '', 10) || 5 * 60 * 1000;
+    const cmsI18nIntervalMs = parseInt(process.env.CMS_I18N_AUTO_INTERVAL_MS || '', 10) || 6 * 60 * 60 * 1000;
     setInterval(async () => {
       try { await runCmsI18nSync(); } catch (err) { log.error('CMS i18n sync error:', err); }
     }, cmsI18nIntervalMs);

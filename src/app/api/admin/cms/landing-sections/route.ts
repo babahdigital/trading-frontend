@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/db/prisma';
 import { z } from 'zod';
 import { requireAdmin } from '@/lib/auth/require-admin';
+import { triggerCmsI18nSync } from '@/lib/workers/cms-i18n-sync';
 
 const sectionSchema = z.object({
   slug: z.string().min(1),
@@ -46,6 +47,7 @@ export async function POST(request: NextRequest) {
     },
   });
   revalidatePath('/');
+  void triggerCmsI18nSync('landing');
   return NextResponse.json(section, { status: 201 });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Internal server error';
@@ -64,6 +66,7 @@ export async function PUT(request: NextRequest) {
 
   const section = await prisma.landingSection.update({ where: { id }, data });
   revalidatePath('/');
+  void triggerCmsI18nSync('landing');
   return NextResponse.json(section);
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Internal server error';

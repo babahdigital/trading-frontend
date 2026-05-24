@@ -7,6 +7,7 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db/prisma';
 import { z } from 'zod';
 import { requireAdmin } from '@/lib/auth/require-admin';
+import { triggerCmsI18nSync } from '@/lib/workers/cms-i18n-sync';
 
 const pricingSchema = z.object({
   slug: z.string().min(1),
@@ -59,6 +60,7 @@ export async function POST(request: NextRequest) {
   revalidatePath('/');
   revalidatePath('/pricing');
   revalidatePath('/register');
+  void triggerCmsI18nSync('pricing');
   return NextResponse.json(tier, { status: 201 });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Internal server error';
@@ -107,6 +109,7 @@ export async function PUT(request: NextRequest) {
   revalidatePath('/');
   revalidatePath('/pricing');
   revalidatePath('/register');
+  void triggerCmsI18nSync('pricing');
   return NextResponse.json(tier);
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Internal server error';

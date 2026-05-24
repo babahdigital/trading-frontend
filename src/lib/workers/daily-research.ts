@@ -647,12 +647,9 @@ export async function runDailyResearch(): Promise<DailyResearchResult> {
     // 2026-05-19 — AI hero image generation DISABLED.
     // Pollinations Flux output telah berulang menghasilkan visual yang
     // tidak konsisten dengan institutional brand standard (Pak Abdullah
-    // feedback: "gambar masih jelek, matikan saja"). Article rendering
-    // graceful-degrades ke gradient + category icon fallback (lihat
-    // ArticleCardImage). Aktivasi kembali memerlukan provider yang
-    // konsisten (mis. fal.ai Flux Pro berbayar atau in-house SVG
-    // template) — sampai itu, set IMAGE_GEN_ENABLED=1 untuk override.
-    const imageResult = process.env.IMAGE_GEN_ENABLED === '1'
+    // Image generation — default ON (Gemini 2.5 Flash Image via OpenRouter).
+    // Disable with IMAGE_GEN_ENABLED=0 if needed.
+    const imageResult = process.env.IMAGE_GEN_ENABLED !== '0'
       ? await generateArticleImage(built.titleEn, {
           category: config.category,
           keywords: built.keywords,

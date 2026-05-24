@@ -53,12 +53,19 @@ const publicPaths = ['/login', '/admin/login', '/forgot-password', '/reset-passw
   '/api/forex/auth/login', '/api/forex/auth/refresh'];
 
 // In-memory rate limit store (per-process, resets on restart)
+const MAX_RATE_LIMIT_ENTRIES = 10_000;
 const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
 
 function isRateLimited(key: string, limit: number, windowMs: number): boolean {
   const now = Date.now();
   const entry = rateLimitStore.get(key);
   if (!entry || now > entry.resetAt) {
+    if (rateLimitStore.size >= MAX_RATE_LIMIT_ENTRIES) {
+      for (const [k, v] of rateLimitStore) {
+        if (now > v.resetAt) rateLimitStore.delete(k);
+        if (rateLimitStore.size < MAX_RATE_LIMIT_ENTRIES * 0.8) break;
+      }
+    }
     rateLimitStore.set(key, { count: 1, resetAt: now + windowMs });
     return false;
   }
@@ -207,6 +214,7 @@ function isNonGuestPath(pathname: string): boolean {
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const lp = pathname.toLowerCase();
   const host = request.headers.get('host') ?? '';
 
   // Locale-prefixed app surfaces (auth/admin/portal) → strip prefix.
@@ -303,12 +311,13 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+  const clientIp = request.headers.get('cf-connecting-ip')
+    || request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
     || request.headers.get('x-real-ip')
     || 'unknown';
 
   // Rate limit login: 10 attempts per minute
-  if (pathname === '/api/auth/login' && request.method === 'POST') {
+  if (lp === '/api/auth/login' && request.method === 'POST') {
     if (isRateLimited(`login:${clientIp}`, 10, 60_000)) {
       return NextResponse.json(
         { code: 'rate_limit_login', error: 'Too many login attempts. Try again later.' },
@@ -318,7 +327,7 @@ export async function proxy(request: NextRequest) {
   }
 
   // Rate limit chat: 20 messages per minute per IP
-  if (pathname === '/api/chat' && request.method === 'POST') {
+  if (lp === '/api/chat' && request.method === 'POST') {
     if (isRateLimited(`chat:${clientIp}`, 20, 60_000)) {
       return NextResponse.json(
         { code: 'rate_limit_chat', error: 'Too many messages. Please wait.' },
@@ -332,7 +341,7 @@ export async function proxy(request: NextRequest) {
   // dari spam. Ambang 6/min cukup longgar untuk satu user real, tapi
   // cukup ketat untuk hentikan bot.
   const LEAD_PATHS = ['/api/chat/lead', '/api/public/subscribers', '/api/public/inquiries'];
-  if (LEAD_PATHS.includes(pathname) && request.method === 'POST') {
+  if (LEAD_PATHS.includes(lp) && request.method === 'POST') {
     if (isRateLimited(`lead:${clientIp}`, 6, 60_000)) {
       return NextResponse.json(
         { code: 'rate_limit_lead', error: 'Terlalu banyak permintaan. Silakan tunggu sebentar.' },
@@ -342,7 +351,7 @@ export async function proxy(request: NextRequest) {
   }
 
   // Global rate limit: 100 requests per minute per IP
-  if (pathname.startsWith('/api/')) {
+  if (lp.startsWith('/api/')) {
     if (isRateLimited(`global:${clientIp}`, 100, 60_000)) {
       return NextResponse.json(
         { code: 'rate_limit_global', error: 'Rate limit exceeded' },
@@ -351,8 +360,8 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  // Allow public API paths
-  if (publicPaths.some((p) => pathname.startsWith(p))) {
+  // Allow public API paths (case-insensitive)
+  if (publicPaths.some((p) => lp.startsWith(p))) {
     return NextResponse.next();
   }
 
@@ -407,7 +416,7 @@ export async function proxy(request: NextRequest) {
     : request.cookies.get('access_token')?.value;
 
   if (!token) {
-    if (pathname.startsWith('/api/')) {
+    if (lp.startsWith('/api/')) {
       // Locale-agnostic error code shape: frontend resolves to localized
       // message via errors.auth.<code>. English string is fallback for
       // non-i18n consumers (curl, logs, legacy clients).
@@ -420,9 +429,9 @@ export async function proxy(request: NextRequest) {
     const { payload } = await jwtVerify(token, secret);
 
     // Admin routes require admin-level role (SUPER_ADMIN, ADMIN, OPERATOR)
-    if (pathname.startsWith('/admin') || pathname.startsWith('/api/admin')) {
-      if (!(ADMIN_ROLES as readonly string[]).includes(payload.role as string)) {
-        if (pathname.startsWith('/api/')) {
+    if (lp.startsWith('/admin') || lp.startsWith('/api/admin')) {
+      if (!payload.role || !(ADMIN_ROLES as readonly string[]).includes(payload.role as string)) {
+        if (lp.startsWith('/api/')) {
           return NextResponse.json({ code: 'forbidden', error: 'Forbidden' }, { status: 403 });
         }
         return NextResponse.redirect(new URL('/login', request.url));
@@ -430,10 +439,10 @@ export async function proxy(request: NextRequest) {
     }
 
     // Portal/client routes: check role + license/subscription scope
-    if (pathname.startsWith('/portal') || pathname.startsWith('/api/client')) {
+    if (lp.startsWith('/portal') || lp.startsWith('/api/client')) {
       const portalAllowed = ['CLIENT', 'ADMIN', 'SUPER_ADMIN', 'OPERATOR'];
-      if (!portalAllowed.includes(payload.role as string)) {
-        if (pathname.startsWith('/api/')) {
+      if (!payload.role || !portalAllowed.includes(payload.role as string)) {
+        if (lp.startsWith('/api/')) {
           return NextResponse.json({ code: 'forbidden', error: 'Forbidden' }, { status: 403 });
         }
         return NextResponse.redirect(new URL('/login', request.url));
@@ -449,7 +458,7 @@ export async function proxy(request: NextRequest) {
       //
       // /api/client/* TETAP require subscription (data access endpoint —
       // tidak make sense kalau belum subscribe).
-      if (pathname.startsWith('/api/client') && payload.role === 'CLIENT') {
+      if (lp.startsWith('/api/client') && payload.role === 'CLIENT') {
         if (!payload.licenseId && !payload.subscriptionId) {
           // Return 403 — bukan 200 graceful shape (Pak Abdullah audit
           // 2026-05-22 round 2: 200 shape `{ equity: [], positions: [] }`
@@ -474,7 +483,7 @@ export async function proxy(request: NextRequest) {
     if (payload.subscriptionId) requestHeaders.set('x-subscription-id', payload.subscriptionId as string);
     return NextResponse.next({ request: { headers: requestHeaders } });
   } catch {
-    if (pathname.startsWith('/api/')) {
+    if (lp.startsWith('/api/')) {
       return NextResponse.json({ code: 'invalid_token', error: 'Invalid or expired token' }, { status: 401 });
     }
     return NextResponse.redirect(new URL('/login', request.url));

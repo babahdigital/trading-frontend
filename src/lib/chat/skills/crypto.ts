@@ -72,6 +72,21 @@ KONEK API KEY
 - Bisa pause / disconnect kapan saja dari /portal/crypto.
 - Kalau customer ganti API key: disconnect lama → connect baru. Posisi terbuka di-close dulu.
 
+FOREX BRIDGE (Cross-Market Intelligence)
+- Robot Crypto terhubung ke Forex Calendar API — menerima data event ekonomi real-time (FOMC, CPI, NFP, dll).
+- Macro Blackout Guard: 60 menit sebelum high-impact event (FOMC/CPI/NFP), sistem OTOMATIS block entry baru. Posisi existing tetap berjalan dengan trailing stop ketat.
+- News Sentiment: BTC/ETH memiliki sentiment tracking dari forex news DB. Altcoin (SOL, XRP, BNB, AVAX) belum di-track sentiment — menggunakan pure technical analysis.
+- Kalender ekonomi terintegrasi: bot aware terhadap holiday schedule, market close, dan reduced liquidity window.
+- Manfaat bridge: crypto bot tidak "buta" terhadap macro event — menghindari entry saat volatilitas news-driven yang unpredictable.
+
+RISK ENGINE & SAFETY
+- Circuit breaker: auto-stop trading saat drawdown harian > 3% (adjustable per tier).
+- Kill switch: admin atau customer bisa emergency-stop semua trading via /portal/crypto → instant close all positions.
+- Macro blackout: auto-block entry 60 menit sebelum FOMC/CPI/NFP/ECB.
+- Position sizing: vol-target ATR-based, bukan fixed lot — ukuran posisi menyesuaikan volatilitas market.
+- Multi-layer exit: trailing stop + time-based exit + breakeven move + partial TP.
+- Maximum concurrent positions: dibatasi per tier (2-7 slot) — tidak pernah over-expose.
+
 ONBOARDING
 - Demo 30 hari gratis (Binance Testnet, paper money $5K): /demo?product=robot-crypto
 - Live: /register?service=crypto → /pricing → pilih tier → payment (Xendit) → /portal/crypto/connect`;

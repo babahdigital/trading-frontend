@@ -79,6 +79,13 @@ PERTANYAAN UMUM CUSTOMER
 - "Bagaimana cara mulai?" → (1) Pilih tier di /pricing, (2) /register → bayar via Xendit, (3) KYC verification, (4) Setup akun MT5 di broker, (5) Connect di /portal → bot aktif.
 - "Apakah harus paham trading?" → Tidak wajib — bot auto-execute. Tapi kami sangat sarankan paham dasar risk management supaya Anda bisa set kill-switch threshold yang sesuai risk appetite Anda.
 
+FOREX BRIDGE & MACRO INTELLIGENCE
+- Calendar API terintegrasi: data event ekonomi real-time (FOMC, CPI, NFP, ECB, BOJ, dll) dari MT5 + ForexFactory.
+- Macro Blackout Guard: 60 menit sebelum high-impact event, sistem OTOMATIS block entry baru — mencegah exposure ke volatilitas news-driven yang unpredictable.
+- News Sentiment tracking per pair — sentiment score + confidence dari aggregasi berita forex (BTC/ETH juga di-cover untuk cross-market correlation).
+- Forex bridge juga terhubung ke Robot Crypto — kalau NFP/FOMC impact crypto (BTC sering bergerak bareng DXY), crypto bot juga auto-blackout.
+- Enterprise API key: 120 req/min, 10K req/day — enterprise-grade data feed.
+
 ONBOARDING
 - Demo 7 hari gratis (akun MT5 demo customer): /demo?product=robot-meta
 - Live tier (KYC required): /register?service=signal&tier=swing|scalping|all

@@ -209,6 +209,7 @@ model Subscription {
   createdAt       DateTime         @default(now())
 
   @@index([userId])
+  @@index([status, expiresAt])
 }
 
 enum SubscriptionTier {
@@ -289,6 +290,7 @@ model Session {
   revokedAt    DateTime?
 
   @@index([userId])
+  @@index([expiresAt])
 }
 
 // =============================================
@@ -706,6 +708,7 @@ model ChatLead {
   @@index([email])
   @@index([phone])
   @@index([status, createdAt])
+  @@index([ipAddress, createdAt])
 }
 
 enum ChatLeadStatus {
@@ -1245,6 +1248,7 @@ model CryptoBotSubscription {
 
   @@index([status])
   @@index([nextBillingAt])
+  @@index([status, expiresAt])
 }
 
 // ─────────────────────────────────────────────────────────────────────

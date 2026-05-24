@@ -21,7 +21,7 @@
  */
 
 import { prisma } from '@/lib/db/prisma';
-import { getOpenRouter, REASONING_MODEL } from '@/lib/ai/openrouter';
+import { getOpenRouter, DEFAULT_MODEL, REASONING_MODEL } from '@/lib/ai/openrouter';
 import { translateText } from '@/lib/ai/content';
 import { generateArticleImage } from '@/lib/ai/image-generator';
 import { generateSeoMeta } from '@/lib/ai/seo-meta';
@@ -148,7 +148,7 @@ export async function runBlogArticleGenerator(options: BlogGenOptions = {}): Pro
     const topics = await prisma.blogTopic.findMany({
       where,
       orderBy: [{ priority: 'desc' }, { scheduledWeek: 'asc' }],
-      take: options.maxTopicsPerRun ?? 3,
+      take: options.maxTopicsPerRun ?? 1,
     });
 
     if (topics.length === 0) {
@@ -247,8 +247,9 @@ async function generateOneTopic(topic: BlogTopic): Promise<{ articleId: string }
     + '- Akhiri dengan disclaimer trading standar.';
 
   const aiStart = Date.now();
+  const articleModel = process.env.BLOG_ARTICLE_MODEL || DEFAULT_MODEL;
   const { text: markdown, usage } = await generateText({
-    model: or.chat(REASONING_MODEL),
+    model: or.chat(articleModel),
     system: systemPrompt,
     prompt,
     temperature: 0.4,
@@ -262,7 +263,7 @@ async function generateOneTopic(topic: BlogTopic): Promise<{ articleId: string }
   await prisma.aiCallLog.create({
     data: {
       purpose: 'blog_article_generate',
-      model: REASONING_MODEL,
+      model: articleModel,
       inputTokens,
       outputTokens,
       latencyMs,

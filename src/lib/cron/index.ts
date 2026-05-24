@@ -138,6 +138,26 @@ export function initCronJobs() {
     log.info('CMS i18n auto-sync idle — OPENROUTER_API_KEY not configured');
   }
 
+  // Promo Strategist — daily autonomous decision engine. Evaluates revenue
+  // health + upcoming calendar events → auto-creates greeting/discount promos.
+  // Calls internal API endpoint (self-authenticated via CRON_SECRET Bearer).
+  if (openRouterConfigured && process.env.CRON_SECRET) {
+    const promoIntervalMs = parseInt(process.env.PROMO_STRATEGIST_INTERVAL_MS || '', 10) || 24 * 60 * 60 * 1000;
+    const triggerPromo = async () => {
+      try {
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+        const res = await fetch(`${baseUrl}/api/cron/promo-strategist`, {
+          method: 'POST',
+          headers: { authorization: `Bearer ${process.env.CRON_SECRET}` },
+        });
+        if (!res.ok) log.warn(`Promo strategist returned ${res.status}`);
+      } catch (err) { log.error('Promo strategist error:', err); }
+    };
+    setInterval(triggerPromo, promoIntervalMs);
+    setTimeout(triggerPromo, 180_000);
+    log.info(`Promo strategist enabled (${Math.round(promoIntervalMs / 3600000)}h interval, kickoff +3min)`);
+  }
+
   // Subscription expiry — every hour (expire + send renewal reminders)
   setInterval(async () => {
     try { await expireSubscriptions(); } catch (err) { log.error('Subscription expiry error:', err); }

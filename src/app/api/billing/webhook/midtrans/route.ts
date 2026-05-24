@@ -16,7 +16,7 @@ function verifySignature(
   signatureKey: string,
 ): boolean {
   const serverKey = process.env.MIDTRANS_SERVER_KEY;
-  if (!serverKey) return false;
+  if (!serverKey || !signatureKey || typeof signatureKey !== 'string') return false;
   const expected = createHash('sha512')
     .update(`${orderId}${statusCode}${grossAmount}${serverKey}`)
     .digest('hex');

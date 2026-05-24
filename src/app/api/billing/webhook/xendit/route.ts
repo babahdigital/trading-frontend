@@ -16,8 +16,7 @@ export async function POST(req: NextRequest) {
     // Diagnostic without exposing secrets: log length + last-4-chars only
     const envToken = process.env.XENDIT_WEBHOOK_TOKEN ?? '';
     log.warn(
-      `Invalid Xendit callback token — got_len=${callbackToken.length} got_suffix=...${callbackToken.slice(-4)} `
-      + `env_set=${envToken.length > 0} env_len=${envToken.length} env_suffix=...${envToken.slice(-4)}`,
+      `Invalid Xendit callback token — got_len=${callbackToken.length} env_set=${envToken.length > 0} env_len=${envToken.length}`,
     );
     return NextResponse.json({ code: 'unauthorized', error: 'Invalid callback token' }, { status: 401 });
   }

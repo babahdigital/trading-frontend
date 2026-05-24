@@ -344,7 +344,7 @@ export async function proxy(request: NextRequest) {
   if (LEAD_PATHS.includes(lp) && request.method === 'POST') {
     if (isRateLimited(`lead:${clientIp}`, 6, 60_000)) {
       return NextResponse.json(
-        { code: 'rate_limit_lead', error: 'Terlalu banyak permintaan. Silakan tunggu sebentar.' },
+        { code: 'rate_limit_lead', error: 'Too many requests. Please wait.' },
         { status: 429 }
       );
     }

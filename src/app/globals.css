@@ -560,16 +560,46 @@ body.menu-open {
     width: 100%;
     max-width: var(--layout-container-narrow-max, 960px);
   }
-  .hero-section-header > h1,
+  .hero-section-header > .t-eyebrow {
+    margin-bottom: 1rem;
+  }
+  .hero-section-header > h1 {
+    margin-bottom: 1.5rem;
+    max-width: 100%;
+  }
   .hero-section-header > p,
   .hero-section-header > .hero-header-prose {
     max-width: 100%;
   }
-  /* Optional centering variant — kalau hero butuh centered (landing, demo).
-     Default `.hero-section-header` left-aligned (institutional product page). */
+  .hero-section-header > .t-lead {
+    margin-bottom: 2rem;
+  }
   .hero-section-header--center {
     margin-inline: auto;
     text-align: center;
+  }
+
+  /* ─── Section content header — eyebrow → h2 → lead → body pattern ───
+     Standardizes spacing for the repeating pattern used in every guest page
+     section body: <eyebrow> <h2> <lead> <grid/content>.
+     Apply `.section-header` to the wrapper div. */
+  .section-header {
+    margin-bottom: 2.5rem;
+  }
+  .section-header > .t-eyebrow {
+    margin-bottom: 0.75rem;
+  }
+  .section-header > h2 {
+    margin-bottom: 1rem;
+  }
+  .section-header > .t-lead,
+  .section-header > .t-body {
+    margin-bottom: 0;
+  }
+  @media (min-width: 768px) {
+    .section-header {
+      margin-bottom: 3.5rem;
+    }
   }
 
   /* ─── Status dot — live indicator dengan pulse animation ───

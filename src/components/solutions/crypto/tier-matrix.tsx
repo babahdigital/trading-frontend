@@ -134,13 +134,13 @@ const CRYPTO_TIERS_META: CryptoTierMeta[] = [
     cta: { id: 'Mulai Pro', en: 'Start Pro' },
     ctaHref: '/register?service=crypto&tier=pro',
     desc: {
-      id: 'Trader serius dengan akses penuh ke 3 strategi (Scalping Momentum + Swing SMC + Mean Reversion). 5 posisi simultan, leverage 12x. Sweet spot $10K (fee hanya 0.5% dari profit).',
-      en: 'Serious trader with full access to 3 strategies (Scalping Momentum + Swing SMC + Mean Reversion). 5 concurrent slots, 12x leverage. Sweet spot $10K (fee just 0.5% of profit).',
+      id: 'Trader serius dengan akses penuh ke 4 strategi (Scalping Momentum + Swing SMC + Mean Reversion + Wyckoff Breakout). 5 posisi simultan, leverage 12x. Sweet spot $10K (fee hanya 0.5% dari profit).',
+      en: 'Serious trader with full access to 4 strategies (Scalping Momentum + Swing SMC + Mean Reversion + Wyckoff Breakout). 5 concurrent slots, 12x leverage. Sweet spot $10K (fee just 0.5% of profit).',
     },
     features: {
       id: [
         '5 posisi simultan · leverage 12x maks',
-        'Semua strategi: Scalping Momentum + Swing SMC + Mean Reversion',
+        'Semua strategi: Scalping Momentum + Swing SMC + Mean Reversion + Wyckoff Breakout',
         'Risk per trade 1.5% · notional cap 60%',
         'Full reconciliation engine',
         'Priority signal queue (low-latency)',
@@ -148,7 +148,7 @@ const CRYPTO_TIERS_META: CryptoTierMeta[] = [
       ],
       en: [
         '5 concurrent slots · max 12x leverage',
-        'All strategies: Scalping Momentum + Swing SMC + Mean Reversion',
+        'All strategies: Scalping Momentum + Swing SMC + Mean Reversion + Wyckoff Breakout',
         '1.5% risk per trade · 60% notional cap',
         'Full reconciliation engine',
         'Priority signal queue (low-latency)',

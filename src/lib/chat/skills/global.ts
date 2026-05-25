@@ -37,7 +37,7 @@ DUA PRODUK FLAGSHIP
 PERBANDINGAN FOREX vs CRYPTO (kalau user tanya "apa bedanya"):
 - Robot Meta (Forex): trading pair mata uang, emas, minyak via MetaTrader 5. Broker partner (Exness default). Strategi SMC + Wyckoff + Pivot Mean Reversion. Mulai ${formatPrice('signal_starter', locale, { period: 'mo', compact: false })}.
 - Robot Crypto: trading cryptocurrency via Binance Futures/Spot. API key connection (tanpa deposit ke kami). Strategi serupa + spot DCA trend. Mulai ${formatPrice('crypto_starter', locale, { period: 'mo', compact: false })}.
-- Kesamaan: zero-custody (modal customer tetap di akun mereka), risk framework yang sama (circuit breaker, vol-target sizing, audit trail), AI advisory brain di belakang layar.
+- Kesamaan: zero-custody (modal customer tetap di akun mereka), risk framework yang sama (circuit breaker, vol-target sizing, audit trail), adaptive math engine (deterministic) di belakang layar.
 - Perbedaan utama: (1) market berbeda (Forex/commodity vs crypto), (2) execution via MT5 bridge vs Binance API, (3) jam trading: Forex Senin-Jumat 24/5, Crypto 24/7, (4) Forex ada leverage broker, Crypto leverage di Binance Futures.
 
 ARSITEKTUR SISTEM (level umum, jangan over-detail)
@@ -105,7 +105,7 @@ SIGNAL TRADING (penjelasan umum)
 - Pipeline: market data analysis → pattern detection → confidence scoring → signal generation.
 - Di BabahAlgo, signal bisa auto-execute (bot jalankan otomatis sesuai parameter risiko customer) atau notification-only (customer terima notifikasi lalu decide sendiri).
 - Signal BUKAN jaminan profit — ini output analisis statistik yang punya probabilitas, bukan kepastian.
-- AI Brain di belakang layar: Bandit Routing (pilih strategi terbaik), Kelly Sizing (hitung posisi optimal), Markov TP Engine (target dinamis), AI Winprob Filter (filter sinyal low-confidence).
+- Adaptive Math Engine di belakang layar: Strategy Router / Bandit Routing (pilih konfluensi terbaik per regime), Kelly Sizing (hitung posisi optimal), Markov TP Engine (target dinamis), Pre-trade Statistical Filter (filter sinyal low-winrate). Seluruhnya rule-based dan deterministic — bukan AI/ML.
 - Semua signal tercatat di audit trail — customer bisa review kapan saja.
 
 NOTIFIKASI

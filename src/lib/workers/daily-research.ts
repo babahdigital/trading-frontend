@@ -469,12 +469,13 @@ WAJIB tabel pair-bias di tengah artikel:
     imageSlugHint: 'trading-strategy-deep-dive-annotated-chart',
     fetchData: async () => null,
     buildPrompt: async () => {
-      // 3 strategi inti BabahAlgo + 3 pattern teknikal underlying = 6 rotation slot
+      // 4 strategi inti BabahAlgo + 3 pattern teknikal underlying = 7 rotation slot
       // sesuai backend reality (no Wyckoff/Astronacci/AI Momentum drift).
       const strategies = [
         { name: 'SMC Scalper (Quasimodo Family)', slug: 'smc' },
         { name: 'SMC Swing H1-H4', slug: 'smc-swing' },
         { name: 'Pivot Mean Reversion', slug: 'pivot-mean-reversion' },
+        { name: 'Quad Confluence (AMD + FVG)', slug: 'quad-confluence' },
         { name: 'Order Block Identification', slug: 'smc' },
         { name: 'Liquidity Sweep + FVG', slug: 'smc' },
         { name: 'Daily Pivot Fade Setup', slug: 'pivot-mean-reversion' },

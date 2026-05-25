@@ -100,8 +100,8 @@ const CANONICAL_TIERS: CanonicalTier[] = [
   {
     slug: 'crypto-pro', name: 'Crypto Pro', name_en: 'Crypto Pro',
     price: '$49/bulan (Rp799K)',
-    subtitle: 'Akses penuh 3 strategi untuk trader serius',
-    subtitle_en: 'Full 3-strategy access for serious traders',
+    subtitle: 'Akses penuh 4 strategi untuk trader serius',
+    subtitle_en: 'Full 4-strategy access for serious traders',
     features: ['5 open position slot', 'Leverage maks 12x', 'Strategi: Scalping Momentum + Swing SMC + Mean Reversion', 'Risk per trade 1.5%', 'Full reconciliation + audit trail'],
     features_en: ['5 open position slots', 'Max 12x leverage', 'Strategies: Scalping Momentum + Swing SMC + Mean Reversion', '1.5% risk per trade', 'Full reconciliation + audit trail'],
     ctaLabel: 'Mulai Pro', ctaLabel_en: 'Start Pro', ctaLink: '/register?service=crypto&tier=pro',

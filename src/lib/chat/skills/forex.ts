@@ -58,7 +58,7 @@ EXECUTION ENGINE (deterministic, rule-based)
 TIER + HARGA (bulanan, tanpa lock-in)
 - Tier 1 Swing ${t1} — 3 pair major, swing only (4-24 jam hold), notif Email + Dashboard. Cocok untuk trader yang ingin exposure forex tanpa pantau terus.
 - Tier 2 Scalping ${t2} (POPULAR) — 8 pair (Major + Cross + Gold + Silver), swing + scalping, notif WhatsApp + Telegram + Email. Strategi paling aktif: scalping M5-M15 + swing H1-H4.
-- Tier 3 All-In ${t3} — unlimited pair, semua 3 strategi inti + adaptive risk engine paralel (rule-based, deterministic), premium research advisor (Pair Brief AI — riset & daily brief per pair), dedicated support 24/7, custom backtest sweep + Payout API.
+- Tier 3 All-In ${t3} — unlimited pair, semua 4 strategi inti + adaptive risk engine paralel (rule-based, deterministic), premium research advisor (Pair Brief — riset & daily brief per pair), dedicated support 24/7, custom backtest sweep + Payout API.
 
 CIRCUIT BREAKER / RISK PROTECTION (Anda set thresholds, sistem enforce)
 - Anda configure 3 threshold di /portal/kill-switch: DAILY_LOSS (max rugi harian dalam %), LOSS_STREAK (jumlah loss berturut), EQUITY_DRAWDOWN (drawdown intraday %).
@@ -66,11 +66,11 @@ CIRCUIT BREAKER / RISK PROTECTION (Anda set thresholds, sistem enforce)
 - Cooling state machine: NORMAL → fast 1h cooling (low impact) → PROBATION 4h dengan risk dipotong setengah → NORMAL. Atau 12h hard untuk high impact.
 - Self-acknowledge tier retail (Starter/Pro): Anda clear sendiri setelah cooling window.
 - VIP/Dedicated: ada review process tambahan untuk customer yang request institutional ops oversight.
-- AI postmortem auto-evaluasi tiap 5 menit selama probation untuk membantu Anda memahami kenapa threshold hit.
+- Auto-evaluasi tiap 5 menit selama probation untuk membantu Anda memahami kenapa threshold hit.
 - Customer bisa set threshold sesuai risk appetite — kami provide default yang conservative (2% daily loss, 3 loss streak, 5% drawdown).
 
 PERTANYAAN UMUM CUSTOMER
-- "Apa itu signal trading?" → Signal adalah rekomendasi beli/jual yang dihasilkan algoritma kami setelah multi-timeframe analysis + pattern detection + AI confidence scoring. Setiap signal punya entry price, stop loss, take profit, dan confidence score. Signal bisa auto-execute (bot jalankan otomatis) atau notification-only (Anda decide sendiri).
+- "Apa itu signal trading?" → Signal adalah rekomendasi beli/jual yang dihasilkan algoritma kami setelah multi-timeframe analysis + pattern detection + statistical confidence scoring. Setiap signal punya entry price, stop loss, take profit, dan confidence score. Signal bisa auto-execute (bot jalankan otomatis) atau notification-only (Anda decide sendiri).
 - "Saya bisa pakai broker lain selain Exness?" → Tier 3 All-In + Software License support multi-broker. Tier 1-2 default Exness karena calibration paling matang di bridge. Broker BAPPEBTI-licensed recommended: MIFX, Finex, Asia Trade Point Futures.
 - "Modal minimum?" → Tier 1 efektif mulai ${modal1k}. Tier 2 ${modal2k}. Tier 3 ${modal5k}+ (untuk leverage 6+ pair simultan).
 - "Berapa win rate?" → Win rate alone misleading. Yang penting Sharpe ratio + max drawdown + profit factor. Track record live publikasi /performance setelah 90 hari produksi nyata. Trading carries risk of loss.

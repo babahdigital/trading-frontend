@@ -358,11 +358,11 @@ export function LandingClient({ sections, testimonials, faqs, pricingOverrides }
                       </p>
 
                       {/* Inline mini stats — tight, institutional. Angka match
-                          dengan reality backend: 3 strategi umbrella (SMC scalper,
-                          SMC swing, Pivot Mean Reversion), 12 layer risiko, 14+
-                          instrumen, 0 custody dana. */}
+                          dengan reality backend: 4 strategi umbrella (SMC Scalper,
+                          SMC Swing, Pivot Mean Reversion, Quad Confluence), 12
+                          layer risiko, 14+ instrumen, 0 custody dana. */}
                       <div className="grid grid-cols-2 gap-x-6 gap-y-3 mb-6 pb-6 border-b border-border/50">
-                        <CapabilityInline value="3" label={t('capability_strategy')} />
+                        <CapabilityInline value="4" label={t('capability_strategy')} />
                         <CapabilityInline value="12" label={t('capability_risk')} />
                         <CapabilityInline value="14+" label={t('capability_assets')} />
                         <CapabilityInline value="0" label={t('capability_custody')} valueClass="text-emerald-400" />
@@ -480,8 +480,8 @@ export function LandingClient({ sections, testimonials, faqs, pricingOverrides }
       )}
 
       {/* ═══════════════════════════════════════════
-          SECTION 1.5 — AI BRAIN
-          6 modul adaptive learning yang berjalan di belakang strategi inti.
+          SECTION 1.5 — ADAPTIVE MATH ENGINE
+          6 modul deterministic (math + statistics) di belakang strategi inti.
           Bahasa user-friendly + SEO-optimized.
           ═══════════════════════════════════════════ */}
       <AiBrainSection />

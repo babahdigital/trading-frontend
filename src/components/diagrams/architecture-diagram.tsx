@@ -30,8 +30,8 @@ export function ArchitectureDiagram({ className }: { className?: string }) {
         <rect x="255" y="40" width="175" height="140" rx="8" className="stroke-accent" strokeWidth="1.5" fill="none" />
         <text x="342" y="80" textAnchor="middle" className="fill-foreground text-[13px] font-semibold" fontFamily="var(--font-display)">Decision Engine</text>
         <text x="342" y="102" textAnchor="middle" className="fill-muted-foreground text-[11px]" fontFamily="var(--font-body)">Deterministic · Rule-based</text>
-        <text x="342" y="120" textAnchor="middle" className="fill-muted-foreground text-[11px]" fontFamily="var(--font-body)">3 Core Strategies + Math Engine</text>
-        <text x="342" y="138" textAnchor="middle" className="fill-muted-foreground text-[11px]" fontFamily="var(--font-body)">SMC Scalper · SMC Swing · Pivot</text>
+        <text x="342" y="120" textAnchor="middle" className="fill-muted-foreground text-[11px]" fontFamily="var(--font-body)">4 Core Strategies + Math Engine</text>
+        <text x="342" y="138" textAnchor="middle" className="fill-muted-foreground text-[11px]" fontFamily="var(--font-body)">SMC · Swing · Pivot · Quad</text>
         <circle cx="342" cy="158" r="4" className="fill-accent" />
 
         {/* Box 3: Risk Layer */}

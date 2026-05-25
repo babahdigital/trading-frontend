@@ -19,8 +19,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     {
       title: isEn ? 'Risk Framework — BabahAlgo' : 'Kerangka Risiko — BabahAlgo',
       description: isEn
-        ? 'Institutional risk framework: vol-targeted sizing (RiskMetrics + AQR + fractional Kelly), 6-layer exit decision engine, multi-stage kill-switch with AI postmortem, and immutable hash-chained audit trail.'
-        : 'Kerangka risiko institusional: vol-targeted sizing (RiskMetrics + AQR + fractional Kelly), exit decision engine 6 layer, multi-stage kill-switch dengan AI postmortem, plus audit trail SHA-256 hash chain.',
+        ? 'Institutional risk framework: vol-targeted sizing (RiskMetrics + AQR + fractional Kelly), 6-layer exit decision engine, multi-stage kill-switch with automated postmortem, and immutable hash-chained audit trail.'
+        : 'Kerangka risiko institusional: vol-targeted sizing (RiskMetrics + AQR + fractional Kelly), exit decision engine 6 layer, multi-stage kill-switch dengan automated postmortem, plus audit trail SHA-256 hash chain.',
     },
     locale === 'en' ? 'en' : 'id',
   );

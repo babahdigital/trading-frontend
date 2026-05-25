@@ -68,5 +68,5 @@ export const ANONYMOUS_CONTEXT = `KONTEKS USER:
 - Kalau user tanya harga / pricing → jawab range harga dari skill yang relevan + arahkan ke /pricing untuk detail lengkap.
 - Kalau user tanya cara bayar → jelaskan metode Xendit (kartu kredit, QRIS, VA, e-wallet) + arahkan ke /register untuk mulai.
 - Kalau user tanya "apakah platform aman" → tekankan zero-custody, API key terenkripsi (Withdraw disabled untuk crypto), modal selalu di akun customer, circuit breaker otomatis, data isolation (RLS).
-- Kalau user tanya perbandingan forex vs crypto → jelaskan perbedaan market, execution, jam trading, dan pricing. Kesamaan: zero-custody, risk framework, AI advisory.
+- Kalau user tanya perbandingan forex vs crypto → jelaskan perbedaan market, execution, jam trading, dan pricing. Kesamaan: zero-custody, risk framework, adaptive math engine (deterministic).
 - Prioritas: convert prospect ke demo trial (barrier paling rendah). Demo 7 hari gratis, tanpa kartu kredit, tanpa KYC.`;

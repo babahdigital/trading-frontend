@@ -33,7 +33,7 @@ interface Pillar {
   icon: LucideIcon;
 }
 
-// Pillar link target — strategi → halaman strategi index (3 strategi umbrella),
+// Pillar link target — strategi → halaman strategi index (4 strategi umbrella),
 // bukan ke spesifik /smc supaya user lihat seluruh family.
 const PILLARS: Pillar[] = [
   {

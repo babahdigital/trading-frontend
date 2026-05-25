@@ -24,8 +24,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
         ? 'Robot Crypto — Auto-trading on Binance | BabahAlgo'
         : 'Robot Crypto — Auto-trading di Binance | BabahAlgo',
       description: isEn
-        ? 'Institutional Robot Crypto for Binance USDT-M Futures. 3 core strategies (Scalping Momentum, Swing SMC, Mean Reversion) executed by deterministic decision engine + adaptive math risk modules, running 24/7 under a 12-layer risk framework. Capital stays in your Binance account — no fund custody.'
-        : 'Robot Crypto institusional untuk Binance USDT-M Futures. 3 strategi inti (Scalping Momentum, Swing SMC, Mean Reversion) dieksekusi oleh deterministic decision engine + adaptive math risk modules, jalan 24/7 dengan framework risiko 12-layer. Modal tetap di akun Binance Anda — tidak ada custody dana.',
+        ? 'Institutional Robot Crypto for Binance USDT-M Futures. 4 core strategies (Scalping Momentum, Swing SMC, Mean Reversion, Wyckoff Breakout) executed by deterministic decision engine + adaptive math risk modules, running 24/7 under a 12-layer risk framework. Capital stays in your Binance account — no fund custody.'
+        : 'Robot Crypto institusional untuk Binance USDT-M Futures. 4 strategi inti (Scalping Momentum, Swing SMC, Mean Reversion, Wyckoff Breakout) dieksekusi oleh deterministic decision engine + adaptive math risk modules, jalan 24/7 dengan framework risiko 12-layer. Modal tetap di akun Binance Anda — tidak ada custody dana.',
     },
     locale === 'en' ? 'en' : 'id',
   );

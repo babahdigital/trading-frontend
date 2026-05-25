@@ -12,18 +12,14 @@ import {
   formatHoldMinutes,
   formatCount,
 } from '@/lib/trading/strategy-stats';
+import { getForexStrategies } from '@/lib/trading/trading-settings';
 import type { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
 
-// Strategy umbrella yang dipublikasikan ke user. Mapping ke backend registry
-// (lihat trading-forex/src/strategies/registry):
-//   - smc                  → scalper.qm_perfect_{pure,ao,adx,full,adx_h4}
-//   - smc-swing            → swing.qm_perfect_{pure,ao,adx,full}
-//   - pivot-mean-reversion → scalper.pivot_mean_reversion
-const STRATEGY_SLUGS = ['smc', 'smc-swing', 'pivot-mean-reversion', 'quad-confluence'] as const;
-
-type StrategySlug = (typeof STRATEGY_SLUGS)[number];
+// Prose i18n keys for mechanism/confluence remain hardcoded — these are long-form
+// content that lives in the i18n message files, not in the CMS trading settings.
+type StrategySlug = 'smc' | 'smc-swing' | 'pivot-mean-reversion' | 'quad-confluence';
 
 interface StrategyData {
   name: string;
@@ -112,18 +108,23 @@ const STRATEGY_DATA: Record<StrategySlug, StrategyData> = {
   },
 };
 
-function getAdjacentStrategies(slug: StrategySlug) {
-  const idx = STRATEGY_SLUGS.indexOf(slug);
-  const prev = idx > 0 ? STRATEGY_SLUGS[idx - 1] : null;
-  const next = idx < STRATEGY_SLUGS.length - 1 ? STRATEGY_SLUGS[idx + 1] : null;
+function getAdjacentStrategies(
+  slug: string,
+  allSlugs: string[],
+  nameMap: Map<string, string>,
+) {
+  const idx = allSlugs.indexOf(slug);
+  const prev = idx > 0 ? allSlugs[idx - 1] : null;
+  const next = idx < allSlugs.length - 1 ? allSlugs[idx + 1] : null;
   return {
-    prev: prev ? { slug: prev, name: STRATEGY_DATA[prev].name } : null,
-    next: next ? { slug: next, name: STRATEGY_DATA[next].name } : null,
+    prev: prev ? { slug: prev, name: nameMap.get(prev) ?? prev } : null,
+    next: next ? { slug: next, name: nameMap.get(next) ?? next } : null,
   };
 }
 
 export async function generateStaticParams() {
-  return STRATEGY_SLUGS.map((slug) => ({ slug }));
+  const strategies = await getForexStrategies();
+  return strategies.map((s) => ({ slug: s.slug }));
 }
 
 export async function generateMetadata({
@@ -132,17 +133,23 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const t = await getTranslations('platform_strategy_detail');
-  if (!STRATEGY_SLUGS.includes(slug as StrategySlug)) {
+  const [t, strategies] = await Promise.all([
+    getTranslations('platform_strategy_detail'),
+    getForexStrategies(),
+  ]);
+  const dbStrategy = strategies.find((s) => s.slug === slug);
+  if (!dbStrategy) {
     return { title: t('not_found_title') };
   }
-  const strategy = STRATEGY_DATA[slug as StrategySlug];
-  const description = t(strategy.abstractKeys[0]).slice(0, 160);
+  const proseData = STRATEGY_DATA[slug as StrategySlug];
+  const description = proseData
+    ? t(proseData.abstractKeys[0]).slice(0, 160)
+    : dbStrategy.desc_en.slice(0, 160);
   return {
-    title: `${strategy.name} ${t('metadata_title_suffix')}`,
+    title: `${dbStrategy.name} ${t('metadata_title_suffix')}`,
     description,
     openGraph: {
-      title: `${strategy.name} ${t('metadata_og_suffix')}`,
+      title: `${dbStrategy.name} ${t('metadata_og_suffix')}`,
       description,
       type: 'article',
     },
@@ -156,24 +163,31 @@ export default async function StrategyDetailPage({
 }) {
   const { slug } = await params;
 
-  if (!STRATEGY_SLUGS.includes(slug as StrategySlug)) {
+  const [t, statsPayload, strategies] = await Promise.all([
+    getTranslations('platform_strategy_detail'),
+    getStrategyStats(),
+    getForexStrategies(),
+  ]);
+
+  const dbStrategy = strategies.find((s) => s.slug === slug);
+  if (!dbStrategy) {
     notFound();
   }
 
-  const [t, statsPayload] = await Promise.all([
-    getTranslations('platform_strategy_detail'),
-    getStrategyStats(),
-  ]);
-  const strategy = STRATEGY_DATA[slug as StrategySlug];
+  // Prose data for mechanism/confluence — only available for known slugs
+  const proseData = (slug in STRATEGY_DATA) ? STRATEGY_DATA[slug as StrategySlug] : null;
   const stat = statsPayload.stats[slug] ?? null;
   const isPending = statsPayload.source === 'pending' || stat === null;
-  const { prev, next } = getAdjacentStrategies(slug as StrategySlug);
+
+  const allSlugs = strategies.map((s) => s.slug);
+  const nameMap = new Map(strategies.map((s) => [s.slug, s.name]));
+  const { prev, next } = getAdjacentStrategies(slug, allSlugs, nameMap);
 
   const breadcrumb = breadcrumbSchema([
     { name: 'Home', url: '/' },
     { name: 'Platform', url: '/platform' },
     { name: 'Strategies', url: '/platform/strategies' },
-    { name: strategy.name, url: `/platform/strategies/${slug}` },
+    { name: dbStrategy.name, url: `/platform/strategies/${slug}` },
   ]);
 
   return (
@@ -193,11 +207,13 @@ export default async function StrategyDetailPage({
             </Link>
             <div className="hero-section-header">
               <h1 className="t-display-page mb-4">
-                {strategy.name}
+                {dbStrategy.name}
               </h1>
-              <p className="t-lead text-muted-foreground">
-                {t(strategy.subtitleKey)}
-              </p>
+              {proseData && (
+                <p className="t-lead text-muted-foreground">
+                  {t(proseData.subtitleKey)}
+                </p>
+              )}
             </div>
           </div>
         </section>
@@ -207,22 +223,29 @@ export default async function StrategyDetailPage({
           <div className="layout-container">
             <p className="t-eyebrow mb-3">{t('section_abstract')}</p>
             <div className="max-w-3xl">
-              {strategy.abstractKeys.map((key, i) => (
-                <p key={i} className="t-body text-muted-foreground leading-relaxed mb-6 last:mb-0">
-                  {t(key)}
+              {proseData ? (
+                proseData.abstractKeys.map((key, i) => (
+                  <p key={i} className="t-body text-muted-foreground leading-relaxed mb-6 last:mb-0">
+                    {t(key)}
+                  </p>
+                ))
+              ) : (
+                <p className="t-body text-muted-foreground leading-relaxed">
+                  {dbStrategy.desc_en}
                 </p>
-              ))}
+              )}
             </div>
           </div>
         </section>
 
         {/* Mechanism */}
+        {proseData && (
         <section className="section-padding border-b border-border/60">
           <div className="layout-container">
             <p className="t-eyebrow mb-3">{t('section_mechanism')}</p>
-            <h2 className="t-display-sub mb-8">{strategy.name}</h2>
+            <h2 className="t-display-sub mb-8">{dbStrategy.name}</h2>
             <div className="grid gap-4 md:grid-cols-2">
-              {strategy.mechanismKeys.map((key, i) => (
+              {proseData.mechanismKeys.map((key, i) => (
                 <div key={i} className="card-enterprise">
                   <div className="flex gap-4">
                     <span className="font-mono text-accent text-sm font-semibold shrink-0">
@@ -237,8 +260,10 @@ export default async function StrategyDetailPage({
             </div>
           </div>
         </section>
+        )}
 
         {/* Multi-timeframe confluence */}
+        {proseData && (
         <section className="section-padding border-b border-border/60">
           <div className="layout-container">
             <p className="t-eyebrow mb-3">{t('section_confluence')}</p>
@@ -259,7 +284,7 @@ export default async function StrategyDetailPage({
                   </tr>
                 </thead>
                 <tbody>
-                  {strategy.confluence.map((row) => (
+                  {proseData.confluence.map((row) => (
                     <tr key={row.timeframe} className="border-b border-border last:border-0">
                       <td className="font-mono text-sm text-accent px-6 py-4">
                         {row.timeframe}
@@ -274,6 +299,7 @@ export default async function StrategyDetailPage({
             </div>
           </div>
         </section>
+        )}
 
         {/* Risk profile */}
         <section className="section-padding border-b border-border/60">

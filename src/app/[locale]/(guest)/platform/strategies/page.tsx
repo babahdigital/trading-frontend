@@ -5,9 +5,10 @@ import { StickyCtaBar } from '@/components/shared/sticky-cta-bar';
 import { Link } from '@/i18n/navigation';
 import { ArrowRight } from 'lucide-react';
 import { STRATEGY_ICONS } from '@/components/icons/strategy-icons';
-import { getTranslations } from 'next-intl/server';
+import { getTranslations, getLocale } from 'next-intl/server';
 import { getPageMetadata } from '@/lib/seo';
 import { getStrategyStats, formatWinRate } from '@/lib/trading/strategy-stats';
+import { getForexStrategies } from '@/lib/trading/trading-settings';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,42 +27,14 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   );
 }
 
-const STRATEGIES = [
-  {
-    slug: 'smc',
-    nameKey: 'smc_name',
-    descKey: 'smc_desc',
-    timeframe: 'M5 — H4',
-    status: 'live' as const,
-  },
-  {
-    slug: 'smc-swing',
-    nameKey: 'smc-swing_name',
-    descKey: 'smc-swing_desc',
-    timeframe: 'H1 — H4',
-    status: 'live' as const,
-  },
-  {
-    slug: 'pivot-mean-reversion',
-    nameKey: 'pivot-mean-reversion_name',
-    descKey: 'pivot-mean-reversion_desc',
-    timeframe: 'M5 — M30',
-    status: 'live' as const,
-  },
-  {
-    slug: 'quad-confluence',
-    nameKey: 'quad-confluence_name',
-    descKey: 'quad-confluence_desc',
-    timeframe: 'M5 — M30',
-    status: 'new' as const,
-  },
-] as const;
-
 export default async function StrategiesPage() {
-  const [t, statsPayload] = await Promise.all([
+  const [t, statsPayload, strategies, locale] = await Promise.all([
     getTranslations('platform_strategies'),
     getStrategyStats(),
+    getForexStrategies(),
+    getLocale(),
   ]);
+  const isEn = locale === 'en';
   const isPending = statsPayload.source === 'pending';
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -102,7 +75,7 @@ export default async function StrategiesPage() {
               ) : null}
             </div>
             <div className="space-y-6">
-              {STRATEGIES.map((strategy) => {
+              {strategies.map((strategy) => {
                 const StrategyIcon = STRATEGY_ICONS[strategy.slug];
                 const stat = statsPayload.stats[strategy.slug] ?? null;
                 const wrLabel = stat ? formatWinRate(stat.winRate) : '—';
@@ -116,7 +89,7 @@ export default async function StrategiesPage() {
                         </div>
                       )}
                       <h2 className="t-display-sub group-hover:text-amber-400 break-words">
-                        {t(strategy.nameKey)}
+                        {strategy.name}
                       </h2>
                       {strategy.status === 'new' && (
                         <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-500/15 text-[10px] font-semibold text-emerald-400 uppercase tracking-wider">
@@ -132,7 +105,7 @@ export default async function StrategiesPage() {
                     </div>
                   </div>
                   <p className="text-foreground/60 leading-relaxed mb-4">
-                    {t(strategy.descKey)}
+                    {isEn ? strategy.desc_en : strategy.desc_id}
                   </p>
                   <Link
                     href={`/platform/strategies/${strategy.slug}`}

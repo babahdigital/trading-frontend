@@ -1,12 +1,8 @@
 /**
- * Crypto skill — Robot Crypto Binance Spot + USDT-M Futures.
+ * Crypto skill — Robot Crypto Binance USDT-M Futures.
  *
  * Lazy-load saat percakapan menyangkut crypto / Binance / BTC / ETH.
- *
- * Update 2026-05-01: drop profit share dari semua tier per audit konsultan
- * (managed account framing risk + zero-custody konsistensi). Pricing flat
- * monthly $49 / $199 / $499. Tier value reframe ke fitur (more strategies,
- * pairs, dedicated AM) bukan performance-link.
+ * Futures-only, no spot trading.
  *
  * Locale-aware: getCryptoSkill('id') → harga IDR, getCryptoSkill('en') → USD.
  */
@@ -31,8 +27,8 @@ export function getCryptoSkill(locale: Locale): string {
 PRODUK
 - Auto-trading dengan Binance API key customer.
 - API key permission: Read + Trade SAJA. Withdraw HARUS DISABLED (kami verify saat connect — kalau Withdraw enabled, koneksi ditolak).
-- USDT-M Futures + Spot — pair tergantung tier (2-7 slot simultan).
-- Strategi: scalping_momentum, swing_smc, wyckoff_breakout, mean_reversion, spot_dca_trend, spot_swing_trend.
+- USDT-M Futures only — pair tergantung tier (2-7 slot simultan). Tidak ada spot trading.
+- Strategi: scalping_momentum (semua tier), swing_smc (Active+), mean_reversion (Pro+), wyckoff_breakout (HNWI). Seluruh eksekusi 100% deterministic.
 - Modal tetap di akun Binance customer — kami tidak punya withdraw permission, tidak custody dana.
 - 28 stable API endpoint tersedia di backend untuk manajemen: posisi, signal, konfigurasi, tier, billing.
 - Setiap request ke backend memerlukan X-Tenant-Id header — data terisolasi per customer (multi-tenant RLS).
@@ -63,9 +59,8 @@ PERTANYAAN UMUM CUSTOMER
 - "Modal minimum Binance?" → Free demo gratis (paper $5K). Live: Starter mulai ${modal500}, Active ${modal1500}, Pro ${modal5k}, HNWI ${modal25k}+.
 - "Leverage 20x bahaya?" → Default risk per trade tetap 1-2% account (tergantung tier), tidak peduli leverage. Leverage tinggi = lebih banyak posisi paralel, bukan posisi yang lebih besar. Kerangka risiko sama dengan Robot Meta (vol-target sizing, exit multi-layer, circuit breaker). Leverage bisa di-set lebih rendah dari max tier — customer yang kontrol.
 - "Bisa di Binance Indonesia (Tokocrypto)?" → Saat ini hanya Binance Global. Tokocrypto support roadmap Q4 2026.
-- "Spot DCA seperti apa?" → Tier HNWI: weekly trend-pullback DCA pada spot pair (BTC, ETH). Bukan DCA buta — entry dipicu sinyal mean-reversion + trend strength.
 - "Bisa ganti pair mana yang di-trade?" → Starter/Active: pair otomatis dikelola oleh sistem (top liquid pair). Pro: bisa request whitelist. HNWI: full custom whitelist/blacklist.
-- "Apakah bisa trading spot saja (tanpa futures)?" → Ya — strategi spot_dca_trend dan spot_swing_trend available di tier Pro ke atas. Spot-only mode = tanpa leverage, tanpa risiko liquidation.
+- "Kenapa futures only, bukan spot?" → USDT-M Futures memungkinkan bi-directional trading (long + short), position sizing lebih presisi, dan risk management yang lebih granular via leverage control. Semua posisi dalam USDT — tidak perlu hold underlying asset.
 
 KONEK API KEY
 - Login portal → /portal/crypto/connect → paste API key + secret → bot auto-verify Withdraw=disabled → activated.

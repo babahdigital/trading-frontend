@@ -28,31 +28,32 @@ export function getForexSkill(locale: Locale): string {
 PRODUK
 - Bot full auto-execute lewat bridge ZeroMQ ke akun MT5 customer.
 - Aset: 7 Forex pair major (EURUSD, GBPUSD, USDJPY, AUDUSD, USDCHF, NZDUSD, USDCAD), 2 Metals (XAUUSD, XAGUSD), 3 Energy (USOIL, UKOIL, XNGUSD), 2 Crypto major (BTCUSD, ETHUSD).
-- 3 strategi inti (live di produksi backend):
-  - Smart Money Concepts Scalper — keluarga Quasimodo pattern (QM Pure / QM + AO / QM + ADX / QM Full Confluence) di timeframe M5-H1. Strategi unggulan: USOIL M15 + XAUUSD M30 (qm_phase_counter) — dua winner strategy dengan track record terbaik.
-  - Smart Money Concepts Swing — variant QM yang sama di H1-H4 untuk swing trader (hold 4-24 jam, kadang multi-hari)
-  - Pivot Mean Reversion — fade balik ke daily pivot saat harga overextended (M5-M15). Cocok untuk market ranging/sideways.
-- Multi-timeframe analysis: H4 bias → H1 structure → M15 entry → M5 execution. Setiap sinyal melewati 4 layer validasi sebelum eksekusi.
+- 4 strategi inti (live di produksi backend, 100% deterministic — tanpa AI dalam keputusan trading):
+  - Smart Money Concepts Scalper — keluarga Quasimodo pattern (QM Pure / QM + AO / QM + ADX / QM Full Confluence) di timeframe M5-H4. Varian aktif: qm_perfect_adx (LIVE), qm_perfect_ao (LIVE). Pair: USOIL, EURAUD, XAGUSD, XAUUSD.
+  - Smart Money Concepts Swing — variant QM di H1-H4 untuk swing trader (hold 4-24 jam, kadang multi-hari).
+  - Pivot Mean Reversion — fade balik ke daily pivot saat harga overextended (M5-M30). Cocok untuk market ranging/sideways.
+  - Quad Confluence (BARU) — AMD (Accumulation-Manipulation-Distribution) + Fair Value Gap multi-faktor konvergensi. 4 layer konfluensi: ADX filter + FVG zone + AMD phase + volume confirmation. Pair: USDJPY (M30), XAUUSD, GBPUSD, XAGUSD, USOIL.
+- 7 pair LIVE: XAUUSD, GBPUSD, XAGUSD, GBPJPY, USDJPY, USOIL, EURAUD.
+- 12 pair SHADOW (monitoring, auto-revisit): EURUSD, AUDUSD, NZDUSD, USDCAD, USDCHF, EURGBP, EURJPY, AUDJPY, BTCUSD, ETHUSD, UKOIL, XNGUSD.
+- Multi-timeframe analysis: H4 bias → H1 structure → M15/M30 entry → M5 execution. Setiap sinyal melewati 4 layer validasi sebelum eksekusi.
+- Lifetime stats: 411 trades, WR 43.1%. Strategi terbaik: qm_perfect_adx (55% WR), qm_perfect_ao (75% WR).
 - Modal tetap di akun broker partner (Exness atau broker lain yang didukung).
 
 SIGNAL PIPELINE (bagaimana sinyal dihasilkan)
 - Tahap 1: Market data dikumpulkan real-time dari broker (price feed + volume + orderbook depth).
 - Tahap 2: Multi-timeframe analysis — identifikasi bias H4, konfirmasi structure H1, cari entry M15, timing M5.
 - Tahap 3: Pattern detection — Quasimodo, BOS (Break of Structure), CHoCH (Change of Character), order block, dll.
-- Tahap 4: Confidence scoring — AI Winprob Filter memberikan skor probabilitas (0-100%). Sinyal di bawah threshold di-block otomatis.
-- Tahap 5: Position sizing — Kelly formula hitung lot size optimal berdasarkan win rate + edge. Fractional Kelly (0.25-0.5) supaya conservative.
+- Tahap 4: Confidence scoring — rule-based threshold filter memberikan skor probabilitas. Sinyal di bawah threshold di-block otomatis.
+- Tahap 5: Position sizing — fixed-fractional sizing (1-2% risk per trade) berdasarkan ATR volatilitas.
 - Tahap 6: Execution (kalau enabled) — signal dikirim ke MT5 via ZeroMQ bridge. Atau notification-only kalau customer pilih manual execution.
-- Tahap 7: Monitoring + Exit — Markov TP Engine monitor posisi terbuka, geser TP/SL berdasarkan market state transition.
-- PENTING: AI adalah ADVISORY ONLY — menganalisis dan merekomendasikan. Customer yang decide apakah auto-execute diaktifkan. AI TIDAK membuat keputusan trading — AI menghasilkan sinyal, parameter risiko customer yang decide apakah sinyal dieksekusi.
+- Tahap 7: Monitoring + Exit — multi-layer exit: trailing stop + time-based + breakeven move + partial TP.
+- PENTING: Seluruh pipeline 100% DETERMINISTIC — rule-based, reproducible, tanpa komponen AI dalam keputusan trading. AI hanya untuk riset, chat, dan konten advisory.
 
-AI BRAIN (modul pembelajaran adaptif — kerja di belakang layar, tidak perlu user setup)
-- Bandit Routing — sistem mirip A/B testing yang otomatis pilih konfluensi terbaik untuk kondisi market saat ini (multi-armed bandit Thompson Sampling).
-- Kelly Sizing — formula matematis yang hitung porsi modal optimal per trade berdasarkan win rate + edge historis (fractional Kelly 0.25-0.5, bukan full Kelly supaya tidak overbet).
-- Markov TP Engine — exit decision dengan probabilistic model: TP geser otomatis berdasarkan state transition probability (trend continuation vs reversal).
-- AI Winprob Filter — model machine learning yang skor probabilitas profit per sinyal sebelum eksekusi; sinyal di-block kalau confidence di bawah threshold.
-- Adaptive Exit Layer — AI postmortem otomatis pelajari kapan harus widen SL atau tighten TP berdasarkan equity curve trader (lessons journal).
-- Isotonic Calibration — kalibrasi confidence score AI supaya match realitas historis (kalau AI bilang 70% confidence, win rate aktual harus ~70% — tidak overconfident).
-- CATATAN: AI Brain adalah modul riset dan optimasi — BUKAN decision-maker. AI mempelajari pola, scoring, dan mengusulkan parameter. Keputusan akhir ada di parameter risiko yang customer set.
+EXECUTION ENGINE (deterministic, rule-based)
+- Bandit Routing — Thompson Sampling statistik untuk otomatis pilih konfluensi terbaik untuk kondisi market saat ini.
+- Fixed-Fractional Sizing — position sizing 1-2% risk per trade berdasarkan ATR + account equity.
+- Multi-Layer Exit — trailing stop + time-based exit + breakeven move + partial TP. Semua rule-based, deterministic.
+- CATATAN: Execution engine 100% deterministic. TIDAK ada AI/ML dalam keputusan trading. AI hanya dipakai untuk riset (Pair Brief), chat assistant, dan konten editorial.
 
 TIER + HARGA (bulanan, tanpa lock-in)
 - Tier 1 Swing ${t1} — 3 pair major, swing only (4-24 jam hold), notif Email + Dashboard. Cocok untuk trader yang ingin exposure forex tanpa pantau terus.

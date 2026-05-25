@@ -78,7 +78,6 @@ export default function CryptoConnectPage() {
             <p className="font-semibold text-amber-200 mb-1">{t('permission_title')}</p>
             <ul className="space-y-1 text-amber-200/80">
               <li>{'✓'} {t('permission_enable_reading_pre')} <span className="font-mono">{t('permission_enable_reading_main')}</span> {t('permission_enable_reading_and')} <span className="font-mono">{t('permission_enable_futures')}</span> {t('permission_enable_reading_post')}</li>
-              <li>{'✓'} {t('permission_enable_spot_pre')} <span className="font-mono">{t('permission_enable_spot_main')}</span> {t('permission_enable_spot_post')}</li>
               <li className="text-red-300">{'✗'} {t('permission_disable_pre')} <span className="font-mono">{t('permission_disable_main')}</span></li>
               <li>{'→'} {t('permission_ip_pre')} <span className="font-mono">{t('permission_ip_main')}</span> {t('permission_ip_post')}</li>
             </ul>

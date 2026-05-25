@@ -2,7 +2,7 @@ import { Check, TrendingUp } from 'lucide-react';
 import type { Locale } from '@/lib/pricing-format';
 
 interface CryptoStrategySpec {
-  slug: 'spot_dca' | 'spot_swing' | 'smc_confluence';
+  slug: string;
   name: { id: string; en: string };
   shortName: string;
   timeframe: string;
@@ -15,98 +15,98 @@ interface CryptoStrategySpec {
 
 const CRYPTO_STRATEGIES: CryptoStrategySpec[] = [
   {
-    slug: 'spot_dca',
-    name: { id: 'Spot DCA Trend', en: 'Spot DCA Trend' },
-    shortName: 'DCA Trend',
-    timeframe: '1H · 4H · 1D · 1W',
-    market: 'Spot',
+    slug: 'scalping_momentum',
+    name: { id: 'Scalping Momentum', en: 'Scalping Momentum' },
+    shortName: 'Scalping',
+    timeframe: '5M · 15M · 30M',
+    market: 'USDT-M Futures',
     tierAccess: { id: 'Semua tier', en: 'All tiers' },
     tagline: {
-      id: 'Dollar-Cost Averaging dengan trend filter',
-      en: 'Dollar-Cost Averaging with trend filter',
+      id: 'Momentum scalping jangka pendek pada futures',
+      en: 'Short-term momentum scalping on futures',
     },
     description: {
-      id: 'Strategi spot-only paling konservatif. Akumulasi posisi long di bull regime saat pullback ke 20-EMA, dengan SMA-200 sebagai konfirmasi tren utama. Long-only, no shorting, no funding bleed.',
-      en: 'Most conservative spot-only strategy. Accumulates long positions in bull regime on pullback to 20-EMA, with SMA-200 confirming primary trend. Long-only, no shorting, no funding bleed.',
+      id: 'Strategi scalping high-frequency pada USDT-M Futures. Mendeteksi momentum burst melalui RSI + volume spike confluence, entry pada breakout konfirmasi dengan trailing stop ketat. Bi-directional (long + short) sesuai regime.',
+      en: 'High-frequency scalping strategy on USDT-M Futures. Detects momentum bursts via RSI + volume spike confluence, entries on confirmed breakout with tight trailing stop. Bi-directional (long + short) per regime.',
     },
     highlights: {
       id: [
-        'Long-only · bull regime confirmed',
-        'Pullback entry ≤1.2× ATR dari 20-EMA',
-        'RSI gate: oversold = discount opportunity (post Sprint A4)',
+        'Bi-directional · USDT-M Futures',
+        'RSI + Volume spike confluence trigger',
+        'Trailing stop ketat (ATR-based)',
         'Risk-reward floor 1.5× enforced',
-        'Multi-TF alignment (Sprint L3): reject kalau HTF bear',
+        'Max 3 posisi simultan per pair',
       ],
       en: [
-        'Long-only · bull regime confirmed',
-        'Pullback entry ≤1.2× ATR from 20-EMA',
-        'RSI gate: oversold = discount opportunity (post Sprint A4)',
+        'Bi-directional · USDT-M Futures',
+        'RSI + Volume spike confluence trigger',
+        'Tight trailing stop (ATR-based)',
         'Risk-reward floor 1.5× enforced',
-        'Multi-TF alignment (Sprint L3): reject if HTF bear',
+        'Max 3 simultaneous positions per pair',
       ],
     },
   },
   {
-    slug: 'spot_swing',
-    name: { id: 'Spot Swing Trend', en: 'Spot Swing Trend' },
-    shortName: 'Swing Trend',
-    timeframe: '4H · 1D · 1W',
-    market: 'Spot',
+    slug: 'swing_smc',
+    name: { id: 'Swing SMC', en: 'Swing SMC' },
+    shortName: 'Swing SMC',
+    timeframe: '1H · 4H · 1D',
+    market: 'USDT-M Futures',
     tierAccess: { id: 'Active tier ke atas', en: 'Active tier and above' },
     tagline: {
-      id: 'Swing trading multi-day dengan MACD + Awesome Oscillator',
-      en: 'Multi-day swing trading with MACD + Awesome Oscillator',
+      id: 'Smart Money swing trading pada futures',
+      en: 'Smart Money swing trading on futures',
     },
     description: {
-      id: 'Horizon hold multi-day hingga multi-week. Bull regime longs only, SMA(20/50) value area entry dengan konfirmasi MACD cross / AO saucer. Risk-reward floor 1.8× — quality over quantity.',
-      en: 'Multi-day to multi-week hold horizon. Bull regime longs only, SMA(20/50) value area entry with MACD cross / AO saucer confirmation. RR floor 1.8× — quality over quantity.',
+      id: 'Swing trading yang memanfaatkan Smart Money Concepts pada USDT-M Futures. Entry pada order block + FVG confluence di timeframe lebih tinggi, hold multi-day. Bi-directional dengan regime filter ketat.',
+      en: 'Swing trading leveraging Smart Money Concepts on USDT-M Futures. Entries at order block + FVG confluence on higher timeframes, multi-day hold. Bi-directional with strict regime filter.',
     },
     highlights: {
       id: [
-        'Hold 4H/1D/1W timeframe',
-        'MACD cross + AO saucer confluence',
-        'RSI regime alignment (Brown rules)',
+        'Bi-directional · USDT-M Futures',
+        'Order block + FVG confluence entry',
+        'Multi-day hold horizon',
         'Risk-reward floor 1.8× enforced',
-        'Horizon scaled 2× (zero funding bleed spot)',
+        'Regime filter: skip ranging market',
       ],
       en: [
-        'Hold 4H/1D/1W timeframes',
-        'MACD cross + AO saucer confluence',
-        'RSI regime alignment (Brown rules)',
+        'Bi-directional · USDT-M Futures',
+        'Order block + FVG confluence entry',
+        'Multi-day hold horizon',
         'Risk-reward floor 1.8× enforced',
-        'Horizon scaled 2× (zero funding bleed spot)',
+        'Regime filter: skip ranging market',
       ],
     },
   },
   {
-    slug: 'smc_confluence',
-    name: { id: 'Smart Money Confluence', en: 'Smart Money Confluence' },
-    shortName: 'Smart Money',
-    timeframe: '15M · 30M · 1H · 4H · 1D',
-    market: 'Spot + Futures',
+    slug: 'mean_reversion',
+    name: { id: 'Mean Reversion', en: 'Mean Reversion' },
+    shortName: 'Mean Reversion',
+    timeframe: '15M · 1H · 4H',
+    market: 'USDT-M Futures',
     tierAccess: { id: 'Pro tier ke atas', en: 'Pro tier and above' },
     tagline: {
-      id: 'Flagship institutional — 8-component scoring',
-      en: 'Flagship institutional — 8-component scoring',
+      id: 'Range-bound fade pada futures — kembali ke VWAP',
+      en: 'Range-bound fade on futures — revert to VWAP',
     },
     description: {
-      id: 'Strategi flagship bi-directional (long bull, short bear). Confluence scoring 8 komponen: Regime Alignment, SMC Structure (OB+FVG), Liquidity Sweep, Premium/Discount Zone, CVD Divergence, VWAP, Funding Bias, OI Confluence. Confidence floor 0.50, RR floor 1.8×.',
-      en: 'Flagship bi-directional strategy (bull longs, bear shorts). 8-component confluence scoring: Regime Alignment, SMC Structure (OB+FVG), Liquidity Sweep, Premium/Discount Zone, CVD Divergence, VWAP, Funding Bias, OI Confluence. Confidence floor 0.50, RR floor 1.8×.',
+      id: 'Strategi futures yang fade overextension kembali ke VWAP/EMA mean. Aktif saat regime ranging (ADX < 25) dengan Bollinger Band + RSI divergence sebagai trigger. Bi-directional, high win-rate, low R:R.',
+      en: 'Futures strategy that fades overextension back to VWAP/EMA mean. Active in ranging regime (ADX < 25) with Bollinger Band + RSI divergence as trigger. Bi-directional, high win-rate, low R:R.',
     },
     highlights: {
       id: [
-        'Bi-directional · spot + futures',
-        '8 komponen confluence scoring (regime, OB/FVG, liquidity, P/D, CVD, VWAP, funding, OI)',
-        'Hard min stop 0.8% spot / 1.5% futures',
-        'Confidence floor 0.50 (sesi rc29)',
-        'Range regime skip — anti-whipsaw guard',
+        'Bi-directional · USDT-M Futures',
+        'VWAP + Bollinger Band mean reversion',
+        'RSI divergence confirmation',
+        'ADX < 25 regime filter (ranging only)',
+        'Funding rate bias awareness',
       ],
       en: [
-        'Bi-directional · spot + futures',
-        '8-component confluence scoring (regime, OB/FVG, liquidity, P/D, CVD, VWAP, funding, OI)',
-        'Hard min stop 0.8% spot / 1.5% futures',
-        'Confidence floor 0.50 (rc29)',
-        'Range regime skip — anti-whipsaw guard',
+        'Bi-directional · USDT-M Futures',
+        'VWAP + Bollinger Band mean reversion',
+        'RSI divergence confirmation',
+        'ADX < 25 regime filter (ranging only)',
+        'Funding rate bias awareness',
       ],
     },
   },
@@ -159,8 +159,8 @@ export function StrategiesSection({ t, localeKey }: StrategiesSectionProps) {
         </div>
         <p className="text-xs text-foreground/50 mt-6 max-w-2xl">
           {localeKey === 'id'
-            ? 'Akses strategi gated per tier: Demo + Starter pakai Spot DCA · Active dapat tambah Spot Swing · Pro/HNWI dapat penuh termasuk Smart Money Confluence (futures support).'
-            : 'Strategy access gated per tier: Demo + Starter use Spot DCA · Active adds Spot Swing · Pro/HNWI get all including Smart Money Confluence (futures support).'}
+            ? 'Akses strategi gated per tier: Semua tier mendapat Scalping Momentum · Active tier menambah Swing SMC · Pro/HNWI mendapat semua termasuk Mean Reversion. Seluruh eksekusi pada USDT-M Futures.'
+            : 'Strategy access gated per tier: All tiers get Scalping Momentum · Active tier adds Swing SMC · Pro/HNWI get all including Mean Reversion. All execution on USDT-M Futures.'}
         </p>
       </div>
     </section>

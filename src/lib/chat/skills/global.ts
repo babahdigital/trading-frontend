@@ -6,11 +6,29 @@
  * spesifik).
  *
  * Locale-aware: getGlobalSkill('id') → harga IDR, getGlobalSkill('en') → USD.
+ *
+ * Dynamic data: product names + strategy counts from trading-settings.ts
+ * (CMS-driven) so changes propagate without code deploys.
  */
 
 import { formatPrice, formatPriceRange, type Locale } from '@/lib/pricing-format';
+import {
+  getProductNames,
+  getForexStrategies,
+  getCryptoStrategies,
+  getCryptoConfig,
+  getForexStats,
+} from '@/lib/trading/trading-settings';
 
-export function getGlobalSkill(locale: Locale): string {
+export async function getGlobalSkill(locale: Locale): Promise<string> {
+  const [productNames, forexStrategies, cryptoStrategies, cryptoConfig, forexStats] = await Promise.all([
+    getProductNames(),
+    getForexStrategies(),
+    getCryptoStrategies(),
+    getCryptoConfig(),
+    getForexStats(),
+  ]);
+
   const robotMetaRange = `${formatPrice('signal_starter', locale, { compact: false })}–${formatPrice('signal_vip', locale, { period: 'mo', compact: false })}`;
   const robotCryptoRange = `${formatPrice('crypto_basic', locale, { compact: false })}–${formatPrice('crypto_hnwi', locale, { period: 'mo', compact: false })}`;
   // 2026-05-18 — realigned to canonical 3-tier keys (License Only / Hybrid /
@@ -19,6 +37,9 @@ export function getGlobalSkill(locale: Locale): string {
   // tier; replaced with computed range from canonical PRICE_TABLE entries.
   const vpsSetupRange = formatPriceRange('vps_license_only_setup', 'vps_turnkey_setup', locale, { compact: true });
   const vpsMonthlyRange = formatPriceRange('vps_license_only_monthly', 'vps_turnkey_monthly', locale, { period: 'mo', compact: true });
+
+  const forexStratNames = forexStrategies.map((s) => s.name).join(' + ');
+  const cryptoStratNames = cryptoStrategies.map((s) => s.name).join(' + ');
 
   return `BABAHALGO — SKILL UMUM (selalu tersedia)
 
@@ -31,19 +52,19 @@ PERUSAHAAN
 - Target market utama: Indonesia (bilingual id/en).
 
 DUA PRODUK FLAGSHIP
-- Robot Meta (Forex MT5 auto-execution) — detail di skill forex.
-- Robot Crypto (Binance Spot + USDT-M Futures) — detail di skill crypto.
+- ${productNames.forex} (Forex MT5 auto-execution) — ${forexStrategies.length} strategi (${forexStratNames}), ${forexStats.trades} trades lifetime. Detail di skill forex.
+- ${productNames.crypto} (${cryptoConfig.exchange} ${cryptoConfig.market}) — ${cryptoStrategies.length} strategi (${cryptoStratNames}). Detail di skill crypto.
 
 PERBANDINGAN FOREX vs CRYPTO (kalau user tanya "apa bedanya"):
-- Robot Meta (Forex): trading pair mata uang, emas, minyak via MetaTrader 5. Broker partner (Exness default). Strategi SMC + Wyckoff + Pivot Mean Reversion. Mulai ${formatPrice('signal_starter', locale, { period: 'mo', compact: false })}.
-- Robot Crypto: trading cryptocurrency via Binance Futures/Spot. API key connection (tanpa deposit ke kami). Strategi serupa + spot DCA trend. Mulai ${formatPrice('crypto_starter', locale, { period: 'mo', compact: false })}.
+- ${productNames.forex} (Forex): trading pair mata uang, emas, minyak via MetaTrader 5. Broker partner (Exness default). ${forexStrategies.length} strategi: ${forexStratNames}. Mulai ${formatPrice('signal_starter', locale, { period: 'mo', compact: false })}.
+- ${productNames.crypto}: trading cryptocurrency via ${cryptoConfig.exchange} ${cryptoConfig.market}. API key connection (tanpa deposit ke kami). ${cryptoStrategies.length} strategi: ${cryptoStratNames}. Mulai ${formatPrice('crypto_starter', locale, { period: 'mo', compact: false })}.
 - Kesamaan: zero-custody (modal customer tetap di akun mereka), risk framework yang sama (circuit breaker, vol-target sizing, audit trail), adaptive math engine (deterministic) di belakang layar.
-- Perbedaan utama: (1) market berbeda (Forex/commodity vs crypto), (2) execution via MT5 bridge vs Binance API, (3) jam trading: Forex Senin-Jumat 24/5, Crypto 24/7, (4) Forex ada leverage broker, Crypto leverage di Binance Futures.
+- Perbedaan utama: (1) market berbeda (Forex/commodity vs crypto), (2) execution via MT5 bridge vs ${cryptoConfig.exchange} API, (3) jam trading: Forex Senin-Jumat 24/5, Crypto 24/7, (4) Forex ada leverage broker, Crypto leverage di ${cryptoConfig.exchange} Futures.
 
 ARSITEKTUR SISTEM (level umum, jangan over-detail)
 - Arsitektur multi-layer: Frontend (Next.js) → Backend gateway → Execution engine → Broker/Exchange.
-- Bot eksekusi 24/7 di VPS milik customer (Robot Meta) atau infrastruktur isolated tier (Robot Crypto).
-- Multi-strategi konfluensi (SMC, Wyckoff, momentum, dll.).
+- Bot eksekusi 24/7 di VPS milik customer (${productNames.forex}) atau infrastruktur isolated tier (${productNames.crypto}).
+- Multi-strategi konfluensi (${forexStrategies.length} forex + ${cryptoStrategies.length} crypto strategies).
 - Multi-tenant architecture — setiap customer punya data terisolasi, tidak bisa akses data customer lain.
 - Kerangka risiko institutional-grade 4 pilar:
   1. Pre-trade vol-target sizing (default 1% risk/trade — Anda override threshold)
@@ -53,9 +74,9 @@ ARSITEKTUR SISTEM (level umum, jangan over-detail)
 - Live ticker 28 simbol (commodity, crypto, forex, index termasuk IDX: IHSG, BBCA, BBRI, TLKM, ASII) di halaman utama.
 
 PENDAFTARAN / ONBOARDING
-- Demo gratis 7 hari (Robot Meta atau Robot Crypto) — tidak perlu KYC, email-verified saja.
+- Demo gratis 7 hari (${productNames.forex} atau ${productNames.crypto}) — tidak perlu KYC, email-verified saja.
 - Live tier wajib KYC (lihat detail KYC di bawah).
-- Path: /demo (free) atau /register (single entry — di sana pick layanan: Robot Meta / Robot Crypto / VPS License / B2B briefing).
+- Path: /demo (free) atau /register (single entry — di sana pick layanan: ${productNames.forex} / ${productNames.crypto} / VPS License / B2B briefing).
 - Beta program by application (limited spots): /contact?subject=beta-application — kami review aplikasi case-by-case berdasarkan trading experience + modal commit.
 
 KYC (KNOW YOUR CUSTOMER) — 3 TIER HYBRID
@@ -78,8 +99,8 @@ PEMBAYARAN — XENDIT INLINE
 - Refund: subscription fee bisa refund 7 hari pertama (admin-editable window). Setelah itu non-refundable. Profit/loss trading di akun customer — bukan tanggung jawab kami.
 
 PRICING TINGKAT TINGGI
-- Robot Meta (Forex): 3 tier ${robotMetaRange}, month-to-month tanpa lock-in.
-- Robot Crypto: 5 tier (free demo → starter → active → pro → hnwi), mulai gratis sampai ${formatPrice('crypto_hnwi', locale, { period: 'mo', compact: false })} flat, no profit share.
+- ${productNames.forex} (Forex): 3 tier ${robotMetaRange}, month-to-month tanpa lock-in.
+- ${productNames.crypto}: ${cryptoConfig.tiers.length} tier (${cryptoConfig.tiers.map(t => t.name.toLowerCase()).join(' → ')}), mulai gratis sampai ${formatPrice('crypto_hnwi', locale, { period: 'mo', compact: false })} flat, no profit share.
 - VPS License: ${vpsSetupRange} setup + ${vpsMonthlyRange} (on-prem). 3 model: License Only / Hybrid / Full Turnkey.
 - Developer API: 8 produk publik, freemium.
 - Detail lengkap: /pricing.
@@ -142,5 +163,5 @@ KEY PAGES
 - Portal dashboard: /portal`;
 }
 
-/** @deprecated kept for backward compat — defaults to 'id' locale. Use getGlobalSkill(locale). */
-export const GLOBAL_SKILL = getGlobalSkill('id');
+/** @deprecated kept for backward compat — resolves to 'id' locale. Use getGlobalSkill(locale). */
+export const GLOBAL_SKILL: Promise<string> = getGlobalSkill('id');

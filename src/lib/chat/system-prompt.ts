@@ -32,7 +32,7 @@ import type { Locale } from '@/lib/pricing-format';
 export type { ChatLocale };
 export type { AuthenticatedContext };
 
-export function buildSystemPrompt(localeOrContext: ChatLocale | ChatPromptContext): string {
+export async function buildSystemPrompt(localeOrContext: ChatLocale | ChatPromptContext): Promise<string> {
   // Backward-compat: caller lama yang masih pakai buildSystemPrompt('id') tetap works.
   const ctx: ChatPromptContext =
     typeof localeOrContext === 'string'
@@ -44,7 +44,7 @@ export function buildSystemPrompt(localeOrContext: ChatLocale | ChatPromptContex
   const pricingLocale: Locale = ctx.locale === 'en' ? 'en' : 'id';
 
   sections.push(buildIdentitySection(ctx.locale));
-  sections.push(getGlobalSkill(pricingLocale));
+  sections.push(await getGlobalSkill(pricingLocale));
 
   const txt = ctx.recentUserText.toLowerCase();
   const forexHit = isForexTopic(txt);
@@ -58,15 +58,15 @@ export function buildSystemPrompt(localeOrContext: ChatLocale | ChatPromptContex
   // customer dan landing page condong ke forex. Crypto-specific muncul saat
   // user spesifik nyebut crypto/Binance. Kalau comparison → load both.
   if (isComparisonQuery) {
-    sections.push(getForexSkill(pricingLocale));
-    sections.push(getCryptoSkill(pricingLocale));
+    const [forex, crypto] = await Promise.all([getForexSkill(pricingLocale), getCryptoSkill(pricingLocale)]);
+    sections.push(forex, crypto);
   } else if (forexHit || (!forexHit && !cryptoHit)) {
-    sections.push(getForexSkill(pricingLocale));
+    sections.push(await getForexSkill(pricingLocale));
     if (cryptoHit) {
-      sections.push(getCryptoSkill(pricingLocale));
+      sections.push(await getCryptoSkill(pricingLocale));
     }
   } else if (cryptoHit) {
-    sections.push(getCryptoSkill(pricingLocale));
+    sections.push(await getCryptoSkill(pricingLocale));
   }
 
   if (ctx.authenticated) {
@@ -79,10 +79,10 @@ export function buildSystemPrompt(localeOrContext: ChatLocale | ChatPromptContex
 }
 
 /**
- * Backward-compatible default — assumes English when locale unknown,
+ * Backward-compatible default — resolves to English when locale unknown,
  * anonymous + global skill only.
  */
-export const BABAH_SYSTEM_PROMPT = buildSystemPrompt({
+export const BABAH_SYSTEM_PROMPT: Promise<string> = buildSystemPrompt({
   locale: 'en',
   recentUserText: '',
 });

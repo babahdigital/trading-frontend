@@ -8,35 +8,61 @@
  * Locale-aware pricing: getForexSkill('id') return harga dalam IDR (Rupiah),
  * getForexSkill('en') return harga dalam USD. Single source of truth via
  * lib/pricing-format.ts PRICE_TABLE.
+ *
+ * Dynamic data: PRODUK section built from trading-settings.ts (CMS-driven),
+ * so strategy/pair/stat changes propagate without code deploys.
  */
 
 import { formatPrice, type Locale } from '@/lib/pricing-format';
+import {
+  getForexStrategies,
+  getForexPairs,
+  getForexStats,
+  getExecutionModel,
+} from '@/lib/trading/trading-settings';
 
-export function getForexSkill(locale: Locale): string {
+export async function getForexSkill(locale: Locale): Promise<string> {
+  const [strategies, pairs, stats, exec] = await Promise.all([
+    getForexStrategies(),
+    getForexPairs(),
+    getForexStats(),
+    getExecutionModel(),
+  ]);
+
   const t1 = formatPrice('signal_starter', locale, { period: 'mo', compact: false });
   const t2 = formatPrice('signal_pro', locale, { period: 'mo', compact: false });
   const t3 = formatPrice('signal_vip', locale, { period: 'mo', compact: false });
-  // 2026-05-18 — switched to canonical License Only key (was legacy alias
-  // pointing to the same value but clearer for future maintainers).
   const vpsLicense = formatPrice('vps_license_only_setup', locale, { compact: false });
   const modal1k = locale === 'id' ? 'Rp 16 juta' : '$1,000';
   const modal2k = locale === 'id' ? 'Rp 33 juta' : '$2,000';
   const modal5k = locale === 'id' ? 'Rp 80 juta' : '$5,000';
 
+  // ─── Dynamic PRODUK section from trading settings ───
+
+  const strategyLines = strategies.map((s) => {
+    const statusTag = s.status === 'new' ? ' (BARU)' : s.status === 'halted' ? ' (PAUSE)' : '';
+    const desc = locale === 'id' ? s.desc_id : s.desc_en;
+    return `  - ${s.name}${statusTag} — ${desc} Timeframe ${s.timeframe}.`;
+  });
+
+  const liveCount = pairs.live.length;
+  const shadowCount = pairs.shadow.length;
+  const livePairList = pairs.live.join(', ');
+  const shadowPairList = pairs.shadow.join(', ');
+
+  const execComponents = exec.components.map((c) => `- ${c}`).join('\n');
+  const execDisclaimer = locale === 'id' ? exec.disclaimer_id : exec.disclaimer_en;
+
   return `ROBOT META — SKILL FOREX (load saat percakapan menyangkut forex / MT5)
 
 PRODUK
 - Bot full auto-execute lewat bridge ZeroMQ ke akun MT5 customer.
-- Aset: 7 Forex pair major (EURUSD, GBPUSD, USDJPY, AUDUSD, USDCHF, NZDUSD, USDCAD), 2 Metals (XAUUSD, XAGUSD), 3 Energy (USOIL, UKOIL, XNGUSD), 2 Crypto major (BTCUSD, ETHUSD).
-- 4 strategi inti (live di produksi backend, 100% deterministic — tanpa AI dalam keputusan trading):
-  - Smart Money Concepts Scalper — keluarga Quasimodo pattern (QM Pure / QM + AO / QM + ADX / QM Full Confluence) di timeframe M5-H4. Varian aktif: qm_perfect_adx (LIVE), qm_perfect_ao (LIVE). Pair: USOIL, EURAUD, XAGUSD, XAUUSD.
-  - Smart Money Concepts Swing — variant QM di H1-H4 untuk swing trader (hold 4-24 jam, kadang multi-hari).
-  - Pivot Mean Reversion — fade balik ke daily pivot saat harga overextended (M5-M30). Cocok untuk market ranging/sideways.
-  - Quad Confluence (BARU) — AMD (Accumulation-Manipulation-Distribution) + Fair Value Gap multi-faktor konvergensi. 4 layer konfluensi: ADX filter + FVG zone + AMD phase + volume confirmation. Pair: USDJPY (M30), XAUUSD, GBPUSD, XAGUSD, USOIL.
-- 7 pair LIVE: XAUUSD, GBPUSD, XAGUSD, GBPJPY, USDJPY, USOIL, EURAUD.
-- 12 pair SHADOW (monitoring, auto-revisit): EURUSD, AUDUSD, NZDUSD, USDCAD, USDCHF, EURGBP, EURJPY, AUDJPY, BTCUSD, ETHUSD, UKOIL, XNGUSD.
+- ${strategies.length} strategi inti (live di produksi backend, 100% deterministic — tanpa AI dalam keputusan trading):
+${strategyLines.join('\n')}
+- ${liveCount} pair LIVE: ${livePairList}.
+- ${shadowCount} pair SHADOW (monitoring, auto-revisit): ${shadowPairList}.
 - Multi-timeframe analysis: H4 bias → H1 structure → M15/M30 entry → M5 execution. Setiap sinyal melewati 4 layer validasi sebelum eksekusi.
-- Lifetime stats: 411 trades, WR 43.1%. Strategi terbaik: qm_perfect_adx (55% WR), qm_perfect_ao (75% WR).
+- Lifetime stats: ${stats.trades} trades, WR ${stats.winRate}%.
 - Modal tetap di akun broker partner (Exness atau broker lain yang didukung).
 
 SIGNAL PIPELINE (bagaimana sinyal dihasilkan)
@@ -47,18 +73,16 @@ SIGNAL PIPELINE (bagaimana sinyal dihasilkan)
 - Tahap 5: Position sizing — fixed-fractional sizing (1-2% risk per trade) berdasarkan ATR volatilitas.
 - Tahap 6: Execution (kalau enabled) — signal dikirim ke MT5 via ZeroMQ bridge. Atau notification-only kalau customer pilih manual execution.
 - Tahap 7: Monitoring + Exit — multi-layer exit: trailing stop + time-based + breakeven move + partial TP.
-- PENTING: Seluruh pipeline 100% DETERMINISTIC — rule-based, reproducible, tanpa komponen AI dalam keputusan trading. AI hanya untuk riset, chat, dan konten advisory.
+- PENTING: ${execDisclaimer} AI hanya untuk riset, chat, dan konten advisory.
 
-EXECUTION ENGINE (deterministic, rule-based)
-- Bandit Routing — Thompson Sampling statistik untuk otomatis pilih konfluensi terbaik untuk kondisi market saat ini.
-- Fixed-Fractional Sizing — position sizing 1-2% risk per trade berdasarkan ATR + account equity.
-- Multi-Layer Exit — trailing stop + time-based exit + breakeven move + partial TP. Semua rule-based, deterministic.
-- CATATAN: Execution engine 100% deterministic. TIDAK ada AI/ML dalam keputusan trading. AI hanya dipakai untuk riset (Pair Brief), chat assistant, dan konten editorial.
+EXECUTION ENGINE (${exec.type}, ${exec.engine})
+${execComponents}
+- CATATAN: ${execDisclaimer} AI hanya dipakai untuk riset (Pair Brief), chat assistant, dan konten editorial.
 
 TIER + HARGA (bulanan, tanpa lock-in)
 - Tier 1 Swing ${t1} — 3 pair major, swing only (4-24 jam hold), notif Email + Dashboard. Cocok untuk trader yang ingin exposure forex tanpa pantau terus.
 - Tier 2 Scalping ${t2} (POPULAR) — 8 pair (Major + Cross + Gold + Silver), swing + scalping, notif WhatsApp + Telegram + Email. Strategi paling aktif: scalping M5-M15 + swing H1-H4.
-- Tier 3 All-In ${t3} — unlimited pair, semua 4 strategi inti + adaptive risk engine paralel (rule-based, deterministic), premium research advisor (Pair Brief — riset & daily brief per pair), dedicated support 24/7, custom backtest sweep + Payout API.
+- Tier 3 All-In ${t3} — unlimited pair, semua ${strategies.length} strategi inti + adaptive risk engine paralel (rule-based, deterministic), premium research advisor (Pair Brief — riset & daily brief per pair), dedicated support 24/7, custom backtest sweep + Payout API.
 
 CIRCUIT BREAKER / RISK PROTECTION (Anda set thresholds, sistem enforce)
 - Anda configure 3 threshold di /portal/kill-switch: DAILY_LOSS (max rugi harian dalam %), LOSS_STREAK (jumlah loss berturut), EQUITY_DRAWDOWN (drawdown intraday %).
@@ -104,8 +128,8 @@ SOFTWARE LICENSE + SETUP SERVICE (formerly VPS License)
 - VPS hardware/cloud cost separate (Subscriber bayar langsung ke provider VPS).`;
 }
 
-/** @deprecated kept for backward compat — defaults to 'id' locale. Use getForexSkill(locale). */
-export const FOREX_SKILL = getForexSkill('id');
+/** @deprecated kept for backward compat — resolves to 'id' locale. Use getForexSkill(locale). */
+export const FOREX_SKILL: Promise<string> = getForexSkill('id');
 
 const FOREX_KEYWORDS = [
   'forex', 'mt5', 'metatrader', 'meta trader',

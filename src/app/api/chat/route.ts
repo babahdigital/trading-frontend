@@ -80,7 +80,7 @@ export async function POST(request: Request) {
       // or.chat(...) pakai Chat Completions API yang kompatibel dengan
       // OpenRouter (dan semua model yang di-proxy via OpenRouter).
       model: or.chat(DEFAULT_MODEL),
-      system: buildSystemPrompt({ locale, recentUserText, authenticated }),
+      system: await buildSystemPrompt({ locale, recentUserText, authenticated }),
       messages: await convertToModelMessages(messages),
       // 500 token = ~2-4 paragraf singkat. Force brevity per FORMAT_RULES
       // di skill identity. Budget sedikit lebih besar karena skill context

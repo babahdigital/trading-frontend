@@ -124,7 +124,7 @@ export default function CryptoPerformancePage() {
                 <Bitcoin className="w-10 h-10 text-amber-400 mx-auto mb-4" />
                 <h2 className="t-display-sub mb-3">{t('pending_title')}</h2>
                 <p className="t-body text-muted-foreground mb-6">{t('pending_body')}</p>
-                <Link href="/demo?product=robot-crypto" className="btn-primary">
+                <Link href="/register?service=crypto" className="btn-primary">
                   {t('pending_cta')} <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>

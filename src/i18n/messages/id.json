@@ -19,9 +19,9 @@
       "mod_isotonic_desc": "Confidence score di-kalibrasi via isotonic regression supaya match realitas historis. Kalau setup bilang 70% confidence, win rate aktual historis harus ~70% (bukan overconfident). Reproducible — pakai library scipy yang sama yang dipakai backtest."
     },
     "hero_eyebrow": "CV BABAH DIGITAL · INFRASTRUKTUR KUANTITATIF",
-    "hero_title_fallback_l1": "AI-Powered",
+    "hero_title_fallback_l1": "Algorithmic",
     "hero_title_fallback_l2": "Quantitative Trading",
-    "hero_subtitle_fallback": "Infrastruktur kecerdasan buatan yang menganalisa pasar 24/7 dengan presisi institusional.",
+    "hero_subtitle_fallback": "Infrastruktur eksekusi deterministik yang menganalisa pasar 24/7 dengan presisi institusional. AI untuk riset — algoritma untuk eksekusi.",
     "hero_cta_primary": "Jadwalkan Briefing",
     "hero_cta_secondary": "Coba Demo Gratis",
     "hero_view_track_record": "Lihat Track Record",

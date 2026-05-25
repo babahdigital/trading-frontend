@@ -24,13 +24,13 @@ const LandingClient = nextDynamic(
 export const dynamic = 'force-dynamic';
 
 const FALLBACK_ID = {
-  title: 'BabahAlgo — Otonomi Cerdas. Presisi Institusional.',
-  description: 'Platform Trading Kuantitatif Bertenaga AI dari BabahAlgo',
+  title: 'BabahAlgo — Eksekusi Deterministik. Presisi Institusional.',
+  description: 'Platform Trading Kuantitatif Algoritmik dari BabahAlgo — Forex + Crypto',
 };
 
 const FALLBACK_EN = {
-  title: 'BabahAlgo — Autonomous Intelligence. Institutional Precision.',
-  description: 'AI-Powered Quantitative Trading Platform by BabahAlgo',
+  title: 'BabahAlgo — Deterministic Execution. Institutional Precision.',
+  description: 'Algorithmic Quantitative Trading Platform by BabahAlgo — Forex + Crypto',
 };
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {

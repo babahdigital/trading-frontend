@@ -19,9 +19,9 @@
       "mod_isotonic_desc": "AI confidence scores are calibrated against historical reality. When the AI says 70% confidence, the actual win rate should be ~70% (not overconfident). Important for traders who feed confidence into their sizing inputs."
     },
     "hero_eyebrow": "CV BABAH DIGITAL · QUANTITATIVE INFRASTRUCTURE",
-    "hero_title_fallback_l1": "AI-Powered",
+    "hero_title_fallback_l1": "Algorithmic",
     "hero_title_fallback_l2": "Quantitative Trading",
-    "hero_subtitle_fallback": "AI infrastructure analyzing markets 24/7 with institutional precision.",
+    "hero_subtitle_fallback": "Deterministic execution infrastructure analyzing markets 24/7 with institutional precision. AI for research — algorithms for execution.",
     "hero_cta_primary": "Schedule a briefing",
     "hero_cta_secondary": "Try demo for free",
     "hero_view_track_record": "View track record",

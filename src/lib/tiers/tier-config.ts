@@ -110,9 +110,9 @@ export const TIERS: Record<TierName, TierConfig> = {
     monthlyPrice: 79,
     realTrading: true,
     strategies: [
-      'qm_perfect_pure', 'qm_perfect_ao', 'qm_perfect_adx', 'qm_perfect_full', 'qm_perfect_adx_h4',
+      'qm_perfect_pure', 'qm_perfect_ao', 'qm_perfect_adx', 'qm_perfect_full', 'qm_perfect_full_m30', 'qm_perfect_full_m5', 'qm_perfect_adx_h4',
       'swing_qm_perfect_pure', 'swing_qm_perfect_ao', 'swing_qm_perfect_adx', 'swing_qm_perfect_full',
-      'pivot_mean_reversion',
+      'pivot_mean_reversion', 'quad_confluence', 'amd_fvg',
     ],
     pairs: [
       'EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCHF', 'NZDUSD', 'USDCAD',
@@ -131,9 +131,9 @@ export const TIERS: Record<TierName, TierConfig> = {
     monthlyPrice: 299,
     realTrading: true,
     strategies: [
-      'qm_perfect_pure', 'qm_perfect_ao', 'qm_perfect_adx', 'qm_perfect_full', 'qm_perfect_adx_h4',
+      'qm_perfect_pure', 'qm_perfect_ao', 'qm_perfect_adx', 'qm_perfect_full', 'qm_perfect_full_m30', 'qm_perfect_full_m5', 'qm_perfect_adx_h4',
       'swing_qm_perfect_pure', 'swing_qm_perfect_ao', 'swing_qm_perfect_adx', 'swing_qm_perfect_full',
-      'pivot_mean_reversion',
+      'pivot_mean_reversion', 'quad_confluence', 'amd_fvg',
     ],
     pairs: [], // unlimited via custom allow-list
     aiMode: 'adjust',

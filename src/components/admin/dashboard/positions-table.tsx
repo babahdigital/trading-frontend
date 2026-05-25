@@ -30,14 +30,17 @@ const SETUP_TONE_CLASS: Record<string, string> = {
   qm_perfect_ao: 'bg-cyan-500/15 text-cyan-700 dark:bg-cyan-500/20 dark:text-cyan-300',
   qm_perfect_adx: 'bg-violet-500/15 text-violet-700 dark:bg-violet-500/20 dark:text-violet-300',
   qm_perfect_full: 'bg-fuchsia-500/15 text-fuchsia-700 dark:bg-fuchsia-500/20 dark:text-fuchsia-300',
+  qm_perfect_full_m30: 'bg-fuchsia-500/15 text-fuchsia-700 dark:bg-fuchsia-500/20 dark:text-fuchsia-300',
+  qm_perfect_full_m5: 'bg-fuchsia-500/15 text-fuchsia-700 dark:bg-fuchsia-500/20 dark:text-fuchsia-300',
   qm_perfect_adx_h4: 'bg-purple-500/15 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300',
   swing: 'bg-pink-500/15 text-pink-700 dark:bg-pink-500/20 dark:text-pink-300',
   smc_swing: 'bg-pink-500/15 text-pink-700 dark:bg-pink-500/20 dark:text-pink-300',
   pivot_mean_reversion: 'bg-amber-500/15 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300',
-  wyckoff: 'bg-purple-500/15 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300',
-  momentum: 'bg-orange-500/15 text-orange-700 dark:bg-orange-500/20 dark:text-orange-300',
-  oil_gas: 'bg-amber-500/15 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300',
-  astronacci: 'bg-cyan-500/15 text-cyan-700 dark:bg-cyan-500/20 dark:text-cyan-300',
+  quad_confluence: 'bg-emerald-500/15 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300',
+  amd_fvg: 'bg-emerald-500/15 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300',
+  amd_fvg_adx: 'bg-teal-500/15 text-teal-700 dark:bg-teal-500/20 dark:text-teal-300',
+  amd_fvg_full: 'bg-teal-500/15 text-teal-700 dark:bg-teal-500/20 dark:text-teal-300',
+  amd_fvg_pure: 'bg-teal-500/15 text-teal-700 dark:bg-teal-500/20 dark:text-teal-300',
 };
 
 function formatDuration(seconds: number) {

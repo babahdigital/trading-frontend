@@ -21,7 +21,7 @@ export const dynamic = 'force-dynamic';
 //   - smc                  → scalper.qm_perfect_{pure,ao,adx,full,adx_h4}
 //   - smc-swing            → swing.qm_perfect_{pure,ao,adx,full}
 //   - pivot-mean-reversion → scalper.pivot_mean_reversion
-const STRATEGY_SLUGS = ['smc', 'smc-swing', 'pivot-mean-reversion'] as const;
+const STRATEGY_SLUGS = ['smc', 'smc-swing', 'pivot-mean-reversion', 'quad-confluence'] as const;
 
 type StrategySlug = (typeof STRATEGY_SLUGS)[number];
 
@@ -89,6 +89,25 @@ const STRATEGY_DATA: Record<StrategySlug, StrategyData> = {
       { timeframe: 'H1', roleKey: 'pivot-mean-reversion_confluence_2_role' },
       { timeframe: 'M15', roleKey: 'pivot-mean-reversion_confluence_3_role' },
       { timeframe: 'M5', roleKey: 'pivot-mean-reversion_confluence_4_role' },
+    ],
+  },
+  'quad-confluence': {
+    name: 'Quad Confluence',
+    subtitleKey: 'quad-confluence_subtitle',
+    abstractKeys: ['quad-confluence_abstract_1', 'quad-confluence_abstract_2'],
+    mechanismKeys: [
+      'quad-confluence_mechanism_1',
+      'quad-confluence_mechanism_2',
+      'quad-confluence_mechanism_3',
+      'quad-confluence_mechanism_4',
+      'quad-confluence_mechanism_5',
+      'quad-confluence_mechanism_6',
+    ],
+    confluence: [
+      { timeframe: 'H4', roleKey: 'quad-confluence_confluence_1_role' },
+      { timeframe: 'H1', roleKey: 'quad-confluence_confluence_2_role' },
+      { timeframe: 'M30', roleKey: 'quad-confluence_confluence_3_role' },
+      { timeframe: 'M5', roleKey: 'quad-confluence_confluence_4_role' },
     ],
   },
 };

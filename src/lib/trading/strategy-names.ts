@@ -14,6 +14,8 @@ const REAL_NAMES: Record<string, string> = {
   qm_perfect_ao: 'SMC · QM + Awesome Oscillator',
   qm_perfect_adx: 'SMC · QM + ADX',
   qm_perfect_full: 'SMC · QM Full Confluence',
+  qm_perfect_full_m30: 'SMC · QM Full (M30)',
+  qm_perfect_full_m5: 'SMC · QM Full (M5)',
   qm_perfect_adx_h4: 'SMC · QM ADX (H4 tuned)',
   // SMC swing family (backend: swing.qm_perfect_*)
   swing_qm_perfect_pure: 'SMC Swing · Pure',
@@ -24,12 +26,16 @@ const REAL_NAMES: Record<string, string> = {
   smc_swing: 'SMC Swing',
   // Pivot mean reversion (backend: scalper.pivot_mean_reversion)
   pivot_mean_reversion: 'Pivot Mean Reversion',
-  // Crypto strategies (backend trading-crypto)
+  // Quad Confluence (backend: quad_confluence — AMD/FVG multi-factor)
+  quad_confluence: 'Quad Confluence',
+  amd_fvg: 'AMD + FVG',
+  amd_fvg_adx: 'AMD + FVG + ADX',
+  amd_fvg_full: 'AMD + FVG Full',
+  amd_fvg_pure: 'AMD + FVG Pure',
+  // Crypto strategies (backend trading-crypto, USDT-M Futures only)
   scalping_momentum: 'Scalping Momentum',
   swing_smc: 'Swing SMC',
   wyckoff_breakout: 'Wyckoff Breakout',
-  spot_dca_trend: 'Spot DCA Trend',
-  spot_swing_trend: 'Spot Swing Trend',
   mean_reversion: 'Mean Reversion',
 };
 

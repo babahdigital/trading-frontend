@@ -26,30 +26,34 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   );
 }
 
-// Strategi yang real ter-deploy di backend (port 8101 trading-forex):
-//   - scalper.qm_perfect_{pure,ao,adx,full,adx_h4} + scalper.pivot_mean_reversion
-//   - swing.qm_perfect_{pure,ao,adx,full}
-// UI kelompokkan ke 3 umbrella: SMC Scalper, SMC Swing, Pivot Mean Reversion.
-// Win-rate diambil dynamic dari /api/public/strategy-stats (backend live stats),
-// fallback "—" saat backend belum ship endpoint.
 const STRATEGIES = [
   {
     slug: 'smc',
     nameKey: 'smc_name',
     descKey: 'smc_desc',
-    timeframe: 'M5 — H1',
+    timeframe: 'M5 — H4',
+    status: 'live' as const,
   },
   {
     slug: 'smc-swing',
     nameKey: 'smc-swing_name',
     descKey: 'smc-swing_desc',
     timeframe: 'H1 — H4',
+    status: 'live' as const,
   },
   {
     slug: 'pivot-mean-reversion',
     nameKey: 'pivot-mean-reversion_name',
     descKey: 'pivot-mean-reversion_desc',
-    timeframe: 'M5 — M15',
+    timeframe: 'M5 — M30',
+    status: 'live' as const,
+  },
+  {
+    slug: 'quad-confluence',
+    nameKey: 'quad-confluence_name',
+    descKey: 'quad-confluence_desc',
+    timeframe: 'M5 — M30',
+    status: 'new' as const,
   },
 ] as const;
 
@@ -114,6 +118,11 @@ export default async function StrategiesPage() {
                       <h2 className="t-display-sub group-hover:text-amber-400 break-words">
                         {t(strategy.nameKey)}
                       </h2>
+                      {strategy.status === 'new' && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-500/15 text-[10px] font-semibold text-emerald-400 uppercase tracking-wider">
+                          NEW
+                        </span>
+                      )}
                     </div>
                     <div className="flex items-center gap-4 t-body-sm text-foreground/60 shrink-0">
                       <span className="font-mono">{strategy.timeframe}</span>

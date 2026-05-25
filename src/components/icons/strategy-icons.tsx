@@ -67,28 +67,19 @@ export function SmcIcon({ className = 'w-6 h-6' }: IconProps) {
   );
 }
 
-/** AI Decision — Neural network / circuit brain */
-export function AiDecisionIcon({ className = 'w-6 h-6' }: IconProps) {
+/** Quad Confluence — 4-factor multi-directional convergence */
+export function QuadConfluenceIcon({ className = 'w-6 h-6' }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      {/* Input nodes */}
-      <circle cx="4" cy="6" r="1.5" />
-      <circle cx="4" cy="12" r="1.5" />
-      <circle cx="4" cy="18" r="1.5" />
-      {/* Hidden layer */}
-      <circle cx="12" cy="8" r="1.5" />
-      <circle cx="12" cy="16" r="1.5" />
-      {/* Output node */}
-      <circle cx="20" cy="12" r="2" fill="currentColor" opacity="0.2" />
-      {/* Connections */}
-      <line x1="5.5" y1="6" x2="10.5" y2="8" opacity="0.5" />
-      <line x1="5.5" y1="6" x2="10.5" y2="16" opacity="0.3" />
-      <line x1="5.5" y1="12" x2="10.5" y2="8" opacity="0.5" />
-      <line x1="5.5" y1="12" x2="10.5" y2="16" opacity="0.5" />
-      <line x1="5.5" y1="18" x2="10.5" y2="8" opacity="0.3" />
-      <line x1="5.5" y1="18" x2="10.5" y2="16" opacity="0.5" />
-      <line x1="13.5" y1="8" x2="18" y2="12" opacity="0.7" />
-      <line x1="13.5" y1="16" x2="18" y2="12" opacity="0.7" />
+      <circle cx="12" cy="12" r="3" fill="currentColor" opacity="0.15" />
+      <line x1="12" y1="3" x2="12" y2="9" />
+      <line x1="12" y1="15" x2="12" y2="21" />
+      <line x1="3" y1="12" x2="9" y2="12" />
+      <line x1="15" y1="12" x2="21" y2="12" />
+      <circle cx="12" cy="3" r="1" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="21" r="1" fill="currentColor" stroke="none" />
+      <circle cx="3" cy="12" r="1" fill="currentColor" stroke="none" />
+      <circle cx="21" cy="12" r="1" fill="currentColor" stroke="none" />
     </svg>
   );
 }
@@ -111,15 +102,11 @@ export function PivotIcon({ className = 'w-6 h-6' }: IconProps) {
   );
 }
 
-/** Map strategy slug to icon component — hanya 3 strategi real yang ter-deploy. */
 export const STRATEGY_ICONS: Record<string, React.ComponentType<IconProps>> = {
   'smc': SmcIcon,
   'smc-swing': QuasimodoIcon,
   'pivot-mean-reversion': PivotIcon,
-  // Re-export classics untuk komponen lain yang mungkin still reference (chat
-  // skill, blog topic). Bukan strategi user-facing.
+  'quad-confluence': QuadConfluenceIcon,
   'wyckoff': WyckoffIcon,
-  'astronacci': AstronacciIcon,
-  'ai-momentum': AiDecisionIcon,
   'quasimodo': QuasimodoIcon,
 };

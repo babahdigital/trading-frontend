@@ -26,6 +26,7 @@ const PLATFORM_MENU = {
     { href: '/platform/strategies/smc', labelKey: 'strat_smc_label', descKey: 'strat_smc_desc' },
     { href: '/platform/strategies/smc-swing', labelKey: 'strat_smc_swing_label', descKey: 'strat_smc_swing_desc' },
     { href: '/platform/strategies/pivot-mean-reversion', labelKey: 'strat_pivot_label', descKey: 'strat_pivot_desc' },
+    { href: '/platform/strategies/quad-confluence', labelKey: 'strat_quad_label', descKey: 'strat_quad_desc' },
   ],
   featured: {
     href: '/performance',

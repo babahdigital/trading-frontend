@@ -19,7 +19,7 @@ function fmtNumLocal(v: number, locale: Locale, digits = 2): string {
 interface Trade {
   id: number;
   symbol: string;
-  market_type: 'spot' | 'futures';
+  market_type: 'futures';
   side: 'LONG' | 'SHORT';
   quantity: number;
   entry_price: number;
@@ -66,7 +66,7 @@ export default function CryptoTradesPage() {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [source, setSource] = useState('');
   const [loading, setLoading] = useState(true);
-  const [marketFilter, setMarketFilter] = useState<'all' | 'spot' | 'futures'>('all');
+  const [marketFilter, setMarketFilter] = useState<'all' | 'futures'>('all');
 
   useEffect(() => {
     (async () => {
@@ -156,7 +156,7 @@ export default function CryptoTradesPage() {
         <div className="flex items-center gap-2">
           <Filter className="h-4 w-4 text-muted-foreground" />
           <div className="inline-flex rounded-md border border-white/10 bg-card p-0.5 text-xs">
-            {(['all', 'spot', 'futures'] as const).map((m) => (
+            {(['all', 'futures'] as const).map((m) => (
               <button
                 key={m}
                 onClick={() => setMarketFilter(m)}

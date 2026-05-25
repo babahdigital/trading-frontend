@@ -110,6 +110,38 @@ const CRYPTO_STRATEGIES: CryptoStrategySpec[] = [
       ],
     },
   },
+  {
+    slug: 'wyckoff_breakout',
+    name: { id: 'Wyckoff Breakout', en: 'Wyckoff Breakout' },
+    shortName: 'Wyckoff',
+    timeframe: '1H · 4H · 1D',
+    market: 'USDT-M Futures',
+    tierAccess: { id: 'HNWI tier saja', en: 'HNWI tier only' },
+    tagline: {
+      id: 'Breakout berbasis akumulasi/distribusi Wyckoff pada futures',
+      en: 'Wyckoff accumulation/distribution breakout on futures',
+    },
+    description: {
+      id: 'Strategi futures yang mendeteksi fase akumulasi dan distribusi Wyckoff pada timeframe tinggi. Entry saat Spring/UTAD terkonfirmasi dengan volume surge + market structure break. Bi-directional — long dari akumulasi, short dari distribusi.',
+      en: 'Futures strategy detecting Wyckoff accumulation and distribution phases on higher timeframes. Entry on confirmed Spring/UTAD with volume surge + market structure break. Bi-directional — long from accumulation, short from distribution.',
+    },
+    highlights: {
+      id: [
+        'Bi-directional · USDT-M Futures',
+        'Wyckoff phase detection (akumulasi + distribusi)',
+        'Spring/UTAD confirmation entry',
+        'Volume surge + structure break trigger',
+        'Multi-timeframe confluence (1H → 1D)',
+      ],
+      en: [
+        'Bi-directional · USDT-M Futures',
+        'Wyckoff phase detection (accumulation + distribution)',
+        'Spring/UTAD confirmation entry',
+        'Volume surge + structure break trigger',
+        'Multi-timeframe confluence (1H → 1D)',
+      ],
+    },
+  },
 ];
 
 interface StrategiesSectionProps {
@@ -126,7 +158,7 @@ export function StrategiesSection({ t, localeKey }: StrategiesSectionProps) {
         <p className="t-body text-foreground/60 max-w-xl sm:max-w-2xl mb-8 sm:mb-12">
           {t('strat_subtitle')}
         </p>
-        <div className="grid md:grid-cols-3 gap-5">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {CRYPTO_STRATEGIES.map((s) => (
             <div key={s.slug} className="card-enterprise group">
               <div className="flex items-start justify-between mb-3 gap-2">
@@ -159,8 +191,8 @@ export function StrategiesSection({ t, localeKey }: StrategiesSectionProps) {
         </div>
         <p className="text-xs text-foreground/50 mt-6 max-w-2xl">
           {localeKey === 'id'
-            ? 'Akses strategi gated per tier: Semua tier mendapat Scalping Momentum · Active tier menambah Swing SMC · Pro/HNWI mendapat semua termasuk Mean Reversion. Seluruh eksekusi pada USDT-M Futures.'
-            : 'Strategy access gated per tier: All tiers get Scalping Momentum · Active tier adds Swing SMC · Pro/HNWI get all including Mean Reversion. All execution on USDT-M Futures.'}
+            ? 'Akses strategi gated per tier: Semua tier mendapat Scalping Momentum · Active tier menambah Swing SMC · Pro tier menambah Mean Reversion · HNWI mendapat semua termasuk Wyckoff Breakout. Seluruh eksekusi pada Binance USDT-M Futures.'
+            : 'Strategy access gated per tier: All tiers get Scalping Momentum · Active tier adds Swing SMC · Pro tier adds Mean Reversion · HNWI gets all including Wyckoff Breakout. All execution on Binance USDT-M Futures.'}
         </p>
       </div>
     </section>

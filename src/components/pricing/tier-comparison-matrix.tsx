@@ -145,7 +145,7 @@ export function TierComparisonMatrix({ locale }: TierComparisonMatrixProps) {
     {
       key: 'ai_mode',
       labelKey: { id: t.label_ai_mode, en: t.label_ai_mode },
-      values: Object.fromEntries(TIER_ORDER.map((tName) => [tName, aiModeLabel(TIERS[tName].aiMode)])) as Record<TierName, string>,
+      values: Object.fromEntries(TIER_ORDER.map((tName) => [tName, aiModeLabel(TIERS[tName].riskMode)])) as Record<TierName, string>,
     },
     {
       key: 'kelly',
@@ -257,7 +257,7 @@ export function TierComparisonMatrix({ locale }: TierComparisonMatrixProps) {
                 <dt className="text-muted-foreground">{t.label_pairs}</dt>
                 <dd className="text-foreground font-mono text-right">{cfg.pairs.length === 0 ? (cfg.customAllowList ? '∞' : '—') : cfg.pairs.length}</dd>
                 <dt className="text-muted-foreground">{t.label_ai_mode}</dt>
-                <dd className="text-foreground text-right text-[11px]">{aiModeLabel(cfg.aiMode)}</dd>
+                <dd className="text-foreground text-right text-[11px]">{aiModeLabel(cfg.riskMode)}</dd>
                 <dt className="text-muted-foreground">{t.label_kelly}</dt>
                 <dd className="text-foreground text-right">{cfg.kelly ? '✓' : '—'}</dd>
                 <dt className="text-muted-foreground">{t.label_custom_allow}</dt>

@@ -14,9 +14,9 @@ const COPY = {
     loading: 'Memuat catalog…',
     empty: 'Catalog sedang tidak tersedia. Hubungi kami via /contact untuk daftar lengkap.',
     feature: 'Feature',
-    sec_indicators_desc: 'Technical indicator yang tersedia di setiap tier — order block, liquidity sweep, FVG, daily pivot, dan AI confluence scoring.',
+    sec_indicators_desc: 'Technical indicator yang tersedia di setiap tier — order block, liquidity sweep, FVG, daily pivot, dan statistical confluence scoring.',
     sec_strategies_desc: 'Strategi trading otomatis yang berjalan di backend — semakin tinggi tier, semakin banyak strategi paralel.',
-    sec_ai_desc: 'Layer AI eksplikabilitas + entry advisor + retrospective. Aktif sejak Pro, lengkap di VIP.',
+    sec_ai_desc: 'Layer trade eksplikabilitas + entry advisor + retrospective. Aktif sejak Pro, lengkap di VIP.',
   },
   en: {
     eyebrow: 'Capability Matrix',
@@ -25,9 +25,9 @@ const COPY = {
     loading: 'Loading catalog…',
     empty: 'Catalog is temporarily unavailable. Reach out via /contact for the full list.',
     feature: 'Feature',
-    sec_indicators_desc: 'Technical indicators available per tier — order block, liquidity sweep, FVG, daily pivot, and AI confluence scoring.',
+    sec_indicators_desc: 'Technical indicators available per tier — order block, liquidity sweep, FVG, daily pivot, and statistical confluence scoring.',
     sec_strategies_desc: 'Automated trading strategies running in the backend — higher tier = more parallel strategies.',
-    sec_ai_desc: 'AI explainability + entry advisor + retrospective. Active from Pro, complete on VIP.',
+    sec_ai_desc: 'Trade explainability + entry advisor + retrospective. Active from Pro, complete on VIP.',
   },
 } as const;
 
@@ -51,7 +51,7 @@ type Bucket = 'indicators' | 'strategies' | 'ai_subsystems';
 const SECTION_META: Record<Bucket, { label: string; icon: typeof BarChart3 }> = {
   indicators: { label: 'Indicators', icon: BarChart3 },
   strategies: { label: 'Strategies', icon: Target },
-  ai_subsystems: { label: 'AI Subsystems', icon: Brain },
+  ai_subsystems: { label: 'Analysis Subsystems', icon: Brain },
 };
 
 export function CapabilityLadder() {

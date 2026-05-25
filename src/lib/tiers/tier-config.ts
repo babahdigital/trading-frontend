@@ -2,11 +2,11 @@
  * Tier configuration — single source of truth untuk feature gating + UI display.
  *
  * Tier matrix per Abdullah 2026-05-15 directive:
- *   free    → $0      → paper trading / signal view only, AI mode = SHADOW
- *   micro   → $100    → real trading kecil, qm_perfect_adx + pivot, 5 pair (BTC/ETH/EUR/USD/JPY)
- *   starter → $500    → full qm_perfect family, 7 forex major
- *   pro     → $1000   → + Kelly sizing aktif, 14 pair
- *   vip     → $2500   → + custom pair allow-list, AI mode = ADJUST (mutation)
+ *   free    → $0      → paper trading / signal view only, risk mode = SHADOW
+ *   micro   → $100    → real trading kecil, qm_perfect_adx + pivot, 5 forex pair
+ *   starter → $500    → full qm_perfect family, 7 LIVE forex pair
+ *   pro     → $1000   → + Kelly sizing aktif, 17 pair (7 LIVE + 10 SHADOW)
+ *   vip     → $2500   → + custom pair allow-list, risk mode = ADJUST (mutation)
  *
  * Backend (trading-forex Phase 14V) currently exposes:
  *   TIER_ORDER = ("beta", "starter", "pro", "vip", "dedicated")
@@ -46,8 +46,8 @@ export interface TierConfig {
   strategies: readonly string[];
   /** Aset allow-list (pair count limit) — empty = unlimited */
   pairs: readonly string[];
-  /** AI brain mode: 'shadow' = observe only, 'live' = execute, 'adjust' = mutation (VIP) */
-  aiMode: 'shadow' | 'live' | 'adjust';
+  /** Risk engine mode: 'shadow' = observe only, 'live' = execute, 'adjust' = mutation (VIP) */
+  riskMode: 'shadow' | 'live' | 'adjust';
   /** Kelly fractional sizing aktif (pro+) */
   kelly: boolean;
   /** Custom pair allow-list bisa di-override user (vip+) */
@@ -67,7 +67,7 @@ export const TIERS: Record<TierName, TierConfig> = {
     realTrading: false,
     strategies: ['smc'], // signal view read-only
     pairs: [],
-    aiMode: 'shadow',
+    riskMode: 'shadow',
     kelly: false,
     customAllowList: false,
     accent: 'slate',
@@ -80,8 +80,8 @@ export const TIERS: Record<TierName, TierConfig> = {
     monthlyPrice: 4.99,
     realTrading: true,
     strategies: ['qm_perfect_adx', 'pivot_mean_reversion'],
-    pairs: ['BTCUSD', 'ETHUSD', 'EURUSD', 'USDJPY', 'XAUUSD'],
-    aiMode: 'live',
+    pairs: ['EURUSD', 'USDJPY', 'XAUUSD', 'GBPUSD', 'USOIL'],
+    riskMode: 'live',
     kelly: false,
     customAllowList: false,
     accent: 'blue',
@@ -96,8 +96,8 @@ export const TIERS: Record<TierName, TierConfig> = {
     monthlyPrice: 39,
     realTrading: true,
     strategies: ['qm_perfect_pure', 'qm_perfect_ao', 'qm_perfect_adx', 'qm_perfect_full', 'pivot_mean_reversion'],
-    pairs: ['EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCHF', 'NZDUSD', 'USDCAD'],
-    aiMode: 'live',
+    pairs: ['XAUUSD', 'GBPUSD', 'XAGUSD', 'GBPJPY', 'USDJPY', 'USOIL', 'EURAUD'],
+    riskMode: 'live',
     kelly: false,
     customAllowList: false,
     accent: 'amber',
@@ -115,10 +115,12 @@ export const TIERS: Record<TierName, TierConfig> = {
       'pivot_mean_reversion', 'quad_confluence', 'amd_fvg',
     ],
     pairs: [
-      'EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCHF', 'NZDUSD', 'USDCAD',
-      'XAUUSD', 'XAGUSD', 'USOIL', 'UKOIL', 'XNGUSD', 'BTCUSD', 'ETHUSD',
+      // 7 LIVE pairs
+      'XAUUSD', 'GBPUSD', 'XAGUSD', 'GBPJPY', 'USDJPY', 'USOIL', 'EURAUD',
+      // 10 SHADOW pairs
+      'EURUSD', 'AUDUSD', 'NZDUSD', 'USDCAD', 'USDCHF', 'EURGBP', 'EURJPY', 'AUDJPY', 'UKOIL', 'XNGUSD',
     ],
-    aiMode: 'live',
+    riskMode: 'live',
     kelly: true,
     customAllowList: false,
     accent: 'violet',
@@ -136,7 +138,7 @@ export const TIERS: Record<TierName, TierConfig> = {
       'pivot_mean_reversion', 'quad_confluence', 'amd_fvg',
     ],
     pairs: [], // unlimited via custom allow-list
-    aiMode: 'adjust',
+    riskMode: 'adjust',
     kelly: true,
     customAllowList: true,
     accent: 'fuchsia',

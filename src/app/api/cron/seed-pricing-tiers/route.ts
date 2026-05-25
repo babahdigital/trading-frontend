@@ -65,36 +65,56 @@ const CANONICAL_TIERS: CanonicalTier[] = [
     ctaLabel: 'Mulai VIP', ctaLabel_en: 'Start VIP', ctaLink: '/register?service=signal',
     sortOrder: 30, isVisible: true,
   },
-  // CRYPTO BOT
+  // CRYPTO BOT — 5-tier rc29 (Binance USDT-M Futures ONLY)
   {
-    slug: 'crypto-basic', name: 'Crypto Basic', name_en: 'Crypto Basic',
-    price: '$49/bulan flat',
-    subtitle: 'Bot Binance Futures untuk trader pemula',
-    subtitle_en: 'Binance Futures bot for entry traders',
-    features: ['3 pair otomatis', 'Leverage maks 5x', 'Strategi scalping_momentum', 'Telegram + dashboard', 'Email support'],
-    features_en: ['3 auto pairs', 'Max leverage 5x', 'Scalping momentum strategy', 'Telegram + dashboard', 'Email support'],
-    ctaLabel: 'Mulai Basic', ctaLabel_en: 'Start Basic', ctaLink: '/register?service=crypto&tier=basic',
+    slug: 'crypto-demo', name: 'Crypto Demo', name_en: 'Crypto Demo',
+    price: 'Gratis',
+    subtitle: 'Demo 30 hari tanpa risiko — wallet $5K USDT',
+    subtitle_en: '30-day risk-free demo — $5K USDT wallet',
+    features: ['1 open position slot', 'Leverage maks 2x', 'Strategi: Scalping Momentum', 'Risk per trade 0.5%', 'Telegram alert real-time'],
+    features_en: ['1 open position slot', 'Max 2x leverage', 'Strategy: Scalping Momentum', '0.5% risk per trade', 'Real-time Telegram alerts'],
+    ctaLabel: 'Mulai Trial Gratis', ctaLabel_en: 'Start Free Trial', ctaLink: '/register?service=crypto&tier=demo',
+    sortOrder: 35, isVisible: true,
+  },
+  {
+    slug: 'crypto-starter', name: 'Crypto Starter', name_en: 'Crypto Starter',
+    price: '$9/bulan (Rp149K)',
+    subtitle: 'Entry tier live trading konservatif',
+    subtitle_en: 'Entry tier for conservative live trading',
+    features: ['2 open position slot', 'Leverage maks 3x', 'Strategi: Scalping Momentum', 'Risk per trade 1.0%', 'Kill-switch otomatis'],
+    features_en: ['2 open position slots', 'Max 3x leverage', 'Strategy: Scalping Momentum', '1.0% risk per trade', 'Automatic kill-switch'],
+    ctaLabel: 'Mulai Starter', ctaLabel_en: 'Start Starter', ctaLink: '/register?service=crypto&tier=starter',
     sortOrder: 40, isVisible: true,
   },
   {
-    slug: 'crypto-pro', name: 'Crypto Pro', name_en: 'Crypto Pro',
-    price: '$199/bulan flat',
-    subtitle: 'Multi-strategi untuk trader aktif',
-    subtitle_en: 'Multi-strategy for active traders',
-    features: ['8 pair + 1 manual whitelist', 'Leverage maks 10x', '4 strategi (SMC, Wyckoff, Momentum, Mean Reversion)', 'Telegram VIP + priority support'],
-    features_en: ['8 pairs + 1 manual whitelist', 'Max leverage 10x', '4 strategies (SMC, Wyckoff, Momentum, Mean Reversion)', 'Telegram VIP + priority support'],
-    ctaLabel: 'Mulai Pro', ctaLabel_en: 'Start Pro', ctaLink: '/register?service=crypto&tier=pro',
+    slug: 'crypto-active', name: 'Crypto Active', name_en: 'Crypto Active',
+    price: '$19/bulan (Rp299K)',
+    subtitle: 'Diversifikasi 2 strategi untuk trader aktif',
+    subtitle_en: '2-strategy diversification for active traders',
+    features: ['3 open position slot', 'Leverage maks 7x', 'Strategi: Scalping Momentum + Swing SMC', 'Risk per trade 1.25%', 'Multi-stage kill-switch'],
+    features_en: ['3 open position slots', 'Max 7x leverage', 'Strategies: Scalping Momentum + Swing SMC', '1.25% risk per trade', 'Multi-stage kill-switch'],
+    ctaLabel: 'Mulai Active', ctaLabel_en: 'Start Active', ctaLink: '/register?service=crypto&tier=active',
     sortOrder: 50, isVisible: true,
   },
   {
-    slug: 'crypto-hnwi', name: 'Crypto HNWI', name_en: 'Crypto HNWI',
-    price: '$499/bulan flat',
-    subtitle: 'Software license + parameter tuning untuk capital besar',
-    subtitle_en: 'Software license + parameter tuning for large capital',
-    features: ['12 pair + custom whitelist/blacklist', 'Leverage maks 15x', 'Semua strategi + parameter tuning', 'Priority technical support', 'SLA 99.9%'],
-    features_en: ['12 pairs + custom whitelist/blacklist', 'Max leverage 15x', 'All strategies + parameter tuning', 'Priority technical support', 'SLA 99.9%'],
-    ctaLabel: 'Konsultasi HNWI', ctaLabel_en: 'HNWI Consultation', ctaLink: '/contact?subject=crypto-hnwi',
+    slug: 'crypto-pro', name: 'Crypto Pro', name_en: 'Crypto Pro',
+    price: '$49/bulan (Rp799K)',
+    subtitle: 'Akses penuh 3 strategi untuk trader serius',
+    subtitle_en: 'Full 3-strategy access for serious traders',
+    features: ['5 open position slot', 'Leverage maks 12x', 'Strategi: Scalping Momentum + Swing SMC + Mean Reversion', 'Risk per trade 1.5%', 'Full reconciliation + audit trail'],
+    features_en: ['5 open position slots', 'Max 12x leverage', 'Strategies: Scalping Momentum + Swing SMC + Mean Reversion', '1.5% risk per trade', 'Full reconciliation + audit trail'],
+    ctaLabel: 'Mulai Pro', ctaLabel_en: 'Start Pro', ctaLink: '/register?service=crypto&tier=pro',
     sortOrder: 60, isVisible: true,
+  },
+  {
+    slug: 'crypto-hnwi', name: 'Crypto HNWI', name_en: 'Crypto HNWI',
+    price: '$199/bulan (Rp3,29M)',
+    subtitle: 'Semua 4 strategi + dedicated support untuk capital besar',
+    subtitle_en: 'All 4 strategies + dedicated support for large capital',
+    features: ['7 open position slot', 'Leverage maks 20x', 'Semua 4 strategi + Wyckoff Breakout + custom override', 'Risk per trade 2.0%', 'Dedicated account manager + priority 24/7'],
+    features_en: ['7 open position slots', 'Max 20x leverage', 'All 4 strategies + Wyckoff Breakout + custom override', '2.0% risk per trade', 'Dedicated account manager + 24/7 priority'],
+    ctaLabel: 'Konsultasi HNWI', ctaLabel_en: 'HNWI Consultation', ctaLink: '/contact?subject=crypto-hnwi',
+    sortOrder: 70, isVisible: true,
   },
   // VPS LICENSE — 2026-05-18 realigned to canonical 3-tier (License Only /
   // Hybrid / Full Turnkey) matching lib/pricing-format.ts:PRICE_TABLE and
@@ -109,7 +129,7 @@ const CANONICAL_TIERS: CanonicalTier[] = [
     features: ['Software install di VPS broker-level milik Anda', 'Full software access + risk parameter konfigurasi sendiri', 'Rekomendasi broker BAPPEBTI teregulasi', 'Konfigurasi kustom', 'Maintenance bulanan'],
     features_en: ['Software install on your own broker-level VPS', 'Full software access + self-configurable risk params', 'BAPPEBTI-regulated broker recommendation', 'Custom configuration', 'Monthly maintenance'],
     ctaLabel: 'Konsultasi Setup', ctaLabel_en: 'Setup Consultation', ctaLink: '/register?service=vps',
-    sortOrder: 70, isVisible: true,
+    sortOrder: 80, isVisible: true,
   },
   {
     slug: 'vps-premium', name: 'Software License — Hybrid', name_en: 'Software License — Hybrid',
@@ -119,7 +139,7 @@ const CANONICAL_TIERS: CanonicalTier[] = [
     features: ['VPS Windows MT5 dari broker Anda (biasanya gratis)', 'BabahAlgo sediakan VPS Linux orchestrator', 'Multi-broker bridge (MT4 + MT5)', 'Priority technical support', 'Monitoring + alert otomatis'],
     features_en: ['Windows MT5 VPS from your broker (usually free)', 'BabahAlgo provides the Linux orchestrator VPS', 'Multi-broker bridge (MT4 + MT5)', 'Priority technical support', 'Automated monitoring + alerts'],
     ctaLabel: 'Konsultasi Setup', ctaLabel_en: 'Setup Consultation', ctaLink: '/register?service=vps',
-    sortOrder: 80, isVisible: true,
+    sortOrder: 90, isVisible: true,
   },
   {
     slug: 'vps-dedicated', name: 'Software License — Full Turnkey', name_en: 'Software License — Full Turnkey',
@@ -129,7 +149,7 @@ const CANONICAL_TIERS: CanonicalTier[] = [
     features: ['VPS Windows MT5 (8GB RAM) + VPS Linux orchestrator (12GB RAM)', 'Software install + setup + paper-trade validation', 'Monitoring 24/7 + SLA 99.5%', 'Custom risk framework + parameter tuning', 'Telegram incident channel + priority support'],
     features_en: ['Windows MT5 VPS (8GB RAM) + Linux orchestrator VPS (12GB RAM)', 'Software install + setup + paper-trade validation', '24/7 monitoring + 99.5% SLA', 'Custom risk framework + parameter tuning', 'Telegram incident channel + priority support'],
     ctaLabel: 'Konsultasi Turnkey', ctaLabel_en: 'Turnkey Consultation', ctaLink: '/contact?subject=dedicated-vps',
-    sortOrder: 90, isVisible: true,
+    sortOrder: 100, isVisible: true,
   },
   // INSTITUTIONAL / B2B
   {
@@ -140,7 +160,7 @@ const CANONICAL_TIERS: CanonicalTier[] = [
     features: ['REST + WebSocket API priority', 'Signal streaming dedicated infra', 'Custom integration support', 'Dedicated engineering contact', 'White-label tersedia'],
     features_en: ['REST + WebSocket API priority', 'Dedicated signal streaming infra', 'Custom integration support', 'Dedicated engineering contact', 'White-label available'],
     ctaLabel: 'Speak with IR', ctaLabel_en: 'Speak with IR', ctaLink: '/register?service=institutional',
-    sortOrder: 100, isVisible: true,
+    sortOrder: 110, isVisible: true,
   },
   {
     slug: 'backtest-as-service', name: 'Backtest as a Service', name_en: 'Backtest as a Service',
@@ -150,7 +170,7 @@ const CANONICAL_TIERS: CanonicalTier[] = [
     features: ['Walk-forward + Monte Carlo', '5 tahun tick data 14 instrumen', 'Strategy parameter optimization', 'Whitelabel report PDF', 'API integration'],
     features_en: ['Walk-forward + Monte Carlo', '5y tick data on 14 instruments', 'Strategy parameter optimization', 'Whitelabel report PDF', 'API integration'],
     ctaLabel: 'Konsultasi B2B', ctaLabel_en: 'B2B Consultation', ctaLink: '/contact?subject=backtest-service',
-    sortOrder: 110, isVisible: true,
+    sortOrder: 120, isVisible: true,
   },
 ];
 
@@ -158,6 +178,7 @@ const DEPRECATED_SLUGS = [
   'pamm-basic', 'pamm-pro', 'pamm-standard', 'pamm-premier',
   'managed-account', 'institutional-managed',
   'signal-basic', 'signal-standard', // old $49 names
+  'crypto-basic', // old 3-tier: $49 Basic (replaced by 5-tier rc29)
 ];
 
 export async function GET(request: NextRequest) {

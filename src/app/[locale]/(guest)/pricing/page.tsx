@@ -85,14 +85,14 @@ const CRYPTO_TIERS: CryptoTierSpec[] = [
       id: [
         'Trial 30 hari dengan demo wallet $5.000 USDT',
         '1 posisi simultan, leverage maks 2x',
-        'Strategi spot DCA Trend (paling konservatif)',
+        'Strategi Scalping Momentum (paling konservatif)',
         'Telegram alert sinyal real-time',
         'Tanpa kartu kredit — auto-stop hari ke-30',
       ],
       en: [
         '30-day trial with $5,000 USDT demo wallet',
         '1 concurrent slot, max 2x leverage',
-        'Spot DCA Trend strategy (most conservative)',
+        'Scalping Momentum strategy (most conservative)',
         'Real-time Telegram signal alerts',
         'No credit card — auto-stop on day 30',
       ],
@@ -111,14 +111,14 @@ const CRYPTO_TIERS: CryptoTierSpec[] = [
     features: {
       id: [
         '2 posisi simultan · leverage 3x maks',
-        'Strategi: Spot DCA Trend',
+        'Strategi: Scalping Momentum',
         'Risk per trade 1.0% · notional cap 40%',
         'Kill-switch otomatis (loss harian)',
         'Sweet spot: modal $1.000-1.500',
       ],
       en: [
         '2 concurrent slots · max 3x leverage',
-        'Strategy: Spot DCA Trend',
+        'Strategy: Scalping Momentum',
         '1.0% risk per trade · 40% notional cap',
         'Automatic kill-switch (daily loss)',
         'Sweet spot: $1,000-1,500 capital',
@@ -138,14 +138,14 @@ const CRYPTO_TIERS: CryptoTierSpec[] = [
     features: {
       id: [
         '3 posisi simultan · leverage 7x maks',
-        'Strategi: Spot DCA + Spot Swing Trend',
+        'Strategi: Scalping Momentum + Swing SMC',
         'Risk per trade 1.25% · notional cap 55%',
         'Multi-stage kill-switch',
         'Sweet spot: modal $2.500',
       ],
       en: [
         '3 concurrent slots · max 7x leverage',
-        'Strategies: Spot DCA + Spot Swing Trend',
+        'Strategies: Scalping Momentum + Swing SMC',
         '1.25% risk per trade · 55% notional cap',
         'Multi-stage kill-switch',
         'Sweet spot: $2,500 capital',
@@ -166,14 +166,14 @@ const CRYPTO_TIERS: CryptoTierSpec[] = [
     features: {
       id: [
         '5 posisi simultan · leverage 12x maks',
-        'Semua strategi: Smart Money + Spot DCA + Spot Swing',
+        'Semua strategi: Scalping Momentum + Swing SMC + Mean Reversion',
         'Risk per trade 1.5% · notional cap 60%',
         'Full reconciliation engine + audit trail',
         'Sweet spot: modal $10.000 (fee 0.5%/profit)',
       ],
       en: [
         '5 concurrent slots · max 12x leverage',
-        'All strategies: Smart Money + Spot DCA + Spot Swing',
+        'All strategies: Scalping Momentum + Swing SMC + Mean Reversion',
         '1.5% risk per trade · 60% notional cap',
         'Full reconciliation engine + audit trail',
         'Sweet spot: $10,000 capital (0.5%/profit fee)',
@@ -193,14 +193,14 @@ const CRYPTO_TIERS: CryptoTierSpec[] = [
     features: {
       id: [
         '7 posisi simultan · leverage 20x maks',
-        'Semua strategi + custom override leverage/risk',
+        'Semua strategi (4) + custom override leverage/risk',
         'Risk per trade 2.0% · notional cap 75%',
         'Dedicated account manager + priority support',
         'Sweet spot: modal $50.000 (fee 0.4%/profit)',
       ],
       en: [
         '7 concurrent slots · max 20x leverage',
-        'All strategies + custom leverage/risk override',
+        'All 4 strategies + custom leverage/risk override',
         '2.0% risk per trade · 75% notional cap',
         'Dedicated account manager + priority support',
         'Sweet spot: $50,000 capital (0.4%/profit fee)',
@@ -632,8 +632,8 @@ function CryptoDemoBanner({
   const isEn = locale === 'en';
   const title = isEn ? 'Try Robot Crypto FREE for 30 days' : 'Coba Robot Crypto GRATIS 30 hari';
   const subtitle = isEn
-    ? 'Demo wallet $5,000 USDT · 1 concurrent slot · 2x leverage · Spot DCA Trend · No credit card.'
-    : 'Demo wallet $5.000 USDT · 1 posisi simultan · leverage 2x · Spot DCA Trend · Tanpa kartu kredit.';
+    ? 'Demo wallet $5,000 USDT · 1 concurrent slot · 2x leverage · Scalping Momentum · No credit card.'
+    : 'Demo wallet $5.000 USDT · 1 posisi simultan · leverage 2x · Scalping Momentum · Tanpa kartu kredit.';
   const ctaLabel = isEn ? 'Start Free Trial' : 'Mulai Trial Gratis';
 
   return (

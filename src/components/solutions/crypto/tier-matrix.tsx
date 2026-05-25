@@ -38,7 +38,7 @@ const CRYPTO_TIERS_META: CryptoTierMeta[] = [
       id: [
         'Demo wallet $5.000 USDT mock realistis',
         '1 posisi simultan · leverage 2x maks',
-        'Strategi: Spot DCA Trend (konservatif)',
+        'Strategi: Scalping Momentum (konservatif)',
         'Risk per trade 0.5% · notional cap 30%',
         'Telegram alert sinyal real-time',
         'Auto-stop hari ke-30 (no auto-charge)',
@@ -46,7 +46,7 @@ const CRYPTO_TIERS_META: CryptoTierMeta[] = [
       en: [
         '$5,000 USDT realistic mock demo wallet',
         '1 concurrent slot · max 2x leverage',
-        'Strategy: Spot DCA Trend (conservative)',
+        'Strategy: Scalping Momentum (conservative)',
         '0.5% risk per trade · 30% notional cap',
         'Real-time Telegram signal alerts',
         'Auto-stop on day 30 (no auto-charge)',
@@ -71,7 +71,7 @@ const CRYPTO_TIERS_META: CryptoTierMeta[] = [
     features: {
       id: [
         '2 posisi simultan · leverage 3x maks',
-        'Strategi: Spot DCA Trend',
+        'Strategi: Scalping Momentum',
         'Risk per trade 1.0% · notional cap 40%',
         'Kill-switch otomatis (daily loss cap)',
         'Multi-stage cooldown',
@@ -79,7 +79,7 @@ const CRYPTO_TIERS_META: CryptoTierMeta[] = [
       ],
       en: [
         '2 concurrent slots · max 3x leverage',
-        'Strategy: Spot DCA Trend',
+        'Strategy: Scalping Momentum',
         '1.0% risk per trade · 40% notional cap',
         'Automatic kill-switch (daily loss cap)',
         'Multi-stage cooldown',
@@ -99,13 +99,13 @@ const CRYPTO_TIERS_META: CryptoTierMeta[] = [
     cta: { id: 'Mulai Active', en: 'Start Active' },
     ctaHref: '/register?service=crypto&tier=active',
     desc: {
-      id: 'Trader aktif dengan diversifikasi 2 strategi (DCA + Swing). 3 posisi simultan, leverage 7x. Sweet spot $2.5K.',
-      en: 'Active trader with 2-strategy diversification (DCA + Swing). 3 concurrent slots, 7x leverage. Sweet spot $2.5K.',
+      id: 'Trader aktif dengan diversifikasi 2 strategi (Scalping Momentum + Swing SMC). 3 posisi simultan, leverage 7x. Sweet spot $2.5K.',
+      en: 'Active trader with 2-strategy diversification (Scalping Momentum + Swing SMC). 3 concurrent slots, 7x leverage. Sweet spot $2.5K.',
     },
     features: {
       id: [
         '3 posisi simultan · leverage 7x maks',
-        'Strategi: Spot DCA + Spot Swing Trend',
+        'Strategi: Scalping Momentum + Swing SMC',
         'Risk per trade 1.25% · notional cap 55%',
         'Multi-stage kill-switch + cooldown',
         '6-layer exit engine',
@@ -113,7 +113,7 @@ const CRYPTO_TIERS_META: CryptoTierMeta[] = [
       ],
       en: [
         '3 concurrent slots · max 7x leverage',
-        'Strategies: Spot DCA + Spot Swing Trend',
+        'Strategies: Scalping Momentum + Swing SMC',
         '1.25% risk per trade · 55% notional cap',
         'Multi-stage kill-switch + cooldown',
         '6-layer exit engine',
@@ -134,13 +134,13 @@ const CRYPTO_TIERS_META: CryptoTierMeta[] = [
     cta: { id: 'Mulai Pro', en: 'Start Pro' },
     ctaHref: '/register?service=crypto&tier=pro',
     desc: {
-      id: 'Trader serius dengan akses penuh ke 3 strategi (Smart Money + Spot DCA + Spot Swing). 5 posisi simultan, leverage 12x. Sweet spot $10K (fee hanya 0.5% dari profit).',
-      en: 'Serious trader with full access to 3 strategies (Smart Money + Spot DCA + Spot Swing). 5 concurrent slots, 12x leverage. Sweet spot $10K (fee just 0.5% of profit).',
+      id: 'Trader serius dengan akses penuh ke 3 strategi (Scalping Momentum + Swing SMC + Mean Reversion). 5 posisi simultan, leverage 12x. Sweet spot $10K (fee hanya 0.5% dari profit).',
+      en: 'Serious trader with full access to 3 strategies (Scalping Momentum + Swing SMC + Mean Reversion). 5 concurrent slots, 12x leverage. Sweet spot $10K (fee just 0.5% of profit).',
     },
     features: {
       id: [
         '5 posisi simultan · leverage 12x maks',
-        'Semua strategi: Smart Money + Spot DCA + Spot Swing',
+        'Semua strategi: Scalping Momentum + Swing SMC + Mean Reversion',
         'Risk per trade 1.5% · notional cap 60%',
         'Full reconciliation engine',
         'Priority signal queue (low-latency)',
@@ -148,7 +148,7 @@ const CRYPTO_TIERS_META: CryptoTierMeta[] = [
       ],
       en: [
         '5 concurrent slots · max 12x leverage',
-        'All strategies: Smart Money + Spot DCA + Spot Swing',
+        'All strategies: Scalping Momentum + Swing SMC + Mean Reversion',
         '1.5% risk per trade · 60% notional cap',
         'Full reconciliation engine',
         'Priority signal queue (low-latency)',
@@ -174,7 +174,7 @@ const CRYPTO_TIERS_META: CryptoTierMeta[] = [
     features: {
       id: [
         '7 posisi simultan · leverage 20x maks',
-        'Semua strategi + custom override leverage/risk',
+        'Semua 4 strategi + custom override leverage/risk',
         'Risk per trade 2.0% · notional cap 75%',
         'Dedicated account manager (Telegram + WhatsApp)',
         'Priority support 24/7 (target response <30 menit)',
@@ -182,7 +182,7 @@ const CRYPTO_TIERS_META: CryptoTierMeta[] = [
       ],
       en: [
         '7 concurrent slots · max 20x leverage',
-        'All strategies + custom leverage/risk override',
+        'All 4 strategies + custom leverage/risk override',
         '2.0% risk per trade · 75% notional cap',
         'Dedicated account manager (Telegram + WhatsApp)',
         '24/7 priority support (target response <30 min)',
@@ -213,8 +213,8 @@ export function TierMatrix({ t, localeKey }: TierMatrixProps) {
           const demoTier = CRYPTO_TIERS_META.find((tt) => tt.id === 'demo')!;
           const bannerTitle = isEn ? 'Try Robot Crypto FREE for 30 days' : 'Coba Robot Crypto GRATIS 30 hari';
           const bannerSubtitle = isEn
-            ? 'Demo wallet $5,000 USDT · 1 concurrent slot · 2x leverage · Spot DCA Trend · No credit card.'
-            : 'Demo wallet $5.000 USDT · 1 posisi simultan · leverage 2x · Spot DCA Trend · Tanpa kartu kredit.';
+            ? 'Demo wallet $5,000 USDT · 1 concurrent slot · 2x leverage · Scalping Momentum · No credit card.'
+            : 'Demo wallet $5.000 USDT · 1 posisi simultan · leverage 2x · Scalping Momentum · Tanpa kartu kredit.';
           return (
             <div id="demo" className="mb-8 rounded-xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent p-5 sm:p-6">
               <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">

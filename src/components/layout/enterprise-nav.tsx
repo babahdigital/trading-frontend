@@ -33,6 +33,10 @@ const PLATFORM_MENU = {
     labelKey: 'featured_label',
     descKey: 'featured_desc',
     ctaKey: 'featured_cta',
+    subLinks: [
+      { href: '/performance/forex', labelKey: 'featured_forex' },
+      { href: '/performance/crypto', labelKey: 'featured_crypto' },
+    ],
   },
 };
 

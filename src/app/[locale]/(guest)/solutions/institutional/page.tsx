@@ -1,9 +1,8 @@
 import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
-import { EnterpriseNav } from '@/components/layout/enterprise-nav';
-import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { ArrowRight, FileCheck, Wrench, LifeBuoy, Wallet, AlertCircle, Building2, Server } from 'lucide-react';
-import { breadcrumbSchema, ldJson, organizationSchema, professionalServiceSchema } from '@/lib/seo-jsonld';
+import { breadcrumbSchema, organizationSchema, professionalServiceSchema } from '@/lib/seo-jsonld';
+import { SolutionPageShell } from '@/components/solutions/solution-page-shell';
 import { formatPriceRange, formatPrice, type Locale } from '@/lib/pricing-format';
 import { TrustStrip } from '@/components/shared/trust-strip';
 import { StickyCtaBar } from '@/components/shared/sticky-cta-bar';
@@ -85,13 +84,10 @@ export default async function InstitutionalPage({ params }: { params: Promise<{ 
   ];
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(organizationSchema()) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(professionalServiceSchema()) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(breadcrumb) }} />
-      <EnterpriseNav />
-      <main id="main-content">
-        {/* Hero — tier badge "B2B Custom" untuk differentiate dari VPS License. */}
+    <SolutionPageShell
+      schemas={[organizationSchema(), professionalServiceSchema(), breadcrumb]}
+      stickyBar={<InstStickyCta />}
+    >
         <section className="section-padding border-b border-border/60">
           <div className="layout-container">
             <div className="hero-section-header">
@@ -385,10 +381,7 @@ export default async function InstitutionalPage({ params }: { params: Promise<{ 
           </div>
         </section>
 
-        <InstStickyCta />
-      </main>
-      <EnterpriseFooter />
-    </div>
+    </SolutionPageShell>
   );
 }
 

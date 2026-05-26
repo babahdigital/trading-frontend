@@ -1,9 +1,8 @@
 import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
-import { EnterpriseNav } from '@/components/layout/enterprise-nav';
-import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { ArrowRight, Server, Building2, TrendingUp, Info, Cpu, ShieldCheck, Activity, FileCheck, Zap, Wrench, Check } from 'lucide-react';
-import { breadcrumbSchema, financialProductSchema, ldJson, organizationSchema } from '@/lib/seo-jsonld';
+import { breadcrumbSchema, financialProductSchema, organizationSchema } from '@/lib/seo-jsonld';
+import { SolutionPageShell } from '@/components/solutions/solution-page-shell';
 import { formatPrice, type Locale } from '@/lib/pricing-format';
 import { TrustStrip } from '@/components/shared/trust-strip';
 import { StickyCtaBar } from '@/components/shared/sticky-cta-bar';
@@ -150,15 +149,10 @@ export default async function LicensePage() {
   ].map((m) => financialProductSchema({ ...m, url: '/solutions/license' }));
 
   return (
-    <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(organizationSchema()) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(breadcrumb) }} />
-      {tiers.map((schema, i) => (
-        <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(schema) }} />
-      ))}
-    <div className="min-h-screen bg-background text-foreground">
-      <EnterpriseNav />
-      <main id="main-content">
+    <SolutionPageShell
+      schemas={[organizationSchema(), breadcrumb, ...tiers]}
+      stickyBar={<LicenseStickyCompare />}
+    >
         {/* Hero — dengan tier badge yang langsung kelihatan untuk differentiate
             dari /solutions/institutional. Plus info card "beda dari institutional?"
             di bawah subtitle supaya user tidak bingung antara 2 produk. */}
@@ -594,11 +588,7 @@ export default async function LicensePage() {
           </div>
         </section>
 
-        <LicenseStickyCompare />
-      </main>
-      <EnterpriseFooter />
-    </div>
-    </>
+    </SolutionPageShell>
   );
 }
 

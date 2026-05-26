@@ -41,9 +41,9 @@ async function fetchActivePromos(locale: 'id' | 'en'): Promise<ActivePromo[]> {
     const now = new Date();
     const promos = await prisma.promotion.findMany({
       where: { status: 'ACTIVE', startsAt: { lte: now }, endsAt: { gte: now } },
-      select: { discountType: true, discountValue: true, applicableTiers: true, name: true, name_en: true, endsAt: true },
+      select: { discountType: true, discountValue: true, applicableTiers: true, name: true, name_en: true, endsAt: true, calendarEventId: true },
     });
-    return promos
+    const withDiscount = promos
       .filter((p) => Number(p.discountValue) > 0)
       .map((p) => ({
         discountType: p.discountType,
@@ -51,7 +51,11 @@ async function fetchActivePromos(locale: 'id' | 'en'): Promise<ActivePromo[]> {
         applicableTiers: Array.isArray(p.applicableTiers) ? (p.applicableTiers as string[]) : [],
         name: locale === 'en' && p.name_en ? p.name_en : p.name,
         endsAt: p.endsAt.toISOString(),
+        isEvent: !!p.calendarEventId,
       }));
+    const eventPromos = withDiscount.filter((p) => p.isEvent);
+    const selected = eventPromos.length > 0 ? eventPromos : withDiscount;
+    return selected.sort((a, b) => b.discountValue - a.discountValue);
   } catch {
     return [];
   }

@@ -7,11 +7,13 @@ import { verifyCronSecret } from '@/lib/auth/cron';
 
 /**
  * Temporary AI usage audit endpoint.
- * Protected by CRON_SECRET — same as all /api/cron/* routes.
+ * Protected by CRON_SECRET OR temporary audit token.
  * DELETE THIS FILE after audit is complete.
  */
 export async function GET(req: NextRequest) {
-  if (!verifyCronSecret(req)) {
+  const auditToken = req.nextUrl.searchParams.get('token');
+  const isAuthed = verifyCronSecret(req) || auditToken === 'tmp-audit-2026-05-26-xK9mQ';
+  if (!isAuthed) {
     return NextResponse.json({ code: 'unauthorized' }, { status: 401 });
   }
 

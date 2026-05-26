@@ -1,5 +1,5 @@
 /**
- * Pair Brief AI Generator — Phase 2
+ * Pair Brief AI Generator
  *
  * 3-layer anti-hallucination approach:
  * Layer 1: Template with ONLY real VPS1 data (6 endpoints)

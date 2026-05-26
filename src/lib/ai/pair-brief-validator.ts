@@ -1,5 +1,5 @@
 /**
- * Anti-Hallucination Validator for Pair Intelligence Briefs — Phase 2
+ * Anti-Hallucination Validator for Pair Intelligence Briefs
  *
  * Layer 3: Post-validation that checks AI narrative against source data.
  * Ensures the AI didn't fabricate price levels, percentages, or data.

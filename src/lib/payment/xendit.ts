@@ -206,7 +206,7 @@ export function verifyXenditWebhook(
 //           di domain kita → polling status
 //   - VA:   server create payment_request type=VIRTUAL_ACCOUNT → display
 //           account_number+bank di domain kita → polling status
-//   - E-wallet: defer ke phase 2 (deep-link popup window)
+//   - E-wallet: deep-link popup/redirect window
 //
 // Common return shape (XenditPaymentInstrument) supaya FE component bisa
 // switch render berdasar method tanpa special-case server logic.

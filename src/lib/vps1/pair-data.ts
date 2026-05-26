@@ -1,5 +1,5 @@
 /**
- * VPS1 Pair Data Aggregator — Phase 2
+ * VPS1 Pair Data Aggregator
  *
  * Fetches data from 6 VPS1 endpoints in parallel for a single pair:
  *   1. signals/latest       — recent trading signals

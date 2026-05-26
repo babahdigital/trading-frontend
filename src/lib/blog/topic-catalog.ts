@@ -399,6 +399,178 @@ TARGET AUDIENCE: Prospect calon customer yang mau decide tier mana.` + COMMON_TA
     priority: 55,
     autoPublish: true,
   },
+  {
+    slug: 'usdt-m-futures-vs-spot-trading',
+    titleId: 'USDT-M Futures vs Spot Trading: Panduan Lengkap untuk Pemula',
+    titleEn: 'USDT-M Futures vs Spot Trading: A Complete Guide for Beginners',
+    excerptId: 'Bingung pilih USDT-M Futures atau Spot? Breakdown mekanisme, leverage, funding rate, dan kapan masing-masing cocok untuk profil risiko Anda.',
+    excerptEn: 'Confused between USDT-M Futures and Spot? Breakdown of mechanics, leverage, funding rate, and when each suits your risk profile.',
+    promptTemplate: `Kamu adalah crypto educator profesional. Tulis artikel "USDT-M Futures vs Spot Trading: Panduan Lengkap untuk Pemula".
+
+ANGLE UTAMA: Banyak pemula langsung trading futures tanpa paham bedanya dengan spot. Artikel ini memberikan framework keputusan yang jelas.
+
+HARUS COVER:
+- Definisi Spot vs USDT-M Futures (mekanisme dasar, margin, settlement)
+- Leverage: double-edged sword — contoh math $1000 modal, 5x leverage, gerakan 2%
+- Funding rate: apa itu, bagaimana mempengaruhi posisi overnight
+- Liquidation: bagaimana terjadi, cross vs isolated margin
+- Risk framework: kapan Futures masuk akal (hedging, short-selling, modal efisien) vs kapan Spot lebih aman
+- BabahAlgo context: kami HANYA jalankan USDT-M Futures karena bi-directional (long+short) dan capital efficiency. Semua risk dikelola oleh 12-layer framework.
+
+COMPLIANCE: Jangan frame futures sebagai "lebih untung". Frame sebagai alat yang butuh risk management ketat.` + COMMON_TAIL,
+    dataSources: [],
+    keywords: ['usdt-m futures', 'spot trading', 'leverage', 'liquidation', 'funding rate', 'binance futures'],
+    category: 'EDUCATION',
+    assetClass: 'CRYPTO',
+    targetLengthWords: 1400,
+    scheduledWeek: 5,
+    priority: 70,
+    autoPublish: true,
+  },
+  {
+    slug: 'kill-switch-trading-kenapa-penting',
+    titleId: 'Kill Switch dalam Trading: Mengapa Setiap Trader Butuh Rem Darurat',
+    titleEn: 'Kill Switch in Trading: Why Every Trader Needs an Emergency Brake',
+    excerptId: 'Drawdown 30% dalam satu hari bukan hal langka. Kill switch adalah fitur yang memutus eksekusi otomatis saat kerugian melewati batas — apa itu dan bagaimana implementasinya.',
+    excerptEn: 'A 30% drawdown in a single day is not uncommon. Kill switch is the feature that cuts automated execution when losses exceed limits — what it is and how to implement it.',
+    promptTemplate: `Kamu adalah risk engineer dari trading firm institusional. Tulis artikel "Kill Switch dalam Trading: Mengapa Setiap Trader Butuh Rem Darurat".
+
+ANGLE UTAMA: Kebanyakan kerugian besar terjadi bukan dari satu trade buruk, tapi dari cascade — satu loss memicu loss berikutnya (revenge trading, averaging down, slippage). Kill switch memotong cascade ini secara mekanis.
+
+HARUS COVER:
+- Case study: flash crash (2015 CHF, 2020 COVID) — bagaimana trader tanpa kill switch kehilangan lebih dari 100% modal
+- Kill switch types: daily loss limit, consecutive loss limit, drawdown percentage, time-based (cooling-off)
+- Multi-stage cooldown: soft warning → reduced position size → full halt → cooloff period
+- Implementasi BabahAlgo: 3 stage kill switch (warning → reduced → halt) + 24h cooling-off + admin resolve
+- Psikologi: mengapa manual stop-loss tidak cukup (overconfidence bias, "it will come back")
+- Actionable: checklist 5 langkah setup kill switch untuk manual trader
+
+COMPLIANCE: Frame sebagai risk management — BUKAN sebagai jaminan tidak loss.` + COMMON_TAIL,
+    dataSources: [],
+    keywords: ['kill switch', 'risk management', 'drawdown', 'flash crash', 'stop loss', 'circuit breaker'],
+    category: 'RISK',
+    assetClass: 'MULTI',
+    targetLengthWords: 1500,
+    scheduledWeek: 5,
+    priority: 65,
+    autoPublish: true,
+  },
+  {
+    slug: 'smart-money-concepts-panduan-order-block-fvg',
+    titleId: 'Smart Money Concepts: Panduan Order Block, FVG, dan Liquidity',
+    titleEn: 'Smart Money Concepts: Guide to Order Blocks, FVG, and Liquidity',
+    excerptId: 'Institutional trader meninggalkan jejak di chart — order block, fair value gap, dan liquidity pool. Panduan visual untuk membaca market structure seperti prop trader.',
+    excerptEn: 'Institutional traders leave footprints on charts — order blocks, fair value gaps, and liquidity pools. A visual guide to reading market structure like a prop trader.',
+    promptTemplate: `Kamu adalah ex-prop trader yang ahli di Smart Money Concepts (ICT methodology). Tulis artikel "Smart Money Concepts: Panduan Order Block, FVG, dan Liquidity".
+
+ANGLE UTAMA: Retail trader pakai support/resistance tradisional. Institutional trader pakai SMC — berbasis order flow, bukan pattern recognition. Artikel ini panduan visual step-by-step.
+
+HARUS COVER:
+- Market Structure: CHoCH (Change of Character) dan BOS (Break of Structure) — bagaimana identify trend shift
+- Order Block: definisi, cara identify dari chart, why it works (institutional pending orders)
+- Fair Value Gap (FVG): imbalance zone, retracement target
+- Liquidity pool: stop hunt, equal highs/lows — bagaimana bank "sweep" retail stop losses
+- BabahAlgo SMC implementation: strategi SMC Scalper dan SMC Swing keduanya pakai framework ini
+- Confluence: bagaimana gabung OB + FVG + liquidity dalam satu setup (multi-timeframe)
+
+COMPLIANCE: SMC bukan holy grail — success rate tergantung market condition (trending vs ranging).` + COMMON_TAIL,
+    dataSources: [],
+    keywords: ['smart money concepts', 'order block', 'fair value gap', 'liquidity', 'ICT', 'market structure', 'CHoCH'],
+    category: 'STRATEGY',
+    assetClass: 'FOREX',
+    targetLengthWords: 1600,
+    scheduledWeek: 6,
+    priority: 75,
+    autoPublish: true,
+  },
+  {
+    slug: 'backtesting-vs-live-trading-gap',
+    titleId: 'Backtesting vs Live Trading: Mengapa Strategi Profit di Backtest Gagal di Market',
+    titleEn: 'Backtesting vs Live Trading: Why Profitable Backtest Strategies Fail in Markets',
+    excerptId: 'Strategi WR 70% di backtest tapi merah di live? Overfitting, slippage, regime change — 5 penyebab utama dan bagaimana professional mengatasi gap ini.',
+    excerptEn: 'Strategy with 70% WR in backtest but red live? Overfitting, slippage, regime change — 5 root causes and how professionals bridge this gap.',
+    promptTemplate: `Kamu adalah quantitative researcher yang sudah backtesting ribuan strategi. Tulis artikel "Backtesting vs Live Trading: Mengapa Strategi Profit di Backtest Gagal di Market".
+
+ANGLE UTAMA: Backtest yang terlihat sempurna sering gagal di live. Masalahnya bukan backtest-nya buruk, tapi banyak trader retail tidak paham pitfall-nya. Artikel ini breakdown gap dan solusinya.
+
+HARUS COVER:
+- Overfitting (curve-fitting): strategi yang "dioptimasi" untuk data historis tapi tidak generalize
+- Look-ahead bias: menggunakan data masa depan secara tidak sadar (e.g. close price untuk entry)
+- Survivorship bias: hanya backtest instrument yang survive (delisted stock/pairs tidak masuk)
+- Slippage dan spread: backtest asumsi fill di mid-price, live trading ada slippage terutama saat news
+- Regime change: strategy yang work di trending market gagal saat ranging (dan sebaliknya)
+- Solusi institutional: walk-forward optimization, out-of-sample testing, Monte Carlo simulation
+- BabahAlgo approach: shadow mode 30 hari sebelum go live, A/B testing via Thompson Sampling
+
+COMPLIANCE: Backtest bukan prediksi — ini simulasi. Past performance ≠ future results.` + COMMON_TAIL,
+    dataSources: [],
+    keywords: ['backtesting', 'overfitting', 'live trading', 'walk-forward', 'monte carlo', 'slippage'],
+    category: 'EDUCATION',
+    assetClass: 'MULTI',
+    targetLengthWords: 1500,
+    scheduledWeek: 6,
+    priority: 65,
+    autoPublish: true,
+  },
+  {
+    slug: 'binance-api-key-security-guide',
+    titleId: 'Panduan Keamanan API Key Binance: Best Practice untuk Auto-Trading',
+    titleEn: 'Binance API Key Security Guide: Best Practices for Auto-Trading',
+    excerptId: 'API key adalah "kunci rumah" akun trading Anda. Panduan step-by-step membuat, mengamankan, dan membatasi permission API key Binance untuk auto-trading.',
+    excerptEn: 'Your API key is the "house key" to your trading account. Step-by-step guide to creating, securing, and restricting Binance API key permissions for auto-trading.',
+    promptTemplate: `Kamu adalah cybersecurity expert yang spesialisasi crypto exchange API security. Tulis artikel "Panduan Keamanan API Key Binance: Best Practice untuk Auto-Trading".
+
+ANGLE UTAMA: Banyak trader baru langsung kasih API key ke bot tanpa paham risiko. Artikel ini panduan keamanan yang pragmatic — bukan paranoia, tapi risk mitigation yang masuk akal.
+
+HARUS COVER:
+- Permission scope: Read, Trade, Withdraw — kenapa JANGAN pernah enable Withdraw
+- IP whitelist: cara setup, trade-off antara keamanan dan convenience
+- BabahAlgo policy: kami WAJIBKAN customer TANPA Withdraw permission, backend REJECT key yang punya withdraw
+- API key rotation: kapan dan bagaimana rotate key
+- Monitoring: cara check API key usage di Binance dashboard
+- Step-by-step visual: buat API key dengan permission minimal (Read + Futures Trade only)
+- Red flags: tanda API key compromised dan emergency action plan
+
+COMPLIANCE: BabahAlgo zero-custody — kami tidak pernah pegang dana customer. API key hanya untuk Read + Trade scope.` + COMMON_TAIL,
+    dataSources: [],
+    keywords: ['binance api key', 'api security', 'auto trading', 'crypto security', 'ip whitelist', 'zero custody'],
+    category: 'OPERATIONS',
+    assetClass: 'CRYPTO',
+    targetLengthWords: 1300,
+    scheduledWeek: 7,
+    priority: 70,
+    autoPublish: true,
+  },
+  {
+    slug: 'drawdown-recovery-math-psychology',
+    titleId: 'Matematika Drawdown: Mengapa Recovery dari -50% Butuh +100%',
+    titleEn: 'Drawdown Mathematics: Why Recovery from -50% Requires +100%',
+    excerptId: 'Drawdown bukan linear — recovery dari 50% loss butuh 100% gain. Breakdown math, strategi recovery institutional, dan framework position sizing yang mencegah drawdown fatal.',
+    excerptEn: 'Drawdown is not linear — recovery from a 50% loss requires a 100% gain. Math breakdown, institutional recovery strategies, and position sizing frameworks that prevent fatal drawdowns.',
+    promptTemplate: `Kamu adalah portfolio risk manager dari hedge fund. Tulis artikel "Matematika Drawdown: Mengapa Recovery dari -50% Butuh +100%".
+
+ANGLE UTAMA: Trader retail underestimate dampak drawdown karena berpikir linear. Artikel ini breakdown math non-linear drawdown + framework institutional untuk prevent dan recover.
+
+HARUS COVER:
+- Math dasar: loss vs recovery (10% loss → 11.1% recovery, 50% loss → 100% recovery, 90% loss → 900% recovery)
+- Tabel lengkap drawdown vs recovery requirement
+- Time dimension: berapa lama recovery realistis berdasarkan expected return 1-3% per bulan
+- Maximum acceptable drawdown: institutional standard (15-20% max DD untuk fund besar)
+- Position sizing sebagai first line of defense: fixed fractional (1-2% risk per trade)
+- Kelly Criterion dan Half-Kelly: optimal vs safe sizing
+- BabahAlgo approach: 12-layer risk framework, kill switch, max 2% risk per trade di tier tertinggi
+- Actionable: 3 rules emas — never risk >2% per trade, max DD cap 15%, cooling-off setelah -10%
+
+COMPLIANCE: Drawdown adalah bagian dari trading — tidak bisa dieliminasi, hanya dikelola.` + COMMON_TAIL,
+    dataSources: [],
+    keywords: ['drawdown', 'recovery', 'position sizing', 'kelly criterion', 'risk management', 'max drawdown'],
+    category: 'RISK',
+    assetClass: 'MULTI',
+    targetLengthWords: 1500,
+    scheduledWeek: 7,
+    priority: 60,
+    autoPublish: true,
+  },
 ];
 
 /**

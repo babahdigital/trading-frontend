@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { hashPassword } from '@/lib/auth/password';
+import { checkRateLimit, rateLimitedResponse, RATE_LIMITS } from '@/lib/api/rate-limiter';
 import { sendEmail } from '@/lib/notifier/email';
 import { z } from 'zod';
 import { createLogger } from '@/lib/logger';
@@ -55,6 +56,10 @@ const registerSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = request.headers.get('cf-connecting-ip') ?? request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+    const rl = checkRateLimit(ip, RATE_LIMITS.AUTH_REGISTER);
+    if (!rl.allowed) return rateLimitedResponse(rl);
+
     const body = await request.json();
     const parsed = registerSchema.safeParse(body);
     if (!parsed.success) {

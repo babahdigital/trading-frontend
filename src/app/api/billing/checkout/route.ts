@@ -6,6 +6,7 @@ import { idrToUsd } from '@/lib/payment/rates';
 import { randomUUID } from 'crypto';
 import { resolveIdempotencyKey } from '@/lib/api/idempotency';
 import { detectRequestLocale, type AppLocale } from '@/lib/i18n/server-locale';
+import { checkRateLimit, rateLimitedResponse, RATE_LIMITS } from '@/lib/api/rate-limiter';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -62,6 +63,10 @@ function errorResponse(code: string, message: string, status: number, extra?: Re
 export async function POST(req: NextRequest) {
   const userId = req.headers.get('x-user-id');
   if (!userId) return errorResponse('unauthorized', 'Unauthorized', 401);
+
+  const ip = req.headers.get('cf-connecting-ip') ?? req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? userId;
+  const rl = checkRateLimit(ip, RATE_LIMITS.BILLING_CHECKOUT);
+  if (!rl.allowed) return rateLimitedResponse(rl);
 
   const locale = detectRequestLocale(req);
   const { key: idempotencyKey, clientSupplied } = resolveIdempotencyKey(req.headers, 'checkout');

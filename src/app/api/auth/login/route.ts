@@ -9,6 +9,7 @@ import { ForexApiError } from '@/lib/forex/types';
 import { randomUUID } from 'crypto';
 import { createLogger } from '@/lib/logger';
 import { verifyTotp } from '@/lib/auth/totp';
+import { checkRateLimit, rateLimitedResponse, RATE_LIMITS } from '@/lib/api/rate-limiter';
 
 const log = createLogger('api/auth/login');
 
@@ -21,6 +22,10 @@ function errorResponse(code: string, message: string, status: number) {
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = request.headers.get('cf-connecting-ip') ?? request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+    const rl = checkRateLimit(ip, RATE_LIMITS.AUTH_LOGIN);
+    if (!rl.allowed) return rateLimitedResponse(rl);
+
     const body = await request.json();
     const { email, password, licenseKey, mt5Account } = body;
 

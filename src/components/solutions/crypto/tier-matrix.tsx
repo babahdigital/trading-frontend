@@ -13,12 +13,12 @@ const TIER_CTA_HREF: Record<string, string> = {
 
 interface TierMatrixProps {
   t: (key: string) => string;
-  tRaw: (key: string) => unknown;
+  ts: (key: string) => string;
   localeKey: Locale;
   tiers: CryptoTier[];
 }
 
-export function TierMatrix({ t, tRaw, localeKey, tiers }: TierMatrixProps) {
+export function TierMatrix({ t, ts, localeKey, tiers }: TierMatrixProps) {
   const demoTier = tiers.find((tt) => tt.slug === 'demo');
   const paidTiers = tiers.filter((tt) => tt.slug !== 'demo');
 
@@ -56,7 +56,7 @@ export function TierMatrix({ t, tRaw, localeKey, tiers }: TierMatrixProps) {
                   href={TIER_CTA_HREF[demoTier.slug] ?? '/register?service=crypto&tier=demo'}
                   className="btn-primary inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-md text-sm font-medium shrink-0"
                 >
-                  {t(`tier_${demoTier.slug}_cta`)} <ArrowRight className="w-4 h-4" />
+                  {ts(`ct_${demoTier.slug}_cta`)} <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
             </div>
@@ -66,7 +66,7 @@ export function TierMatrix({ t, tRaw, localeKey, tiers }: TierMatrixProps) {
         {/* Paid tier grid */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
           {paidTiers.map((tier) => {
-            const features = tRaw(`tier_${tier.slug}_features`) as string[] | undefined;
+            const features = [1, 2, 3, 4, 5, 6].map((n) => ts(`ct_${tier.slug}_f${n}`));
             const priceKey = `crypto_${tier.slug}` as PriceKey;
             return (
               <div
@@ -81,9 +81,9 @@ export function TierMatrix({ t, tRaw, localeKey, tiers }: TierMatrixProps) {
                 )}
                 <h3 className="text-xl font-semibold mb-1">{tier.name}</h3>
                 <p className="text-[11px] text-muted-foreground font-mono uppercase tracking-wider mb-3">
-                  {t(`tier_${tier.slug}_desc`).slice(0, 80)} · {tier.slots} slot · {tier.leverage}x
+                  {ts(`ct_${tier.slug}_modal`)} · {tier.slots} slot · {tier.leverage}x
                 </p>
-                <p className="text-sm text-foreground/60 mb-4 leading-relaxed">{t(`tier_${tier.slug}_desc`)}</p>
+                <p className="text-sm text-foreground/60 mb-4 leading-relaxed">{ts(`ct_${tier.slug}_desc`)}</p>
                 <div className="flex items-baseline gap-1 mb-1 flex-wrap">
                   <span className="text-3xl sm:text-4xl font-bold break-words">{formatPrice(priceKey, localeKey, { compact: false })}</span>
                   <span className="text-sm text-foreground/50">
@@ -93,16 +93,14 @@ export function TierMatrix({ t, tRaw, localeKey, tiers }: TierMatrixProps) {
                 <p className="text-[10px] text-amber-600 dark:text-amber-400 font-mono uppercase tracking-wider mb-5">
                   Risk {tier.risk_pct}%/trade
                 </p>
-                {features && (
-                  <ul className="space-y-2 mb-6 flex-1">
-                    {features.map((f, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-foreground/80 leading-relaxed">
-                        <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-                        <span>{f}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                <ul className="space-y-2 mb-6 flex-1">
+                  {features.map((f, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm text-foreground/80 leading-relaxed">
+                      <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                      <span>{f}</span>
+                    </li>
+                  ))}
+                </ul>
                 <Link
                   href={TIER_CTA_HREF[tier.slug] ?? '/register?service=crypto'}
                   className={`inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${
@@ -111,7 +109,7 @@ export function TierMatrix({ t, tRaw, localeKey, tiers }: TierMatrixProps) {
                       : 'border border-border hover:bg-accent hover:border-amber-500/40'
                   }`}
                 >
-                  {t(`tier_${tier.slug}_cta`)} <ArrowRight className="w-4 h-4" />
+                  {ts(`ct_${tier.slug}_cta`)} <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
             );

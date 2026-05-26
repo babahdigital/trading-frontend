@@ -33,8 +33,9 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 }
 
 export default async function CryptoBotSolutionPage({ params }: { params: Promise<{ locale: string }> }) {
-  const [t, strategies, cryptoConfig] = await Promise.all([
+  const [t, ts, strategies, cryptoConfig] = await Promise.all([
     getTranslations('solutions_crypto'),
+    getTranslations('shared'),
     getCryptoStrategies(),
     getCryptoConfig(),
   ]);
@@ -57,8 +58,8 @@ export default async function CryptoBotSolutionPage({ params }: { params: Promis
       <main id="main-content">
         <HeroSection t={t} />
         <FeaturesGrid t={t} />
-        <StrategiesSection t={t} localeKey={localeKey} strategies={strategies} />
-        <TierMatrix t={t} tRaw={t.raw} localeKey={localeKey} tiers={cryptoConfig.tiers} />
+        <StrategiesSection t={t} ts={ts} strategies={strategies} />
+        <TierMatrix t={t} ts={ts} localeKey={localeKey} tiers={cryptoConfig.tiers} />
         <StepsSection t={t} />
         <FaqSection t={t} />
         <CtaSection t={t} />

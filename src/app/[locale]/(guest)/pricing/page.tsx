@@ -89,9 +89,10 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
 
   // CMS pricing overlay — admin edit /admin/cms/pricing reflects immediately
   // without redeploy. Fail-soft → hardcoded PRICE_TABLE fallback.
-  const [overrides, cryptoConfig] = await Promise.all([
+  const [overrides, cryptoConfig, ts] = await Promise.all([
     getPricingOverrides(),
     getCryptoConfig(),
+    getTranslations('shared'),
   ]);
 
   // Fetch top FAQs untuk surface decision-point — same source dengan /register.
@@ -121,24 +122,24 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
   //   - Demo (free) → banner separate di atas product section
   //   - Paid tiers → grid 4-col utama
   const cmsCryptoTiers = cryptoConfig.tiers;
-  const cmsDemoTier = cmsCryptoTiers.find((t) => t.slug === 'demo');
+  const cmsDemoTier = cmsCryptoTiers.find((ct) => ct.slug === 'demo');
   const cryptoDemoTier = cmsDemoTier ? {
     slug: cmsDemoTier.slug,
-    name: tp(`crypto_${cmsDemoTier.slug}_name`),
+    name: ts(`ct_${cmsDemoTier.slug}_name`),
     priceKey: `crypto_${cmsDemoTier.slug}` as PriceKey,
-    modalMin: tp(`crypto_${cmsDemoTier.slug}_modal_min`),
+    modalMin: ts(`ct_${cmsDemoTier.slug}_modal`),
     slot: cmsDemoTier.slots,
     leverage: `${cmsDemoTier.leverage}x`,
     cta: CRYPTO_TIER_CTA[cmsDemoTier.slug] ?? '/register?service=crypto&tier=demo',
   } : null;
-  const cryptoPaidTiers = cmsCryptoTiers.filter((t) => t.slug !== 'demo').map((t) => ({
-    name: tp(`crypto_${t.slug}_name`),
-    price: formatPrice(`crypto_${t.slug}` as PriceKey, localeKey, { compact: false, overrides }),
+  const cryptoPaidTiers = cmsCryptoTiers.filter((ct) => ct.slug !== 'demo').map((ct) => ({
+    name: ts(`ct_${ct.slug}_name`),
+    price: formatPrice(`crypto_${ct.slug}` as PriceKey, localeKey, { compact: false, overrides }),
     period: localeKey === 'id' ? '/bulan' : '/mo',
-    features: tp.raw(`crypto_${t.slug}_features`) as string[],
-    cta: CRYPTO_TIER_CTA[t.slug] ?? '/register?service=crypto',
-    popular: t.popular,
-    sub: `${tp(`crypto_${t.slug}_modal_min`)} · ${t.slots} slot · ${t.leverage}x`,
+    features: [1, 2, 3, 4, 5, 6].map((n) => ts(`ct_${ct.slug}_f${n}`)),
+    cta: CRYPTO_TIER_CTA[ct.slug] ?? '/register?service=crypto',
+    popular: ct.popular,
+    sub: `${ts(`ct_${ct.slug}_modal`)} · ${ct.slots} slot · ${ct.leverage}x`,
   }));
   const vpsTiers = VPS_TIER_META.map((m) => ({
     name: m.name,
@@ -500,7 +501,7 @@ async function CryptoDemoBanner({
   cta: string;
   locale: Locale;
 }) {
-  const tp = await getTranslations('pricing_page');
+  const ts = await getTranslations('shared');
   const isEn = locale === 'en';
   const title = isEn ? 'Try Robot Crypto FREE for 30 days' : 'Coba Robot Crypto GRATIS 30 hari';
   const subtitle = isEn
@@ -526,7 +527,7 @@ async function CryptoDemoBanner({
           href={cta}
           className="btn-primary inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-md text-sm font-medium shrink-0"
         >
-          {tp('crypto_demo_cta')} <ArrowRight className="w-4 h-4" />
+          {ts('ct_demo_cta')} <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
     </div>

@@ -1712,7 +1712,15 @@
     "sticky_demo_text": "Not sure yet? Try the free 7-day demo first.",
     "sticky_demo_cta": "Activate Demo",
     "sticky_contact_text": "Got a question? Our team is here to help.",
-    "sticky_contact_cta": "Contact Us"
+    "sticky_contact_cta": "Contact Us",
+    "disclaimer_risk_standard": "Past performance does not guarantee future results. Trading financial instruments involves substantial risk and may result in partial or total loss of capital.",
+    "disclaimer_risk_leverage": "High leverage cuts both ways — for you and against you. Make sure you understand your risk profile before activating any tier.",
+    "disclaimer_risk_article": "Educational content — not investment advice. Forex and crypto trading involves risk of capital loss.",
+    "disclaimer_zero_custody_short": "Zero-custody · Capital stays in your broker / Binance account",
+    "disclaimer_zero_custody_full": "We are a zero-custody software vendor: we do not accept deposits, hold power of attorney, or have the ability to withdraw client funds. Capital always remains under your full control.",
+    "disclaimer_no_pamm": "Auto-trading software · You execute · Zero-custody · No PAMM · No managed account",
+    "disclaimer_no_profit_share": "Flat monthly pricing — no profit share, no performance fee.",
+    "disclaimer_ai_advisory": "AI components are advisory only — research, analysis, and content. All trading decisions are executed by a deterministic rule-based engine, with no AI component."
   },
   "register": {
     "hero_eyebrow": "Registration · Institutional Grade",

@@ -1713,7 +1713,15 @@
     "sticky_demo_text": "Belum yakin? Coba demo gratis 7 hari dulu.",
     "sticky_demo_cta": "Aktifkan Demo",
     "sticky_contact_text": "Punya pertanyaan? Tim kami siap bantu.",
-    "sticky_contact_cta": "Hubungi Kami"
+    "sticky_contact_cta": "Hubungi Kami",
+    "disclaimer_risk_standard": "Kinerja masa lalu tidak menjamin hasil di masa depan. Trading instrumen finansial mengandung risiko substansial dan dapat mengakibatkan kerugian sebagian atau seluruh modal.",
+    "disclaimer_risk_leverage": "Leverage yang tinggi dapat bekerja dua arah — untuk Anda maupun melawan Anda. Pastikan Anda memahami profil risiko Anda sebelum mengaktifkan tier apa pun.",
+    "disclaimer_risk_article": "Konten edukasi — bukan saran investasi. Trading forex dan crypto melibatkan risiko kehilangan modal.",
+    "disclaimer_zero_custody_short": "Zero-custody · Modal tetap di akun broker / Binance Anda",
+    "disclaimer_zero_custody_full": "Kami software vendor zero-custody: tidak menerima setoran, tidak memegang power of attorney, dan tidak dapat withdraw dana klien. Modal selalu di kendali penuh Anda.",
+    "disclaimer_no_pamm": "Auto-trading software · Anda execute · Zero-custody · No PAMM · No managed account",
+    "disclaimer_no_profit_share": "Pricing flat monthly — tidak ada profit share, tidak ada performance fee.",
+    "disclaimer_ai_advisory": "Komponen AI bersifat advisory saja — riset, analisis, dan konten. Seluruh keputusan trading dijalankan oleh engine deterministik rule-based, tanpa komponen AI."
   },
   "register": {
     "title": "Daftar",

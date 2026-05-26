@@ -221,8 +221,42 @@ SiteSetting table
   type: "boolean"
             |
             v
-  src/lib/feature-flags.ts
+  src/lib/feature-flags.ts        ← core read/write
+  src/lib/feature-flag-registry.ts ← type-safe registry (10 known flags)
     - In-memory Map cache (30s TTL)
     - Env var fallback (UPPERCASE_SNAKE_CASE)
     - Admin toggle propagates within 30s without restart
+    - isKnownFlagEnabled('SIGNAL_CONSUMER') ← type-safe, no typo risk
 ```
+
+Known flags: SIGNAL_CONSUMER, TRADE_EVENTS_CONSUMER, RESEARCH_INGESTER,
+PAIR_BRIEF_WORKER, BLOG_GENERATOR, MAINTENANCE_MODE, MACRO_BLACKOUT,
+KYC_REQUIRED, PROMO_STRATEGIST, CMS_I18N_SYNC.
+
+## Centralization Architecture
+
+All product/trading data flows through single-source-of-truth cascade:
+
+```
+product-info.ts (hardcoded master data — strategies, pairs, tiers, stats)
+       ↓
+trading-settings.ts (SiteSetting DB facade, 60s cache, fallback to product-info)
+       ↓
+/api/public/trading-info (public REST, 1h cache, locale-aware)
+       ↓
+Components: server → getTradingSettings() | client → fetch('/api/public/trading-info')
+```
+
+Supporting centralization modules:
+- `lib/compliance/disclaimers.ts` — legal copy (zero-custody, risk, no-PAMM)
+- `lib/tiers/tier-slug-map.ts` — TIER_SLUG_MAP (uppercase ↔ kebab-case)
+- `lib/navigation/cta-links.ts` — CTA link registry (/register, /checkout, /contact)
+- `lib/api/rate-limiter.ts` — server-side rate limit config + checker
+- `lib/admin/use-crud.ts` — generic CRUD hook for admin CMS pages
+- `components/seo/json-ld-script.tsx` — reusable JSON-LD injection
+- `components/solutions/solution-page-shell.tsx` — shared solution page layout
+
+i18n shared keys (`shared.*`):
+- `ct_*` — crypto tier names/descriptions/features (single source for 5 tiers)
+- `cs_*` — crypto strategy names/taglines/highlights (single source for 4 strategies)
+- `disclaimer_*` — risk, zero-custody, AI advisory disclaimers

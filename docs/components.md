@@ -98,7 +98,33 @@ Admin console shared components.
 | TenantAuditTimeline | `admin/tenant-audit-timeline.tsx` | Audit event timeline for customer detail |
 | ImageUploadField | `admin/image-upload-field.tsx` | Image upload with preview |
 
+**Generic CRUD Hook** (`lib/admin/use-crud.ts`): Shared state management for all CMS pages.
+Provides: `items`, `editing`, `loading`, `saving`, `fetchItems()`, `handleSave()`, `handleDelete()`,
+`startCreate()`, `startEdit()`, `cancelEdit()`, `updateField()`. Usage:
+```ts
+const crud = useCrud<FaqItem>({ endpoint: '/api/admin/cms/faq' });
+```
+
 Used on: All `/admin/*` pages
+
+---
+
+## SEO Components
+
+| Component | File | Purpose |
+|-----------|------|---------|
+| JsonLdScript | `seo/json-ld-script.tsx` | Reusable JSON-LD structured data injection |
+| MultiJsonLd | `seo/json-ld-script.tsx` | Multiple JSON-LD schemas in one call |
+
+---
+
+## Solution Page Components
+
+| Component | File | Purpose |
+|-----------|------|---------|
+| SolutionPageShell | `solutions/solution-page-shell.tsx` | Shared wrapper: Nav + Footer + JSON-LD + sticky bar |
+
+Used on: `/solutions/crypto`, applicable to all solution pages
 
 ---
 

@@ -84,7 +84,8 @@ src/
     icons/                      # Custom icon sets (enterprise, strategy)
     providers/                  # React context providers (theme)
     notifications/              # Notification UI components
-    solutions/                  # Solution page components (decision quiz)
+    solutions/                  # Solution page components (SolutionPageShell, decision quiz)
+    seo/                        # SEO components (JsonLdScript)
     demo/                       # Demo CTA components
     diagrams/                   # Architecture diagrams
     analytics/                  # Tracking components (pageview, web vitals)
@@ -100,7 +101,10 @@ src/
     forex/                      # Forex backend bridge client (auth, billing, session, cookies)
     proxy/                      # Backend proxy clients (VPS, crypto)
     vps1/                       # VPS1 integration client
-    trading/                    # Trading utilities (symbols, strategy names/stats)
+    trading/                    # Trading utilities (symbols, strategy names/stats, CMS settings)
+    admin/                      # Admin utilities (useCrud generic hook)
+    navigation/                 # CTA link registry
+    compliance/                 # Legal disclaimer library (zero-custody, risk, no-PAMM)
     whatsapp/                   # WhatsApp integration (client, OTP, format, backend proxy)
     notifier/                   # Notification dispatchers (Telegram, email, pair-brief)
     email/                      # Email config, templates, shell
@@ -120,7 +124,7 @@ src/
     pwa/                        # PWA push notification hooks
     register/                   # Registration service registry
     subscription/               # Subscription lifecycle
-    tiers/                      # Tier config + use-tier hook
+    tiers/                      # Tier config + use-tier hook + tier-slug-map
     timezone/                   # Timezone utilities
     capabilities/               # Tier-capability mapping
   i18n/
@@ -433,6 +437,31 @@ DB-backed via `SiteSetting` table (`src/lib/feature-flags.ts`).
 
 ### DNS
 - Docker daemon multi-DNS: 8.8.8.8 + 1.1.1.1 + 8.8.4.4 (fix for systemd-resolved intermittent timeouts)
+
+## Centralization Architecture
+
+All product/trading data flows through a single-source-of-truth cascade:
+
+| Layer | File | Purpose |
+|-------|------|---------|
+| Master Data | `lib/trading/product-info.ts` | Strategies, pairs, tiers, stats |
+| CMS Facade | `lib/trading/trading-settings.ts` | DB SiteSetting with 60s cache + fallback |
+| Public API | `api/public/trading-info` | Client-accessible, 1h cache |
+| Pricing | `lib/pricing-format.ts` | PRICE_TABLE (30 keys) + DB overrides |
+| Company | `lib/company/settings.ts` | 19 fields, DB-backed |
+| Compliance | `lib/compliance/disclaimers.ts` | Zero-custody, risk, no-PAMM, AI advisory |
+| Tier Mapping | `lib/tiers/tier-slug-map.ts` | Uppercase ↔ kebab-case tier aliases |
+| CTA Links | `lib/navigation/cta-links.ts` | Centralized /register, /checkout, /contact URLs |
+| Rate Limits | `lib/api/rate-limiter.ts` | Server-side rate limit registry + checker |
+| Feature Flags | `lib/feature-flag-registry.ts` | Type-safe flag registry (10 known flags) |
+| Admin CRUD | `lib/admin/use-crud.ts` | Generic fetch/save/delete hook for CMS pages |
+| SEO | `components/seo/json-ld-script.tsx` | Reusable JSON-LD injection |
+| Layout | `components/solutions/solution-page-shell.tsx` | Shared solution page wrapper |
+
+### i18n Shared Keys (single source for commonly duplicated content)
+- `shared.ct_*` — Crypto tier names, descriptions, features (5 tiers)
+- `shared.cs_*` — Crypto strategy names, taglines, descriptions (4 strategies)
+- `shared.disclaimer_*` — Risk, zero-custody, AI advisory disclaimers
 
 ## Important Rules
 

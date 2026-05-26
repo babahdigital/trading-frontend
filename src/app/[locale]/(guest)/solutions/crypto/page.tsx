@@ -1,9 +1,8 @@
 import { getTranslations } from 'next-intl/server';
-import { EnterpriseNav } from '@/components/layout/enterprise-nav';
-import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { getPageMetadata } from '@/lib/seo';
-import { breadcrumbSchema, faqPageSchema, ldJson, organizationSchema } from '@/lib/seo-jsonld';
+import { breadcrumbSchema, faqPageSchema, organizationSchema } from '@/lib/seo-jsonld';
 import { StickyCtaBar } from '@/components/shared/sticky-cta-bar';
+import { SolutionPageShell } from '@/components/solutions/solution-page-shell';
 import type { Locale } from '@/lib/pricing-format';
 import { getCryptoStrategies, getCryptoConfig } from '@/lib/trading/trading-settings';
 
@@ -50,23 +49,18 @@ export default async function CryptoBotSolutionPage({ params }: { params: Promis
   const faq = faqPageSchema(FAQ_ITEMS.map((f) => ({ question: f.q, answer: f.a })));
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(organizationSchema()) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(breadcrumb) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(faq) }} />
-      <EnterpriseNav />
-      <main id="main-content">
-        <HeroSection t={t} />
-        <FeaturesGrid t={t} />
-        <StrategiesSection t={t} ts={ts} strategies={strategies} />
-        <TierMatrix t={t} ts={ts} localeKey={localeKey} tiers={cryptoConfig.tiers} />
-        <StepsSection t={t} />
-        <FaqSection t={t} />
-        <CtaSection t={t} />
-        <CryptoStickyCompare />
-      </main>
-      <EnterpriseFooter />
-    </div>
+    <SolutionPageShell
+      schemas={[organizationSchema(), breadcrumb, faq]}
+      stickyBar={<CryptoStickyCompare />}
+    >
+      <HeroSection t={t} />
+      <FeaturesGrid t={t} />
+      <StrategiesSection t={t} ts={ts} strategies={strategies} />
+      <TierMatrix t={t} ts={ts} localeKey={localeKey} tiers={cryptoConfig.tiers} />
+      <StepsSection t={t} />
+      <FaqSection t={t} />
+      <CtaSection t={t} />
+    </SolutionPageShell>
   );
 }
 

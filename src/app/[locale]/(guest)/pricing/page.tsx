@@ -28,6 +28,55 @@ import {
 
 export const dynamic = 'force-dynamic';
 
+interface ActivePromo {
+  discountType: string;
+  discountValue: number;
+  applicableTiers: string[];
+  name: string;
+  endsAt: string;
+}
+
+async function fetchActivePromos(locale: 'id' | 'en'): Promise<ActivePromo[]> {
+  try {
+    const now = new Date();
+    const promos = await prisma.promotion.findMany({
+      where: { status: 'ACTIVE', startsAt: { lte: now }, endsAt: { gte: now } },
+      select: { discountType: true, discountValue: true, applicableTiers: true, name: true, name_en: true, endsAt: true },
+    });
+    return promos
+      .filter((p) => Number(p.discountValue) > 0)
+      .map((p) => ({
+        discountType: p.discountType,
+        discountValue: Number(p.discountValue),
+        applicableTiers: Array.isArray(p.applicableTiers) ? (p.applicableTiers as string[]) : [],
+        name: locale === 'en' && p.name_en ? p.name_en : p.name,
+        endsAt: p.endsAt.toISOString(),
+      }));
+  } catch {
+    return [];
+  }
+}
+
+function getDiscountForTier(tierSlug: string, promos: ActivePromo[]): ActivePromo | null {
+  const tierKey = `crypto-${tierSlug}`;
+  return promos.find((p) =>
+    p.applicableTiers.length === 0 || p.applicableTiers.includes(tierKey)
+  ) ?? null;
+}
+
+function applyDiscount(priceStr: string, promo: ActivePromo): string {
+  const numMatch = priceStr.replace(/[^\d.,]/g, '').replace(/\./g, '').replace(',', '.');
+  const num = parseFloat(numMatch);
+  if (isNaN(num) || num === 0) return priceStr;
+  const discounted = promo.discountType === 'PERCENT'
+    ? num * (1 - promo.discountValue / 100)
+    : num - promo.discountValue;
+  if (priceStr.includes('Rp')) {
+    return `Rp ${Math.round(discounted).toLocaleString('id-ID')}`;
+  }
+  return `$${Math.round(discounted).toLocaleString('en-US')}`;
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const t = await getTranslations('pricing');
@@ -89,10 +138,11 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
 
   // CMS pricing overlay — admin edit /admin/cms/pricing reflects immediately
   // without redeploy. Fail-soft → hardcoded PRICE_TABLE fallback.
-  const [overrides, cryptoConfig, ts] = await Promise.all([
+  const [overrides, cryptoConfig, ts, activePromos] = await Promise.all([
     getPricingOverrides(),
     getCryptoConfig(),
     getTranslations('shared'),
+    fetchActivePromos(localeKey),
   ]);
 
   // Fetch top FAQs untuk surface decision-point — same source dengan /register.
@@ -132,15 +182,21 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
     leverage: `${cmsDemoTier.leverage}x`,
     cta: CRYPTO_TIER_CTA[cmsDemoTier.slug] ?? '/register?service=crypto&tier=demo',
   } : null;
-  const cryptoPaidTiers = cmsCryptoTiers.filter((ct) => ct.slug !== 'demo').map((ct) => ({
-    name: ts(`ct_${ct.slug}_name`),
-    price: formatPrice(`crypto_${ct.slug}` as PriceKey, localeKey, { compact: false, overrides }),
-    period: localeKey === 'id' ? '/bulan' : '/mo',
-    features: [1, 2, 3, 4, 5, 6].map((n) => ts(`ct_${ct.slug}_f${n}`)),
-    cta: CRYPTO_TIER_CTA[ct.slug] ?? '/register?service=crypto',
-    popular: ct.popular,
-    sub: `${ts(`ct_${ct.slug}_modal`)} · ${ct.slots} slot · ${ct.leverage}x`,
-  }));
+  const cryptoPaidTiers = cmsCryptoTiers.filter((ct) => ct.slug !== 'demo').map((ct) => {
+    const basePrice = formatPrice(`crypto_${ct.slug}` as PriceKey, localeKey, { compact: false, overrides });
+    const promo = getDiscountForTier(ct.slug, activePromos);
+    return {
+      name: ts(`ct_${ct.slug}_name`),
+      price: promo ? applyDiscount(basePrice, promo) : basePrice,
+      originalPrice: promo ? basePrice : undefined,
+      discountLabel: promo ? (promo.discountType === 'PERCENT' ? `${promo.discountValue}%` : undefined) : undefined,
+      period: localeKey === 'id' ? '/bulan' : '/mo',
+      features: [1, 2, 3, 4, 5, 6].map((n) => ts(`ct_${ct.slug}_f${n}`)),
+      cta: CRYPTO_TIER_CTA[ct.slug] ?? '/register?service=crypto',
+      popular: ct.popular,
+      sub: `${ts(`ct_${ct.slug}_modal`)} · ${ct.slots} slot · ${ct.leverage}x`,
+    };
+  });
   const vpsTiers = VPS_TIER_META.map((m) => ({
     name: m.name,
     price: formatPrice(m.priceKey, localeKey, { compact: false, overrides }),
@@ -256,12 +312,20 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
                       {tp('popular_badge')}
                     </span>
                   )}
+                  {tier.discountLabel && (
+                    <span className="absolute -top-3 right-6 inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-600 text-emerald-50 text-[10px] font-bold uppercase tracking-wider">
+                      -{tier.discountLabel}
+                    </span>
+                  )}
                   <h3 className="text-xl font-semibold mb-1">{tier.name}</h3>
                   <p className="text-[11px] text-muted-foreground font-mono uppercase tracking-wider mb-2">{tier.sub}</p>
                   <div className="flex items-baseline flex-wrap gap-x-1.5 gap-y-0.5 mb-1 min-w-0">
                     <span className="text-3xl sm:text-4xl font-bold break-words">{tier.price}</span>
                     <span className="text-sm text-foreground/50">{tier.period}</span>
                   </div>
+                  {tier.originalPrice && (
+                    <p className="text-sm text-muted-foreground line-through mt-1">{tier.originalPrice}</p>
+                  )}
                   <div className="h-px bg-border/40 my-5" />
                   <ul className="space-y-2.5 flex-1 mb-6">
                     {tier.features.map((f, i) => <FeatureItem key={i}>{f}</FeatureItem>)}

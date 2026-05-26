@@ -1,12 +1,3 @@
-/**
- * Promo broadcast email — institutional-grade via shared shell.
- *
- * Pak Abdullah audit 2026-05-22: "email promo bila ada kirimkan ke user juga".
- * Dispatched via /api/admin/cms/broadcast atau auto-trigger dari
- * promo-strategist saat promo high-confidence di-create.
- *
- * Locale-aware — subscriber.locale resolves bilingual rendering.
- */
 import { renderEmailShell } from './shell';
 
 export interface PromoBroadcastParams {
@@ -25,6 +16,8 @@ export interface PromoBroadcastContent {
   html: string;
 }
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://babahalgo.com';
+
 export function renderPromoBroadcast(
   locale: 'id' | 'en',
   params: PromoBroadcastParams,
@@ -32,52 +25,55 @@ export function renderPromoBroadcast(
   const { recipientName, promoTitle, promoBody, ctaLabel, ctaUrl, discountText, heroImageUrl, validUntil } = params;
   const isEn = locale === 'en';
 
-  const subject = isEn
-    ? `${promoTitle} — BabahAlgo`
-    : `${promoTitle} — BabahAlgo`;
+  const subject = `${promoTitle} — BabahAlgo`;
 
   const heroBlock = heroImageUrl
-    ? `<div style="margin: -8px -8px 24px -8px; border-radius: 10px; overflow: hidden;">
-        <img src="${heroImageUrl}" alt="${promoTitle}" width="528" style="display: block; width: 100%; height: auto; border: 0;">
+    ? `<div style="margin: -4px -8px 24px -8px; border-radius: 10px; overflow: hidden;">
+        <img src="${heroImageUrl.startsWith('/') ? APP_URL + heroImageUrl : heroImageUrl}" alt="${promoTitle}" width="528" style="display: block; width: 100%; height: auto; border: 0;">
       </div>`
     : '';
 
   const discountBadge = discountText
-    ? `<div style="margin: 0 0 18px 0;">
-        <span style="display: inline-block; background: linear-gradient(135deg, #F5B547 0%, #E89E2F 100%); color: #0B1220; padding: 8px 16px; border-radius: 999px; font-size: 13px; font-weight: 800; letter-spacing: 0.02em; box-shadow: 0 4px 12px rgba(245,181,71,0.3);">
+    ? `<div style="margin: 0 0 20px 0;">
+        <span style="display: inline-block; background: linear-gradient(135deg, #F5B547 0%, #E8A030 100%); color: #0B1220; padding: 8px 18px; border-radius: 999px; font-size: 14px; font-weight: 800; letter-spacing: 0.03em; box-shadow: 0 4px 14px rgba(245,181,71,0.3);">
           ${isEn ? 'Save' : 'Hemat'} ${discountText}
         </span>
       </div>`
     : '';
 
   const validBlock = validUntil
-    ? `<p style="margin: 0 0 0 0; font-size: 12px; color: rgba(250,250,247,0.55);">
-        ${isEn ? 'Offer valid until' : 'Berlaku sampai'} <strong style="color: rgba(250,250,247,0.85);">${validUntil}</strong>
-      </p>`
+    ? `<div style="margin: 16px 0 0 0; padding: 10px 14px; background: rgba(255,255,255,0.03); border-radius: 6px; display: inline-block;">
+        <span style="font-size: 12px; color: rgba(250,250,247,0.55);">
+          ${isEn ? 'Valid until' : 'Berlaku sampai'} <strong style="color: rgba(250,250,247,0.9);">${validUntil}</strong>
+        </span>
+      </div>`
     : '';
 
   const greeting = recipientName
-    ? `<p style="margin: 0 0 14px 0;"><strong style="color: #FAFAF7;">${isEn ? 'Hi' : 'Halo'} ${recipientName},</strong></p>`
+    ? `<p style="margin: 0 0 16px 0;">${isEn ? 'Hi' : 'Halo'} <strong style="color: #FAFAF7;">${recipientName}</strong>,</p>`
     : '';
 
   const bodyHtml = `
     ${heroBlock}
     ${greeting}
     ${discountBadge}
-    <p style="margin: 0 0 16px 0; font-size: 15px; line-height: 1.65; color: rgba(250,250,247,0.88);">${promoBody}</p>
+    <p style="margin: 0 0 16px 0; font-size: 15px; line-height: 1.7; color: rgba(250,250,247,0.85);">${promoBody}</p>
     ${validBlock}
   `;
 
   const html = renderEmailShell({
     locale,
     subject,
+    preheader: discountText
+      ? (isEn ? `${discountText} off — ${promoTitle}` : `Hemat ${discountText} — ${promoTitle}`)
+      : promoTitle,
     eyebrow: isEn ? 'Special Offer' : 'Penawaran Spesial',
     title: promoTitle,
     bodyHtml,
     cta: { label: ctaLabel, href: ctaUrl },
     secondaryCta: {
       label: isEn ? 'See all plans' : 'Lihat semua paket',
-      href: `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://babahalgo.com'}/pricing`,
+      href: `${APP_URL}/pricing`,
     },
   });
 

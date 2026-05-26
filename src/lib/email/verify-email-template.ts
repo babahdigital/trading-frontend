@@ -1,7 +1,3 @@
-/**
- * Email verification template — institutional-grade via shared shell.
- * Sent post-registration dengan magic link `/api/auth/verify-email?token=<raw>`.
- */
 import type { AppLocale } from '@/lib/i18n/server-locale';
 import { renderEmailShell } from './shell';
 
@@ -26,18 +22,29 @@ export function renderVerifyEmail(locale: AppLocale, params: VerifyEmailParams):
 
   const bodyHtml = isEn
     ? `
-      <p style="margin: 0 0 12px 0;"><strong style="color: #FAFAF7;">Hi ${name},</strong></p>
-      <p style="margin: 0 0 12px 0;">Welcome to BabahAlgo. Confirm your email address to secure your account and unlock trading signals.</p>
-      <p style="margin: 0 0 0 0; font-size: 13px; color: rgba(250,250,247,0.6);">This link expires in <strong style="color: rgba(250,250,247,0.85);">${expiresInHours} hours</strong>. If you didn't sign up, you can safely ignore this email.</p>`
+      <p style="margin: 0 0 16px 0;">Hi <strong style="color: #FAFAF7;">${name}</strong>,</p>
+      <p style="margin: 0 0 20px 0;">Confirm your email address to secure your <strong style="color: #F5B547;">BabahAlgo</strong> account and unlock full access to trading signals and portfolio dashboard.</p>
+      <div style="margin: 20px 0; padding: 14px 18px; background: rgba(245,181,71,0.06); border-radius: 8px; border-left: 3px solid rgba(245,181,71,0.5);">
+        <p style="margin: 0; font-size: 13px; line-height: 1.55; color: rgba(250,250,247,0.8);">
+          <strong style="color: rgba(250,250,247,0.95);">⏱ Expires in ${expiresInHours} hours.</strong> If you didn't create this account, safely ignore this email — no action will be taken.
+        </p>
+      </div>`
     : `
-      <p style="margin: 0 0 12px 0;"><strong style="color: #FAFAF7;">Halo ${name},</strong></p>
-      <p style="margin: 0 0 12px 0;">Selamat datang di BabahAlgo. Konfirmasi alamat email Anda untuk mengamankan akun dan mengaktifkan sinyal trading.</p>
-      <p style="margin: 0 0 0 0; font-size: 13px; color: rgba(250,250,247,0.6);">Tautan ini berlaku <strong style="color: rgba(250,250,247,0.85);">${expiresInHours} jam</strong>. Jika Anda tidak mendaftar, abaikan email ini.</p>`;
+      <p style="margin: 0 0 16px 0;">Halo <strong style="color: #FAFAF7;">${name}</strong>,</p>
+      <p style="margin: 0 0 20px 0;">Konfirmasi alamat email Anda untuk mengamankan akun <strong style="color: #F5B547;">BabahAlgo</strong> dan mengaktifkan akses penuh ke sinyal trading dan dashboard portofolio.</p>
+      <div style="margin: 20px 0; padding: 14px 18px; background: rgba(245,181,71,0.06); border-radius: 8px; border-left: 3px solid rgba(245,181,71,0.5);">
+        <p style="margin: 0; font-size: 13px; line-height: 1.55; color: rgba(250,250,247,0.8);">
+          <strong style="color: rgba(250,250,247,0.95);">⏱ Berlaku ${expiresInHours} jam.</strong> Jika Anda tidak mendaftar, abaikan email ini — tidak ada tindakan yang diambil.
+        </p>
+      </div>`;
 
   const html = renderEmailShell({
     locale,
     subject,
-    eyebrow: isEn ? 'Verify Email' : 'Verifikasi Email',
+    preheader: isEn
+      ? `Confirm your email to activate your BabahAlgo account. Link expires in ${expiresInHours}h.`
+      : `Konfirmasi email untuk aktivasi akun BabahAlgo. Tautan berlaku ${expiresInHours} jam.`,
+    eyebrow: isEn ? 'Email Verification' : 'Verifikasi Email',
     title: isEn ? 'Confirm your email address' : 'Konfirmasi alamat email Anda',
     bodyHtml,
     cta: {

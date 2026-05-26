@@ -190,13 +190,14 @@ Defined in `tsconfig.json`. Always use `@/` imports.
 
 All AI traffic routes through OpenRouter (`src/lib/ai/openrouter.ts`).
 
-| Purpose | Model | Constant |
-|---------|-------|----------|
-| Chat, narration, translation, content | `google/gemini-3.1-flash-lite` | `DEFAULT_MODEL` |
-| Signal advisor, research, reasoning | `google/gemini-3.5-flash` | `REASONING_MODEL` |
-| Image generation (article covers, promos) | Pollinations.ai | External URL |
+| Purpose | Model | Constant | Cost |
+|---------|-------|----------|------|
+| Chat, narration, translation, content | `google/gemini-3.1-flash-lite` | `DEFAULT_MODEL` | ~$0.01/call |
+| Signal advisor, research, reasoning | `google/gemini-3.5-flash` | `REASONING_MODEL` | ~$0.02/call |
+| Image generation (articles, promos) | `google/gemini-2.5-flash-image` (primary) | In `image-generator.ts` | ~$0.04/image |
+| Image generation fallback | Pollinations.ai Flux (free) | Fallback only | $0 |
 
-Cost tracking via `AiCallLog` model (purpose, tokens, latency).
+Cost tracking via `AiCallLog` model (purpose, tokens, latency). Image generation currently NOT tracked in AiCallLog.
 
 ## Database (Prisma Schema)
 

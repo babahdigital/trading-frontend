@@ -8,7 +8,7 @@
  *   2. For each topic:
  *      - Fetch data sources (VPS1 endpoints, DB queries, static).
  *      - Build prompt from promptTemplate with {{DATA_JSON}} / {{TARGET_WORDS}}.
- *      - Generate markdown via OpenRouter (REASONING_MODEL = gemini-3.1-flash-lite).
+ *      - Generate markdown via OpenRouter (DEFAULT_MODEL for body, REASONING_MODEL for SEO).
  *      - Validate output (length, structure, disclaimer).
  *      - Upsert Article with body + excerpt.
  *      - Auto-translate to EN (non-blocking — Article stays published in ID).

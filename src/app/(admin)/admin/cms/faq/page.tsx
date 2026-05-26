@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { ExternalLink, HelpCircle, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -13,8 +13,10 @@ import { GenerateEnglishButton } from '@/components/cms/generate-english-button'
 import { useAuth } from '@/lib/auth/auth-context';
 import { useToast } from '@/components/ui/toast';
 import { useConfirm } from '@/components/ui/confirm-dialog';
+import { useCrud } from '@/lib/admin/use-crud';
 
 interface FaqItem {
+  [key: string]: unknown;
   id: string;
   question: string;
   answer: string;
@@ -29,65 +31,11 @@ export default function CmsFaqPage() {
   const { getAuthHeaders } = useAuth();
   const { push } = useToast();
   const confirm = useConfirm();
-  const [faqs, setFaqs] = useState<FaqItem[]>([]);
-  const [editing, setEditing] = useState<FaqItem | null>(null);
   const [translatingId, setTranslatingId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
 
-  const fetchFaqs = useCallback(async () => {
-    try {
-      const res = await fetch('/api/admin/cms/faq', { headers: getAuthHeaders() });
-      if (res.ok) {
-        setFaqs(await res.json());
-      } else {
-        push({ title: 'Gagal memuat FAQ', description: `HTTP ${res.status}`, tone: 'error' });
-      }
-    } catch (err) {
-      push({ title: 'Network error', description: err instanceof Error ? err.message : 'Unknown', tone: 'error' });
-    } finally {
-      setLoading(false);
-    }
-  }, [getAuthHeaders, push]);
+  const crud = useCrud<FaqItem>({ endpoint: '/api/admin/cms/faq' });
 
-  // fetchFaqs drives setState — intentional fetch on mount + refetch.
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { fetchFaqs(); }, [fetchFaqs]);
-
-  async function handleSave() {
-    if (!editing) return;
-    setSaving(true);
-    try {
-      const method = editing.id ? 'PUT' : 'POST';
-      const res = await fetch('/api/admin/cms/faq', {
-        method,
-        headers: getAuthHeaders(),
-        body: JSON.stringify(editing),
-      });
-      if (res.ok) {
-        push({ title: 'FAQ tersimpan', tone: 'success' });
-        setEditing(null);
-        fetchFaqs();
-      } else {
-        const data = await res.json().catch(() => ({}));
-        push({
-          title: 'Gagal menyimpan FAQ',
-          description: data.error || `HTTP ${res.status}`,
-          tone: 'error',
-        });
-      }
-    } catch (err) {
-      push({
-        title: 'Network error',
-        description: err instanceof Error ? err.message : 'Unknown',
-        tone: 'error',
-      });
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function handleDelete(id: string) {
+  async function onDelete(id: string) {
     const ok = await confirm({
       title: 'Hapus FAQ?',
       description: 'Tindakan ini tidak bisa dibatalkan.',
@@ -95,29 +43,7 @@ export default function CmsFaqPage() {
       tone: 'destructive',
     });
     if (!ok) return;
-    try {
-      const res = await fetch(`/api/admin/cms/faq?id=${id}`, {
-        method: 'DELETE',
-        headers: getAuthHeaders(),
-      });
-      if (res.ok) {
-        push({ title: 'FAQ dihapus', tone: 'success' });
-        fetchFaqs();
-      } else {
-        const data = await res.json().catch(() => ({}));
-        push({
-          title: 'Gagal menghapus FAQ',
-          description: data.error || `HTTP ${res.status}`,
-          tone: 'error',
-        });
-      }
-    } catch (err) {
-      push({
-        title: 'Network error',
-        description: err instanceof Error ? err.message : 'Unknown',
-        tone: 'error',
-      });
-    }
+    await crud.handleDelete(id);
   }
 
   async function handleTranslateRow(id: string) {
@@ -138,14 +64,14 @@ export default function CmsFaqPage() {
         return;
       }
       push({ title: 'Auto-translate selesai', tone: 'success' });
-      await fetchFaqs();
+      await crud.fetchItems();
       // If currently editing this row, refresh editing state with new EN values
-      if (editing?.id === id) {
+      if (crud.editing?.id === id) {
         const updated = await fetch(`/api/admin/cms/faq`, { headers: getAuthHeaders() });
         if (updated.ok) {
           const all = await updated.json() as FaqItem[];
           const fresh = all.find((f) => f.id === id);
-          if (fresh) setEditing(fresh);
+          if (fresh) crud.setEditing(fresh);
         }
       }
     } catch (err) {
@@ -177,7 +103,7 @@ export default function CmsFaqPage() {
               </Link>
             </Button>
             <Button
-              onClick={() => setEditing({ id: '', question: '', answer: '', question_en: null, answer_en: null, category: 'GENERAL', sortOrder: faqs.length, isVisible: true })}
+              onClick={() => crud.startCreate({ id: '', question: '', answer: '', question_en: null, answer_en: null, category: 'GENERAL', sortOrder: crud.items.length, isVisible: true } as FaqItem)}
               className="gap-1.5"
             >
               <Plus className="h-4 w-4" />
@@ -187,21 +113,21 @@ export default function CmsFaqPage() {
         }
       />
       <div className="flex items-center gap-3 flex-wrap">
-        <GenerateEnglishButton type="all-faq" onSuccess={fetchFaqs} />
+        <GenerateEnglishButton type="all-faq" onSuccess={crud.fetchItems} />
         <span className="text-xs text-muted-foreground">— bulk translate semua row sekaligus</span>
       </div>
 
-      {editing && (
+      {crud.editing && (
         <Card>
-          <CardHeader><CardTitle>{editing.id ? 'Edit FAQ' : 'Tambah FAQ'}</CardTitle></CardHeader>
+          <CardHeader><CardTitle>{crud.editing.id ? 'Edit FAQ' : 'Tambah FAQ'}</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium mb-1 block">Kategori</label>
                 <select
                   className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
-                  value={editing.category}
-                  onChange={(e) => setEditing({ ...editing, category: e.target.value })}
+                  value={crud.editing.category}
+                  onChange={(e) => crud.updateField('category', e.target.value)}
                   aria-label="Kategori"
                 >
                   <option value="GENERAL">General</option>
@@ -212,7 +138,7 @@ export default function CmsFaqPage() {
               </div>
               <div>
                 <label className="text-sm font-medium mb-1 block">Sort Order</label>
-                <Input type="number" value={editing.sortOrder} onChange={(e) => setEditing({ ...editing, sortOrder: parseInt(e.target.value) || 0 })} />
+                <Input type="number" value={crud.editing.sortOrder} onChange={(e) => crud.updateField('sortOrder', parseInt(e.target.value) || 0)} />
               </div>
             </div>
 
@@ -221,11 +147,11 @@ export default function CmsFaqPage() {
               <p className="text-xs font-mono uppercase tracking-wider text-amber-600 dark:text-amber-400">Bahasa Indonesia · Source of truth</p>
               <div>
                 <label className="text-sm font-medium mb-1 block">Pertanyaan (ID)</label>
-                <Input value={editing.question} onChange={(e) => setEditing({ ...editing, question: e.target.value })} placeholder="Contoh: Apa itu BabahAlgo?" />
+                <Input value={crud.editing.question} onChange={(e) => crud.updateField('question', e.target.value)} placeholder="Contoh: Apa itu BabahAlgo?" />
               </div>
               <div>
                 <label className="text-sm font-medium mb-1 block">Jawaban (ID)</label>
-                <Textarea value={editing.answer} onChange={(e) => setEditing({ ...editing, answer: e.target.value })} rows={4} placeholder="Tulis jawaban dalam Bahasa Indonesia..." />
+                <Textarea value={crud.editing.answer} onChange={(e) => crud.updateField('answer', e.target.value)} rows={4} placeholder="Tulis jawaban dalam Bahasa Indonesia..." />
               </div>
             </div>
 
@@ -236,36 +162,36 @@ export default function CmsFaqPage() {
                   <p className="text-xs font-mono uppercase tracking-wider text-foreground/60">English · AI-generated, editable</p>
                   <p className="text-xs text-muted-foreground mt-1">Klik tombol untuk auto-fill dari Indonesian via OpenRouter. Edit manual jika perlu.</p>
                 </div>
-                {editing.id && (
+                {crud.editing.id && (
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => handleTranslateRow(editing.id)}
-                    disabled={translatingId === editing.id}
+                    onClick={() => handleTranslateRow(crud.editing!.id)}
+                    disabled={translatingId === crud.editing.id}
                   >
-                    {translatingId === editing.id ? 'Translating...' : '🌐 Auto-translate'}
+                    {translatingId === crud.editing.id ? 'Translating...' : '🌐 Auto-translate'}
                   </Button>
                 )}
               </div>
               <div>
                 <label className="text-sm font-medium mb-1 block">Question (EN)</label>
                 <Input
-                  value={editing.question_en ?? ''}
-                  onChange={(e) => setEditing({ ...editing, question_en: e.target.value || null })}
+                  value={crud.editing.question_en ?? ''}
+                  onChange={(e) => crud.updateField('question_en', e.target.value || null)}
                   placeholder="Auto-translate atau tulis manual..."
                 />
               </div>
               <div>
                 <label className="text-sm font-medium mb-1 block">Answer (EN)</label>
                 <Textarea
-                  value={editing.answer_en ?? ''}
-                  onChange={(e) => setEditing({ ...editing, answer_en: e.target.value || null })}
+                  value={crud.editing.answer_en ?? ''}
+                  onChange={(e) => crud.updateField('answer_en', e.target.value || null)}
                   rows={4}
                   placeholder="Auto-translate atau tulis manual..."
                 />
               </div>
-              {!editing.id && (
+              {!crud.editing.id && (
                 <p className="text-xs text-amber-600 dark:text-amber-400">
                   ⓘ Simpan dulu (Bahasa Indonesia), lalu tombol Auto-translate akan tersedia.
                 </p>
@@ -273,10 +199,10 @@ export default function CmsFaqPage() {
             </div>
 
             <div className="flex gap-3">
-              <Button onClick={handleSave} disabled={saving}>
-                {saving ? 'Menyimpan…' : 'Simpan'}
+              <Button onClick={crud.handleSave} disabled={crud.saving}>
+                {crud.saving ? 'Menyimpan…' : 'Simpan'}
               </Button>
-              <Button variant="outline" onClick={() => setEditing(null)} disabled={saving}>
+              <Button variant="outline" onClick={crud.cancelEdit} disabled={crud.saving}>
                 Batal
               </Button>
             </div>
@@ -284,26 +210,26 @@ export default function CmsFaqPage() {
         </Card>
       )}
 
-      {loading ? (
+      {crud.loading ? (
         <div className="space-y-3">
           {Array.from({ length: 4 }).map((_, i) => (
             <Card key={i}><CardContent className="p-4"><div className="h-12 rounded bg-muted animate-pulse" /></CardContent></Card>
           ))}
         </div>
-      ) : faqs.length === 0 ? (
+      ) : crud.items.length === 0 ? (
         <EmptyState
           icon={HelpCircle}
           title="Belum ada FAQ"
           description="Tambahkan pertanyaan pertama agar tampil di halaman /faq publik."
           actions={[{
             label: 'Tambah FAQ',
-            onClick: () => setEditing({ id: '', question: '', answer: '', question_en: null, answer_en: null, category: 'GENERAL', sortOrder: 0, isVisible: true }),
+            onClick: () => crud.startCreate({ id: '', question: '', answer: '', question_en: null, answer_en: null, category: 'GENERAL', sortOrder: 0, isVisible: true } as FaqItem),
             icon: Plus,
           }]}
         />
       ) : (
         <div className="space-y-3">
-          {faqs.map((f) => (
+          {crud.items.map((f) => (
             <Card key={f.id}>
               <CardContent className="p-4 flex items-center justify-between gap-3">
                 <div className="min-w-0 flex-1">
@@ -331,8 +257,8 @@ export default function CmsFaqPage() {
                       {translatingId === f.id ? 'Translating...' : '🌐 Auto-translate'}
                     </Button>
                   )}
-                  <Button size="sm" variant="outline" onClick={() => setEditing(f)}>Edit</Button>
-                  <Button size="sm" variant="destructive" onClick={() => handleDelete(f.id)}>Hapus</Button>
+                  <Button size="sm" variant="outline" onClick={() => crud.startEdit(f)}>Edit</Button>
+                  <Button size="sm" variant="destructive" onClick={() => onDelete(f.id)}>Hapus</Button>
                 </div>
               </CardContent>
             </Card>

@@ -18,20 +18,7 @@ import { detectRequestLocale, type AppLocale } from '@/lib/i18n/server-locale';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-const TIER_SLUG_MAP: Record<string, string> = {
-  SIGNAL_STARTER: 'signal-starter',
-  SIGNAL_BASIC: 'signal-starter',
-  SIGNAL_PRO: 'signal-pro',
-  SIGNAL_VIP: 'signal-vip',
-  CRYPTO_STARTER: 'crypto-starter',
-  CRYPTO_ACTIVE: 'crypto-active',
-  CRYPTO_PRO: 'crypto-pro',
-  CRYPTO_HNWI: 'crypto-hnwi',
-  CRYPTO_BASIC: 'crypto-starter',
-  VPS_STANDARD: 'vps-license-only',
-  VPS_PREMIUM: 'vps-hybrid',
-  VPS_DEDICATED: 'vps-turnkey',
-};
+import { TIER_SLUG_MAP } from '@/lib/tiers/tier-slug-map';
 
 function localizeDescription(text: string, locale: AppLocale): string {
   if (locale !== 'en') return text;

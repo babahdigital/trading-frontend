@@ -104,18 +104,10 @@ export async function POST(request: NextRequest) {
       const startsAt = new Date();
       const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
-      // Resolve pricing from PricingTier DB (CMS single source of truth).
-      // Admin edits /admin/cms/pricing → register + checkout both use DB values.
-      const TIER_SLUG_MAP: Record<string, string> = {
-        SIGNAL_STARTER: 'signal-starter', SIGNAL_BASIC: 'signal-starter',
-        SIGNAL_PRO: 'signal-pro', SIGNAL_VIP: 'signal-vip',
-        CRYPTO_STARTER: 'crypto-starter', CRYPTO_ACTIVE: 'crypto-active',
-        CRYPTO_PRO: 'crypto-pro', CRYPTO_HNWI: 'crypto-hnwi',
-        CRYPTO_BASIC: 'crypto-starter',
-      };
       let monthlyFeeUsd = 0;
       if (tier !== 'DEMO' && tier !== 'FREE') {
-        const dbSlug = TIER_SLUG_MAP[tier];
+        const { resolveTierSlug } = await import('@/lib/tiers/tier-slug-map');
+        const dbSlug = resolveTierSlug(tier);
         if (dbSlug) {
           const tierRow = await tx.pricingTier.findUnique({
             where: { slug: dbSlug },

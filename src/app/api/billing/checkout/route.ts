@@ -18,23 +18,7 @@ export const runtime = 'nodejs';
 // Sebelumnya SIGNAL_STARTER IDR 315k = $19 (drift dari $39 canonical).
 //
 // `description` stored ID-canonical; locale swap on render via
-// Tier slug mapping: checkout API uses uppercase canonical (CRYPTO_STARTER),
-// PricingTier DB uses lowercase kebab (crypto-starter). Map ke DB lookup.
-const TIER_SLUG_MAP: Record<string, string> = {
-  SIGNAL_STARTER: 'signal-starter',
-  SIGNAL_BASIC: 'signal-starter',  // legacy alias
-  SIGNAL_PRO: 'signal-pro',
-  SIGNAL_VIP: 'signal-vip',
-  CRYPTO_STARTER: 'crypto-starter',
-  CRYPTO_ACTIVE: 'crypto-active',
-  CRYPTO_PRO: 'crypto-pro',
-  CRYPTO_HNWI: 'crypto-hnwi',
-  CRYPTO_BASIC: 'crypto-starter',  // legacy alias
-  VPS_STANDARD: 'vps-license-only',
-  VPS_PREMIUM: 'vps-hybrid',
-  VPS_DEDICATED: 'vps-turnkey',
-  // FREE/DEMO tidak punya entry — handled langsung di POST handler
-};
+import { TIER_SLUG_MAP } from '@/lib/tiers/tier-slug-map';
 
 /** Lookup pricing dari DB (CMS centralization 2026-05-21). PricingTier
  *  table = single source of truth, edit via /admin/cms/pricing language

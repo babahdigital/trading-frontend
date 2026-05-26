@@ -1,15 +1,17 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
-import { EquityCurve } from '@/components/charts/equity-curve';
 import { AnimatedSection } from '@/components/ui/animated-section';
-import { EditorialShowcase, type ShowcaseSlide } from '@/components/landing/editorial-showcase';
-import { AiBrainSection } from '@/components/landing/ai-brain-section';
 import { formatPrice, formatUsdAuto, type Locale, type PriceKey, type PriceOverrides } from '@/lib/pricing-format';
+import type { ShowcaseSlide } from '@/components/landing/editorial-showcase';
+
+const EquityCurve = lazy(() => import('@/components/charts/equity-curve').then(m => ({ default: m.EquityCurve })));
+const EditorialShowcase = lazy(() => import('@/components/landing/editorial-showcase').then(m => ({ default: m.EditorialShowcase })));
+const AiBrainSection = lazy(() => import('@/components/landing/ai-brain-section').then(m => ({ default: m.AiBrainSection })));
 import {
   ArrowRight, ArrowUpRight, Shield, Zap, Brain, ChevronDown, Check,
   TrendingUp, Bitcoin, Sparkles,
@@ -320,12 +322,12 @@ export function LandingClient({ sections, testimonials, faqs, pricingOverrides, 
                         {t('hero_equity_live')}
                       </span>
                     </div>
-                    <EquityCurve
+                    <Suspense><EquityCurve
                       data={filteredEquity.slice(-30)}
                       height={210}
                       periods={[]}
                       activePeriod="30D"
-                    />
+                    /></Suspense>
                     <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
                       <div>
                         <div className="text-xs text-muted-foreground">{t('hero_equity_verified')}</div>
@@ -486,19 +488,21 @@ export function LandingClient({ sections, testimonials, faqs, pricingOverrides, 
           6 modul deterministic (math + statistics) di belakang strategi inti.
           Bahasa user-friendly + SEO-optimized.
           ═══════════════════════════════════════════ */}
-      <AiBrainSection />
+      <Suspense><AiBrainSection /></Suspense>
 
       {/* ═══════════════════════════════════════════
           SECTION 1.6 — EDITORIAL SHOWCASE (CMS-managed via slug=editorial-showcase)
           Auto-advancing 5-slide highlight of system pillars.
           ═══════════════════════════════════════════ */}
       {showcase && showcaseSlides.length > 0 && (
-        <EditorialShowcase
-          eyebrow={t('showcase_eyebrow')}
-          title={showcase.title}
-          subtitle={showcase.subtitle ?? undefined}
-          slides={showcaseSlides}
-        />
+        <Suspense>
+          <EditorialShowcase
+            eyebrow={t('showcase_eyebrow')}
+            title={showcase.title}
+            subtitle={showcase.subtitle ?? undefined}
+            slides={showcaseSlides}
+          />
+        </Suspense>
       )}
 
       {/* ═══════════════════════════════════════════
@@ -587,13 +591,13 @@ export function LandingClient({ sections, testimonials, faqs, pricingOverrides, 
             <>
               <AnimatedSection delay={0.1}>
                 <div className="card-enterprise p-6 md:p-8">
-                  <EquityCurve
+                  <Suspense><EquityCurve
                     data={filteredEquity}
                     height={420}
                     periods={['7D', '30D', '90D']}
                     activePeriod={equityPeriod}
                     onPeriodChange={setEquityPeriod}
-                  />
+                  /></Suspense>
                 </div>
               </AnimatedSection>
 

@@ -15,6 +15,7 @@ import { CryptoTierGate } from '@/components/register/crypto-tier-gate';
 import { prisma } from '@/lib/db/prisma';
 import { formatPrice, type Locale, type PriceKey } from '@/lib/pricing-format';
 import { getPricingOverrides } from '@/lib/pricing-db';
+import { getCryptoConfig } from '@/lib/trading/trading-settings';
 import {
   ArrowRight,
   Check,
@@ -52,162 +53,15 @@ const SIGNAL_TIER_META: Array<{ slug: 't1' | 't2' | 't3'; name: string; priceKey
   { slug: 't3', name: 'Tier 3 · All-In', priceKey: 'signal_vip', cta: '/checkout?tier=SIGNAL_VIP&provider=xendit' },
 ];
 
-// Crypto tier meta — rc29 (2026-05-21): 5-tier dengan equity bracket +
-// slot + leverage + risk per tier. Onboarding wizard auto-recommend tier
-// berdasarkan deposit (<$500 → free_demo, <$1.5K → starter, etc.).
-interface CryptoTierSpec {
-  slug: 'demo' | 'starter' | 'active' | 'pro' | 'hnwi';
-  name: { id: string; en: string };
-  priceKey: PriceKey;
-  modalMin: { id: string; en: string };
-  slot: number;
-  leverage: string;
-  riskPerTrade: string;
-  notionalCap: string;
-  cta: string;
-  popular?: boolean;
-  /** Features array — bilingual, max 5 untuk fit card */
-  features: { id: string[]; en: string[] };
-}
-
-const CRYPTO_TIERS: CryptoTierSpec[] = [
-  {
-    slug: 'demo',
-    name: { id: 'Demo Free', en: 'Demo Free' },
-    priceKey: 'crypto_demo',
-    modalMin: { id: 'Demo $5.000', en: 'Demo $5,000' },
-    slot: 1,
-    leverage: '2x',
-    riskPerTrade: '0.5%',
-    notionalCap: '30%',
-    cta: '/register?service=crypto&tier=demo',
-    features: {
-      id: [
-        'Trial 30 hari dengan demo wallet $5.000 USDT',
-        '1 posisi simultan, leverage maks 2x',
-        'Strategi Scalping Momentum (paling konservatif)',
-        'Telegram alert sinyal real-time',
-        'Tanpa kartu kredit — auto-stop hari ke-30',
-      ],
-      en: [
-        '30-day trial with $5,000 USDT demo wallet',
-        '1 concurrent slot, max 2x leverage',
-        'Scalping Momentum strategy (most conservative)',
-        'Real-time Telegram signal alerts',
-        'No credit card — auto-stop on day 30',
-      ],
-    },
-  },
-  {
-    slug: 'starter',
-    name: { id: 'Starter', en: 'Starter' },
-    priceKey: 'crypto_starter',
-    modalMin: { id: 'Modal ≥ $500', en: 'Min ≥ $500' },
-    slot: 2,
-    leverage: '3x',
-    riskPerTrade: '1.0%',
-    notionalCap: '40%',
-    cta: '/checkout?tier=CRYPTO_STARTER&provider=xendit',
-    features: {
-      id: [
-        '2 posisi simultan · leverage 3x maks',
-        'Strategi: Scalping Momentum',
-        'Risk per trade 1.0% · notional cap 40%',
-        'Kill-switch otomatis (loss harian)',
-        'Sweet spot: modal $1.000-1.500',
-      ],
-      en: [
-        '2 concurrent slots · max 3x leverage',
-        'Strategy: Scalping Momentum',
-        '1.0% risk per trade · 40% notional cap',
-        'Automatic kill-switch (daily loss)',
-        'Sweet spot: $1,000-1,500 capital',
-      ],
-    },
-  },
-  {
-    slug: 'active',
-    name: { id: 'Active', en: 'Active' },
-    priceKey: 'crypto_active',
-    modalMin: { id: 'Modal ≥ $1.500', en: 'Min ≥ $1,500' },
-    slot: 3,
-    leverage: '7x',
-    riskPerTrade: '1.25%',
-    notionalCap: '55%',
-    cta: '/checkout?tier=CRYPTO_ACTIVE&provider=xendit',
-    features: {
-      id: [
-        '3 posisi simultan · leverage 7x maks',
-        'Strategi: Scalping Momentum + Swing SMC',
-        'Risk per trade 1.25% · notional cap 55%',
-        'Multi-stage kill-switch',
-        'Sweet spot: modal $2.500',
-      ],
-      en: [
-        '3 concurrent slots · max 7x leverage',
-        'Strategies: Scalping Momentum + Swing SMC',
-        '1.25% risk per trade · 55% notional cap',
-        'Multi-stage kill-switch',
-        'Sweet spot: $2,500 capital',
-      ],
-    },
-  },
-  {
-    slug: 'pro',
-    name: { id: 'Pro', en: 'Pro' },
-    priceKey: 'crypto_pro',
-    modalMin: { id: 'Modal ≥ $5.000', en: 'Min ≥ $5,000' },
-    slot: 5,
-    leverage: '12x',
-    riskPerTrade: '1.5%',
-    notionalCap: '60%',
-    cta: '/checkout?tier=CRYPTO_PRO&provider=xendit',
-    popular: true,
-    features: {
-      id: [
-        '5 posisi simultan · leverage 12x maks',
-        'Semua strategi: Scalping Momentum + Swing SMC + Mean Reversion',
-        'Risk per trade 1.5% · notional cap 60%',
-        'Full reconciliation engine + audit trail',
-        'Sweet spot: modal $10.000 (fee 0.5%/profit)',
-      ],
-      en: [
-        '5 concurrent slots · max 12x leverage',
-        'All strategies: Scalping Momentum + Swing SMC + Mean Reversion',
-        '1.5% risk per trade · 60% notional cap',
-        'Full reconciliation engine + audit trail',
-        'Sweet spot: $10,000 capital (0.5%/profit fee)',
-      ],
-    },
-  },
-  {
-    slug: 'hnwi',
-    name: { id: 'HNWI', en: 'HNWI' },
-    priceKey: 'crypto_hnwi',
-    modalMin: { id: 'Modal ≥ $25.000', en: 'Min ≥ $25,000' },
-    slot: 7,
-    leverage: '20x',
-    riskPerTrade: '2.0%',
-    notionalCap: '75%',
-    cta: '/contact?subject=crypto-hnwi',
-    features: {
-      id: [
-        '7 posisi simultan · leverage 20x maks',
-        'Semua strategi (4) + custom override leverage/risk',
-        'Risk per trade 2.0% · notional cap 75%',
-        'Dedicated account manager + priority support',
-        'Sweet spot: modal $50.000 (fee 0.4%/profit)',
-      ],
-      en: [
-        '7 concurrent slots · max 20x leverage',
-        'All 4 strategies + custom leverage/risk override',
-        '2.0% risk per trade · 75% notional cap',
-        'Dedicated account manager + priority support',
-        'Sweet spot: $50,000 capital (0.4%/profit fee)',
-      ],
-    },
-  },
-];
+// Crypto tier CTA routes — keyed by slug. Structural data (slots, leverage,
+// risk, popular) comes from getCryptoConfig() at render time.
+const CRYPTO_TIER_CTA: Record<string, string> = {
+  demo: '/register?service=crypto&tier=demo',
+  starter: '/checkout?tier=CRYPTO_STARTER&provider=xendit',
+  active: '/checkout?tier=CRYPTO_ACTIVE&provider=xendit',
+  pro: '/checkout?tier=CRYPTO_PRO&provider=xendit',
+  hnwi: '/contact?subject=crypto-hnwi',
+};
 
 // 2026-05-18 — realigned to canonical 3-tier (License Only / Hybrid / Turnkey).
 // Previous legacy mapping skipped the Hybrid tier entirely (used `vps_standard` /
@@ -235,7 +89,10 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
 
   // CMS pricing overlay — admin edit /admin/cms/pricing reflects immediately
   // without redeploy. Fail-soft → hardcoded PRICE_TABLE fallback.
-  const overrides = await getPricingOverrides();
+  const [overrides, cryptoConfig] = await Promise.all([
+    getPricingOverrides(),
+    getCryptoConfig(),
+  ]);
 
   // Fetch top FAQs untuk surface decision-point — same source dengan /register.
   let faqs: FaqItem[] = [];
@@ -260,19 +117,28 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
     cta: m.cta,
     popular: m.popular,
   }));
-  // Crypto tiers — rc29 5-tier total. UI split:
-  //   - Demo (free) → banner separate di atas product section (tidak masuk grid utama)
-  //   - 4 paid tier (starter/active/pro/hnwi) → grid 4-col utama supaya
-  //     visual breathing + setiap card cukup lebar untuk feature list.
-  const cryptoDemoTier = CRYPTO_TIERS.find((t) => t.slug === 'demo')!;
-  const cryptoPaidTiers = CRYPTO_TIERS.filter((t) => t.slug !== 'demo').map((t) => ({
-    name: t.name[localeKey],
-    price: formatPrice(t.priceKey, localeKey, { compact: false, overrides }),
+  // Crypto tiers — CMS-driven via getCryptoConfig(). UI split:
+  //   - Demo (free) → banner separate di atas product section
+  //   - Paid tiers → grid 4-col utama
+  const cmsCryptoTiers = cryptoConfig.tiers;
+  const cmsDemoTier = cmsCryptoTiers.find((t) => t.slug === 'demo');
+  const cryptoDemoTier = cmsDemoTier ? {
+    slug: cmsDemoTier.slug,
+    name: tp(`crypto_${cmsDemoTier.slug}_name`),
+    priceKey: `crypto_${cmsDemoTier.slug}` as PriceKey,
+    modalMin: tp(`crypto_${cmsDemoTier.slug}_modal_min`),
+    slot: cmsDemoTier.slots,
+    leverage: `${cmsDemoTier.leverage}x`,
+    cta: CRYPTO_TIER_CTA[cmsDemoTier.slug] ?? '/register?service=crypto&tier=demo',
+  } : null;
+  const cryptoPaidTiers = cmsCryptoTiers.filter((t) => t.slug !== 'demo').map((t) => ({
+    name: tp(`crypto_${t.slug}_name`),
+    price: formatPrice(`crypto_${t.slug}` as PriceKey, localeKey, { compact: false, overrides }),
     period: localeKey === 'id' ? '/bulan' : '/mo',
-    features: t.features[localeKey],
-    cta: t.cta,
+    features: tp.raw(`crypto_${t.slug}_features`) as string[],
+    cta: CRYPTO_TIER_CTA[t.slug] ?? '/register?service=crypto',
     popular: t.popular,
-    sub: `${t.modalMin[localeKey]} · ${t.slot} slot · ${t.leverage}`,
+    sub: `${tp(`crypto_${t.slug}_modal_min`)} · ${t.slots} slot · ${t.leverage}x`,
   }));
   const vpsTiers = VPS_TIER_META.map((m) => ({
     name: m.name,
@@ -359,10 +225,15 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
             <p className="t-body text-foreground/60 max-w-xl sm:max-w-2xl mb-8">{tp('crypto_subtitle')}</p>
 
             {/* Demo Banner — entry point sebelum lihat paid tiers */}
+            {cryptoDemoTier && (
             <CryptoDemoBanner
-              tier={cryptoDemoTier}
+              name={cryptoDemoTier.name}
+              slot={cryptoDemoTier.slot}
+              leverage={cryptoDemoTier.leverage}
+              cta={cryptoDemoTier.cta}
               locale={localeKey}
             />
+            )}
 
             {/* Tier Recommendation Widget — kalkulator interaktif rc29 logic.
                 User input deposit USDT → tampil tier yang paling efisien
@@ -616,25 +487,25 @@ function FeatureItem({ children }: { children: React.ReactNode }) {
   );
 }
 
-/**
- * Demo tier banner — strip horizontal "Try Demo Free 30 days" yang surface
- * crypto demo tier sebagai entry point sebelum 4 paid tier grid.
- * Banner mengurangi visual noise di main grid (4 card vs 5 card) sambil
- * tetap make demo prominent untuk acquisition funnel.
- */
-function CryptoDemoBanner({
-  tier,
+async function CryptoDemoBanner({
+  name,
+  slot,
+  leverage,
+  cta,
   locale,
 }: {
-  tier: CryptoTierSpec;
+  name: string;
+  slot: number;
+  leverage: string;
+  cta: string;
   locale: Locale;
 }) {
+  const tp = await getTranslations('pricing_page');
   const isEn = locale === 'en';
   const title = isEn ? 'Try Robot Crypto FREE for 30 days' : 'Coba Robot Crypto GRATIS 30 hari';
   const subtitle = isEn
-    ? 'Demo wallet $5,000 USDT · 1 concurrent slot · 2x leverage · Scalping Momentum · No credit card.'
-    : 'Demo wallet $5.000 USDT · 1 posisi simultan · leverage 2x · Scalping Momentum · Tanpa kartu kredit.';
-  const ctaLabel = isEn ? 'Start Free Trial' : 'Mulai Trial Gratis';
+    ? `Demo wallet $5,000 USDT · ${slot} concurrent slot · ${leverage} leverage · Scalping Momentum · No credit card.`
+    : `Demo wallet $5.000 USDT · ${slot} posisi simultan · leverage ${leverage} · Scalping Momentum · Tanpa kartu kredit.`;
 
   return (
     <div className="mb-8 rounded-xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent p-5 sm:p-6">
@@ -642,20 +513,20 @@ function CryptoDemoBanner({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-2">
             <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-amber-500 text-amber-50 text-[10px] font-bold uppercase tracking-wider">
-              {tier.name[locale]}
+              {name}
             </span>
             <span className="text-[10px] text-amber-700 dark:text-amber-400 font-mono uppercase tracking-wider">
-              {locale === 'id' ? 'Tanpa Biaya · Tanpa Komitmen' : 'Zero Cost · No Commitment'}
+              {isEn ? 'Zero Cost · No Commitment' : 'Tanpa Biaya · Tanpa Komitmen'}
             </span>
           </div>
           <h3 className="text-lg sm:text-xl font-semibold mb-1">{title}</h3>
           <p className="text-sm text-foreground/70 leading-relaxed">{subtitle}</p>
         </div>
         <Link
-          href={tier.cta}
+          href={cta}
           className="btn-primary inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-md text-sm font-medium shrink-0"
         >
-          {ctaLabel} <ArrowRight className="w-4 h-4" />
+          {tp('crypto_demo_cta')} <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
     </div>

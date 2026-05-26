@@ -5,6 +5,7 @@ import { getPageMetadata } from '@/lib/seo';
 import { breadcrumbSchema, faqPageSchema, ldJson, organizationSchema } from '@/lib/seo-jsonld';
 import { StickyCtaBar } from '@/components/shared/sticky-cta-bar';
 import type { Locale } from '@/lib/pricing-format';
+import { getCryptoStrategies, getCryptoConfig } from '@/lib/trading/trading-settings';
 
 import { HeroSection } from '@/components/solutions/crypto/hero-section';
 import { FeaturesGrid } from '@/components/solutions/crypto/features-grid';
@@ -32,7 +33,11 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 }
 
 export default async function CryptoBotSolutionPage({ params }: { params: Promise<{ locale: string }> }) {
-  const t = await getTranslations('solutions_crypto');
+  const [t, strategies, cryptoConfig] = await Promise.all([
+    getTranslations('solutions_crypto'),
+    getCryptoStrategies(),
+    getCryptoConfig(),
+  ]);
   const { locale } = await params;
   const localeKey: Locale = locale === 'en' ? 'en' : 'id';
   const FAQ_ITEMS = FAQ_KEYS.map((k) => ({ q: t(k.qKey), a: t(k.aKey) }));
@@ -52,8 +57,8 @@ export default async function CryptoBotSolutionPage({ params }: { params: Promis
       <main id="main-content">
         <HeroSection t={t} />
         <FeaturesGrid t={t} />
-        <StrategiesSection t={t} localeKey={localeKey} />
-        <TierMatrix t={t} localeKey={localeKey} />
+        <StrategiesSection t={t} localeKey={localeKey} strategies={strategies} />
+        <TierMatrix t={t} tRaw={t.raw} localeKey={localeKey} tiers={cryptoConfig.tiers} />
         <StepsSection t={t} />
         <FaqSection t={t} />
         <CtaSection t={t} />

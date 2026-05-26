@@ -44,8 +44,8 @@ export default function PerformanceHubPage() {
                     <TrendingUp className="w-5 h-5 text-amber-400" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold group-hover:text-amber-400 transition-colors">Robot Meta</h3>
-                    <p className="text-xs text-muted-foreground font-mono">Forex · Metals · Energy</p>
+                    <h3 className="text-lg font-semibold group-hover:text-amber-400 transition-colors">{t('hub_forex_title')}</h3>
+                    <p className="text-xs text-muted-foreground font-mono">{t('hub_forex_category')}</p>
                   </div>
                 </div>
                 <p className="t-body-sm text-muted-foreground leading-relaxed mb-4">
@@ -62,8 +62,8 @@ export default function PerformanceHubPage() {
                     <Bitcoin className="w-5 h-5 text-amber-400" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold group-hover:text-amber-400 transition-colors">Robot Crypto</h3>
-                    <p className="text-xs text-muted-foreground font-mono">Binance USDT-M Futures</p>
+                    <h3 className="text-lg font-semibold group-hover:text-amber-400 transition-colors">{t('hub_crypto_title')}</h3>
+                    <p className="text-xs text-muted-foreground font-mono">{t('hub_crypto_category')}</p>
                   </div>
                 </div>
                 <p className="t-body-sm text-muted-foreground leading-relaxed mb-4">

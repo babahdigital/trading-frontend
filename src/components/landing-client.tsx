@@ -23,6 +23,8 @@ interface LandingClientProps {
   faqs: Array<{ id: string; question: string; answer: string; category: string }>;
   /** CMS pricing overlay dari server — fail-soft empty kalau DB unreachable */
   pricingOverrides?: PriceOverrides;
+  /** CMS-driven capability counts from getTradingSettings() */
+  tradingInfo?: { strategyCount: string; assetCount: string };
 }
 
 // ─── Risk Framework Layers (i18n-driven) ───
@@ -142,7 +144,7 @@ const EMPTY_KPI: PerfKpi = {
   recoveryFactor: '—',
 };
 
-export function LandingClient({ sections, testimonials, faqs, pricingOverrides }: LandingClientProps) {
+export function LandingClient({ sections, testimonials, faqs, pricingOverrides, tradingInfo }: LandingClientProps) {
   const t = useTranslations('landing');
   const [equityData, setEquityData] = useState<{ time: string; value: number }[]>([]);
   const [equityPeriod, setEquityPeriod] = useState('90D');
@@ -362,9 +364,9 @@ export function LandingClient({ sections, testimonials, faqs, pricingOverrides }
                           SMC Swing, Pivot Mean Reversion, Quad Confluence), 12
                           layer risiko, 14+ instrumen, 0 custody dana. */}
                       <div className="grid grid-cols-2 gap-x-6 gap-y-3 mb-6 pb-6 border-b border-border/50">
-                        <CapabilityInline value="4" label={t('capability_strategy')} />
+                        <CapabilityInline value={tradingInfo?.strategyCount ?? '4'} label={t('capability_strategy')} />
                         <CapabilityInline value="12" label={t('capability_risk')} />
-                        <CapabilityInline value="14+" label={t('capability_assets')} />
+                        <CapabilityInline value={tradingInfo?.assetCount ?? '19+'} label={t('capability_assets')} />
                         <CapabilityInline value="0" label={t('capability_custody')} valueClass="text-emerald-400" />
                       </div>
 

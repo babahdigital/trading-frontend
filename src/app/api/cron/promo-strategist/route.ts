@@ -434,6 +434,18 @@ export async function POST(request: NextRequest) {
       ? eventsByDays.find((e) => e.slug === decision.linkedEventSlug)?.eventRecord ?? null
       : null;
 
+    // Guard: skip if ACTIVE promo already exists for this event
+    if (linkedEvent) {
+      const existing = await prisma.promotion.findFirst({
+        where: { calendarEventId: linkedEvent.id, status: 'ACTIVE' },
+        select: { id: true, slug: true, status: true },
+      });
+      if (existing) {
+        log.info(`Skipping — ACTIVE promo already exists for ${linkedEvent.slug}: ${existing.slug}`);
+        return NextResponse.json({ ok: true, cleanup, health, decision, upcomingEvents: eventsByDays.map((e) => ({ slug: e.slug, daysAway: e.daysAway })), skippedReason: 'existing_active_promo', existingPromo: existing });
+      }
+    }
+
     const promoSlug = linkedEvent
       ? `${linkedEvent.slug}-auto-${Date.now()}`
       : `flash-${Date.now()}`;

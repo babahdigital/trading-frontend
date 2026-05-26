@@ -57,8 +57,8 @@ async function fetchActivePromos(locale: 'id' | 'en'): Promise<ActivePromo[]> {
   }
 }
 
-function getDiscountForTier(tierSlug: string, promos: ActivePromo[]): ActivePromo | null {
-  const tierKey = `crypto-${tierSlug}`;
+function getDiscountForTier(tierSlug: string, promos: ActivePromo[], product: 'crypto' | 'signal' = 'crypto'): ActivePromo | null {
+  const tierKey = `${product}-${tierSlug}`;
   return promos.find((p) =>
     p.applicableTiers.length === 0 || p.applicableTiers.includes(tierKey)
   ) ?? null;
@@ -160,14 +160,20 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
   }
   // apiCustomLabel dihapus 2026-05-16 — Developer API marketplace di-defer.
 
-  const signalTiers = SIGNAL_TIER_META.map((m) => ({
-    name: m.name,
-    price: formatPrice(m.priceKey, localeKey, { compact: false, overrides }),
-    period: tp('signal_period_monthly'),
-    features: tp.raw(`signal_${m.slug}_features`) as string[],
-    cta: m.cta,
-    popular: m.popular,
-  }));
+  const signalTiers = SIGNAL_TIER_META.map((m) => {
+    const basePrice = formatPrice(m.priceKey, localeKey, { compact: false, overrides });
+    const promo = getDiscountForTier(m.slug, activePromos, 'signal');
+    return {
+      name: m.name,
+      price: promo ? applyDiscount(basePrice, promo) : basePrice,
+      originalPrice: promo ? basePrice : undefined,
+      discountLabel: promo ? (promo.discountType === 'PERCENT' ? `${promo.discountValue}%` : undefined) : undefined,
+      period: tp('signal_period_monthly'),
+      features: tp.raw(`signal_${m.slug}_features`) as string[],
+      cta: m.cta,
+      popular: m.popular,
+    };
+  });
   // Crypto tiers — CMS-driven via getCryptoConfig(). UI split:
   //   - Demo (free) → banner separate di atas product section
   //   - Paid tiers → grid 4-col utama
@@ -461,11 +467,12 @@ async function StickyDemoCtaWrapper() {
 interface PricingTier {
   name: string;
   price: string;
+  originalPrice?: string;
+  discountLabel?: string;
   period: string;
   features: string[];
   cta: string;
   popular?: boolean;
-  /** Optional sub-text under name (e.g. "Modal ≥ $500 · 2 slot · 3x") */
   sub?: string;
 }
 
@@ -513,6 +520,11 @@ function ProductSection({
                   {popularLabel}
                 </span>
               )}
+              {tier.discountLabel && (
+                <span className="absolute -top-3 right-6 inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-600 text-emerald-50 text-[10px] font-bold uppercase tracking-wider">
+                  -{tier.discountLabel}
+                </span>
+              )}
               <h3 className="text-xl font-semibold mb-1">{tier.name}</h3>
               {tier.sub ? (
                 <p className="text-[11px] text-muted-foreground font-mono uppercase tracking-wider mb-2">{tier.sub}</p>
@@ -521,6 +533,9 @@ function ProductSection({
                 <span className={`font-bold break-words ${gridCols === 5 ? 'text-2xl sm:text-3xl' : 'text-2xl sm:text-3xl lg:text-4xl'}`}>{tier.price}</span>
                 <span className="text-xs sm:text-sm text-foreground/50">{tier.period}</span>
               </div>
+              {tier.originalPrice && (
+                <p className="text-sm text-muted-foreground line-through mt-1">{tier.originalPrice}</p>
+              )}
               <div className="h-px bg-border/40 my-5" />
               <ul className="space-y-2.5 flex-1 mb-6">
                 {tier.features.map((f, i) => <FeatureItem key={i}>{f}</FeatureItem>)}

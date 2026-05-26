@@ -10,6 +10,14 @@ import { verifyCronSecret } from '@/lib/auth/cron';
  * Protected by CRON_SECRET OR temporary audit token.
  * DELETE THIS FILE after audit is complete.
  */
+
+// BigInt-safe JSON serializer
+function serialize(data: unknown): string {
+  return JSON.stringify(data, (_key, value) =>
+    typeof value === 'bigint' ? Number(value) : value
+  );
+}
+
 export async function GET(req: NextRequest) {
   const auditToken = req.nextUrl.searchParams.get('token');
   const isAuthed = verifyCronSecret(req) || auditToken === 'tmp-audit-2026-05-26-xK9mQ';
@@ -21,8 +29,8 @@ export async function GET(req: NextRequest) {
     // 1. AI calls in last 24 hours grouped by purpose
     const last24h = await prisma.$queryRaw`
       SELECT purpose, count(*)::int as calls,
-             sum("totalTokens")::bigint as total_tokens,
-             sum(cost)::numeric as total_cost,
+             COALESCE(sum("totalTokens"), 0)::int as total_tokens,
+             COALESCE(sum(cost), 0)::numeric as total_cost,
              sum(CASE WHEN success THEN 0 ELSE 1 END)::int as failures
       FROM "AiCallLog"
       WHERE "createdAt" > NOW() - INTERVAL '24 hours'
@@ -31,9 +39,9 @@ export async function GET(req: NextRequest) {
     // 2. AI calls in last 7 days grouped by purpose
     const last7d = await prisma.$queryRaw`
       SELECT purpose, count(*)::int as calls,
-             sum("totalTokens")::bigint as total_tokens,
+             COALESCE(sum("totalTokens"), 0)::int as total_tokens,
              round(count(*)::numeric / 7, 1) as avg_daily_calls,
-             sum(cost)::numeric as total_cost
+             COALESCE(sum(cost), 0)::numeric as total_cost
       FROM "AiCallLog"
       WHERE "createdAt" > NOW() - INTERVAL '7 days'
       GROUP BY purpose ORDER BY total_tokens DESC`;
@@ -42,7 +50,7 @@ export async function GET(req: NextRequest) {
     const cmsI18nHourly = await prisma.$queryRaw`
       SELECT date_trunc('hour', "createdAt") as hour,
              count(*)::int as calls,
-             sum("totalTokens")::bigint as tokens
+             COALESCE(sum("totalTokens"), 0)::int as tokens
       FROM "AiCallLog"
       WHERE purpose = 'cms_i18n_translate_text'
         AND "createdAt" > NOW() - INTERVAL '48 hours'
@@ -60,7 +68,7 @@ export async function GET(req: NextRequest) {
     // 5. Blog article generator calls
     const blogCalls = await prisma.$queryRaw`
       SELECT purpose, count(*)::int as calls,
-             sum("totalTokens")::bigint as tokens,
+             COALESCE(sum("totalTokens"), 0)::int as tokens,
              max("createdAt") as last_call
       FROM "AiCallLog"
       WHERE (purpose LIKE '%blog%' OR purpose LIKE '%article%')
@@ -78,7 +86,7 @@ export async function GET(req: NextRequest) {
     const dailyGrowth = await prisma.$queryRaw`
       SELECT date_trunc('day', "createdAt") as day,
              count(*)::int as calls,
-             sum("totalTokens")::bigint as tokens
+             COALESCE(sum("totalTokens"), 0)::int as tokens
       FROM "AiCallLog"
       WHERE "createdAt" > NOW() - INTERVAL '7 days'
       GROUP BY day ORDER BY day DESC`;
@@ -86,8 +94,8 @@ export async function GET(req: NextRequest) {
     // 8. Total lifetime stats
     const lifetimeStats = await prisma.$queryRaw`
       SELECT count(*)::int as total_calls,
-             sum("totalTokens")::bigint as total_tokens,
-             sum(cost)::numeric as total_cost,
+             COALESCE(sum("totalTokens"), 0)::int as total_tokens,
+             COALESCE(sum(cost), 0)::numeric as total_cost,
              min("createdAt") as first_call,
              max("createdAt") as last_call
       FROM "AiCallLog"`;
@@ -99,16 +107,16 @@ export async function GET(req: NextRequest) {
       ORDER BY cost DESC NULLS LAST
       LIMIT 10`;
 
-    // 10. CMS i18n calls specifically in last 7 days — total to verify fix
+    // 10. CMS i18n calls specifically in last 7 days -- total to verify fix
     const cmsI18n7d = await prisma.$queryRaw`
       SELECT count(*)::int as calls,
-             sum("totalTokens")::bigint as tokens,
-             sum(cost)::numeric as cost
+             COALESCE(sum("totalTokens"), 0)::int as tokens,
+             COALESCE(sum(cost), 0)::numeric as cost
       FROM "AiCallLog"
       WHERE purpose = 'cms_i18n_translate_text'
         AND "createdAt" > NOW() - INTERVAL '7 days'`;
 
-    return NextResponse.json({
+    const result = {
       timestamp: new Date().toISOString(),
       queries: {
         '1_last_24h_by_purpose': last24h,
@@ -122,6 +130,12 @@ export async function GET(req: NextRequest) {
         '9_top_expensive': topExpensive,
         '10_cms_i18n_7d_total': cmsI18n7d,
       },
+    };
+
+    // Use BigInt-safe serializer
+    return new Response(serialize(result), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';

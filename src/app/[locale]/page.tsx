@@ -7,16 +7,31 @@ import { localizeLandingSection, localizePricingTier, localizeFaq } from '@/lib/
 import { getPricingOverrides } from '@/lib/pricing-db';
 import { getTradingSettings } from '@/lib/trading/trading-settings';
 
+import { EnterpriseNav } from '@/components/layout/enterprise-nav';
+
 const LandingClient = nextDynamic(
   () => import('@/components/landing-client').then((mod) => mod.LandingClient),
   {
     loading: () => (
-      <div className="min-h-screen animate-pulse space-y-8 px-6 py-16">
-        <div className="mx-auto max-w-4xl space-y-4">
-          <div className="h-10 w-3/4 rounded-lg bg-muted/30" />
-          <div className="h-6 w-1/2 rounded-lg bg-muted/20" />
-          <div className="h-64 rounded-xl bg-muted/20" />
-        </div>
+      <div className="min-h-screen bg-background text-foreground">
+        <EnterpriseNav />
+        <section className="relative min-h-[calc(100vh-4rem)] flex items-center">
+          <div className="container-default w-full px-4 sm:px-6 py-16 sm:py-20 lg:py-24">
+            <div className="lg:max-w-[58%]">
+              <div className="t-eyebrow mb-5 h-4 w-48 rounded bg-muted/20 animate-pulse" />
+              <h1 className="t-display-hero text-foreground mb-7">
+                Algorithmic<br />Quantitative Trading
+              </h1>
+              <p className="t-lead text-muted-foreground max-w-xl mb-9">
+                Eksekusi deterministik 24/7 dengan presisi institusional.
+              </p>
+              <div className="flex flex-wrap gap-3 mb-10">
+                <span className="btn-primary opacity-50 pointer-events-none">Jadwalkan Briefing</span>
+                <span className="btn-secondary opacity-50 pointer-events-none">Coba Demo Gratis</span>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
     ),
   },

@@ -65,8 +65,8 @@ const nextConfig = {
       {
         source: '/:path*',
         headers: [
-          // Force HTTPS untuk 6 bulan, preload via Cloudflare HSTS.
-          { key: 'Strict-Transport-Security', value: 'max-age=15552000; includeSubDomains; preload' },
+          // Force HTTPS 2 tahun + preload (Lighthouse requirement).
+          { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
           // Anti-clickjack
           { key: 'X-Frame-Options', value: 'DENY' },
           // Anti-MIME sniff

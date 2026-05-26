@@ -172,10 +172,14 @@ export function EditorialShowcase({
                   aria-label={`Slide ${i + 1}`}
                   onClick={() => goTo(i)}
                   className={cn(
-                    'h-1.5 rounded-full transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-                    i === activeIndex ? 'w-8 bg-amber-400' : 'w-2 bg-foreground/20 hover:bg-foreground/40',
+                    'relative py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                   )}
-                />
+                >
+                  <span className={cn(
+                    'block h-1.5 rounded-full transition-all duration-300',
+                    i === activeIndex ? 'w-8 bg-amber-400' : 'w-2 bg-foreground/20 hover:bg-foreground/40',
+                  )} />
+                </button>
               ))}
             </div>
             {slides.length > 1 && (

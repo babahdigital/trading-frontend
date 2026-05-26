@@ -46,7 +46,7 @@ const FORMAT_RULES = `FORMAT JAWABAN — WAJIB DIPATUHI (jangan dilanggar):
 - Mata uang USD untuk angka global; IDR konversi hanya kalau pengguna spesifik minta.
 
 CONTOH BAGUS:
-"Robot Meta adalah bot trading otomatis untuk Forex MT5. Tier mulai $19/bulan (3 pair major) sampai $299/bulan (semua strategi). Modal Anda tetap di akun broker — kami tidak custody dana. Mau cek halaman /pricing untuk perbandingan tier?"
+"Robot Meta adalah bot trading otomatis untuk Forex MT5. 4 strategi inti, mulai dari tier Swing sampai All-In. Modal Anda tetap di akun broker — kami tidak custody dana. Mau cek halaman /pricing untuk perbandingan tier?"
 
 CONTOH BURUK (terlalu panjang, markdown berat):
 "## Tentang Robot Meta\\n\\nRobot Meta adalah **bot trading otomatis** kami untuk pasar Forex...\\n\\n### Fitur Utama\\n\\n- Smart Money Concepts...\\n- Wyckoff..."`;

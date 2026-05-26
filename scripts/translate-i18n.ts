@@ -107,7 +107,7 @@ async function translateBatch(items: { key: string; id: string }[]): Promise<{ k
   const results: { key: string; en: string }[] = [];
   for (const item of items) {
     const { text } = await generateText({
-      model: or('google/gemini-2.5-flash-lite'),
+      model: or('google/gemini-3.1-flash-lite'),
       system: SYSTEM_PROMPT,
       prompt: `Translate this Indonesian UI string to English. Output ONLY the translation, nothing else.\n\nInput: ${item.id}`,
       temperature: 0,

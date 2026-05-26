@@ -72,11 +72,11 @@ TIER SPECS (dynamic from CMS):
 ${tierLines.join('\n')}
 
 REKOMENDASI TIER BERDASARKAN MODAL (equity bracket logic):
-- Modal < $500 → HANYA free demo. Alasan: fee bulanan dibanding profit expected terlalu tinggi (misal: modal $100, fee $9 = 180% dari expected profit 5%). Churn risk tinggi.
-- Modal $500-1.5K → Starter ($9). Fee ~2% dari modal per bulan — sustainable.
-- Modal $1.5-5K → Active ($19). Sweet spot diversifikasi 3 pair.
-- Modal $5-25K → Pro ($49). Bisa 5 pair simultan dengan edge yang jelas.
-- Modal $25K+ → HNWI ($199). Full feature + dedicated support.
+- Modal < ${modal500} → HANYA free demo. Alasan: fee bulanan dibanding profit expected terlalu tinggi. Churn risk tinggi.
+- Modal ${modal500}-${modal1500} → Starter (${tStarter}). Fee ~2% dari modal per bulan — sustainable.
+- Modal ${modal1500}-${modal5k} → Active (${tActive}). Sweet spot diversifikasi 2 strategi.
+- Modal ${modal5k}-${modal25k} → Pro (${tPro}). Bisa 5 slot simultan dengan edge yang jelas.
+- Modal ${modal25k}+ → HNWI (${tHnwi}). Full feature + dedicated support.
 
 KENAPA FLAT SUBSCRIPTION (bukan profit share):
 - Kami tech provider, bukan asset manager. Modal di ${config.exchange}, tetap customer yang kontrol.

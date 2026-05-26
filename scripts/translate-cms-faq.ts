@@ -48,7 +48,7 @@ Rules:
 
 async function translate(text: string, openrouter: ReturnType<typeof createOpenAI>): Promise<string> {
   const { text: result } = await generateText({
-    model: openrouter('google/gemini-2.5-flash-lite'),
+    model: openrouter('google/gemini-3.1-flash-lite'),
     system: SYSTEM_PROMPT,
     prompt: `Translate this Indonesian FAQ text to English. Output ONLY the translation.\n\nInput: ${text}`,
     temperature: 0.2,

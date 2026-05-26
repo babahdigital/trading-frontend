@@ -33,9 +33,9 @@ export async function getForexSkill(locale: Locale): Promise<string> {
   const t2 = formatPrice('signal_pro', locale, { period: 'mo', compact: false });
   const t3 = formatPrice('signal_vip', locale, { period: 'mo', compact: false });
   const vpsLicense = formatPrice('vps_license_only_setup', locale, { compact: false });
-  const modal1k = locale === 'id' ? 'Rp 16 juta' : '$1,000';
-  const modal2k = locale === 'id' ? 'Rp 33 juta' : '$2,000';
-  const modal5k = locale === 'id' ? 'Rp 80 juta' : '$5,000';
+  const modal1k = locale === 'id' ? '~Rp 16 juta ($1K)' : '$1,000';
+  const modal2k = locale === 'id' ? '~Rp 33 juta ($2K)' : '$2,000';
+  const modal5k = locale === 'id' ? '~Rp 80 juta ($5K)' : '$5,000';
 
   // ─── Dynamic PRODUK section from trading settings ───
 

@@ -325,16 +325,21 @@ async function generateOneTopic(topic: BlogTopic): Promise<{ articleId: string }
   const body = linkedBody;
   const readTime = Math.max(3, Math.ceil(body.split(/\s+/).length / 220));
 
-  // Generate hero image — graceful failure (null imageUrl is fine).
-  // Image is concept-illustrative (e.g. Wyckoff phase chart, order
-  // block pattern) not decorative. Topic slug unlocks per-topic
-  // visualisation subjects in SLUG_SUBJECTS map.
+  // Generate hero image — skip if article already has image (prevents
+  // re-generation on retry). Topic slug unlocks per-topic visualisation
+  // subjects in SLUG_SUBJECTS map.
   const keywordsArr = Array.isArray(topic.keywords) ? (topic.keywords as string[]) : [];
-  const imageResult = await generateArticleImage(topic.titleEn, {
-    category: topic.category,
-    keywords: keywordsArr,
-    slug: topic.slug,
+  const existingArticle = await prisma.article.findUnique({
+    where: { slug: topic.slug },
+    select: { imageUrl: true },
   });
+  const imageResult = !existingArticle?.imageUrl
+    ? await generateArticleImage(topic.titleEn, {
+        category: topic.category,
+        keywords: keywordsArr,
+        slug: topic.slug,
+      })
+    : null;
   if (imageResult) {
     log.info(`Generated hero image for ${topic.slug} (${Math.round(imageResult.sizeBytes / 1024)} KB, ${imageResult.model})`);
   }

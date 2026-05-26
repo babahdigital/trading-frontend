@@ -648,9 +648,13 @@ export async function runDailyResearch(): Promise<DailyResearchResult> {
     // 2026-05-19 — AI hero image generation DISABLED.
     // Pollinations Flux output telah berulang menghasilkan visual yang
     // tidak konsisten dengan institutional brand standard (Pak Abdullah
-    // Image generation — default ON (Gemini 2.5 Flash Image via OpenRouter).
-    // Disable with IMAGE_GEN_ENABLED=0 if needed.
-    const imageResult = process.env.IMAGE_GEN_ENABLED !== '0'
+    // Image generation — skip if article already has image (prevents
+    // re-generation on upsert re-runs after container restart).
+    const existing = await prisma.article.findUnique({
+      where: { slug },
+      select: { imageUrl: true },
+    });
+    const imageResult = !existing?.imageUrl && process.env.IMAGE_GEN_ENABLED !== '0'
       ? await generateArticleImage(built.titleEn, {
           category: config.category,
           keywords: built.keywords,

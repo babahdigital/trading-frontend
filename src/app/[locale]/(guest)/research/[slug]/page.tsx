@@ -18,15 +18,19 @@ async function loadArticle(slug: string): Promise<ArticleDetail | null> {
         excerpt: true, excerpt_en: true,
         body: true, body_en: true,
         category: true, author: true, readTime: true,
-        imageUrl: true,
         metaTitle: true, metaTitle_en: true,
         metaDescription: true, metaDescription_en: true,
         publishedAt: true, isPublished: true,
       },
     });
     if (!article || !article.isPublished) return null;
+
+    const hasImage = await prisma.article.count({
+      where: { slug, imageUrl: { not: null } },
+    });
     return {
       ...article,
+      imageUrl: hasImage > 0 ? 'has-image' : null,
       publishedAt: article.publishedAt ? article.publishedAt.toISOString() : null,
     } as ArticleDetail;
   } catch {
@@ -59,10 +63,9 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
   const description = (isEn ? article.metaDescription_en || article.excerpt_en : article.metaDescription || article.excerpt) || article.excerpt;
   const canonicalPath = isEn ? `/en/research/${article.slug}` : `/research/${article.slug}`;
 
-  // Note: data-URI imageUrl is fine for <meta property="og:image"> in
-  // most major social parsers (FB, LinkedIn, Twitter). For broader
-  // compatibility migrate to S3/R2 URLs later.
-  const ogImage = article.imageUrl ?? undefined;
+  const ogImage = article.imageUrl
+    ? `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://babahalgo.com'}/api/public/articles/image?slug=${article.slug}`
+    : undefined;
 
   return {
     title: `${title} — BabahAlgo`,

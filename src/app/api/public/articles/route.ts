@@ -25,10 +25,12 @@ export async function GET(request: NextRequest) {
     select: {
       id: true, slug: true, title: true, title_en: true,
       excerpt: true, excerpt_en: true, category: true,
-      author: true, readTime: true, imageUrl: true, publishedAt: true,
+      author: true, readTime: true, publishedAt: true,
     },
   });
-  return NextResponse.json(articles);
+  return NextResponse.json(articles, {
+    headers: { 'Cache-Control': 'public, max-age=300, s-maxage=600' },
+  });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ code: 'internal_error', error: message }, { status: 500 });

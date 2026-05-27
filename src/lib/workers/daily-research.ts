@@ -25,6 +25,7 @@ import { prisma } from '@/lib/db/prisma';
 import { getOpenRouter, DEFAULT_MODEL } from '@/lib/ai/openrouter';
 import { translateText } from '@/lib/ai/content';
 import { generateArticleImage } from '@/lib/ai/image-generator';
+import { generateThumbnail } from '@/lib/ai/thumbnail';
 import { generateSeoMeta } from '@/lib/ai/seo-meta';
 import { injectInternalLinks, invalidateInternalLinkCache } from '@/lib/blog/internal-links';
 import { proxyToMasterBackend } from '@/lib/proxy/vps-client';
@@ -662,6 +663,10 @@ export async function runDailyResearch(): Promise<DailyResearchResult> {
         })
       : null;
 
+    const thumbnailResult = imageResult?.dataUri
+      ? await generateThumbnail(imageResult.dataUri)
+      : null;
+
     // SEO meta — Indonesian
     const seoId = await generateSeoMeta({
       title: built.titleId,
@@ -683,6 +688,7 @@ export async function runDailyResearch(): Promise<DailyResearchResult> {
         author: 'BabahAlgo Research Desk',
         readTime,
         imageUrl: imageResult?.dataUri ?? null,
+        thumbnailUrl: thumbnailResult ?? null,
         metaTitle: seoId?.metaTitle ?? null,
         metaDescription: seoId?.metaDescription ?? null,
         keywords: built.keywords as Prisma.InputJsonValue,
@@ -694,7 +700,7 @@ export async function runDailyResearch(): Promise<DailyResearchResult> {
         title_en: built.titleEn,
         body,
         readTime,
-        ...(imageResult ? { imageUrl: imageResult.dataUri } : {}),
+        ...(imageResult ? { imageUrl: imageResult.dataUri, thumbnailUrl: thumbnailResult } : {}),
         ...(seoId ? { metaTitle: seoId.metaTitle, metaDescription: seoId.metaDescription } : {}),
         keywords: built.keywords as Prisma.InputJsonValue,
         isPublished: true,

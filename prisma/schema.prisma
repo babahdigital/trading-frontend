@@ -785,7 +785,8 @@ model Article {
   category           ArticleCategory @default(RESEARCH)
   author             String          @default("Abdullah")
   readTime           Int             @default(5) // minutes
-  imageUrl           String?
+  imageUrl           String?         @db.Text
+  thumbnailUrl       String?         @db.Text
   // SEO metadata — separate from display title/excerpt for keyword optimization
   metaTitle          String? // <title> tag, target 50-60 chars
   metaTitle_en       String?

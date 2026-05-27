@@ -19,6 +19,19 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(article);
   }
 
+  const fields = request.nextUrl.searchParams.get('fields');
+  if (fields === 'imageUrl') {
+    const slugParam = request.nextUrl.searchParams.get('slug');
+    if (!slugParam) return NextResponse.json({ code: 'slug_required' }, { status: 400 });
+    const row = await prisma.article.findUnique({
+      where: { slug: slugParam },
+      select: { imageUrl: true },
+    });
+    return NextResponse.json({ imageUrl: row?.imageUrl ?? null }, {
+      headers: { 'Cache-Control': 'public, max-age=3600, s-maxage=86400' },
+    });
+  }
+
   const articles = await prisma.article.findMany({
     where: { isPublished: true },
     orderBy: { publishedAt: 'desc' },
@@ -26,6 +39,7 @@ export async function GET(request: NextRequest) {
       id: true, slug: true, title: true, title_en: true,
       excerpt: true, excerpt_en: true, category: true,
       author: true, readTime: true, publishedAt: true,
+      thumbnailUrl: true,
     },
   });
   return NextResponse.json(articles, {

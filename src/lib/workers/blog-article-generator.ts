@@ -24,6 +24,7 @@ import { prisma } from '@/lib/db/prisma';
 import { getOpenRouter, DEFAULT_MODEL, REASONING_MODEL } from '@/lib/ai/openrouter';
 import { translateText } from '@/lib/ai/content';
 import { generateArticleImage } from '@/lib/ai/image-generator';
+import { generateThumbnail } from '@/lib/ai/thumbnail';
 import { generateSeoMeta } from '@/lib/ai/seo-meta';
 import { injectInternalLinks, invalidateInternalLinkCache } from '@/lib/blog/internal-links';
 import { proxyToMasterBackend } from '@/lib/proxy/vps-client';
@@ -340,6 +341,9 @@ async function generateOneTopic(topic: BlogTopic): Promise<{ articleId: string }
         slug: topic.slug,
       })
     : null;
+  const thumbnailResult = imageResult?.dataUri
+    ? await generateThumbnail(imageResult.dataUri)
+    : null;
   if (imageResult) {
     log.info(`Generated hero image for ${topic.slug} (${Math.round(imageResult.sizeBytes / 1024)} KB, ${imageResult.model})`);
   }
@@ -366,6 +370,7 @@ async function generateOneTopic(topic: BlogTopic): Promise<{ articleId: string }
       author: 'BabahAlgo Research Desk',
       readTime,
       imageUrl: imageResult?.dataUri ?? null,
+      thumbnailUrl: thumbnailResult ?? null,
       metaTitle: seoMetaId?.metaTitle ?? null,
       metaDescription: seoMetaId?.metaDescription ?? null,
       keywords: keywordsArr as Prisma.InputJsonValue,
@@ -380,7 +385,7 @@ async function generateOneTopic(topic: BlogTopic): Promise<{ articleId: string }
       body,
       category: topic.category,
       readTime,
-      ...(imageResult ? { imageUrl: imageResult.dataUri } : {}),
+      ...(imageResult ? { imageUrl: imageResult.dataUri, thumbnailUrl: thumbnailResult } : {}),
       ...(seoMetaId ? { metaTitle: seoMetaId.metaTitle, metaDescription: seoMetaId.metaDescription } : {}),
       keywords: keywordsArr as Prisma.InputJsonValue,
       isPublished: topic.autoPublish,

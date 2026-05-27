@@ -22,6 +22,7 @@ interface Article {
   author: string;
   readTime: number;
   imageUrl?: string | null;
+  thumbnailUrl?: string | null;
   publishedAt?: string;
 }
 
@@ -174,18 +175,14 @@ export default function ResearchPage() {
                         href={`/${locale}/research/${article.slug}`}
                         className="card-enterprise flex flex-col group cursor-pointer hover:border-amber-500/30 hover:shadow-lg hover:shadow-amber-500/5 transition-all duration-300 overflow-hidden p-0 hover:-translate-y-0.5"
                       >
-                        {/* Image area — selalu render box dengan aspect 16/9 supaya
-                            card height konsisten. Fallback gradient + icon kalau
-                            imageUrl null (sebelumnya area kosong → tinggi card jomplang). */}
                         <ArticleCardImage
-                          imageUrl={article.imageUrl}
+                          imageUrl={article.thumbnailUrl ?? null}
                           alt={title || t('image_alt_fallback')}
                           category={humanizeCategory(article.category)}
                           aspectClass="aspect-[16/9]"
                         />
                         <div className="p-5 sm:p-6 flex flex-col flex-1">
-                          {/* Show category eyebrow only when no imageUrl (image cards already have badge on image) */}
-                          {!article.imageUrl && (
+                          {!article.thumbnailUrl && (
                             <p className="t-eyebrow mb-3">{humanizeCategory(article.category)}</p>
                           )}
                           <h2 className="text-lg font-semibold mb-3 line-clamp-2 group-hover:text-amber-500 dark:group-hover:text-amber-400 transition-colors leading-snug">

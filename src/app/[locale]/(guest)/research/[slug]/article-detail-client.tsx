@@ -365,9 +365,22 @@ export function ArticleDetailClient({ article }: ArticleDetailClientProps) {
               </div>
             </section>
 
-            {/* Cover image dihapus 2026-05-15 — Pak Abdullah feedback "gambar
-                masih aneh dan acak", cukup ditampilkan di list /research saja.
-                Detail page focus ke reading experience tanpa visual noise. */}
+            {/* Cover image — editorial illustration (FT/HBR style).
+                Full-bleed di container, aspect 16:9, rounded corners. */}
+            {article.imageUrl && (
+              <section className="pt-8 lg:pt-10">
+                <div className="layout-container">
+                  <div className="relative aspect-[16/9] w-full overflow-hidden rounded-xl border border-border/40">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={article.imageUrl}
+                      alt={title}
+                      className="w-full h-full object-cover object-center"
+                    />
+                  </div>
+                </div>
+              </section>
+            )}
 
             {/* Body — institutional research prose. Container max-w-5xl (1024px)
                 supaya table + code fence + multi-column comparison punya ruang

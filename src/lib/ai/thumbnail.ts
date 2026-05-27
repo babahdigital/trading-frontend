@@ -24,6 +24,7 @@ export async function generateThumbnail(
 
     const sharp = (await import('sharp')).default;
     const outputBuffer = await sharp(inputBuffer)
+      .trim({ threshold: 20 })
       .resize(THUMB_WIDTH, undefined, { fit: 'inside', withoutEnlargement: true })
       .webp({ quality: THUMB_QUALITY })
       .toBuffer();

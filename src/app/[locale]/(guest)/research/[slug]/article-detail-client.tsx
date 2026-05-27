@@ -365,25 +365,6 @@ export function ArticleDetailClient({ article }: ArticleDetailClientProps) {
               </div>
             </section>
 
-            {/* Cover image — served via /api/public/articles/image?slug=
-                endpoint (binary response with CDN cache). Avoids embedding
-                ~1.2MB base64 in SSR HTML which caused 9MB page responses. */}
-            {article.imageUrl && (
-              <section className="pt-8 lg:pt-10">
-                <div className="layout-container">
-                  <div className="relative aspect-[16/9] w-full overflow-hidden rounded-xl border border-border/40 bg-muted/20">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={`/api/public/articles/image?slug=${encodeURIComponent(article.slug)}`}
-                      alt={title}
-                      loading="eager"
-                      className="w-full h-full object-cover object-center"
-                    />
-                  </div>
-                </div>
-              </section>
-            )}
-
             {/* Body — institutional research prose. Container max-w-5xl (1024px)
                 supaya table + code fence + multi-column comparison punya ruang
                 napas tanpa overflow horizontal di laptop. Article text-prose

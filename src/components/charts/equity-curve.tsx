@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { createChart, ColorType, type IChartApi } from 'lightweight-charts';
-import { chartTheme } from '@/lib/charts/theme';
+import { useTheme } from 'next-themes';
+import { chartTheme, getChartAxisColors } from '@/lib/charts/theme';
 import { ChartEmptyState } from '@/components/charts/chart-empty-state';
 
 interface EquityCurveProps {
@@ -29,35 +30,39 @@ export function EquityCurve({
   const chartRef = useRef<IChartApi | null>(null);
   const [currentPeriod, setCurrentPeriod] = useState(activePeriod);
   const isEmpty = !data || data.length === 0;
+  const { resolvedTheme } = useTheme();
 
   useEffect(() => {
     if (!chartContainerRef.current) return;
     if (isEmpty) return;
 
+    // Theme-aware axis/grid/text so the chart is legible in light mode too. (P2-A11Y-1)
+    const ax = getChartAxisColors(resolvedTheme !== 'light');
+
     const chart = createChart(chartContainerRef.current, {
       layout: {
         background: { type: ColorType.Solid, color: 'transparent' },
-        textColor: chartTheme.colors.text,
+        textColor: ax.text,
         fontFamily: chartTheme.fonts.mono,
         fontSize: 11,
       },
       grid: {
-        vertLines: { color: chartTheme.colors.grid },
-        horzLines: { color: chartTheme.colors.gridStrong },
+        vertLines: { color: ax.grid },
+        horzLines: { color: ax.gridStrong },
       },
       width: chartContainerRef.current.clientWidth,
       height,
       rightPriceScale: {
-        borderColor: chartTheme.colors.axis,
+        borderColor: ax.axis,
         scaleMargins: { top: 0.1, bottom: 0.1 },
       },
       timeScale: {
-        borderColor: chartTheme.colors.axis,
+        borderColor: ax.axis,
         timeVisible: false,
       },
       crosshair: {
         mode: 1,
-        vertLine: { color: 'rgba(245, 181, 71, 0.5)', width: 1, style: 0 },
+        vertLine: { color: ax.crosshair, width: 1, style: 0 },
         horzLine: { visible: false },
       },
       // 2026-05-20 — disable interactive pan + zoom. Period switcher (tab-bar)
@@ -119,7 +124,7 @@ export function EquityCurve({
       ro?.disconnect();
       chart.remove();
     };
-  }, [data, height, isEmpty, locale]);
+  }, [data, height, isEmpty, locale, resolvedTheme]);
 
   const handlePeriodChange = (period: string) => {
     setCurrentPeriod(period);

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { verifyRefreshToken, signJwt, signRefreshToken, isAdminRole, type JwtPayload } from '@/lib/auth/jwt';
+import { resolveTokenClaims } from '@/lib/auth/token-claims';
 import { AUTH_COOKIE_NAMES, setAuthCookies } from '@/lib/auth/cookies';
 import { randomUUID } from 'crypto';
 import { createLogger } from '@/lib/logger';
@@ -41,11 +42,15 @@ export async function POST(request: NextRequest) {
     const scope = isAdminRole(user.role) ? ['*'] : ['read:status', 'read:trades', 'read:equity'];
 
     const jwtId = randomUUID();
+    // Re-stamp current license/subscription claims so a refresh never drops the
+    // entitlements that drive x-license-id / x-subscription-id. (P1-BUG-1)
+    const tokenClaims = await resolveTokenClaims(user.id);
     const payload: JwtPayload = {
       sub: user.id,
       role: user.role as JwtPayload['role'],
       jti: jwtId,
       scope,
+      ...tokenClaims,
     };
 
     const [newAccessToken, newRefreshToken] = await Promise.all([

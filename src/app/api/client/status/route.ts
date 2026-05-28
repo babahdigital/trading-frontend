@@ -6,6 +6,7 @@ import { prisma } from '@/lib/db/prisma';
 import { proxyToVpsBackend, proxyToMasterBackend } from '@/lib/proxy/vps-client';
 import { filterScalpingStatus } from '@/lib/proxy/filters';
 import { createLogger } from '@/lib/logger';
+import { isAdminRole } from '@/lib/auth/roles';
 
 const log = createLogger('api/client/status');
 
@@ -22,9 +23,11 @@ export async function GET(request: NextRequest) {
     const licenseId = request.headers.get('x-license-id');
     const vpsInstanceId = request.headers.get('x-vps-instance-id');
     const subscriptionId = request.headers.get('x-subscription-id');
+    // Admins (no license/subscription) view the master-tenant snapshot. (P1-DI-11)
+    const isAdmin = isAdminRole(request.headers.get('x-user-role') ?? '');
 
     const license = await checkLicense(licenseId);
-    if (!license) {
+    if (!license && !subscriptionId && !isAdmin) {
       return NextResponse.json(
         { error: 'License not found or expired' },
         { status: 403 }
@@ -38,7 +41,7 @@ export async function GET(request: NextRequest) {
       });
       const data = await response.json();
       return NextResponse.json(filterScalpingStatus(data));
-    } else if (subscriptionId) {
+    } else if (subscriptionId || isAdmin) {
       // Wave-29S-D: migrate dari /api/pamm/master-status (deprecated) ke
       // canonical /api/forex/positions + /api/forex/positions/stats. Compose
       // dashboard-friendly snapshot dari kedua endpoint.

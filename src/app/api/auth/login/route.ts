@@ -9,6 +9,7 @@ import { ForexApiError } from '@/lib/forex/types';
 import { randomUUID } from 'crypto';
 import { createLogger } from '@/lib/logger';
 import { verifyTotp } from '@/lib/auth/totp';
+import { resolveTokenClaims } from '@/lib/auth/token-claims';
 import { checkRateLimit, rateLimitedResponse, RATE_LIMITS } from '@/lib/api/rate-limiter';
 
 const log = createLogger('api/auth/login');
@@ -140,11 +141,16 @@ export async function POST(request: NextRequest) {
 
     const scope = isAdminRole(user.role) ? ['*'] : ['read:pamm_stats'];
     const jwtId = randomUUID();
+    // Stamp license/subscription claims so the middleware injects
+    // x-subscription-id (etc.) — otherwise subscription customers can never
+    // reach the subscription branch of /api/client/*. (P1-BUG-1)
+    const tokenClaims = await resolveTokenClaims(user.id);
     const payload: JwtPayload = {
       sub: user.id,
       role: user.role as JwtPayload['role'],
       jti: jwtId,
       scope,
+      ...tokenClaims,
     };
 
     const [accessToken, refreshToken] = await Promise.all([

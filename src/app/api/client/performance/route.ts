@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { proxyToVpsBackend, proxyToMasterBackend } from '@/lib/proxy/vps-client';
 import { createLogger } from '@/lib/logger';
+import { isAdminRole } from '@/lib/auth/roles';
 
 const log = createLogger('api/client/performance');
 
@@ -21,9 +22,11 @@ export async function GET(request: NextRequest) {
     const licenseId = request.headers.get('x-license-id');
     const vpsInstanceId = request.headers.get('x-vps-instance-id');
     const subscriptionId = request.headers.get('x-subscription-id');
+    // Admins (no license/subscription) view the master-tenant snapshot. (P1-DI-11)
+    const isAdmin = isAdminRole(request.headers.get('x-user-role') ?? '');
 
     const license = await checkLicense(licenseId);
-    if (!license) {
+    if (!license && !subscriptionId && !isAdmin) {
       return NextResponse.json(
         { error: 'License not found or expired' },
         { status: 403 }
@@ -39,7 +42,7 @@ export async function GET(request: NextRequest) {
     if (vpsInstanceId) {
       // Model A — VPS_INSTALLATION: legacy endpoint
       response = await proxyToVpsBackend(vpsInstanceId, path, { method: 'GET' });
-    } else if (subscriptionId) {
+    } else if (subscriptionId || isAdmin) {
       // Wave-29S-D: migrate dari /api/stats/performance (legacy aggregate)
       // ke canonical /api/forex/positions/stats?period=... yang sekarang
       // include net_pnl_quote real-time + max_drawdown_quote.

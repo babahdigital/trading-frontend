@@ -6,6 +6,7 @@ import { prisma } from '@/lib/db/prisma';
 import { proxyToVpsBackend, proxyToMasterBackend } from '@/lib/proxy/vps-client';
 import { filterTradeHistory } from '@/lib/proxy/filters';
 import { createLogger } from '@/lib/logger';
+import { isAdminRole } from '@/lib/auth/roles';
 
 const log = createLogger('api/client/trades');
 
@@ -22,9 +23,11 @@ export async function GET(request: NextRequest) {
     const licenseId = request.headers.get('x-license-id');
     const vpsInstanceId = request.headers.get('x-vps-instance-id');
     const subscriptionId = request.headers.get('x-subscription-id');
+    // Admins (no license/subscription) view the master-tenant snapshot. (P1-DI-11)
+    const isAdmin = isAdminRole(request.headers.get('x-user-role') ?? '');
 
     const license = await checkLicense(licenseId);
-    if (!license) {
+    if (!license && !subscriptionId && !isAdmin) {
       return NextResponse.json(
         { error: 'License not found or expired' },
         { status: 403 }
@@ -43,7 +46,7 @@ export async function GET(request: NextRequest) {
         ? data.map(filterTradeHistory)
         : { ...data, trades: (data.trades || []).map(filterTradeHistory) };
       return NextResponse.json(filtered);
-    } else if (subscriptionId) {
+    } else if (subscriptionId || isAdmin) {
       // Wave-29S-D: trade history sekarang via canonical
       // /api/forex/positions?status=closed (cursor-paginated). Backend
       // PositionView mencakup gross_pnl + net_pnl_quote untuk closed trades.

@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useCallback, useMemo, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { isAdminRole } from '@/lib/auth/roles';
 
 /**
  * Subscription gate state.
@@ -86,8 +87,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setSubscriptionState('guest');
           return;
         }
-        // Admin role bypass — admin always considered "active" for portal access
-        if (data.user.role === 'ADMIN') {
+        // Admin role bypass — any console role (SUPER_ADMIN/ADMIN/OPERATOR) is
+        // always considered "active" for portal access. (P1-BUG-3)
+        if (isAdminRole(data.user.role)) {
           setSubscriptionState('active');
           return;
         }

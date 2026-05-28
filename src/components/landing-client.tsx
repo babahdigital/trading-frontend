@@ -311,14 +311,11 @@ export function LandingClient({ sections, testimonials, faqs, pricingOverrides, 
             <div className="lg:col-span-5">
               <AnimatedSection delay={0.35}>
                 {filteredEquity.length > 0 ? (
-                  <div className="card-enterprise">
+                  <div className="rounded-xl border border-border/40 bg-card/40 p-6">
                     <div className="flex items-center justify-between mb-4">
-                      <div className="t-eyebrow">{t('hero_equity_eyebrow')}</div>
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono uppercase tracking-wider text-data-positive bg-data-positive/10 ring-1 ring-data-positive/20">
-                        <span className="relative flex h-1.5 w-1.5">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-data-positive opacity-75" />
-                          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-data-positive" />
-                        </span>
+                      <div className="text-[10px] uppercase tracking-[0.18em] text-foreground/45 font-mono">{t('hero_equity_eyebrow')}</div>
+                      <span className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md text-[10px] font-mono uppercase tracking-[0.16em] text-emerald-600/90 dark:text-emerald-400/85 bg-emerald-500/[0.06] border border-emerald-500/20">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/70" />
                         {t('hero_equity_live')}
                       </span>
                     </div>
@@ -328,13 +325,13 @@ export function LandingClient({ sections, testimonials, faqs, pricingOverrides, 
                       periods={[]}
                       activePeriod="30D"
                     /></Suspense>
-                    <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
+                    <div className="flex items-center justify-between mt-4 pt-4 border-t border-border/40">
                       <div>
-                        <div className="text-xs text-muted-foreground">{t('hero_equity_verified')}</div>
+                        <div className="text-xs text-foreground/55">{t('hero_equity_verified')}</div>
                       </div>
                       <div className="text-right">
-                        <div className="font-mono text-lg font-medium text-amber-400">{kpi.sharpeRatio}</div>
-                        <div className="text-xs text-muted-foreground">{t('hero_equity_sharpe_label')}</div>
+                        <div className="font-mono text-base font-medium text-foreground/90 tabular-nums">{kpi.sharpeRatio}</div>
+                        <div className="text-[10px] uppercase tracking-[0.14em] text-foreground/45 font-mono">{t('hero_equity_sharpe_label')}</div>
                       </div>
                     </div>
                   </div>

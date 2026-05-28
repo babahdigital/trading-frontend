@@ -47,14 +47,14 @@ async function main() {
       sortOrder: 1,
       content: {
         metrics: {
-          winRate: 67.2,
-          profitFactor: 2.14,
-          maxDD: -8.3,
-          totalTrades: 847,
-          sharpe: 1.85,
-          avgHold: '47 min',
+          winRate: 43.1,
+          totalTrades: 411,
+          profitFactor: null,
+          maxDD: null,
+          sharpe: null,
+          avgHold: null,
         },
-        myfxbookUrl: 'https://www.myfxbook.com',
+        betaNote: 'Track record sedang dibangun. Data live akan dipublikasi setelah 90 hari produksi.',
       },
     },
     {

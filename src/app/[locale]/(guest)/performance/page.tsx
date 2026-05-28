@@ -37,40 +37,40 @@ export default function PerformanceHubPage() {
           <div className="layout-container">
             <p className="t-eyebrow mb-3">{t('hub_products_eyebrow')}</p>
             <h2 className="t-display-sub mb-12">{t('hub_products_title')}</h2>
-            <div className="grid md:grid-cols-2 gap-6">
-              <Link href="/performance/forex" className="card-enterprise group block">
+            <div className="grid md:grid-cols-2 gap-5">
+              <Link href="/performance/forex" className="group block rounded-xl border border-border/40 bg-card/40 hover:border-amber-500/30 hover:bg-card/60 transition-all p-6 sm:p-7">
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="icon-container">
-                    <TrendingUp className="w-5 h-5 text-amber-400" />
+                  <div className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-amber-500/[0.06] border border-amber-500/20">
+                    <TrendingUp className="w-4 h-4 text-amber-500/80" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold group-hover:text-amber-400 transition-colors">{t('hub_forex_title')}</h3>
-                    <p className="text-xs text-muted-foreground font-mono">{t('hub_forex_category')}</p>
+                    <h3 className="text-base font-medium text-foreground/90 group-hover:text-foreground transition-colors">{t('hub_forex_title')}</h3>
+                    <p className="text-[10px] text-foreground/45 font-mono uppercase tracking-[0.16em]">{t('hub_forex_category')}</p>
                   </div>
                 </div>
-                <p className="t-body-sm text-muted-foreground leading-relaxed mb-4">
+                <p className="t-body-sm text-foreground/60 leading-relaxed mb-4">
                   {t('hub_forex_desc')}
                 </p>
-                <div className="flex items-center gap-2 text-sm text-amber-400 font-medium">
-                  {t('hub_view_performance')} <ArrowRight className="w-4 h-4" />
+                <div className="inline-flex items-center gap-1.5 text-xs text-amber-500/80 group-hover:text-amber-500 transition-colors font-medium">
+                  {t('hub_view_performance')} <ArrowRight className="w-3.5 h-3.5" />
                 </div>
               </Link>
 
-              <Link href="/performance/crypto" className="card-enterprise group block">
+              <Link href="/performance/crypto" className="group block rounded-xl border border-border/40 bg-card/40 hover:border-amber-500/30 hover:bg-card/60 transition-all p-6 sm:p-7">
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="icon-container">
-                    <Bitcoin className="w-5 h-5 text-amber-400" />
+                  <div className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-amber-500/[0.06] border border-amber-500/20">
+                    <Bitcoin className="w-4 h-4 text-amber-500/80" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold group-hover:text-amber-400 transition-colors">{t('hub_crypto_title')}</h3>
-                    <p className="text-xs text-muted-foreground font-mono">{t('hub_crypto_category')}</p>
+                    <h3 className="text-base font-medium text-foreground/90 group-hover:text-foreground transition-colors">{t('hub_crypto_title')}</h3>
+                    <p className="text-[10px] text-foreground/45 font-mono uppercase tracking-[0.16em]">{t('hub_crypto_category')}</p>
                   </div>
                 </div>
-                <p className="t-body-sm text-muted-foreground leading-relaxed mb-4">
+                <p className="t-body-sm text-foreground/60 leading-relaxed mb-4">
                   {t('hub_crypto_desc')}
                 </p>
-                <div className="flex items-center gap-2 text-sm text-amber-400 font-medium">
-                  {t('hub_view_performance')} <ArrowRight className="w-4 h-4" />
+                <div className="inline-flex items-center gap-1.5 text-xs text-amber-500/80 group-hover:text-amber-500 transition-colors font-medium">
+                  {t('hub_view_performance')} <ArrowRight className="w-3.5 h-3.5" />
                 </div>
               </Link>
             </div>
@@ -79,9 +79,9 @@ export default function PerformanceHubPage() {
 
         <section className="section-padding border-b border-border/60">
           <div className="layout-container">
-            <div className="rounded-xl border border-border/60 bg-card p-6 sm:p-7 max-w-3xl">
+            <div className="rounded-xl border border-border/40 bg-card/40 p-6 sm:p-7 max-w-3xl">
               <p className="t-eyebrow mb-3">{t('risk_eyebrow')}</p>
-              <p className="text-xs text-foreground/55 leading-relaxed italic">
+              <p className="text-xs text-foreground/55 leading-relaxed">
                 {t('risk_body')}
               </p>
             </div>

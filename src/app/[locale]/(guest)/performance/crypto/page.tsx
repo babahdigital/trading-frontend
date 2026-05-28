@@ -71,8 +71,8 @@ export default function CryptoPerformancePage() {
               <ArrowLeft className="w-3.5 h-3.5" /> {t('back_hub')}
             </Link>
             <div className="hero-section-header">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-xs font-mono uppercase tracking-wider text-amber-700 dark:text-amber-300 mb-6">
-                <Bitcoin className="w-3.5 h-3.5" />
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-amber-500/[0.06] border border-amber-500/20 text-[10px] font-mono uppercase tracking-[0.18em] text-amber-600/90 dark:text-amber-400/80 mb-6">
+                <Bitcoin className="w-3 h-3" />
                 {t('hero_pill')}
               </div>
               <h1 className="t-display-page mb-6">
@@ -100,13 +100,12 @@ export default function CryptoPerformancePage() {
           <section className="section-padding border-b border-border/60">
             <div className="layout-container">
               <div className="flex items-center justify-between mb-8">
-                <h2 className="t-display-sub">{t('equity_title')}</h2>
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-xs text-foreground/50 font-mono">{t('equity_live')}</span>
+                <div>
+                  <p className="t-eyebrow mb-2">{t('equity_live')}</p>
+                  <h2 className="t-display-sub">{t('equity_title')}</h2>
                 </div>
               </div>
-              <div className="card-enterprise p-6" style={{ minHeight: 480 }}>
+              <div className="rounded-xl border border-border/60 bg-card/40 p-6" style={{ minHeight: 480 }}>
                 <EquityCurve
                   data={filteredEquity}
                   height={420}
@@ -120,10 +119,12 @@ export default function CryptoPerformancePage() {
         ) : (
           <section className="section-padding border-b border-border/60">
             <div className="layout-container">
-              <div className="rounded-xl border border-border/80 bg-card p-8 sm:p-12 text-center max-w-2xl mx-auto">
-                <Bitcoin className="w-10 h-10 text-amber-400 mx-auto mb-4" />
+              <div className="rounded-xl border border-border/40 bg-card/40 p-8 sm:p-12 text-center max-w-2xl mx-auto">
+                <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/[0.06] border border-amber-500/20 mb-4">
+                  <Bitcoin className="w-5 h-5 text-amber-500/80" />
+                </div>
                 <h2 className="t-display-sub mb-3">{t('pending_title')}</h2>
-                <p className="t-body text-muted-foreground mb-6">{t('pending_body')}</p>
+                <p className="t-body text-foreground/60 mb-6">{t('pending_body')}</p>
                 <Link href="/register?service=crypto" className="btn-primary">
                   {t('pending_cta')} <ArrowRight className="w-4 h-4" />
                 </Link>
@@ -137,11 +138,11 @@ export default function CryptoPerformancePage() {
             <div className="layout-container">
               <p className="t-eyebrow mb-3">{t('kpi_eyebrow')}</p>
               <h2 className="t-display-sub mb-12">{t('kpi_title')}</h2>
-              <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-px bg-border/40 rounded-xl overflow-hidden border border-border/40">
                 {KPI_METRICS.map((metric) => (
-                  <div key={metric.label} className="kpi-card">
-                    <p className="t-eyebrow mb-3">{metric.label}</p>
-                    <p className="text-kpi">{metric.value}</p>
+                  <div key={metric.label} className="bg-card/40 p-5 sm:p-6">
+                    <p className="text-[10px] uppercase tracking-[0.18em] text-foreground/45 font-mono mb-3">{metric.label}</p>
+                    <p className="font-mono text-2xl sm:text-3xl text-foreground/90 tabular-nums">{metric.value}</p>
                   </div>
                 ))}
               </div>

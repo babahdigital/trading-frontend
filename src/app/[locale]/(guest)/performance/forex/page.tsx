@@ -112,22 +112,16 @@ export default function PerformancePage() {
                 {hasLiveData ? t('hero_subtitle_live') : t('hero_subtitle_beta')}
               </p>
 
-              {/* Live equity stamp — surfaced dari master tenant Exness broker
-                  via /api/forex/accounts. Real number, refresh per page load.
-                  Hidden saat data tidak available (currentEquity null/0). */}
+              {/* Live equity — softened: no animation, muted accent.
+                  Real broker number from Exness master tenant. */}
               {currentEquity !== null && (
-                <div className="mt-8 inline-flex items-center gap-4 rounded-lg border border-border/60 bg-card/60 px-5 py-3 backdrop-blur">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" aria-hidden />
-                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-mono">
-                      {t('hero_equity_label')}
-                    </span>
-                  </div>
-                  <span className="text-xl font-mono font-semibold tabular-nums tracking-tight">
-                    ${currentEquity.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                <div className="mt-8 inline-flex items-center gap-3 rounded-md border border-border/40 bg-muted/20 px-4 py-2.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/70" aria-hidden />
+                  <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground font-mono">
+                    {t('hero_equity_label')}
                   </span>
-                  <span className="text-[10px] text-muted-foreground/70 hidden sm:inline">
-                    {t('hero_equity_source')}
+                  <span className="text-base font-mono font-medium tabular-nums text-foreground/90">
+                    ${currentEquity.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </div>
               )}
@@ -152,13 +146,12 @@ export default function PerformancePage() {
           <section className="section-padding border-b border-border/60">
             <div className="layout-container">
               <div className="flex items-center justify-between mb-8">
-                <h2 className="t-display-sub">{t('equity_curve_title')}</h2>
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-xs text-foreground/50 font-mono">{t('equity_live_label')}</span>
+                <div>
+                  <p className="t-eyebrow mb-2">{t('equity_live_label')}</p>
+                  <h2 className="t-display-sub">{t('equity_curve_title')}</h2>
                 </div>
               </div>
-              <div className="card-enterprise p-6" style={{ minHeight: 480 }}>
+              <div className="rounded-xl border border-border/60 bg-card/40 p-6" style={{ minHeight: 480 }}>
                 <EquityCurve
                   data={filteredEquity}
                   height={420}
@@ -167,7 +160,7 @@ export default function PerformancePage() {
                   onPeriodChange={setPeriod}
                 />
               </div>
-              <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-foreground/50">
+              <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-foreground/45">
                 <span>{t('equity_source_db')}</span>
                 <span aria-hidden className="w-px h-3 bg-border" />
                 <span>{t('equity_source_recon')}</span>
@@ -182,14 +175,14 @@ export default function PerformancePage() {
               <p className="t-body text-foreground/60 max-w-2xl mb-12">
                 {t('method_body')}
               </p>
-              <div className="grid md:grid-cols-2 gap-6">
+              <div className="grid md:grid-cols-2 gap-5">
                 {TRACKING_PILLAR_META.map((p) => (
-                  <div key={p.titleKey} className="rounded-xl border border-border/80 bg-card p-6 sm:p-7">
-                    <div className="icon-container mb-4">
-                      <p.icon className="w-5 h-5 text-amber-400" />
+                  <div key={p.titleKey} className="rounded-xl border border-border/40 bg-card/40 p-6 sm:p-7">
+                    <div className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-amber-500/[0.06] border border-amber-500/20 mb-4">
+                      <p.icon className="w-4 h-4 text-amber-500/80" />
                     </div>
-                    <h3 className="font-display text-xl font-medium mb-2">{t(p.titleKey)}</h3>
-                    <p className="t-body-sm text-foreground/65 leading-relaxed">{t(p.descKey)}</p>
+                    <h3 className="font-display text-lg font-medium mb-2 text-foreground/90">{t(p.titleKey)}</h3>
+                    <p className="t-body-sm text-foreground/60 leading-relaxed">{t(p.descKey)}</p>
                   </div>
                 ))}
               </div>
@@ -197,18 +190,18 @@ export default function PerformancePage() {
           </section>
         )}
 
-        {/* KPI Grid — only render when real data */}
+        {/* KPI Grid — only render when real data, softened typography */}
         {hasKpi && (
           <section className="section-padding border-b border-border/60">
             <div className="layout-container">
               <p className="t-eyebrow mb-3">{t('kpi_eyebrow')}</p>
               <h2 className="t-display-sub mb-12">{t('kpi_title')}</h2>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-border/40 rounded-xl overflow-hidden border border-border/40">
                 {KPI_METRICS.map((metric) => (
-                  <div key={metric.label} className="kpi-card">
-                    <p className="t-eyebrow mb-3">{metric.label}</p>
-                    <p className="text-kpi">{metric.value}</p>
-                    <p className="text-xs text-foreground/50 mt-2">{metric.note}</p>
+                  <div key={metric.label} className="bg-card/40 p-5 sm:p-6">
+                    <p className="text-[10px] uppercase tracking-[0.18em] text-foreground/45 font-mono mb-3">{metric.label}</p>
+                    <p className="font-mono text-2xl sm:text-3xl text-foreground/90 tabular-nums">{metric.value}</p>
+                    <p className="text-[11px] text-foreground/40 mt-2">{metric.note}</p>
                   </div>
                 ))}
               </div>
@@ -240,11 +233,11 @@ export default function PerformancePage() {
                       <tbody>
                         {sessionData.map((row) => (
                           <tr key={row.session}>
-                            <td className="!text-foreground/65 !font-body">{row.session}</td>
-                            <td className="text-right">{row.trades}</td>
-                            <td className="text-right">{row.winRate}</td>
-                            <td className="text-right text-emerald-400">{row.avgPnl}</td>
-                            <td className="text-right text-emerald-400 font-semibold">{row.netPnl}</td>
+                            <td className="!text-foreground/70 !font-body">{row.session}</td>
+                            <td className="text-right tabular-nums">{row.trades}</td>
+                            <td className="text-right tabular-nums">{row.winRate}</td>
+                            <td className="text-right tabular-nums text-foreground/75">{row.avgPnl}</td>
+                            <td className="text-right tabular-nums font-medium text-foreground/90">{row.netPnl}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -269,10 +262,10 @@ export default function PerformancePage() {
                       <tbody>
                         {dowData.map((row) => (
                           <tr key={row.day}>
-                            <td className="!text-foreground/65 !font-body">{row.day}</td>
-                            <td className="text-right">{row.trades}</td>
-                            <td className="text-right">{row.winRate}</td>
-                            <td className="text-right text-emerald-400">{row.avgPnl}</td>
+                            <td className="!text-foreground/70 !font-body">{row.day}</td>
+                            <td className="text-right tabular-nums">{row.trades}</td>
+                            <td className="text-right tabular-nums">{row.winRate}</td>
+                            <td className="text-right tabular-nums text-foreground/75">{row.avgPnl}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -292,15 +285,15 @@ export default function PerformancePage() {
             <p className="t-body text-foreground/60 max-w-2xl mb-12">
               {t('verify_body')}
             </p>
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-3 gap-5">
               {[
                 { title: t('verify_card1_title'), desc: t('verify_card1_desc') },
                 { title: t('verify_card2_title'), desc: t('verify_card2_desc') },
                 { title: t('verify_card3_title'), desc: t('verify_card3_desc') },
               ].map((card) => (
-                <div key={card.title} className="rounded-xl border border-border/80 bg-card p-6 sm:p-7">
-                  <h3 className="text-lg font-medium mb-3">{card.title}</h3>
-                  <p className="t-body-sm text-foreground/65 leading-relaxed">
+                <div key={card.title} className="rounded-xl border border-border/40 bg-card/40 p-6 sm:p-7">
+                  <h3 className="text-base font-medium mb-3 text-foreground/90">{card.title}</h3>
+                  <p className="t-body-sm text-foreground/60 leading-relaxed">
                     {card.desc}
                   </p>
                 </div>

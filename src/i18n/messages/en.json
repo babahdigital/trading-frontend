@@ -1578,6 +1578,7 @@
     "sticky_compare_cta": "Compare on Pricing",
     "sticky_demo_text": "Not sure yet? Try the free 7-day demo first.",
     "sticky_demo_cta": "Activate Demo",
+    "current_page_badge": "This Page",
     "sticky_contact_text": "Got a question? Our team is here to help.",
     "sticky_contact_cta": "Contact Us",
     "disclaimer_risk_standard": "Past performance does not guarantee future results. Trading financial instruments involves substantial risk and may result in partial or total loss of capital.",
@@ -1909,6 +1910,7 @@
   "legal_chrome": {
     "eyebrow": "Legal",
     "last_updated": "Last updated: April 1, 2026",
+    "last_updated_prefix": "Last updated",
     "related_eyebrow": "Related Documents",
     "page_terms": "Terms of Service",
     "page_privacy": "Privacy Policy",

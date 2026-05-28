@@ -1579,6 +1579,7 @@
     "sticky_compare_cta": "Bandingkan di Pricing",
     "sticky_demo_text": "Belum yakin? Coba demo gratis 7 hari dulu.",
     "sticky_demo_cta": "Aktifkan Demo",
+    "current_page_badge": "Halaman Ini",
     "sticky_contact_text": "Punya pertanyaan? Tim kami siap bantu.",
     "sticky_contact_cta": "Hubungi Kami",
     "disclaimer_risk_standard": "Kinerja masa lalu tidak menjamin hasil di masa depan. Trading instrumen finansial mengandung risiko substansial dan dapat mengakibatkan kerugian sebagian atau seluruh modal.",
@@ -1706,6 +1707,7 @@
   "legal_chrome": {
     "eyebrow": "Legal",
     "last_updated": "Terakhir diperbarui: 1 April 2026",
+    "last_updated_prefix": "Terakhir diperbarui",
     "related_eyebrow": "Dokumen Terkait",
     "page_terms": "Syarat Layanan",
     "page_privacy": "Kebijakan Privasi",

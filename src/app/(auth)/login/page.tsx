@@ -16,6 +16,7 @@ import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BrandLogo } from '@/components/layout/brand-logo';
 import { useToast } from '@/components/ui/toast';
+import { isAdminRole } from '@/lib/auth/roles';
 
 function VerifyBanner() {
   const params = useSearchParams();
@@ -76,6 +77,8 @@ function LoginInner() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [totpRequired, setTotpRequired] = useState(false);
+  const [totpCode, setTotpCode] = useState('');
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -86,13 +89,20 @@ function LoginInner() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, ...(totpRequired ? { totpCode } : {}) }),
         credentials: 'same-origin',
       });
 
       const data = await res.json();
 
       if (!res.ok) {
+        // 2FA challenge: backend returns { code: '2fa_required', requires2FA: true }.
+        // Switch to the TOTP step instead of surfacing it as a login error.
+        if (data.code === '2fa_required' || data.requires2FA) {
+          setTotpRequired(true);
+          setError('');
+          return;
+        }
         const code = typeof data.code === 'string' ? data.code : null;
         let message: string | null = null;
         if (code) {
@@ -115,7 +125,7 @@ function LoginInner() {
       // Halaman /login KHUSUS untuk customer/portal user.
       // Akun admin yang nyasar ke sini di-redirect ke /admin/login (operator
       // console terpisah). Auth API tetap satu — perbedaan hanya UI flow.
-      if (data.user.role === 'ADMIN') {
+      if (isAdminRole(data.user.role)) {
         toast.push({ tone: 'info', title: t('admin_redirect') });
         router.push('/admin/login');
         return;
@@ -258,6 +268,31 @@ function LoginInner() {
                 hideLabel={t('hide_password')}
               />
 
+              {totpRequired && (
+                <div className="space-y-3">
+                  <div className="flex items-start gap-2 rounded-md border border-primary/30 bg-primary/[0.06] px-3 py-2.5 text-xs">
+                    <ShieldCheck className="h-4 w-4 mt-0.5 shrink-0 text-[hsl(var(--primary))]" strokeWidth={2.25} />
+                    <div>
+                      <p className="font-semibold text-foreground">{t('totp_required_title')}</p>
+                      <p className="mt-0.5 leading-relaxed text-muted-foreground">{t('totp_hint')}</p>
+                    </div>
+                  </div>
+                  <Field
+                    id="totp-input"
+                    label={t('totp_label')}
+                    icon={ShieldCheck}
+                    type="text"
+                    inputMode="numeric"
+                    placeholder={t('totp_placeholder')}
+                    value={totpCode}
+                    onChange={(v) => setTotpCode(v.replace(/\D/g, '').slice(0, 8))}
+                    autoComplete="one-time-code"
+                    mono
+                    required
+                  />
+                </div>
+              )}
+
               {error && (
                 <div
                   role="alert"
@@ -279,11 +314,11 @@ function LoginInner() {
                       aria-hidden
                       className="inline-block h-3 w-3 rounded-full border-2 border-current border-t-transparent animate-spin"
                     />
-                    {t('signing_in')}
+                    {totpRequired ? t('verifying') : t('signing_in')}
                   </>
                 ) : (
                   <>
-                    {t('sign_in')}
+                    {totpRequired ? t('verify_code') : t('sign_in')}
                     <ArrowRight className="h-4 w-4" strokeWidth={2.25} />
                   </>
                 )}

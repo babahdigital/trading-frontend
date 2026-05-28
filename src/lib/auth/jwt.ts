@@ -1,14 +1,12 @@
 import { SignJWT, jwtVerify } from 'jose';
+import { ADMIN_ROLES, isAdminRole, type JwtRole } from './roles';
 
 const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 
-export type JwtRole = 'SUPER_ADMIN' | 'ADMIN' | 'OPERATOR' | 'CLIENT';
-
-export const ADMIN_ROLES: readonly JwtRole[] = ['SUPER_ADMIN', 'ADMIN', 'OPERATOR'];
-
-export function isAdminRole(role: string): boolean {
-  return (ADMIN_ROLES as readonly string[]).includes(role);
-}
+// Re-export the client-safe role helpers so existing `@/lib/auth/jwt` import
+// sites keep working. The source of truth lives in `./roles` (no jose/env).
+export { ADMIN_ROLES, isAdminRole };
+export type { JwtRole };
 
 export interface JwtPayload {
   sub: string;

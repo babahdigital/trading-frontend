@@ -51,10 +51,16 @@ export interface EmailShellParams {
   secondaryCta?: { label: string; href: string };
   hideDisclaimer?: boolean;
   hideHelp?: boolean;
+  /**
+   * Compliant unsubscribe URL for broadcast/marketing emails (CAN-SPAM). When
+   * omitted, the footer links to the in-portal notification settings — fine for
+   * transactional mail. Broadcasts should pass the configured unsubscribe URL.
+   */
+  unsubscribeUrl?: string;
 }
 
 export function renderEmailShell(params: EmailShellParams): string {
-  const { locale, subject, preheader, eyebrow, title, bodyHtml, cta, secondaryCta, hideDisclaimer, hideHelp } = params;
+  const { locale, subject, preheader, eyebrow, title, bodyHtml, cta, secondaryCta, hideDisclaimer, hideHelp, unsubscribeUrl } = params;
   const t = I18N[locale];
   const isEn = locale === 'en';
   const preheaderText = preheader ?? title;
@@ -84,7 +90,9 @@ export function renderEmailShell(params: EmailShellParams): string {
 
   const disclaimerBlock = hideDisclaimer
     ? ''
-    : `<p style="font-size: 11px; line-height: 1.5; color: rgba(250,250,247,0.35); margin: 16px 0 0 0; font-style: italic;">${t.legalDisclaimer}</p>`;
+    : `<div style="margin: 16px 0 0 0; padding: 12px 14px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px;">
+        <p style="font-size: 11px; line-height: 1.55; color: rgba(250,250,247,0.4); margin: 0;">${t.legalDisclaimer}</p>
+      </div>`;
 
   const eyebrowBlock = eyebrow
     ? `<div style="font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #F5B547; font-weight: 700; margin-bottom: 14px;">${eyebrow}</div>`
@@ -157,7 +165,7 @@ export function renderEmailShell(params: EmailShellParams): string {
               <p style="font-size: 11px; line-height: 1.5; color: rgba(250,250,247,0.35); margin: 0 0 12px 0;">${t.legalAddress}</p>
               <!-- Links -->
               <p style="font-size: 11px; line-height: 1.5; color: rgba(250,250,247,0.35); margin: 0 0 8px 0;">
-                <a href="${APP_URL}/portal/account/notifications" style="color: rgba(245,181,71,0.65); text-decoration: none;">${t.legalUnsub}</a>
+                <a href="${unsubscribeUrl ?? `${APP_URL}/portal/account/notifications`}" style="color: rgba(245,181,71,0.65); text-decoration: none;">${t.legalUnsub}</a>
                 &nbsp;·&nbsp;
                 <a href="${APP_URL}/legal/privacy" style="color: rgba(245,181,71,0.65); text-decoration: none;">${isEn ? 'Privacy' : 'Privasi'}</a>
                 &nbsp;·&nbsp;

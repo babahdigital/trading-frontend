@@ -70,7 +70,10 @@ export default function PerformancePage() {
   }, []);
 
   const filteredEquity = (() => {
-    const days = period === '7D' ? 7 : period === '30D' ? 30 : period === 'YTD' ? 365 : 90;
+    // '1Y'/'YTD' → ~365d window; 'ALL' → full series (no slice). Previously 1Y/ALL
+    // silently fell through to 90 days, so those buttons looked broken. (P2-BUG-1)
+    if (period === 'ALL') return equityData;
+    const days = period === '7D' ? 7 : period === '30D' ? 30 : (period === 'YTD' || period === '1Y') ? 365 : 90;
     return equityData.slice(-days);
   })();
 

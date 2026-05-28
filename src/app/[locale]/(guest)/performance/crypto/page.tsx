@@ -28,17 +28,19 @@ export default function CryptoPerformancePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/crypto/portfolio')
-      .then((r) => {
-        if (!r.ok) throw new Error('Not available');
-        return r.json();
-      })
+    // Public master-tenant crypto performance (no auth). Previously hit the
+    // auth-gated /api/crypto/portfolio which 401s for guests. (P1-DI-2)
+    let active = true;
+    fetch('/api/public/crypto-performance')
+      .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
-        setEquityData(data.equity || []);
-        setKpi(data.kpi || null);
+        if (!active) return;
+        setEquityData(data?.equity || []);
+        setKpi(data?.kpi || null);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch(() => { if (active) setLoading(false); });
+    return () => { active = false; };
   }, []);
 
   const filteredEquity = (() => {

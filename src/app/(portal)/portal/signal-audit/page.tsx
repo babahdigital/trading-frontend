@@ -10,6 +10,7 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { PageHeader } from '@/components/admin/page-header';
 import { EmptyState } from '@/components/admin/empty-state';
 import { formatDateTime, formatCurrency } from '@/lib/format-locale';
+import { formatMarketPrice } from '@/lib/formatters/signal-formatter';
 import type { Locale } from '@/lib/format-locale';
 import { FileSearch } from 'lucide-react';
 
@@ -221,9 +222,9 @@ export default function SignalAuditPage() {
                               {r.direction}
                             </span>
                           </td>
-                          <td className="py-2 px-2 text-right tabular-nums">{r.entryPrice ?? '—'}</td>
-                          <td className="py-2 px-2 text-right tabular-nums text-rose-600/80 dark:text-rose-300/80">{r.stopLoss ?? '—'}</td>
-                          <td className="py-2 px-2 text-right tabular-nums text-emerald-600/80 dark:text-emerald-300/80">{r.takeProfit ?? '—'}</td>
+                          <td className="py-2 px-2 text-right tabular-nums">{formatMarketPrice(r.entryPrice)}</td>
+                          <td className="py-2 px-2 text-right tabular-nums text-rose-600/80 dark:text-rose-300/80">{formatMarketPrice(r.stopLoss)}</td>
+                          <td className="py-2 px-2 text-right tabular-nums text-emerald-600/80 dark:text-emerald-300/80">{formatMarketPrice(r.takeProfit)}</td>
                           <td className="py-2 px-2 text-right tabular-nums">
                             {r.confidence ? Number(r.confidence).toFixed(2) : '—'}
                           </td>
@@ -307,15 +308,15 @@ export default function SignalAuditPage() {
                         <dl className="grid grid-cols-3 gap-2 text-xs">
                           <div>
                             <dt className="text-muted-foreground/70 text-[10px] uppercase tracking-wider">{t('table_entry')}</dt>
-                            <dd className="font-mono tabular-nums mt-0.5">{r.entryPrice ?? '—'}</dd>
+                            <dd className="font-mono tabular-nums mt-0.5">{formatMarketPrice(r.entryPrice)}</dd>
                           </div>
                           <div>
                             <dt className="text-muted-foreground/70 text-[10px] uppercase tracking-wider">{t('table_sl')}</dt>
-                            <dd className="font-mono tabular-nums mt-0.5 text-rose-600/80 dark:text-rose-300/80">{r.stopLoss ?? '—'}</dd>
+                            <dd className="font-mono tabular-nums mt-0.5 text-rose-600/80 dark:text-rose-300/80">{formatMarketPrice(r.stopLoss)}</dd>
                           </div>
                           <div>
                             <dt className="text-muted-foreground/70 text-[10px] uppercase tracking-wider">{t('table_tp')}</dt>
-                            <dd className="font-mono tabular-nums mt-0.5 text-emerald-600/80 dark:text-emerald-300/80">{r.takeProfit ?? '—'}</dd>
+                            <dd className="font-mono tabular-nums mt-0.5 text-emerald-600/80 dark:text-emerald-300/80">{formatMarketPrice(r.takeProfit)}</dd>
                           </div>
                         </dl>
                       </button>

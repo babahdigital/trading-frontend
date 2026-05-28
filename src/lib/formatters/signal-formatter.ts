@@ -1,5 +1,17 @@
 import type { Signal } from '@/types/signal';
 
+/**
+ * Display a market price consistently across portal signal surfaces
+ * (/portal/signals + /portal/signal-audit), which previously diverged — one
+ * formatted with US grouping + 2dp, the other rendered the raw string. (P2-DI-12)
+ */
+export function formatMarketPrice(value: unknown): string {
+  if (value == null || value === '') return '—';
+  const n = typeof value === 'number' ? value : parseFloat(String(value));
+  if (Number.isNaN(n)) return '—';
+  return n.toLocaleString('en-US', { maximumFractionDigits: 5, minimumFractionDigits: 2 });
+}
+
 interface Subscriber {
   tier: string;
   language: string;

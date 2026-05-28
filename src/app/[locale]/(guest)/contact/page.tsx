@@ -8,6 +8,7 @@ import {
   CalendarCheck, ShieldCheck, FileSignature, MessagesSquare,
 } from 'lucide-react';
 import { getPageMetadata } from '@/lib/seo';
+import { getCompanySettings } from '@/lib/company/settings';
 import { TrustStrip } from '@/components/shared/trust-strip';
 import { ChatOpenButton } from '@/components/chat/chat-open-button';
 import { Sparkles } from 'lucide-react';
@@ -38,6 +39,10 @@ const AGENDA_META = [
 
 export default async function ContactPage() {
   const t = await getTranslations('contact_page');
+  const company = await getCompanySettings();
+  const tgHandle = company.telegramUrl
+    ? `@${company.telegramUrl.replace(/\/+$/, '').split('/').pop()}`
+    : '';
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -130,27 +135,33 @@ export default async function ContactPage() {
                   <ChannelCard
                     icon={<Mail className="w-5 h-5" />}
                     title={t('channel_general_title')}
-                    href="mailto:hello@babahalgo.com"
-                    value="hello@babahalgo.com"
+                    href={`mailto:${company.emailGeneral}`}
+                    value={company.emailGeneral}
                   />
                   <ChannelCard
                     icon={<Mail className="w-5 h-5" />}
                     title={t('channel_ir_title')}
-                    href="mailto:ir@babahalgo.com"
-                    value="ir@babahalgo.com"
+                    href={`mailto:${company.emailCompliance}`}
+                    value={company.emailCompliance}
                   />
-                  <ChannelCard
-                    icon={<MessageCircle className="w-5 h-5" />}
-                    title={t('channel_wa_title')}
-                    href="https://t.me/babahalgo"
-                    value={t('channel_wa_value')}
-                  />
-                  <ChannelCard
-                    icon={<Send className="w-5 h-5" />}
-                    title={t('channel_tg_title')}
-                    href="https://t.me/babahalgo"
-                    value="@babahalgo"
-                  />
+                  {/* WhatsApp — only when a real number is configured. Never alias
+                      to Telegram with a placeholder (P1-DI-10). */}
+                  {company.whatsappDigits ? (
+                    <ChannelCard
+                      icon={<MessageCircle className="w-5 h-5" />}
+                      title={t('channel_wa_title')}
+                      href={`https://wa.me/${company.whatsappDigits}`}
+                      value={`+${company.whatsappDigits}`}
+                    />
+                  ) : null}
+                  {company.telegramUrl ? (
+                    <ChannelCard
+                      icon={<Send className="w-5 h-5" />}
+                      title={t('channel_tg_title')}
+                      href={company.telegramUrl}
+                      value={tgHandle}
+                    />
+                  ) : null}
                   {/* Chat AI Assistant — instant response, kontextual ke topik
                       yang user sedang baca. Dispatch event ke ChatWidget global. */}
                   <ChatOpenButton

@@ -295,7 +295,12 @@ export function ArticleDetailClient({ article }: ArticleDetailClientProps) {
         description: excerpt || title,
         author: article.author,
         publishedAt: article.publishedAt ?? undefined,
-        imageUrl: article.imageUrl,
+        // article.imageUrl is the sentinel 'has-image' (a boolean gate, not a URL).
+        // Build the real binary-endpoint URL so JSON-LD emits a valid https image,
+        // not "image":["has-image"] (rejected by Google). Mirrors generateMetadata. (P1-DI-5)
+        imageUrl: article.imageUrl
+          ? `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://babahalgo.com'}/api/public/articles/image?slug=${article.slug}`
+          : null,
         category: article.category,
         locale: isEn ? 'en' : 'id',
       })

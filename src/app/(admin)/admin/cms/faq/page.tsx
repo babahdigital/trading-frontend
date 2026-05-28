@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ExternalLink, HelpCircle, Plus } from 'lucide-react';
+import { AlertTriangle, Check, ExternalLink, HelpCircle, Info, Languages, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -170,7 +170,9 @@ export default function CmsFaqPage() {
                     onClick={() => handleTranslateRow(crud.editing!.id)}
                     disabled={translatingId === crud.editing.id}
                   >
-                    {translatingId === crud.editing.id ? 'Translating...' : '🌐 Auto-translate'}
+                    {translatingId === crud.editing.id ? 'Translating...' : (
+                      <span className="inline-flex items-center gap-1.5"><Languages className="h-4 w-4" />Auto-translate</span>
+                    )}
                   </Button>
                 )}
               </div>
@@ -192,8 +194,8 @@ export default function CmsFaqPage() {
                 />
               </div>
               {!crud.editing.id && (
-                <p className="text-xs text-amber-600 dark:text-amber-400">
-                  ⓘ Simpan dulu (Bahasa Indonesia), lalu tombol Auto-translate akan tersedia.
+                <p className="text-xs text-amber-600 dark:text-amber-400 inline-flex items-center gap-1.5">
+                  <Info className="h-4 w-4 shrink-0" />Simpan dulu (Bahasa Indonesia), lalu tombol Auto-translate akan tersedia.
                 </p>
               )}
             </div>
@@ -236,9 +238,9 @@ export default function CmsFaqPage() {
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <span className="font-mono text-xs bg-muted px-2 py-0.5 rounded">{f.category}</span>
                     {hasEnglish(f) ? (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-emerald-500/15 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">✓ EN</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-emerald-500/15 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 inline-flex items-center gap-1"><Check className="h-3 w-3" />EN</span>
                     ) : (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-amber-500/15 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">⚠ Need EN</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-amber-500/15 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300 inline-flex items-center gap-1"><AlertTriangle className="h-3 w-3" />Need EN</span>
                     )}
                   </div>
                   <span className="font-semibold truncate block">{f.question}</span>
@@ -254,7 +256,9 @@ export default function CmsFaqPage() {
                       onClick={() => handleTranslateRow(f.id)}
                       disabled={translatingId === f.id}
                     >
-                      {translatingId === f.id ? 'Translating...' : '🌐 Auto-translate'}
+                      {translatingId === f.id ? 'Translating...' : (
+                        <span className="inline-flex items-center gap-1.5"><Languages className="h-4 w-4" />Auto-translate</span>
+                      )}
                     </Button>
                   )}
                   <Button size="sm" variant="outline" onClick={() => crud.startEdit(f)}>Edit</Button>

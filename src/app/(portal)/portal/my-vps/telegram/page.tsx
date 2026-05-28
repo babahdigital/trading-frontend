@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth/auth-context';
-import { ArrowLeft, Bot, CheckCircle2, ExternalLink, MessageCircle, XCircle } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, BarChart3, Bot, CheckCircle2, ExternalLink, MessageCircle, TrendingDown, TrendingUp, XCircle, type LucideIcon } from 'lucide-react';
 import { PageHeader } from '@/components/admin/page-header';
 
 interface Profile {
@@ -36,10 +36,10 @@ export default function MyVpsTelegramPage() {
   const isConnected = !!profile?.telegramChatId;
 
   const NOTIF_TYPES = [
-    { icon: '📈', titleKey: 'notif_open_title', descKey: 'notif_open_desc' },
-    { icon: '📉', titleKey: 'notif_close_title', descKey: 'notif_close_desc' },
-    { icon: '📊', titleKey: 'notif_daily_title', descKey: 'notif_daily_desc' },
-    { icon: '⚠️', titleKey: 'notif_alert_title', descKey: 'notif_alert_desc' },
+    { icon: TrendingUp, titleKey: 'notif_open_title', descKey: 'notif_open_desc' },
+    { icon: TrendingDown, titleKey: 'notif_close_title', descKey: 'notif_close_desc' },
+    { icon: BarChart3, titleKey: 'notif_daily_title', descKey: 'notif_daily_desc' },
+    { icon: AlertTriangle, titleKey: 'notif_alert_title', descKey: 'notif_alert_desc' },
   ] as const;
 
   return (
@@ -174,10 +174,10 @@ function Step({ number, title, children }: { number: number; title: string; chil
   );
 }
 
-function NotifType({ icon, title, desc }: { icon: string; title: string; desc: string }) {
+function NotifType({ icon: Icon, title, desc }: { icon: LucideIcon; title: string; desc: string }) {
   return (
     <div className="flex items-start gap-3 p-3 rounded-lg border">
-      <span className="text-lg">{icon}</span>
+      <Icon className="w-5 h-5 text-muted-foreground flex-shrink-0" />
       <div>
         <p className="text-sm font-medium">{title}</p>
         <p className="text-xs text-muted-foreground">{desc}</p>

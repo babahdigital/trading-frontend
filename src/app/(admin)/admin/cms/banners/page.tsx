@@ -27,7 +27,9 @@ interface BannerItem {
   endsAt: string | null;
 }
 
-const emptyBanner: BannerItem = { id: '', title: '', content: '', linkUrl: '', linkLabel: '', position: 'TOP', bgColor: '#0ea5e9', textColor: '#ffffff', isActive: true, startsAt: null, endsAt: null };
+const DEFAULT_BANNER_COLOR = '#0ea5e9';
+
+const emptyBanner: BannerItem = { id: '', title: '', content: '', linkUrl: '', linkLabel: '', position: 'TOP', bgColor: DEFAULT_BANNER_COLOR, textColor: '#ffffff', isActive: true, startsAt: null, endsAt: null };
 
 export default function CmsBannersPage() {
   const confirm = useConfirm();
@@ -81,7 +83,7 @@ export default function CmsBannersPage() {
                   <option value="FLOATING">Floating</option>
                 </select>
               </div>
-              <div><label className="text-sm font-medium mb-1 block">BG Color</label><Input type="color" value={crud.editing.bgColor || '#0ea5e9'} onChange={(e) => crud.updateField('bgColor', e.target.value)} /></div>
+              <div><label className="text-sm font-medium mb-1 block">BG Color</label><Input type="color" value={crud.editing.bgColor || DEFAULT_BANNER_COLOR} onChange={(e) => crud.updateField('bgColor', e.target.value)} /></div>
               <div><label className="text-sm font-medium mb-1 block">Text Color</label><Input type="color" value={crud.editing.textColor || '#ffffff'} onChange={(e) => crud.updateField('textColor', e.target.value)} /></div>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -127,7 +129,7 @@ export default function CmsBannersPage() {
               <Card key={b.id}>
                 <CardContent className="p-4 flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-4 h-4 rounded border" style={{ backgroundColor: b.bgColor || '#0ea5e9' }} />
+                    <div className="w-4 h-4 rounded border" style={{ backgroundColor: b.bgColor || DEFAULT_BANNER_COLOR }} />
                     <div className="flex items-center gap-2">
                       <span className="font-semibold">{b.title}</span>
                       <span className="text-xs text-muted-foreground">{b.position}</span>

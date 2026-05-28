@@ -17,6 +17,7 @@ import { SubscriptionRequiredEmpty } from '@/components/portal/subscription-requ
 import { formatCurrency, formatPercent } from '@/lib/format-locale';
 import type { Locale } from '@/lib/format-locale';
 import { TrendingUp, Activity, TrendingDown, Award, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { chartTheme } from '@/lib/charts/theme';
 
 interface PairBreakdown {
   pair: string;
@@ -48,7 +49,7 @@ interface PerformanceData {
   close_reasons?: { reason: string; trades: number; pnl: number }[];
 }
 
-const STRATEGY_COLORS = ['#22c55e', '#3b82f6', '#8b5cf6', '#f97316', '#06b6d4', '#ec4899'];
+const STRATEGY_COLORS = chartTheme.series;
 
 function genericSetup(setup: string): string {
   return strategyDisplayName(setup, isStrategyObfuscationEnabled());

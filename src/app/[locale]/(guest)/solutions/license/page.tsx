@@ -1,6 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
-import { ArrowRight, Server, Building2, TrendingUp, Info, Cpu, ShieldCheck, Activity, FileCheck, Zap, Wrench, Check } from 'lucide-react';
+import { ArrowRight, Server, Building2, TrendingUp, Info, Cpu, ShieldCheck, Activity, FileCheck, Zap, Wrench, Check, Lightbulb } from 'lucide-react';
 import { breadcrumbSchema, financialProductSchema, organizationSchema } from '@/lib/seo-jsonld';
 import { SolutionPageShell } from '@/components/solutions/solution-page-shell';
 import { formatPrice, PRICE_TABLE, type Locale } from '@/lib/pricing-format';
@@ -296,7 +296,7 @@ export default async function LicensePage() {
 
               {/* Tip note — broker biasanya kasih VPS Windows gratis */}
               <div className="mt-5 p-4 rounded-lg bg-emerald-500/[0.05] border border-emerald-500/20 flex items-start gap-3">
-                <span className="text-emerald-400 mt-0.5">💡</span>
+                <Lightbulb className="h-4 w-4 text-emerald-400 mt-0.5 flex-shrink-0" />
                 <p className="text-xs sm:text-sm text-foreground/70 leading-relaxed flex-1">
                   {t('matrix_note')}
                 </p>

@@ -1,6 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
-import { ArrowRight, FileCheck, Wrench, LifeBuoy, Wallet, AlertCircle, Building2, Server } from 'lucide-react';
+import { ArrowRight, FileCheck, Wrench, LifeBuoy, Wallet, AlertCircle, Building2, Server, Check } from 'lucide-react';
 import { breadcrumbSchema, organizationSchema, professionalServiceSchema } from '@/lib/seo-jsonld';
 import { SolutionPageShell } from '@/components/solutions/solution-page-shell';
 import { formatPriceRange, formatPrice, type Locale } from '@/lib/pricing-format';
@@ -224,11 +224,11 @@ export default async function InstitutionalPage({ params }: { params: Promise<{ 
                     </p>
                     <div className="space-y-2 mb-4">
                       <p className="text-sm text-sky-200/90 flex items-start gap-2">
-                        <span className="text-sky-400 mt-0.5">✓</span>
+                        <Check className="w-4 h-4 text-sky-400 mt-0.5 shrink-0" aria-label="check" />
                         <span>{t('aum_badge_not_fee')}</span>
                       </p>
                       <p className="text-sm text-sky-200/90 flex items-start gap-2">
-                        <span className="text-sky-400 mt-0.5">✓</span>
+                        <Check className="w-4 h-4 text-sky-400 mt-0.5 shrink-0" aria-label="check" />
                         <span>{t('aum_badge_zero_custody')}</span>
                       </p>
                     </div>

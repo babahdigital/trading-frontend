@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useLocale } from 'next-intl';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { ArrowLeft } from 'lucide-react';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
 import { escapeHtml } from '@/lib/sanitize';
@@ -160,9 +161,7 @@ export default function BriefDetailPage() {
                   href={`/${locale}/research/briefs`}
                   className="inline-flex items-center gap-2 text-sm text-foreground/40 hover:text-amber-400 transition-colors mb-6"
                 >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                  </svg>
+                  <ArrowLeft className="w-4 h-4" />
                   {isEn ? 'Back to Briefs' : 'Kembali ke Laporan'}
                 </Link>
 
@@ -344,9 +343,7 @@ export default function BriefDetailPage() {
                   href={`/${locale}/research/briefs`}
                   className="inline-flex items-center gap-2 text-sm text-foreground/40 hover:text-amber-400 transition-colors"
                 >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                  </svg>
+                  <ArrowLeft className="w-4 h-4" />
                   {isEn ? 'Back to Briefs' : 'Kembali ke Laporan'}
                 </Link>
               </div>

@@ -68,7 +68,7 @@ const COPY: Record<'id' | 'en', {
       pair: '/portal/account#trading',
     },
     completed: {
-      title: '🎉 Semua langkah onboarding selesai',
+      title: 'Semua langkah onboarding selesai',
       body: 'Bot siap eksekusi. Pantau performa real-time di dashboard ini.',
     },
   },
@@ -95,7 +95,7 @@ const COPY: Record<'id' | 'en', {
       pair: '/portal/account#trading',
     },
     completed: {
-      title: '🎉 Onboarding completed',
+      title: 'Onboarding completed',
       body: 'The bot is ready to execute. Track live performance from this dashboard.',
     },
   },

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { KeyRound, ShieldCheck, ShieldAlert, AlertTriangle, ExternalLink, Eye, EyeOff, ChevronLeft } from 'lucide-react';
+import { KeyRound, ShieldCheck, ShieldAlert, AlertTriangle, ExternalLink, Eye, EyeOff, ChevronLeft, Check, X, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -77,9 +77,9 @@ export default function CryptoConnectPage() {
           <div className="text-sm">
             <p className="font-semibold text-amber-200 mb-1">{t('permission_title')}</p>
             <ul className="space-y-1 text-amber-200/80">
-              <li>{'✓'} {t('permission_enable_reading_pre')} <span className="font-mono">{t('permission_enable_reading_main')}</span> {t('permission_enable_reading_and')} <span className="font-mono">{t('permission_enable_futures')}</span> {t('permission_enable_reading_post')}</li>
-              <li className="text-red-300">{'✗'} {t('permission_disable_pre')} <span className="font-mono">{t('permission_disable_main')}</span></li>
-              <li>{'→'} {t('permission_ip_pre')} <span className="font-mono">{t('permission_ip_main')}</span> {t('permission_ip_post')}</li>
+              <li className="flex items-start gap-1.5"><Check className="h-4 w-4 shrink-0 mt-0.5" /> <span>{t('permission_enable_reading_pre')} <span className="font-mono">{t('permission_enable_reading_main')}</span> {t('permission_enable_reading_and')} <span className="font-mono">{t('permission_enable_futures')}</span> {t('permission_enable_reading_post')}</span></li>
+              <li className="flex items-start gap-1.5 text-red-300"><X className="h-4 w-4 shrink-0 mt-0.5" /> <span>{t('permission_disable_pre')} <span className="font-mono">{t('permission_disable_main')}</span></span></li>
+              <li className="flex items-start gap-1.5"><ArrowRight className="h-4 w-4 shrink-0 mt-0.5" /> <span>{t('permission_ip_pre')} <span className="font-mono">{t('permission_ip_main')}</span> {t('permission_ip_post')}</span></li>
             </ul>
           </div>
         </CardContent>
@@ -191,7 +191,7 @@ export default function CryptoConnectPage() {
                     <ul className="font-mono text-xs text-green-200/70 mt-2 space-y-0.5">
                       <li>canRead: {String(result.permissions.canRead)}</li>
                       <li>canTrade: {String(result.permissions.canTrade)}</li>
-                      <li>canWithdraw: {String(result.permissions.canWithdraw)} {result.permissions.canWithdraw && '⚠️'}</li>
+                      <li className="flex items-center gap-1">canWithdraw: {String(result.permissions.canWithdraw)} {result.permissions.canWithdraw && <AlertTriangle className="h-3.5 w-3.5 text-amber-400" />}</li>
                     </ul>
                   )}
                   <p className="text-green-200/60 text-xs mt-2">{t('result_redirect')}</p>

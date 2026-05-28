@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { ExternalLink, Tags, Plus } from 'lucide-react';
+import { ExternalLink, Tags, Plus, Languages, Info, Check, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -239,8 +239,9 @@ export default function CmsPricingPage() {
                     size="sm"
                     onClick={() => handleTranslateRow(editing.id)}
                     disabled={translatingId === editing.id}
+                    className="gap-1.5"
                   >
-                    {translatingId === editing.id ? 'Translating...' : '🌐 Auto-translate'}
+                    {translatingId === editing.id ? 'Translating...' : (<><Languages className="h-4 w-4" /> Auto-translate</>)}
                   </Button>
                 )}
               </div>
@@ -259,7 +260,7 @@ export default function CmsPricingPage() {
               </div>
               <div><label className="text-sm font-medium mb-1 block">CTA Label (EN)</label><Input value={editing.ctaLabel_en ?? ''} onChange={(e) => setEditing({ ...editing, ctaLabel_en: e.target.value || null })} /></div>
               {!editing.id && (
-                <p className="text-xs text-amber-600 dark:text-amber-400">ⓘ Simpan dulu (Indonesian), lalu tombol Auto-translate akan tersedia.</p>
+                <p className="text-xs text-amber-600 dark:text-amber-400 inline-flex items-center gap-1"><Info className="h-3.5 w-3.5" /> Simpan dulu (Indonesian), lalu tombol Auto-translate akan tersedia.</p>
               )}
             </div>
 
@@ -294,9 +295,9 @@ export default function CmsPricingPage() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
                     {hasEnglish(t) ? (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-emerald-500/15 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">✓ EN</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-emerald-500/15 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 inline-flex items-center gap-1"><Check className="h-3 w-3" /> EN</span>
                     ) : (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-amber-500/15 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">⚠ Need EN</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-amber-500/15 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300 inline-flex items-center gap-1"><AlertTriangle className="h-3 w-3" /> Need EN</span>
                     )}
                     <span className="font-semibold">{t.name}</span>
                     <span className="text-primary font-bold">{t.price}</span>
@@ -311,8 +312,9 @@ export default function CmsPricingPage() {
                       variant="outline"
                       onClick={() => handleTranslateRow(t.id)}
                       disabled={translatingId === t.id}
+                      className="gap-1.5"
                     >
-                      {translatingId === t.id ? 'Translating...' : '🌐 Auto-translate'}
+                      {translatingId === t.id ? 'Translating...' : (<><Languages className="h-4 w-4" /> Auto-translate</>)}
                     </Button>
                   )}
                   <Button size="sm" variant="outline" onClick={() => setEditing(t)}>Edit</Button>

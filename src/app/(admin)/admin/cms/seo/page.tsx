@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { Search, Plus } from 'lucide-react';
+import { Search, Plus, Languages, Info, Check, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -172,8 +172,9 @@ export default function CmsSeoPage() {
                     size="sm"
                     onClick={() => handleTranslateRow(editing.id)}
                     disabled={translatingId === editing.id}
+                    className="gap-1.5"
                   >
-                    {translatingId === editing.id ? 'Translating...' : '🌐 Auto-translate'}
+                    {translatingId === editing.id ? 'Translating...' : <><Languages className="h-4 w-4" /> Auto-translate</>}
                   </Button>
                 )}
               </div>
@@ -184,7 +185,7 @@ export default function CmsSeoPage() {
                 <div><label className="text-sm font-medium mb-1 block">OG Description (EN)</label><Input value={editing.ogDescription_en ?? ''} onChange={(e) => setEditing({ ...editing, ogDescription_en: e.target.value || null })} /></div>
               </div>
               {!editing.id && (
-                <p className="text-xs text-amber-600 dark:text-amber-400">ⓘ Simpan dulu (Indonesian), lalu Auto-translate akan tersedia.</p>
+                <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1"><Info className="h-3.5 w-3.5 shrink-0" /> Simpan dulu (Indonesian), lalu Auto-translate akan tersedia.</p>
               )}
             </div>
 
@@ -218,9 +219,9 @@ export default function CmsSeoPage() {
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <span className="font-mono text-xs bg-muted px-2 py-0.5 rounded">{p.path}</span>
                     {hasEnglish(p) ? (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-emerald-500/15 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">✓ EN</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-emerald-500/15 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 inline-flex items-center gap-0.5"><Check className="h-3 w-3" /> EN</span>
                     ) : (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-amber-500/15 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">⚠ Need EN</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-amber-500/15 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300 inline-flex items-center gap-0.5"><AlertTriangle className="h-3 w-3" /> Need EN</span>
                     )}
                   </div>
                   <span className="font-semibold truncate block">{p.title}</span>
@@ -233,8 +234,9 @@ export default function CmsSeoPage() {
                       variant="outline"
                       onClick={() => handleTranslateRow(p.id)}
                       disabled={translatingId === p.id}
+                      className="gap-1.5"
                     >
-                      {translatingId === p.id ? 'Translating...' : '🌐 Auto-translate'}
+                      {translatingId === p.id ? 'Translating...' : <><Languages className="h-4 w-4" /> Auto-translate</>}
                     </Button>
                   )}
                   <Button size="sm" variant="outline" onClick={() => setEditing(p)}>Edit</Button>

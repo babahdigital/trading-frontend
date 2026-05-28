@@ -1,5 +1,5 @@
 import { Link } from '@/i18n/navigation';
-import { Check, X, ArrowRight, ShieldAlert } from 'lucide-react';
+import { Check, X, Minus, ArrowRight, ShieldAlert } from 'lucide-react';
 import { TIERS, TIER_ORDER, tierAccentClasses, type TierName } from '@/lib/tiers/tier-config';
 import { cn } from '@/lib/utils';
 
@@ -251,7 +251,7 @@ export function TierComparisonMatrix({ locale }: TierComparisonMatrixProps) {
                 <dt className="text-muted-foreground">{t.label_min_equity}</dt>
                 <dd className="text-foreground font-mono text-right">{formatEquity(cfg.minEquity)}</dd>
                 <dt className="text-muted-foreground">{t.label_real_trading}</dt>
-                <dd className="text-foreground text-right">{cfg.realTrading ? '✓' : '—'}</dd>
+                <dd className="text-foreground text-right">{cfg.realTrading ? <Check className="h-4 w-4 ml-auto text-[hsl(var(--profit))]" strokeWidth={2.25} aria-label={t.sign_check} /> : <Minus className="h-4 w-4 ml-auto text-muted-foreground/50" strokeWidth={2} aria-label={t.sign_x} />}</dd>
                 <dt className="text-muted-foreground">{t.label_strategies}</dt>
                 <dd className="text-foreground font-mono text-right">{cfg.strategies.length}</dd>
                 <dt className="text-muted-foreground">{t.label_pairs}</dt>
@@ -259,9 +259,9 @@ export function TierComparisonMatrix({ locale }: TierComparisonMatrixProps) {
                 <dt className="text-muted-foreground">{t.label_ai_mode}</dt>
                 <dd className="text-foreground text-right text-[11px]">{aiModeLabel(cfg.riskMode)}</dd>
                 <dt className="text-muted-foreground">{t.label_kelly}</dt>
-                <dd className="text-foreground text-right">{cfg.kelly ? '✓' : '—'}</dd>
+                <dd className="text-foreground text-right">{cfg.kelly ? <Check className="h-4 w-4 ml-auto text-[hsl(var(--profit))]" strokeWidth={2.25} aria-label={t.sign_check} /> : <Minus className="h-4 w-4 ml-auto text-muted-foreground/50" strokeWidth={2} aria-label={t.sign_x} />}</dd>
                 <dt className="text-muted-foreground">{t.label_custom_allow}</dt>
-                <dd className="text-foreground text-right">{cfg.customAllowList ? '✓' : '—'}</dd>
+                <dd className="text-foreground text-right">{cfg.customAllowList ? <Check className="h-4 w-4 ml-auto text-[hsl(var(--profit))]" strokeWidth={2.25} aria-label={t.sign_check} /> : <Minus className="h-4 w-4 ml-auto text-muted-foreground/50" strokeWidth={2} aria-label={t.sign_x} />}</dd>
               </dl>
               <Link
                 href={cta.href}

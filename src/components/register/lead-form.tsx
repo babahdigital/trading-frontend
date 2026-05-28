@@ -6,6 +6,7 @@
  */
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { CheckCircle2 } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -62,7 +63,7 @@ export function LeadForm({ service, locale }: LeadFormProps) {
   if (submitted) {
     return (
       <div className="card-enterprise text-center">
-        <div className="text-4xl mb-4">✅</div>
+        <div className="mb-4 flex justify-center"><CheckCircle2 className="h-12 w-12 text-emerald-400" /></div>
         <h2 className="t-display-sub mb-2">
           {service.wizard.successTitleKey ? t(service.wizard.successTitleKey) : t('success_register')}
         </h2>

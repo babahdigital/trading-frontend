@@ -128,7 +128,7 @@ export default function AdminDashboard() {
               action: (s.last_action as string) || '-',
               confidence: (s.confidence as number) || 0,
               condition: (s.market_condition as string) || '-',
-              updatedAgo: s.updated_seconds_ago ? `${s.updated_seconds_ago}d` : '-',
+              updatedAgo: s.updated_seconds_ago ? `${s.updated_seconds_ago}s` : '-',
             };
           });
           setAiStates(states);
@@ -175,7 +175,7 @@ export default function AdminDashboard() {
                 action: (s.last_action as string) || '-',
                 confidence: (s.confidence as number) || 0,
                 condition: (s.market_condition as string) || '-',
-                updatedAgo: s.updated_seconds_ago ? `${s.updated_seconds_ago}d` : '-',
+                updatedAgo: s.updated_seconds_ago ? `${s.updated_seconds_ago}s` : '-',
               };
             });
             setAiStates(states);

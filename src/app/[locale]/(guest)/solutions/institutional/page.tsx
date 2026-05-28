@@ -79,7 +79,7 @@ export default async function InstitutionalPage({ params }: { params: Promise<{ 
     {
       icon: LifeBuoy,
       titleKey: 'cost_support_title',
-      value: t('cost_support_value_prefix', { defaultValue: 'Mulai' }) + ' ' + supportMonthly,
+      value: t('cost_support_value_prefix') + ' ' + supportMonthly,
       descKey: 'cost_support_desc',
     },
   ];

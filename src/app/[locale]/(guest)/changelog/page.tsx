@@ -95,7 +95,7 @@ export default function ChangelogPage() {
                       {e.category}
                     </span>
                     <time className="text-xs text-foreground/50 ml-auto" dateTime={e.releasedAt}>
-                      {new Date(e.releasedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                      {new Date(e.releasedAt).toLocaleDateString(locale === 'en' ? 'en-US' : 'id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
                     </time>
                   </header>
                   <h2 className="text-xl font-semibold mb-3">

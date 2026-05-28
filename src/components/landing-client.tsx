@@ -328,10 +328,10 @@ export function LandingClient({ sections, testimonials, faqs, pricingOverrides, 
                       </span>
                     </div>
                     <Suspense><EquityCurve
-                      data={filteredEquity.slice(-30)}
+                      data={filteredEquity}
                       height={210}
                       periods={[]}
-                      activePeriod="30D"
+                      activePeriod={equityPeriod}
                     /></Suspense>
                     <div className="flex items-center justify-between mt-4 pt-4 border-t border-border/40">
                       <div>
@@ -361,9 +361,9 @@ export function LandingClient({ sections, testimonials, faqs, pricingOverrides, 
 
                     {/* Inline mini stats — softened typography */}
                     <div className="grid grid-cols-2 gap-x-6 gap-y-3 mb-6 pb-6 border-b border-border/30">
-                      <CapabilityInline value={tradingInfo?.strategyCount ?? '4'} label={t('capability_strategy')} />
+                      <CapabilityInline value={tradingInfo?.strategyCount ?? '—'} label={t('capability_strategy')} />
                       <CapabilityInline value="12" label={t('capability_risk')} />
-                      <CapabilityInline value={tradingInfo?.assetCount ?? '19+'} label={t('capability_assets')} />
+                      <CapabilityInline value={tradingInfo?.assetCount ?? '—'} label={t('capability_assets')} />
                       <CapabilityInline value="0" label={t('capability_custody')} valueClass="text-emerald-500/85" />
                     </div>
 

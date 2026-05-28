@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -219,7 +220,10 @@ export default function VpsPage() {
                           {vps.lastResponseTime != null ? `${vps.lastResponseTime}ms` : '-'}
                         </td>
                         <td className="p-4" data-label="Actions">
-                          <Button variant="ghost" size="sm">{t('btn_details')}</Button>
+                          {/* Wire the previously-inert Details button to the fleet detail page. (P3-BUG-4) */}
+                          <Button variant="ghost" size="sm" asChild>
+                            <Link href={`/admin/vps-fleet/${vps.id}`}>{t('btn_details')}</Link>
+                          </Button>
                         </td>
                       </tr>
                     );

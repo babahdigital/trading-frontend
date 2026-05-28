@@ -93,6 +93,8 @@ export const CRYPTO_STRATEGY_COUNT = CRYPTO_STRATEGIES.length; // 4
 export const CRYPTO_MARKET = 'USDT-M Futures' as const;
 export const CRYPTO_EXCHANGE = 'Binance' as const;
 export const CRYPTO_HAS_SPOT = false;
+/** Paper-trading demo wallet size (USDT). Single source — was hardcoded in the crypto tier matrix. (P2-DI-7) */
+export const CRYPTO_DEMO_WALLET_USD = 5000;
 
 export const CRYPTO_TIERS = [
   { slug: 'demo', name: 'Demo', price_usd: 0, price_idr: 0, slots: 1, leverage: 2, risk_pct: 0.5, strategies: ['scalping_momentum'] },

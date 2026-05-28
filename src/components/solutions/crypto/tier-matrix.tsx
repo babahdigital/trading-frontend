@@ -2,6 +2,7 @@ import { Link } from '@/i18n/navigation';
 import { ArrowRight, Check } from 'lucide-react';
 import { formatPrice, type Locale, type PriceKey } from '@/lib/pricing-format';
 import type { CryptoTier } from '@/lib/trading/trading-settings';
+import { CRYPTO_DEMO_WALLET_USD } from '@/lib/trading/product-info';
 
 const TIER_CTA_HREF: Record<string, string> = {
   demo: '/register?service=crypto&tier=demo',
@@ -35,8 +36,8 @@ export function TierMatrix({ t, ts, localeKey, tiers }: TierMatrixProps) {
         {demoTier && (() => {
           const bannerTitle = localeKey === 'en' ? 'Try Robot Crypto FREE for 30 days' : 'Coba Robot Crypto GRATIS 30 hari';
           const bannerSubtitle = localeKey === 'en'
-            ? `Demo wallet $5,000 USDT · ${demoTier.slots} concurrent slot · ${demoTier.leverage}x leverage · Scalping Momentum · No credit card.`
-            : `Demo wallet $5.000 USDT · ${demoTier.slots} posisi simultan · leverage ${demoTier.leverage}x · Scalping Momentum · Tanpa kartu kredit.`;
+            ? `Demo wallet $${CRYPTO_DEMO_WALLET_USD.toLocaleString('en-US')} USDT · ${demoTier.slots} concurrent slot · ${demoTier.leverage}x leverage · Scalping Momentum · No credit card.`
+            : `Demo wallet $${CRYPTO_DEMO_WALLET_USD.toLocaleString('id-ID')} USDT · ${demoTier.slots} posisi simultan · leverage ${demoTier.leverage}x · Scalping Momentum · Tanpa kartu kredit.`;
           return (
             <div id="demo" className="mb-8 rounded-xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent p-5 sm:p-6">
               <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">

@@ -38,6 +38,7 @@ const ELIG_KEYS = ['elig_b1', 'elig_b2', 'elig_b3'] as const;
 
 export default async function InstitutionalPage({ params }: { params: Promise<{ locale: string }> }) {
   const t = await getTranslations('solutions_institutional');
+  const ts = await getTranslations('shared');
   const { locale: localeParam } = await params;
   const locale: Locale = localeParam === 'en' ? 'en' : 'id';
   const breadcrumb = breadcrumbSchema([
@@ -305,7 +306,7 @@ export default async function InstitutionalPage({ params }: { params: Promise<{ 
                   <Building2 className="w-6 h-6 text-sky-400" />
                   <h3 className="font-semibold text-lg">{t('compare_inst_title')}</h3>
                   <span className="ml-auto text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300">
-                    HALAMAN INI
+                    {ts('current_page_badge')}
                   </span>
                 </div>
                 <ul className="space-y-2.5 text-sm">

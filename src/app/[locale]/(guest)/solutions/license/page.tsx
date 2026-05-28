@@ -3,7 +3,7 @@ import { Link } from '@/i18n/navigation';
 import { ArrowRight, Server, Building2, TrendingUp, Info, Cpu, ShieldCheck, Activity, FileCheck, Zap, Wrench, Check } from 'lucide-react';
 import { breadcrumbSchema, financialProductSchema, organizationSchema } from '@/lib/seo-jsonld';
 import { SolutionPageShell } from '@/components/solutions/solution-page-shell';
-import { formatPrice, type Locale } from '@/lib/pricing-format';
+import { formatPrice, PRICE_TABLE, type Locale } from '@/lib/pricing-format';
 import { TrustStrip } from '@/components/shared/trust-strip';
 import { StickyCtaBar } from '@/components/shared/sticky-cta-bar';
 
@@ -137,15 +137,19 @@ function ResponsibilityBadge({ value }: { value: string }) {
 
 export default async function LicensePage() {
   const t = await getTranslations('solutions_license');
+  const ts = await getTranslations('shared');
   const breadcrumb = breadcrumbSchema([
     { name: 'Home', url: '/' },
     { name: 'Solutions', url: '/solutions' },
     { name: 'VPS License', url: '/solutions/license' },
   ]);
+  // Prices mirror the canonical PRICE_TABLE setup fees the visible cards use
+  // (License Only $320 / Hybrid $750 / Full Turnkey $1,600). Previously the
+  // JSON-LD baked stale $3,000/$7,500/$1,499 numbers decoupled from the page. (P2-DI-6)
   const tiers = [
-    { name: 'VPS Standard — $3,000 setup + $150/mo', description: 'Dedicated VPS broker-level, full bot access, custom configuration', price: '3000', currency: 'USD' },
-    { name: 'VPS Premium — $7,500 setup + $300/mo', description: 'Multi-broker bridge MT4+MT5, 3 akun paralel, priority support 24/7', price: '7500', currency: 'USD' },
-    { name: 'VPS Dedicated — $1,499/mo', description: 'Single-customer isolated VPS, dedicated MT5 bridge, 24/7 incident channel, SLA 99.9%', price: '1499', currency: 'USD' },
+    { name: 'VPS License Only — $320 setup', description: 'Software license + setup. You run the bot on your own VPS/broker; full bot access, zero-custody.', price: String(PRICE_TABLE.vps_license_only_setup.usd), currency: 'USD' },
+    { name: 'VPS Hybrid — $750 setup', description: 'Managed setup + bridge on your infrastructure, guided configuration, priority support.', price: String(PRICE_TABLE.vps_hybrid_setup.usd), currency: 'USD' },
+    { name: 'VPS Full Turnkey — $1,600 setup', description: 'Single-customer isolated VPS, dedicated MT5 bridge, 24/7 incident channel, SLA 99.9%.', price: String(PRICE_TABLE.vps_turnkey_setup.usd), currency: 'USD' },
   ].map((m) => financialProductSchema({ ...m, url: '/solutions/license' }));
 
   return (
@@ -488,7 +492,7 @@ export default async function LicensePage() {
                   <Server className="w-6 h-6 text-amber-400" />
                   <h3 className="font-semibold text-lg">{t('compare_license_title')}</h3>
                   <span className="ml-auto text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300">
-                    HALAMAN INI
+                    {ts('current_page_badge')}
                   </span>
                 </div>
                 <ul className="space-y-2.5 text-sm">

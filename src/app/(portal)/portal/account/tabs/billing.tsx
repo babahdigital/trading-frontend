@@ -5,11 +5,13 @@ import { useTranslations, useLocale } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth/auth-context';
+import { formatInvoiceAmount } from '@/lib/billing/invoice-format';
 
 interface Invoice {
   id: string;
   number: string;
   amountUsd: string;
+  amountIdr: number | null;
   currency: string;
   status: 'DRAFT' | 'DUE' | 'PAID' | 'OVERDUE' | 'CANCELLED' | 'REFUNDED';
   issuedAt: string;
@@ -152,7 +154,7 @@ export function BillingTab() {
                     <tr key={i.id} className="border-b border-border/30">
                       <td className="py-2 px-2 font-mono text-xs">{i.number}</td>
                       <td className="py-2 px-2 text-muted-foreground">{new Date(i.issuedAt).toLocaleDateString(dateLocale)}</td>
-                      <td className="py-2 px-2 text-right tabular-nums">{i.currency} {Number(i.amountUsd).toFixed(2)}</td>
+                      <td className="py-2 px-2 text-right tabular-nums">{formatInvoiceAmount(i)}</td>
                       <td className="py-2 px-2 text-center">
                         <span className={cn('inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border', STATUS_COLOR[i.status])}>
                           {i.status}

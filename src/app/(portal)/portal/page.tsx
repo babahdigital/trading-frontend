@@ -283,7 +283,7 @@ export default function PortalDashboard() {
         <StatCard
           label={t('kpi_bot_status')}
           value={<span className="capitalize">{status?.bot_status || '-'}</span>}
-          sub={`${status?.active_pairs ?? 14} ${t('kpi_pairs_suffix')}`}
+          sub={`${status?.active_pairs ?? '—'} ${t('kpi_pairs_suffix')}`}
           icon={Activity}
           iconTone={botStatusTone(status?.bot_status)}
         />

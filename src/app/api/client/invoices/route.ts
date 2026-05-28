@@ -31,10 +31,18 @@ export async function GET(req: NextRequest) {
   ]);
 
   return NextResponse.json({
-    invoices: invoices.map((i) => ({
-      ...i,
-      amountUsd: i.amountUsd.toString(),
-    })),
+    invoices: invoices.map((i) => {
+      // Surface the real IDR amount charged (stored in metadata at checkout) so
+      // portal surfaces can show what the customer actually paid, not a derived
+      // USD figure. (P1-DI-9)
+      const meta = (i.metadata ?? {}) as Record<string, unknown>;
+      const amountIdr = typeof meta.amountIdr === 'number' ? meta.amountIdr : null;
+      return {
+        ...i,
+        amountUsd: i.amountUsd.toString(),
+        amountIdr,
+      };
+    }),
     subscriptions: subs.map((s) => ({
       ...s,
       profitSharePct: s.profitSharePct?.toString() ?? null,

@@ -7,11 +7,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth/auth-context';
 import { PageHeader } from '@/components/admin/page-header';
+import { formatInvoiceAmount } from '@/lib/billing/invoice-format';
 
 interface Invoice {
   id: string;
   number: string;
   amountUsd: string;
+  amountIdr: number | null;
   currency: string;
   status: 'DRAFT' | 'DUE' | 'PAID' | 'OVERDUE' | 'CANCELLED' | 'REFUNDED';
   issuedAt: string;
@@ -92,7 +94,7 @@ export default function BillingHistoryPage() {
                     <tr key={inv.id} className="border-b border-border/30 hover:bg-muted/5 transition-colors">
                       <td className="py-2.5 px-2 font-mono text-xs">{inv.number}</td>
                       <td className="py-2.5 px-2 text-right tabular-nums">
-                        {inv.currency} {Number(inv.amountUsd).toFixed(2)}
+                        {formatInvoiceAmount(inv)}
                       </td>
                       <td className="py-2.5 px-2 text-center">
                         <span

@@ -69,14 +69,21 @@ function getDiscountForTier(tierSlug: string, promos: ActivePromo[], product: 'c
 }
 
 function applyDiscount(priceStr: string, promo: ActivePromo): string {
-  const numMatch = priceStr.replace(/[^\d.,]/g, '').replace(/\./g, '').replace(',', '.');
-  const num = parseFloat(numMatch);
+  const isIdr = priceStr.includes('Rp');
+  // IDR uses '.' as a thousands separator with no decimals → keep digits only.
+  // USD uses ',' as a thousands separator and '.' as decimal → strip everything
+  // but digits and the decimal dot. (The previous shared parse turned "$1,600"
+  // into 1.6 — P2-DI-1.)
+  const raw = isIdr ? priceStr.replace(/[^\d]/g, '') : priceStr.replace(/[^\d.]/g, '');
+  const num = parseFloat(raw);
   if (isNaN(num) || num === 0) return priceStr;
   const discounted = promo.discountType === 'PERCENT'
     ? num * (1 - promo.discountValue / 100)
     : num - promo.discountValue;
-  if (priceStr.includes('Rp')) {
-    return `Rp ${Math.round(discounted).toLocaleString('id-ID')}`;
+  if (discounted <= 0) return priceStr;
+  if (isIdr) {
+    // Mirror server checkout rounding: floor to the nearest Rp 1.000.
+    return `Rp ${(Math.floor(discounted / 1000) * 1000).toLocaleString('id-ID')}`;
   }
   return `$${Math.round(discounted).toLocaleString('en-US')}`;
 }
@@ -100,10 +107,14 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 // Tier metadata — slug, name, popular flag, cta href stay hardcoded.
 // Prices are PriceKey references resolved locale-aware via formatPrice() di
 // render function. Names + features + periods resolved from i18n.
-const SIGNAL_TIER_META: Array<{ slug: 't1' | 't2' | 't3'; name: string; priceKey: PriceKey; cta: string; popular?: boolean }> = [
-  { slug: 't1', name: 'Tier 1 · Swing', priceKey: 'signal_starter', cta: '/checkout?tier=SIGNAL_STARTER&provider=xendit' },
-  { slug: 't2', name: 'Tier 2 · Scalping', priceKey: 'signal_pro', popular: true, cta: '/checkout?tier=SIGNAL_PRO&provider=xendit' },
-  { slug: 't3', name: 'Tier 3 · All-In', priceKey: 'signal_vip', cta: '/checkout?tier=SIGNAL_VIP&provider=xendit' },
+// `canonical` is the tier slug used by Promotion.applicableTiers ('signal-pro'
+// etc., via `${product}-${canonical}`). `slug` (t1/t2/t3) only keys i18n feature
+// lists. Using slug for the discount lookup produced 'signal-t1', which never
+// matched 'signal-starter' → signal promos never displayed. (P1-DI-7)
+const SIGNAL_TIER_META: Array<{ slug: 't1' | 't2' | 't3'; canonical: 'starter' | 'pro' | 'vip'; name: string; priceKey: PriceKey; cta: string; popular?: boolean }> = [
+  { slug: 't1', canonical: 'starter', name: 'Tier 1 · Swing', priceKey: 'signal_starter', cta: '/checkout?tier=SIGNAL_STARTER&provider=xendit' },
+  { slug: 't2', canonical: 'pro', name: 'Tier 2 · Scalping', priceKey: 'signal_pro', popular: true, cta: '/checkout?tier=SIGNAL_PRO&provider=xendit' },
+  { slug: 't3', canonical: 'vip', name: 'Tier 3 · All-In', priceKey: 'signal_vip', cta: '/checkout?tier=SIGNAL_VIP&provider=xendit' },
 ];
 
 // Crypto tier CTA routes — keyed by slug. Structural data (slots, leverage,
@@ -166,7 +177,7 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
 
   const signalTiers = SIGNAL_TIER_META.map((m) => {
     const basePrice = formatPrice(m.priceKey, localeKey, { compact: false, overrides });
-    const promo = getDiscountForTier(m.slug, activePromos, 'signal');
+    const promo = getDiscountForTier(m.canonical, activePromos, 'signal');
     return {
       name: m.name,
       price: promo ? applyDiscount(basePrice, promo) : basePrice,

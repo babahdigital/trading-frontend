@@ -37,6 +37,7 @@ export default function CryptoRiskPage() {
   const [success, setSuccess] = useState(false);
   const [killing, setKilling] = useState(false);
   const [killReason, setKillReason] = useState('');
+  const [killError, setKillError] = useState<string | null>(null);
   const [showKillModal, setShowKillModal] = useState(false);
 
   const load = useCallback(async () => {
@@ -79,16 +80,26 @@ export default function CryptoRiskPage() {
   async function triggerKillSwitch() {
     if (!killReason.trim() || killReason.trim().length < 3) return;
     setKilling(true);
+    setKillError(null);
     try {
       const res = await fetch('/api/crypto/risk/kill-switch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify({ reason: killReason.trim() }),
       });
+      const body = await res.json().catch(() => ({} as Record<string, unknown>));
       if (res.ok) {
         setShowKillModal(false);
         setKillReason('');
+        load();
+      } else {
+        // Surface the failure and keep the modal open so the user knows the bot
+        // was NOT halted and can retry — never silently report PAUSED. (P1-BUG-4)
+        const b = body as Record<string, unknown>;
+        setKillError(String(b.message ?? b.error ?? `HTTP ${res.status}`));
       }
+    } catch (err) {
+      setKillError(err instanceof Error ? err.message : 'unknown error');
     } finally {
       setKilling(false);
     }
@@ -204,7 +215,7 @@ export default function CryptoRiskPage() {
       </Card>
 
       {/* Kill modal — pakai shadcn Dialog */}
-      <Dialog open={showKillModal} onOpenChange={(o) => { setShowKillModal(o); if (!o) setKillReason(''); }}>
+      <Dialog open={showKillModal} onOpenChange={(o) => { setShowKillModal(o); if (!o) { setKillReason(''); setKillError(null); } }}>
         <DialogContent className="border-red-500/40">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-red-300">
@@ -225,9 +236,15 @@ export default function CryptoRiskPage() {
               maxLength={280}
             />
             <p className="text-[10px] text-muted-foreground mt-1 font-mono">{killReason.length}/280</p>
+            {killError && (
+              <div className="mt-3 p-2.5 rounded-md border border-red-500/30 bg-red-500/5 text-red-300 text-xs flex items-start gap-2">
+                <AlertOctagon className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                <span>{t('modal_error')}: {killError}</span>
+              </div>
+            )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setShowKillModal(false); setKillReason(''); }}>{t('modal_cancel')}</Button>
+            <Button variant="outline" onClick={() => { setShowKillModal(false); setKillReason(''); setKillError(null); }}>{t('modal_cancel')}</Button>
             <Button variant="destructive" onClick={triggerKillSwitch} disabled={killing || killReason.trim().length < 3}>
               {killing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
               {t('modal_confirm')}

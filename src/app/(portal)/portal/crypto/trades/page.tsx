@@ -36,6 +36,28 @@ interface Trade {
   strategy_name: string;
 }
 
+// Backend returns Postgres NUMERIC columns as JSON strings. Without coercion,
+// `0 + "12.34"` concatenates and the Net-PnL KPI breaks. Coerce on ingest so all
+// downstream arithmetic + formatting is numeric. (P1-BUG-5)
+function toNum(v: unknown): number {
+  const n = typeof v === 'number' ? v : parseFloat(String(v ?? ''));
+  return Number.isFinite(n) ? n : 0;
+}
+function normalizeTrade(tr: Record<string, unknown>): Trade {
+  return {
+    ...(tr as unknown as Trade),
+    quantity: toNum(tr.quantity),
+    entry_price: toNum(tr.entry_price),
+    exit_price: toNum(tr.exit_price),
+    leverage: toNum(tr.leverage),
+    realized_pnl_usdt: toNum(tr.realized_pnl_usdt),
+    commission_usdt: toNum(tr.commission_usdt),
+    funding_paid_usdt: toNum(tr.funding_paid_usdt),
+    net_pnl_usdt: toNum(tr.net_pnl_usdt),
+    duration_seconds: toNum(tr.duration_seconds),
+  };
+}
+
 const CLOSE_REASON_KEY: Record<string, string> = {
   tp: 'reason_tp',
   sl: 'reason_sl',
@@ -74,7 +96,7 @@ export default function CryptoTradesPage() {
         const res = await fetch('/api/crypto/trading/trades?limit=100', { headers: getAuthHeaders() });
         if (res.ok) {
           const body = await res.json();
-          setTrades(body.items ?? []);
+          setTrades(Array.isArray(body.items) ? body.items.map(normalizeTrade) : []);
           setSource(body.source ?? '');
         }
       } finally {

@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { EnterpriseNav } from '@/components/layout/enterprise-nav';
 import { EnterpriseFooter } from '@/components/layout/enterprise-footer';
+import { LegalLastUpdated } from '@/components/legal/last-updated';
 import { sanitizeHtml } from '@/lib/sanitize';
 
 const LEGAL_LINKS = [
@@ -44,7 +45,7 @@ export default function CookiePolicyPage() {
           <div className="layout-container">
             <p className="t-eyebrow mb-4">{t('eyebrow')}</p>
             <h1 className="t-display-page mb-2">{t('page_cookies')}</h1>
-            <p className="t-body-sm text-foreground/60">{t('last_updated')}</p>
+            <LegalLastUpdated slug="legal-cookies" />
           </div>
         </section>
 

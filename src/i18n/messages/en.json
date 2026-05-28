@@ -3443,7 +3443,8 @@
         "modal_reason_label": "Reason (3-280 chars)",
         "modal_reason_placeholder": "e.g. abnormal market volatility, exchange maintenance, risk flag from analyst",
         "modal_cancel": "Cancel",
-        "modal_confirm": "Confirm & Kill"
+        "modal_confirm": "Confirm & Kill",
+        "modal_error": "Failed to halt bot"
       },
       "strategy": {
         "back": "Back",

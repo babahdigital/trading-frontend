@@ -3463,7 +3463,8 @@
         "modal_reason_label": "Alasan (3-280 karakter)",
         "modal_reason_placeholder": "cth: volatilitas pasar tidak normal, exchange maintenance, flag risk dari analyst",
         "modal_cancel": "Batal",
-        "modal_confirm": "Konfirmasi & Kill"
+        "modal_confirm": "Konfirmasi & Kill",
+        "modal_error": "Gagal menghentikan bot"
       },
       "strategy": {
         "back": "Kembali",

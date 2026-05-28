@@ -69,7 +69,11 @@ export default function LicensesPage() {
   const fetchLicenses = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/admin/licenses', { headers: getAuthHeaders() });
+      // Load up to the server cap so the header total, filter-tab counts, and the
+      // rendered rows stay consistent (previously only the first 20 loaded while the
+      // header showed the true total). Client-side search/filter then operates on the
+      // full set. (P1-DI-12) — bounded at 500 to avoid an unbounded query.
+      const res = await fetch('/api/admin/licenses?limit=500', { headers: getAuthHeaders() });
       if (res.ok) {
         const data = await res.json();
         setLicenses(data.licenses ?? []);

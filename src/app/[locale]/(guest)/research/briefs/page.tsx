@@ -45,10 +45,12 @@ function formatPrice(n: number): string {
 }
 
 function sessionLabel(session: string): string {
+  // Plain text (no flag/globe emoji — they render as tofu on some systems and
+  // were inconsistent with the detail page). (P2-DESIGN-3)
   switch (session) {
-    case 'ASIAN': return '🌏 Asian';
-    case 'LONDON': return '🇬🇧 London';
-    case 'NEW_YORK': return '🇺🇸 New York';
+    case 'ASIAN': return 'Asian Session';
+    case 'LONDON': return 'London Session';
+    case 'NEW_YORK': return 'New York Session';
     default: return session;
   }
 }

@@ -76,6 +76,11 @@ export function EwalletDisplay({
   const popupRef = useRef<Window | null>(null);
   const pollTimer = useRef<number | null>(null);
   const tickTimer = useRef<number | null>(null);
+  // Mirror elapsed seconds into a ref so the polling effect can read the
+  // expiry threshold WITHOUT listing secondsElapsed in its deps. Listing it
+  // tore the poll timer down every 1s tick (before the 2s delay fired) →
+  // status polling never ran. Ref keeps poll stable while display stays live.
+  const secondsRef = useRef(0);
 
   // Open popup on mount (first attempt — Chrome may block if not user-initiated)
   useEffect(() => {
@@ -100,7 +105,11 @@ export function EwalletDisplay({
   // Elapsed-time ticker
   useEffect(() => {
     if (status !== 'PENDING') return;
-    tickTimer.current = window.setInterval(() => setSecondsElapsed((s) => s + 1), 1000);
+    tickTimer.current = window.setInterval(() => setSecondsElapsed((s) => {
+      const next = s + 1;
+      secondsRef.current = next;
+      return next;
+    }), 1000);
     return () => { if (tickTimer.current) clearInterval(tickTimer.current); };
   }, [status]);
 
@@ -131,8 +140,9 @@ export function EwalletDisplay({
           }
         }
       } catch { /* keep polling */ }
-      // Auto-fail kalau elapsed >15 menit (e-wallet usually expires in ~15min)
-      if (!cancelled && secondsElapsed > 900) {
+      // Auto-fail kalau elapsed >15 menit (e-wallet usually expires in ~15min).
+      // Read from ref (not state) so this effect need not depend on secondsElapsed.
+      if (!cancelled && secondsRef.current > 900) {
         setStatus('EXPIRED');
         onFailed('EXPIRED');
         return;
@@ -145,7 +155,7 @@ export function EwalletDisplay({
       cancelled = true;
       if (pollTimer.current) clearTimeout(pollTimer.current);
     };
-  }, [orderId, status, secondsElapsed, onSucceeded, onFailed]);
+  }, [orderId, status, onSucceeded, onFailed]);
 
   function reopenPopup() {
     const popup = window.open(actionUrl, 'xendit-ewallet-checkout', 'width=500,height=720,resizable,scrollbars=yes');

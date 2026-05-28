@@ -182,7 +182,7 @@ export default function AdminAnalyticsPage() {
       {data && (
         <section>
           <h2 className="text-lg font-semibold mb-3">{t('vitals_title')}</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {(() => {
               const vitalLabel = (th: VitalThreshold) => t(`vital_${th}` as 'vital_good');
               return (
@@ -190,8 +190,8 @@ export default function AdminAnalyticsPage() {
                   <VitalCard label="LCP" value={data.webVitals.lcp_p75_ms != null ? `${data.webVitals.lcp_p75_ms}ms` : '—'} threshold={threshold(data.webVitals.lcp_p75_ms, 2500, 4000)} thresholdLabel={vitalLabel(threshold(data.webVitals.lcp_p75_ms, 2500, 4000))} desc="Largest Contentful Paint" />
                   <VitalCard label="FCP" value={data.webVitals.fcp_p75_ms != null ? `${data.webVitals.fcp_p75_ms}ms` : '—'} threshold={threshold(data.webVitals.fcp_p75_ms, 1800, 3000)} thresholdLabel={vitalLabel(threshold(data.webVitals.fcp_p75_ms, 1800, 3000))} desc="First Contentful Paint" />
                   <VitalCard label="CLS" value={data.webVitals.cls_p75_score != null ? data.webVitals.cls_p75_score.toFixed(3) : '—'} threshold={threshold(data.webVitals.cls_p75_score, 0.1, 0.25)} thresholdLabel={vitalLabel(threshold(data.webVitals.cls_p75_score, 0.1, 0.25))} desc="Cumulative Layout Shift" />
-                  <VitalCard label="INP" value={data.webVitals.inp_p75_ms != null ? `${data.webVitals.inp_p75_ms}ms` : '—'} threshold={threshold(data.webVitals.inp_p75_ms ?? null, 200, 500)} thresholdLabel={vitalLabel(threshold(data.webVitals.inp_p75_ms ?? null, 200, 500))} desc="Interaction to Next Paint" />
-                  <VitalCard label="TTFB" value={data.webVitals.ttfb_p75_ms != null ? `${data.webVitals.ttfb_p75_ms}ms` : '—'} threshold={threshold(data.webVitals.ttfb_p75_ms ?? null, 800, 1800)} thresholdLabel={vitalLabel(threshold(data.webVitals.ttfb_p75_ms ?? null, 800, 1800))} desc="Time to First Byte" />
+                  {/* INP + TTFB cards removed: the web-vitals reporter only sends LCP/FCP/CLS,
+                      so those cards always rendered '—'. Re-add when the reporter tracks them. (P2-DI-17) */}
                 </>
               );
             })()}

@@ -5,6 +5,7 @@ import { FileCode2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { JsonTextarea } from '@/components/cms/json-textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageHeader } from '@/components/admin/page-header';
 import { EmptyState } from '@/components/admin/empty-state';
@@ -171,11 +172,11 @@ export default function CmsPagesPage() {
             </div>
             <div>
               <label className="text-sm font-medium mb-1 block">Sections (JSON array)</label>
-              <Textarea
-                value={JSON.stringify(editing.sections, null, 2)}
-                onChange={(e) => { try { setEditing({ ...editing, sections: JSON.parse(e.target.value) }); } catch {} }}
+              <JsonTextarea
+                value={editing.sections}
+                onChange={(c) => setEditing({ ...editing, sections: (Array.isArray(c) ? c : []) as Record<string, unknown>[] })}
+                resetKey={editing.id}
                 rows={6}
-                className="font-mono text-xs"
               />
             </div>
             <div className="flex items-center gap-4">

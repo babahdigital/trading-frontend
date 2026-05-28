@@ -50,8 +50,11 @@ export async function GET(request: NextRequest) {
     const totalInputTokens = allEntries.reduce((acc, e) => acc + e.inputTokens, 0);
     const totalOutputTokens = allEntries.reduce((acc, e) => acc + e.outputTokens, 0);
     const totalTokens = totalInputTokens + totalOutputTokens;
-    // Rough cost estimate: $3/M input, $15/M output (conservative average)
-    const costEstimate = (totalInputTokens / 1_000_000) * 3 + (totalOutputTokens / 1_000_000) * 15;
+    // Cost estimate at Gemini-via-OpenRouter Flash-Lite rates ($0.075/M input,
+    // $0.30/M output) — the dominant model across this stack. Previously used
+    // Claude/GPT rates ($3/$15 per M), overstating cost ~40-200x for a Gemini-only
+    // stack. (P2-DI-16)
+    const costEstimate = (totalInputTokens / 1_000_000) * 0.075 + (totalOutputTokens / 1_000_000) * 0.30;
 
     // Distinct purposes for filter dropdown
     const purposes = await prisma.aiCallLog.findMany({

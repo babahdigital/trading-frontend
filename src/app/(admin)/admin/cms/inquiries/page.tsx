@@ -10,6 +10,7 @@ import { PageHeader } from '@/components/admin/page-header';
 import { EmptyState } from '@/components/admin/empty-state';
 import { formatDate } from '@/lib/format-locale';
 import { useAuth } from '@/lib/auth/auth-context';
+import { useToast } from '@/components/ui/toast';
 
 interface InquiryItem {
   id: string;
@@ -34,6 +35,7 @@ const STATUS_COLORS: Record<string, 'default' | 'secondary' | 'destructive' | 'o
 
 export default function CmsInquiriesPage() {
   const { getAuthHeaders } = useAuth();
+  const toast = useToast();
   const [inquiries, setInquiries] = useState<InquiryItem[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -55,11 +57,18 @@ export default function CmsInquiriesPage() {
   useEffect(() => { fetchInquiries(); }, [fetchInquiries]);
 
   async function updateStatus(id: string, status: string) {
-    await fetch('/api/admin/cms/inquiries', {
+    // Check res.ok + keep the detail panel open on failure. (P2-BUG-4)
+    const res = await fetch('/api/admin/cms/inquiries', {
       method: 'PUT',
       headers: getAuthHeaders(),
       body: JSON.stringify({ id, status, notes }),
     });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      toast.push({ tone: 'error', title: 'Gagal memperbarui status', description: data.error ?? `HTTP ${res.status}` });
+      return;
+    }
+    toast.push({ tone: 'success', title: 'Status diperbarui' });
     setSelected(null);
     fetchInquiries();
   }

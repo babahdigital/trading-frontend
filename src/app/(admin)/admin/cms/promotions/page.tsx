@@ -416,8 +416,17 @@ export default function CmsPromotionsPage() {
                 <Input
                   type="number"
                   min={0}
+                  max={editing.discountType === 'PERCENT' ? 100 : undefined}
                   value={typeof editing.discountValue === 'string' ? editing.discountValue : String(editing.discountValue)}
-                  onChange={(e) => setEditing({ ...editing, discountValue: e.target.value })}
+                  onChange={(e) => {
+                    // A PERCENT discount can't exceed 100%. (P2-DI-21)
+                    let v = e.target.value;
+                    if (editing.discountType === 'PERCENT') {
+                      const n = parseFloat(v);
+                      if (Number.isFinite(n) && n > 100) v = '100';
+                    }
+                    setEditing({ ...editing, discountValue: v });
+                  }}
                 />
               </div>
             </div>

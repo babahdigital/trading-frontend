@@ -5,12 +5,12 @@ import Link from 'next/link';
 import { ExternalLink, LayoutGrid, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageHeader } from '@/components/admin/page-header';
 import { EmptyState } from '@/components/admin/empty-state';
 import { ReorderButtons } from '@/components/cms/reorder-buttons';
 import { GenerateEnglishButton } from '@/components/cms/generate-english-button';
+import { JsonTextarea } from '@/components/cms/json-textarea';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useToast } from '@/components/ui/toast';
 import { useConfirm } from '@/components/ui/confirm-dialog';
@@ -196,11 +196,11 @@ export default function CmsLandingPage() {
             </div>
             <div>
               <label className="text-sm font-medium mb-1 block">Content (JSON)</label>
-              <Textarea
-                value={JSON.stringify(editing.content, null, 2)}
-                onChange={(e) => { try { setEditing({ ...editing, content: JSON.parse(e.target.value) }); } catch {} }}
+              <JsonTextarea
+                value={editing.content}
+                onChange={(c) => setEditing({ ...editing, content: c as Record<string, unknown> })}
+                resetKey={editing.id}
                 rows={6}
-                className="font-mono text-xs"
               />
             </div>
             <div className="flex items-center gap-4">

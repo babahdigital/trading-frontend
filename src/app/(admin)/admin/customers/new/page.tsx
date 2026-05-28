@@ -412,7 +412,7 @@ export default function NewCustomerPage() {
                   {warnings.map((w, i) => <p key={i}>• {w}</p>)}
                 </div>
               )}
-              <SummarySection title="{t('summary_account')}" items={[
+              <SummarySection title={t('summary_account')} items={[
                 { label: 'Email', value: createdUser?.email || '-' },
                 { label: 'Nama', value: createdUser?.name || '-' },
               ]} />

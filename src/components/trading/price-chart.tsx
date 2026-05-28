@@ -54,6 +54,9 @@ export function PriceChart({
   const [error, setError] = useState<string | null>(null);
   const [barsCount, setBarsCount] = useState(0);
   const [source, setSource] = useState<'backend' | 'empty'>('empty');
+  // Last-fetched bars, kept so a chart rebuild (dark-mode/height change) can
+  // re-apply them instead of leaving the new chart empty. (P3-BUG-6)
+  const barsRef = useRef<OHLCBar[]>([]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -92,6 +95,14 @@ export function PriceChart({
     chartRef.current = chart;
     seriesRef.current = series;
 
+    // Re-apply previously-loaded bars after a rebuild so the chart isn't empty. (P3-BUG-6)
+    if (barsRef.current.length > 0) {
+      series.setData(barsRef.current.map((b) => ({
+        time: b.time as Time, open: b.open, high: b.high, low: b.low, close: b.close,
+      })));
+      chart.timeScale().fitContent();
+    }
+
     return () => {
       chart.remove();
       chartRef.current = null;
@@ -112,6 +123,7 @@ export function PriceChart({
         return res.json();
       })
       .then((body: { source: 'backend' | 'empty'; bars: OHLCBar[] }) => {
+        barsRef.current = body.bars;
         if (seriesRef.current) {
           seriesRef.current.setData(
             body.bars.map((b) => ({

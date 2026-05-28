@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { jwtVerify } from 'jose';
+import { isPairBriefSubscriber } from '@/lib/tiers/signal-access';
 
 const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 
@@ -29,8 +30,6 @@ async function getUserTier(request: NextRequest): Promise<string | null> {
   }
 }
 
-const SUBSCRIBER_TIERS = ['SIGNAL_BASIC', 'SIGNAL_VIP', 'PAMM_BASIC', 'PAMM_PRO'];
-
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
@@ -45,7 +44,7 @@ export async function GET(
   }
 
   const tier = await getUserTier(request);
-  const isSubscriber = tier != null && SUBSCRIBER_TIERS.includes(tier);
+  const isSubscriber = isPairBriefSubscriber(tier);
 
   if (!isSubscriber) {
     // Return preview only

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { jwtVerify } from 'jose';
+import { isPairBriefSubscriber } from '@/lib/tiers/signal-access';
 
 const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 
@@ -60,16 +61,12 @@ async function getUserTier(request: NextRequest): Promise<string | null> {
   }
 }
 
-// All Signal subscribers get pair-brief access (canonical + legacy).
-// PAMM removed per audit 2026-04-26 (zero-custody, deprecated tier).
-const SUBSCRIBER_TIERS = ['SIGNAL_STARTER', 'SIGNAL_BASIC', 'SIGNAL_PRO', 'SIGNAL_VIP'];
-
 export async function GET(request: NextRequest) {
   const pair = request.nextUrl.searchParams.get('pair');
   const limit = Math.min(parseInt(request.nextUrl.searchParams.get('limit') ?? '20'), 50);
 
   const tier = await getUserTier(request);
-  const isSubscriber = tier != null && SUBSCRIBER_TIERS.includes(tier);
+  const isSubscriber = isPairBriefSubscriber(tier);
 
   const where = {
     isPublished: true,

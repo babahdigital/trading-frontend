@@ -752,6 +752,10 @@
     "rec_vps_turnkey_setup": "Setup: Rp 25 juta · Bulanan: Rp 7,5 juta · 12 bulan pertama Rp 115 juta",
     "rec_inst_reason": "Skala modal Anda institusional. Kami sarankan engagement B2B custom dengan strategi dirancang khusus, dedicated engineering, integration ke OMS/PMS Anda, dan SLA 99,9%.",
     "rec_inst_setup": "License Rp 250-400jt/tahun · Setup Rp 75-150 juta · Support Rp 12 juta/bulan",
+    "rec_crypto_product": "Robot Crypto",
+    "rec_retail_product": "Robot Meta Retail (SaaS)",
+    "rec_inst_product": "Institutional Engagement",
+    "rec_vps_product": "VPS License",
     "rec_crypto_reason": "Anda fokus di crypto Binance. Robot Crypto punya 5 tier USDT-M Futures ($9–$99/bulan) — pilih sesuai jumlah slot posisi dan leverage yang dibutuhkan. Anda pegang API key (Withdraw disabled), modal tetap di Binance Anda.",
     "rec_crypto_setup": "Setup: Rp 0 · Bulanan: $9 – $99 · API key dengan Withdraw disabled"
   },

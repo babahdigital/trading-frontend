@@ -23,7 +23,7 @@ type Answers = {
 };
 
 type Recommendation = {
-  product: string;
+  productKey: string;
   href: string;
   icon: typeof TrendingUp;
   accent: 'amber' | 'sky' | 'emerald' | 'violet';
@@ -37,7 +37,7 @@ function recommend(answers: Answers): Recommendation | null {
   // Crypto branch — single product line, capital-tier driven via /pricing
   if (answers.asset === 'crypto') {
     return {
-      product: 'Robot Crypto',
+      productKey: 'rec_crypto_product',
       href: '/solutions/crypto',
       icon: Bitcoin,
       accent: 'violet',
@@ -49,7 +49,7 @@ function recommend(answers: Answers): Recommendation | null {
   // Forex/Metals branch — by capital + technical preference
   if (answers.capital === 'small') {
     return {
-      product: 'Robot Meta Retail (SaaS)',
+      productKey: 'rec_retail_product',
       href: '/solutions/signal',
       icon: TrendingUp,
       accent: 'amber',
@@ -60,7 +60,7 @@ function recommend(answers: Answers): Recommendation | null {
 
   if (answers.capital === 'large') {
     return {
-      product: 'Institutional Engagement',
+      productKey: 'rec_inst_product',
       href: '/solutions/institutional',
       icon: Building2,
       accent: 'emerald',
@@ -76,7 +76,7 @@ function recommend(answers: Answers): Recommendation | null {
     answers.technical === 'partial' ? 'rec_vps_hybrid' :
     'rec_vps_turnkey';
   return {
-    product: 'VPS License',
+    productKey: 'rec_vps_product',
     href: '/solutions/license',
     icon: Server,
     accent: 'sky',
@@ -227,7 +227,7 @@ function RecommendationCard({
           <Icon className={`h-6 w-6 ${accentText}`} />
         </span>
         <div className="flex-1 min-w-0">
-          <h3 className="font-display text-2xl font-medium mb-2">{recommendation.product}</h3>
+          <h3 className="font-display text-2xl font-medium mb-2">{t(recommendation.productKey as 'rec_crypto_product')}</h3>
           <p className="text-sm text-foreground/70 leading-relaxed mb-3">
             {t(recommendation.reasonKey as 'rec_retail_reason')}
           </p>

@@ -752,6 +752,10 @@
     "rec_vps_turnkey_setup": "Setup: $1,600 · Monthly: $475 · First 12 months $7,300",
     "rec_inst_reason": "Your capital scale is institutional. We recommend a custom B2B engagement with bespoke strategy design, dedicated engineering, integration to your OMS/PMS, and 99.9% SLA.",
     "rec_inst_setup": "License $15-25K/year · Setup $5-10K · Support $750/month",
+    "rec_crypto_product": "Crypto Robot",
+    "rec_retail_product": "Meta Retail Robot (SaaS)",
+    "rec_inst_product": "Institutional Engagement",
+    "rec_vps_product": "VPS License",
     "rec_crypto_reason": "You focus on Binance crypto. Robot Crypto has 5 USDT-M Futures tiers ($9-99/month) — pick based on position slots and leverage needed. You hold the API key (Withdraw disabled), capital stays on Binance.",
     "rec_crypto_setup": "Setup: $0 · Monthly: $9 – $99 · API key with Withdraw disabled"
   },

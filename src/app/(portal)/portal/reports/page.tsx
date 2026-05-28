@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth/auth-context';
 import { PageHeader } from '@/components/admin/page-header';
 import { EmptyState } from '@/components/admin/empty-state';
+import { SubscriptionRequiredEmpty } from '@/components/portal/subscription-required-empty';
 import { StatCard, StatCardGrid } from '@/components/admin/stat-card';
 import { formatCurrency } from '@/lib/format-locale';
 import type { Locale } from '@/lib/format-locale';
@@ -27,11 +28,14 @@ export default function ReportsPage() {
   const [report, setReport] = useState<ReportData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [needsSub, setNeedsSub] = useState(false);
 
   useEffect(() => {
     async function fetchReport() {
       try {
         const res = await fetch('/api/client/reports', { headers: getAuthHeaders() });
+        // No active subscription → show the upsell, not a red error. (P2-DESIGN-2)
+        if (res.status === 401 || res.status === 403) { setNeedsSub(true); return; }
         if (!res.ok) throw new Error(t('fetch_failed'));
         const data = await res.json();
         setReport(data);
@@ -59,13 +63,15 @@ export default function ReportsPage() {
     <div className="portal-page-stack">
       <PageHeader title={t('title')} />
 
-      {error && (
+      {error && !needsSub && (
         <div role="alert" className="rounded-md bg-rose-500/10 border border-rose-500/30 p-3 text-sm text-rose-700 dark:text-rose-300">
           {error}
         </div>
       )}
 
-      {loading ? (
+      {needsSub ? (
+        <SubscriptionRequiredEmpty feature="reports" />
+      ) : loading ? (
         <div className="space-y-3">
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="h-20 rounded bg-muted animate-pulse" />
@@ -127,6 +133,9 @@ export default function ReportsPage() {
               <div className="space-y-3">
                 {Object.entries(report)
                   .filter(([key]) => !highlightKeys.includes(key))
+                  // Only surface scalar fields — never JSON.stringify nested objects/
+                  // arrays (e.g. a research-feed payload) straight to the customer. (P2-DI-11)
+                  .filter(([, value]) => value !== null && value !== undefined && typeof value !== 'object')
                   .map(([key, value]) => (
                     <div
                       key={key}
@@ -140,8 +149,10 @@ export default function ReportsPage() {
                       </span>
                     </div>
                   ))}
-                {Object.entries(report).filter(([key]) => !highlightKeys.includes(key)).length ===
-                  0 && (
+                {Object.entries(report)
+                  .filter(([key]) => !highlightKeys.includes(key))
+                  .filter(([, value]) => value !== null && value !== undefined && typeof value !== 'object')
+                  .length === 0 && (
                   <p className="text-muted-foreground text-sm">{t('no_details')}</p>
                 )}
               </div>

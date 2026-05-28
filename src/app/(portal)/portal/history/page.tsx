@@ -13,6 +13,7 @@ import { csvEscape } from '@/lib/csv';
 import { strategyDisplayName, isStrategyObfuscationEnabled } from '@/lib/trading/strategy-names';
 import { PageHeader } from '@/components/admin/page-header';
 import { EmptyState } from '@/components/admin/empty-state';
+import { SubscriptionRequiredEmpty } from '@/components/portal/subscription-required-empty';
 import { formatCurrency, formatDate } from '@/lib/format-locale';
 import type { Locale } from '@/lib/format-locale';
 
@@ -38,6 +39,7 @@ export default function HistoryPage() {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [needsSub, setNeedsSub] = useState(false);
   const [days, setDays] = useState(30);
   const [pairFilter, setPairFilter] = useState('');
 
@@ -56,6 +58,7 @@ export default function HistoryPage() {
     try {
       const res = await fetch(`/api/client/trades?days=${d}`, { headers: getAuthHeaders() });
       if (res.status === 401) { window.location.href = '/login'; return; }
+      if (res.status === 403) { setNeedsSub(true); return; }
       if (!res.ok) throw new Error(t('load_failed'));
       const data = await res.json();
       setTrades(Array.isArray(data) ? data : data.trades || []);
@@ -108,6 +111,16 @@ export default function HistoryPage() {
     a.download = `${t('csv_filename', { days })}.csv`;
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  if (needsSub) {
+    // No active subscription → upsell instead of a red error / empty data. (P2-DESIGN-2)
+    return (
+      <div className="portal-page-stack">
+        <PageHeader title={t('title')} />
+        <SubscriptionRequiredEmpty feature="trades" />
+      </div>
+    );
   }
 
   return (

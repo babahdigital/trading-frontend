@@ -13,6 +13,7 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { strategyDisplayName, isStrategyObfuscationEnabled } from '@/lib/trading/strategy-names';
 import { PageHeader } from '@/components/admin/page-header';
 import { StatCard, StatCardGrid } from '@/components/admin/stat-card';
+import { SubscriptionRequiredEmpty } from '@/components/portal/subscription-required-empty';
 import { formatCurrency, formatPercent } from '@/lib/format-locale';
 import type { Locale } from '@/lib/format-locale';
 import { TrendingUp, Activity, TrendingDown, Award, ArrowUpRight, ArrowDownRight } from 'lucide-react';
@@ -61,12 +62,14 @@ export default function PerformancePage() {
   const [data, setData] = useState<PerformanceData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [needsSub, setNeedsSub] = useState(false);
   const [days, setDays] = useState(30);
 
   const fetchPerformance = useCallback(async (d: number) => {
     setLoading(true);
     try {
       const res = await fetch(`/api/client/performance?days=${d}`, { headers: getAuthHeaders() });
+      if (res.status === 401 || res.status === 403) { setNeedsSub(true); return; }
       if (!res.ok) throw new Error(t('fetch_failed'));
       setData(await res.json());
       setError('');
@@ -111,11 +114,13 @@ export default function PerformancePage() {
         }
       />
 
-      {error && (
+      {error && !needsSub && (
         <div role="alert" className="rounded-md bg-rose-500/10 border border-rose-500/30 p-3 text-sm text-rose-700 dark:text-rose-300">{error}</div>
       )}
 
-      {loading ? (
+      {needsSub ? (
+        <SubscriptionRequiredEmpty feature="performance" />
+      ) : loading ? (
         <StatCardGrid columns={4}>
           {Array.from({ length: 6 }).map((_, i) => (
             <StatCard key={i} label="" value="" loading />

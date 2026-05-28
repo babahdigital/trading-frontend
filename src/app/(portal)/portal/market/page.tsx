@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { ScannerHeatmap } from '@/components/charts/scanner-heatmap';
 import { useAuth } from '@/lib/auth/auth-context';
 import { PageHeader } from '@/components/admin/page-header';
+import { SubscriptionRequiredEmpty } from '@/components/portal/subscription-required-empty';
 import { EmptyState } from '@/components/admin/empty-state';
 import { Radar } from 'lucide-react';
 import { formatTime } from '@/lib/format-locale';
@@ -58,6 +59,7 @@ export default function MarketPage() {
   const [news, setNews] = useState<NewsEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [needsSub, setNeedsSub] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const sessions = getCurrentSessions();
 
@@ -67,6 +69,7 @@ export default function MarketPage() {
     async function fetchScanner() {
       try {
         const res = await fetch('/api/client/scanner', { headers: getAuthHeaders() });
+        if (res.status === 401 || res.status === 403) { if (active) setNeedsSub(true); return; }
         if (!res.ok) throw new Error('scanner_failed');
         const data = await res.json();
         if (active) {
@@ -113,6 +116,16 @@ export default function MarketPage() {
     if (status === 'active') return t('session_active');
     if (status === 'opening') return t('session_opening_soon');
     return t('session_closed');
+  }
+
+  if (needsSub) {
+    // No active subscription → upsell instead of a red error. (P2-DESIGN-2)
+    return (
+      <div className="portal-page-stack">
+        <PageHeader title={t('title')} />
+        <SubscriptionRequiredEmpty feature="scanner" />
+      </div>
+    );
   }
 
   return (

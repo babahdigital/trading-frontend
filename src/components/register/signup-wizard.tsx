@@ -17,7 +17,7 @@ import { Input } from '@/components/ui/input';
 import type { ServiceDescriptor } from '@/lib/register/service-registry';
 import { track } from '@/lib/analytics/track';
 
-function getPasswordStrength(pw: string): { score: number; label: string; color: string } {
+function getPasswordStrength(pw: string): { score: number; labelKey: string; color: string } {
   let score = 0;
   if (pw.length >= 8) score++;
   if (pw.length >= 12) score++;
@@ -25,10 +25,12 @@ function getPasswordStrength(pw: string): { score: number; label: string; color:
   if (/[0-9]/.test(pw)) score++;
   if (/[^A-Za-z0-9]/.test(pw)) score++;
 
-  if (score <= 1) return { score, label: 'Lemah', color: 'bg-rose-500' };
-  if (score <= 2) return { score, label: 'Cukup', color: 'bg-amber-500' };
-  if (score <= 3) return { score, label: 'Baik', color: 'bg-emerald-500' };
-  return { score, label: 'Kuat', color: 'bg-emerald-600' };
+  // Return an i18n key (resolved in the component) instead of a hardcoded
+  // Indonesian label so the strength meter localizes. (P2-DI-19)
+  if (score <= 1) return { score, labelKey: 'strength_weak', color: 'bg-rose-500' };
+  if (score <= 2) return { score, labelKey: 'strength_fair', color: 'bg-amber-500' };
+  if (score <= 3) return { score, labelKey: 'strength_good', color: 'bg-emerald-500' };
+  return { score, labelKey: 'strength_strong', color: 'bg-emerald-600' };
 }
 
 interface SignupWizardProps {
@@ -40,6 +42,7 @@ interface SignupWizardProps {
 
 export function SignupWizard({ service, initialTier, isDemoMode = false, locale }: SignupWizardProps) {
   const t = useTranslations('register');
+  const tErr = useTranslations('errors');
   const router = useRouter();
 
   // Simplified flow 2026-05-21 (Pak Abdullah directive): tier selection
@@ -109,7 +112,9 @@ export function SignupWizard({ service, initialTier, isDemoMode = false, locale 
         //   3) Default → /portal (ShopProductsSection siap untuk pick tier)
         let redirectTo: string = data.redirectTo;
         if (!redirectTo) {
-          if (initialTier && !isDemoMode && service.slug !== 'free') {
+          if (initialTier && !isDemoMode && service.slug !== 'free'
+              && !['DEMO', 'FREE'].includes(initialTier.toUpperCase())) {
+            // $0 demo/free tiers must NOT route to the paid checkout. (P2-BUG-2)
             const tierToken = `${service.slug.toUpperCase()}_${initialTier.toUpperCase()}`;
             redirectTo = `/checkout?tier=${tierToken}&provider=xendit`;
           } else {
@@ -118,10 +123,22 @@ export function SignupWizard({ service, initialTier, isDemoMode = false, locale 
         }
         router.push(redirectTo);
       } else {
+        // Prefer a localized message for a stable backend error code, then fall
+        // back to backend strings / field errors. (P2-DI-20)
+        const code = typeof data.code === 'string' ? data.code : null;
+        let coded = '';
+        if (code) {
+          try { coded = tErr(`register.${code}`); } catch { coded = ''; }
+        }
+        const fieldErrs = data.fieldErrors && typeof data.fieldErrors === 'object'
+          ? Object.values(data.fieldErrors as Record<string, string>).filter(Boolean).join(' ')
+          : '';
         setError(
-          data.error?.message
+          coded
+            || data.error?.message
             || (typeof data.error === 'string' ? data.error : '')
             || data.message
+            || fieldErrs
             || t('error_register_failed'),
         );
       }
@@ -183,8 +200,9 @@ export function SignupWizard({ service, initialTier, isDemoMode = false, locale 
           {step === 0 && (
             <>
               <div>
-                <label className="text-sm font-medium mb-1 block">{t('field_full_name')}</label>
+                <label htmlFor="signup-name" className="text-sm font-medium mb-1 block">{t('field_full_name')}</label>
                 <Input
+                  id="signup-name"
                   value={form.name}
                   onChange={(e) => set('name', e.target.value)}
                   placeholder={t('placeholder_name_generic')}
@@ -192,8 +210,9 @@ export function SignupWizard({ service, initialTier, isDemoMode = false, locale 
                 />
               </div>
               <div>
-                <label className="text-sm font-medium mb-1 block">{t('field_email')}</label>
+                <label htmlFor="signup-email" className="text-sm font-medium mb-1 block">{t('field_email')}</label>
                 <Input
+                  id="signup-email"
                   type="email"
                   value={form.email}
                   onChange={(e) => set('email', e.target.value)}
@@ -202,8 +221,9 @@ export function SignupWizard({ service, initialTier, isDemoMode = false, locale 
                 />
               </div>
               <div>
-                <label className="text-sm font-medium mb-1 block">{t('field_password')}</label>
+                <label htmlFor="signup-password" className="text-sm font-medium mb-1 block">{t('field_password')}</label>
                 <Input
+                  id="signup-password"
                   type="password"
                   value={form.password}
                   onChange={(e) => set('password', e.target.value)}
@@ -224,7 +244,7 @@ export function SignupWizard({ service, initialTier, isDemoMode = false, locale 
                           />
                         ))}
                       </div>
-                      <p className="text-[11px] text-foreground/50">{strength.label}</p>
+                      <p className="text-[11px] text-foreground/50">{t(strength.labelKey)}</p>
                     </div>
                   );
                 })()}

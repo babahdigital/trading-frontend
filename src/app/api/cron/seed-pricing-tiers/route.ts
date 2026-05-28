@@ -123,7 +123,7 @@ const CANONICAL_TIERS: CanonicalTier[] = [
   // pre-dated the 2026-05-15 market recalibration and were drifting against
   // landing + solutions surfaces.
   {
-    slug: 'vps-standard', name: 'Software License — License Only', name_en: 'Software License — License Only',
+    slug: 'vps-license-only', name: 'Software License — License Only', name_en: 'Software License — License Only',
     price: '$320 setup + $95/bulan',
     subtitle: 'Anda host VPS, kami sediakan software + setup + support',
     subtitle_en: 'You host the VPS, we provide the software + setup + support',
@@ -133,7 +133,7 @@ const CANONICAL_TIERS: CanonicalTier[] = [
     sortOrder: 80, isVisible: true, category: 'VPS',
   },
   {
-    slug: 'vps-premium', name: 'Software License — Hybrid', name_en: 'Software License — Hybrid',
+    slug: 'vps-hybrid', name: 'Software License — Hybrid', name_en: 'Software License — Hybrid',
     price: '$750 setup + $195/bulan',
     subtitle: 'Anda host MT5, kami host backend orchestrator + monitoring',
     subtitle_en: 'You host MT5, we host the backend orchestrator + monitoring',
@@ -143,7 +143,7 @@ const CANONICAL_TIERS: CanonicalTier[] = [
     sortOrder: 90, isVisible: true, category: 'VPS',
   },
   {
-    slug: 'vps-dedicated', name: 'Software License — Full Turnkey', name_en: 'Software License — Full Turnkey',
+    slug: 'vps-turnkey', name: 'Software License — Full Turnkey', name_en: 'Software License — Full Turnkey',
     price: '$1,600 setup + $475/bulan',
     subtitle: 'BabahAlgo bundle 2 VPS + full management — set & forget',
     subtitle_en: 'BabahAlgo bundles 2 VPS + full management — set & forget',

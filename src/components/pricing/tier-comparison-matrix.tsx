@@ -1,6 +1,7 @@
 import { Link } from '@/i18n/navigation';
 import { Check, X, Minus, ArrowRight, ShieldAlert } from 'lucide-react';
 import { TIERS, TIER_ORDER, tierAccentClasses, type TierName } from '@/lib/tiers/tier-config';
+import { USD_IDR_RATE } from '@/lib/payment/rates';
 import { cn } from '@/lib/utils';
 
 interface TierComparisonMatrixProps {
@@ -92,7 +93,7 @@ export function TierComparisonMatrix({ locale }: TierComparisonMatrixProps) {
     if (locale === 'id') {
       // Approx rate untuk display saja — tidak untuk billing. Update di
       // central rate table kalau perlu konversi real-time (future).
-      const idr = Math.round(min * 16000);
+      const idr = Math.round(min * USD_IDR_RATE); // canonical central rate (was stale 16000) — P3-DI-3
       return `${usd} (≈ Rp ${idr.toLocaleString('id-ID')})`;
     }
     return usd;

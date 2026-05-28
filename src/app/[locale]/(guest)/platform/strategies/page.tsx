@@ -20,8 +20,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     {
       title: isEn ? 'Trading Strategies — BabahAlgo' : 'Strategi Trading — BabahAlgo',
       description: isEn
-        ? 'BabahAlgo institutional strategy library: Smart Money Concepts scalper + swing variants, Pivot Mean Reversion, and Quad Confluence. All 4 strategies live in production with full audit trail.'
-        : 'Library strategi institusional BabahAlgo: Smart Money Concepts varian scalper + swing, Pivot Mean Reversion, dan Quad Confluence. Keempat strategi live di produksi dengan audit chain SHA-256.',
+        ? 'BabahAlgo institutional strategy library: Smart Money Concepts scalper + swing variants, Pivot Mean Reversion, and Quad Confluence. Three strategies are live in production; Quad Confluence is newly added — all with full audit trail.'
+        : 'Library strategi institusional BabahAlgo: Smart Money Concepts varian scalper + swing, Pivot Mean Reversion, dan Quad Confluence. Tiga strategi live di produksi; Quad Confluence baru ditambahkan — semua dengan audit chain SHA-256.',
     },
     locale === 'en' ? 'en' : 'id',
   );

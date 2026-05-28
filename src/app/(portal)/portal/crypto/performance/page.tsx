@@ -145,6 +145,10 @@ export default function CryptoPerformancePage() {
   }, [latestSnap, firstSnap]);
 
   const periodLabel = period;
+  // Preview/mock guard: when the crypto backend is unreachable (or returns mock),
+  // equity/analytics arrive with source==='mock'. Flag it so customers never read
+  // sample numbers as their real Binance equity/performance. (P0-DI-1)
+  const isMock = equity?.source === 'mock' || analytics?.source === 'mock';
 
   return (
     <div className="portal-page-stack">
@@ -152,17 +156,24 @@ export default function CryptoPerformancePage() {
         title={t('title')}
         description={t('subtitle')}
         actions={
-          <div className="flex items-center gap-1">
-            {(['1D', '7D', '30D', '90D'] as const).map((p) => (
-              <Button
-                key={p}
-                variant={period === p ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setPeriod(p)}
-              >
-                {p}
-              </Button>
-            ))}
+          <div className="flex items-center gap-2">
+            {isMock && (
+              <span className="px-2.5 py-1 rounded-md text-xs font-mono bg-amber-500/10 border border-amber-500/30 text-amber-300">
+                {t('data_preview_badge')}
+              </span>
+            )}
+            <div className="flex items-center gap-1">
+              {(['1D', '7D', '30D', '90D'] as const).map((p) => (
+                <Button
+                  key={p}
+                  variant={period === p ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setPeriod(p)}
+                >
+                  {p}
+                </Button>
+              ))}
+            </div>
           </div>
         }
       />
@@ -170,6 +181,12 @@ export default function CryptoPerformancePage() {
       {error && (
         <div role="alert" className="rounded-md bg-rose-500/10 border border-rose-500/30 p-3 text-sm text-rose-700 dark:text-rose-300">
           {error}
+        </div>
+      )}
+
+      {isMock && (
+        <div className="rounded-md border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-amber-700 dark:text-amber-300">
+          {t('data_preview_note')}
         </div>
       )}
 

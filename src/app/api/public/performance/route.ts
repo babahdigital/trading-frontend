@@ -225,7 +225,9 @@ async function buildFromBackend(): Promise<{ equity: EquityPoint[]; kpi: KPI; cu
   const maxDdPct = periodStartBalance > 0
     ? (maxDdQuote / periodStartBalance) * 100
     : 0;
-  const recovery = maxDdQuote > 0 ? Math.abs(netPnlSum) / maxDdQuote : 0;
+  // Recovery factor is only meaningful for a net-profitable period. Using
+  // abs(netPnl) made a losing system show a POSITIVE recovery factor. (P2-DI-2)
+  const recovery = (maxDdQuote > 0 && netPnlSum > 0) ? netPnlSum / maxDdQuote : 0;
 
   // Format avg hold seconds → human-readable (X.Yh atau XmYYs)
   const formatHold = (seconds: number): string => {

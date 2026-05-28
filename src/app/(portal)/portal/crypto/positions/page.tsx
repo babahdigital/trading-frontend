@@ -40,6 +40,31 @@ function fmtAge(opened: string): string {
   return `${h}h ${m % 60}m`;
 }
 
+// Backend returns Postgres NUMERIC columns as JSON strings; without coercion
+// fmtNum prints 8-decimal raw strings and sign logic relies on string coercion.
+// Coerce on ingest, preserving null for optional fields. (P2-DI-14)
+function toNumN(v: unknown): number | null {
+  if (v == null) return null;
+  const n = typeof v === 'number' ? v : parseFloat(String(v));
+  return Number.isFinite(n) ? n : null;
+}
+function toNum0(v: unknown): number {
+  return toNumN(v) ?? 0;
+}
+function normalizePosition(p: Record<string, unknown>): Position {
+  return {
+    ...(p as unknown as Position),
+    entry_price: toNum0(p.entry_price),
+    quantity: toNum0(p.quantity),
+    leverage: toNum0(p.leverage),
+    unrealized_pnl_usdt: toNum0(p.unrealized_pnl_usdt),
+    sl_price: toNumN(p.sl_price),
+    tp_price: toNumN(p.tp_price),
+    liquidation_price: toNumN(p.liquidation_price),
+    margin_usdt: toNumN(p.margin_usdt),
+  };
+}
+
 export default function CryptoPositionsPage() {
   const t = useTranslations('portal.crypto.positions');
   const tShared = useTranslations('portal.shared');
@@ -55,7 +80,7 @@ export default function CryptoPositionsPage() {
       const res = await fetch('/api/crypto/trading/positions', { headers: getAuthHeaders() });
       if (res.ok) {
         const body = await res.json();
-        setPositions(body.items ?? []);
+        setPositions(Array.isArray(body.items) ? body.items.map(normalizePosition) : []);
         setSource(body.source ?? '');
       }
     } finally {

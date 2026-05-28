@@ -69,7 +69,7 @@ function normalizePosition(p: CanonicalPosition): Record<string, unknown> {
     entry_price: Number(p.entry_price ?? 0),
     current_price: Number(p.entry_price ?? 0), // backend tidak expose di view
     pnl_usd: Number(pnl ?? 0),
-    pnl_pips: 0, // backend tidak hitung pip-delta di view; FE hide kalau 0
+    pnl_pips: undefined, // backend tidak hitung pip-delta di view → omit so the FE's `!== undefined` guard hides the column instead of rendering a fake +0 (P2-DI-10)
     duration_seconds: duration,
     sl: p.sl_price != null ? Number(p.sl_price) : null,
     tp: tp1 != null ? Number(tp1) : null,

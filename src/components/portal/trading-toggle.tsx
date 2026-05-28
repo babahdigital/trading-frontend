@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Loader2, Power, PowerOff, Info } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useToast } from '@/components/ui/toast';
 import { cn } from '@/lib/utils';
@@ -46,6 +47,9 @@ export function TradingToggle() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  // True when we couldn't read the current config — render "state unknown"
+  // instead of a confident OFF that could mask a live-ON bot. (P2-DI-15)
+  const [fetchError, setFetchError] = useState(false);
   const [enabledEngines, setEnabledEngines] = useState<string[]>([]);
   /** Last non-empty engines seen — used as the "ON" payload when re-enabling. */
   const lastEnabledRef = useRef<string[]>(FULL_ENGINE_SET);
@@ -54,12 +58,14 @@ export function TradingToggle() {
 
   const fetchConfig = useCallback(async () => {
     setLoading(true);
+    setFetchError(false);
     try {
       const res = await fetch('/api/client/trading-config', {
         headers: getAuthHeaders(),
         cache: 'no-store',
       });
       if (!res.ok) {
+        setFetchError(true);
         return;
       }
       const body = (await res.json()) as TradingConfig;
@@ -68,6 +74,8 @@ export function TradingToggle() {
       if (engines.length > 0) {
         lastEnabledRef.current = engines;
       }
+    } catch {
+      setFetchError(true);
     } finally {
       setLoading(false);
     }
@@ -184,21 +192,29 @@ export function TradingToggle() {
               <Loader2 className="h-4 w-4 shrink-0 animate-spin text-muted-foreground" />
             )}
             <div className="min-w-0">
-              <p
-                className={cn(
-                  'text-sm font-medium truncate',
-                  isOn ? 'text-emerald-300' : 'text-muted-foreground',
-                )}
-              >
-                {isOn ? t('state_on') : t('state_off')}
-              </p>
+              {fetchError && !loading ? (
+                <p className="text-sm font-medium text-amber-500">{t('state_unknown')}</p>
+              ) : (
+                <p
+                  className={cn(
+                    'text-sm font-medium truncate',
+                    isOn ? 'text-emerald-300' : 'text-muted-foreground',
+                  )}
+                >
+                  {isOn ? t('state_on') : t('state_off')}
+                </p>
+              )}
               <p className="text-xs text-muted-foreground/80 mt-1 flex items-start gap-1.5">
                 <Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />
                 <span>{t('subtitle')}</span>
               </p>
             </div>
           </div>
-          {switchVisual}
+          {fetchError && !loading ? (
+            <Button size="sm" variant="outline" onClick={() => void fetchConfig()}>{t('retry')}</Button>
+          ) : (
+            switchVisual
+          )}
         </div>
       </CardContent>
     </Card>

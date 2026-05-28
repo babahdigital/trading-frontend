@@ -301,12 +301,13 @@ async function main() {
   // =========================================
   // 5. Testimonials
   // =========================================
-  const testimonials = [
-    { name: 'Andi Pratama', role: 'Trader, Jakarta', content: 'Sudah 6 bulan menggunakan BabahAlgo PAMM. Konsisten profit setiap bulan dengan drawdown yang terkontrol.', rating: 5, sortOrder: 0 },
-    { name: 'Sarah Kim', role: 'Investor, Singapore', content: 'Dashboard-nya sangat informatif. Saya bisa memantau semua posisi dan performa secara real-time.', rating: 5, sortOrder: 1 },
-    { name: 'Budi Santoso', role: 'Fund Manager, Surabaya', content: 'VPS License memberikan kontrol penuh. Tim support sangat responsif dan membantu setup awal.', rating: 4, sortOrder: 2 },
-    { name: 'Michael Chen', role: 'Retail Trader, Kuala Lumpur', content: 'Signal service-nya akurat. Win rate konsisten di atas 65%. Sangat worth it untuk harganya.', rating: 5, sortOrder: 3 },
-  ];
+  // NO fabricated testimonials. Institutional / zero-custody + no-PAMM discipline:
+  // we never seed invented people with unverifiable profit / win-rate claims (or
+  // PAMM references, which the product no longer offers). The landing page already
+  // falls back to a stack/partner trust strip when no real testimonials exist
+  // (see landing-client.tsx — "no dummy quotes per institutional discipline").
+  // Real, verifiable testimonials are added through the CMS, never seeded.
+  const testimonials: Array<{ name: string; role: string; content: string; rating: number; sortOrder: number }> = [];
 
   for (const t of testimonials) {
     const existingT = await prisma.testimonial.findFirst({ where: { name: t.name } });

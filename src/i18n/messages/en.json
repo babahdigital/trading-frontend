@@ -1787,6 +1787,10 @@
     "placeholder_email_business": "you@company.com",
     "placeholder_company": "Company or institution name",
     "error_register_failed": "Registration failed. Please try again.",
+    "strength_weak": "Weak",
+    "strength_fair": "Fair",
+    "strength_good": "Good",
+    "strength_strong": "Strong",
     "error_network": "Network error. Please try again.",
     "error_generic": "An error occurred",
     "success_register": "Registration successful. Please check your email for verification.",
@@ -3036,6 +3040,8 @@
       "subtitle": "Pause or resume new signal generation. EA still manages already-open positions.",
       "state_on": "Active — system generates signals per your plan",
       "state_off": "Paused — no new signals",
+      "state_unknown": "Status unknown — failed to load configuration",
+      "retry": "Retry",
       "error_save": "Failed to save. Try again."
     },
     "notif_prefs": {

@@ -1839,6 +1839,9 @@
       "invalid_credentials": "Email atau password salah.",
       "invalid_license": "License tidak valid atau sudah tidak aktif.",
       "mt5_account_mismatch": "Akun MT5 tidak cocok dengan license.",
+      "account_disabled": "Akun ini dinonaktifkan. Hubungi support.",
+      "2fa_required": "Masukkan kode autentikasi dua faktor (2FA) Anda.",
+      "invalid_2fa_code": "Kode 2FA salah atau sudah kedaluwarsa.",
       "internal_error": "Terjadi kesalahan internal. Silakan coba lagi.",
       "rate_limited": "Terlalu banyak percobaan login. Silakan tunggu beberapa saat.",
       "rate_limit_login": "Terlalu banyak percobaan login. Coba lagi nanti.",
@@ -1939,6 +1942,12 @@
     "login_mode": "Pilih mode login",
     "show_password": "Tampilkan password",
     "hide_password": "Sembunyikan password",
+    "totp_label": "Kode autentikasi (2FA)",
+    "totp_placeholder": "123456",
+    "totp_hint": "Buka aplikasi autentikator Anda dan masukkan 6 digit kode untuk akun ini.",
+    "totp_required_title": "Verifikasi dua faktor diperlukan",
+    "verify_code": "Verifikasi kode",
+    "verifying": "Memverifikasi…",
     "security_note": "Sesi diamankan dengan cookie HttpOnly. Kami tidak pernah menyimpan password Anda di browser. Selalu logout di perangkat publik.",
     "security_note_short": "Sesi HttpOnly aman",
     "user_sign_in_subtitle": "Masuk untuk akses dashboard customer Anda.",
@@ -3284,7 +3293,9 @@
         "analytics_win_rate": "Win rate",
         "analytics_profit_factor": "Profit factor",
         "analytics_max_drawdown": "Max drawdown",
-        "analytics_pending_backend": "Analytics agregat (daily PnL + win rate trend) belum tersedia di backend tenant ini — equity curve di atas tetap real-time."
+        "analytics_pending_backend": "Analytics agregat (daily PnL + win rate trend) belum tersedia di backend tenant ini — equity curve di atas tetap real-time.",
+        "data_preview_badge": "data preview",
+        "data_preview_note": "Bot crypto belum terhubung — angka di bawah adalah data contoh (preview), bukan ekuitas atau performa Binance Anda yang sebenarnya. Hubungkan API key untuk melihat data live."
       },
       "dashboard": {
         "heading": "Crypto Bot",

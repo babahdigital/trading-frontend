@@ -2038,6 +2038,9 @@
       "invalid_credentials": "Invalid email or password.",
       "invalid_license": "License is invalid or inactive.",
       "mt5_account_mismatch": "MT5 account does not match the license.",
+      "account_disabled": "This account is disabled. Contact support.",
+      "2fa_required": "Enter your two-factor authentication (2FA) code.",
+      "invalid_2fa_code": "Invalid or expired 2FA code.",
       "internal_error": "An internal error occurred. Please try again.",
       "rate_limited": "Too many login attempts. Please wait a moment.",
       "rate_limit_login": "Too many login attempts. Try again later.",
@@ -2138,6 +2141,12 @@
     "login_mode": "Select login mode",
     "show_password": "Show password",
     "hide_password": "Hide password",
+    "totp_label": "Authentication code (2FA)",
+    "totp_placeholder": "123456",
+    "totp_hint": "Open your authenticator app and enter the 6-digit code for this account.",
+    "totp_required_title": "Two-factor verification required",
+    "verify_code": "Verify code",
+    "verifying": "Verifying…",
     "security_note": "Session secured with HttpOnly cookies. We never store passwords in your browser. Always sign out on shared devices.",
     "security_note_short": "HttpOnly session",
     "user_sign_in_subtitle": "Sign in to access your customer dashboard.",
@@ -3264,7 +3273,9 @@
         "analytics_win_rate": "Win rate",
         "analytics_profit_factor": "Profit factor",
         "analytics_max_drawdown": "Max drawdown",
-        "analytics_pending_backend": "Aggregate analytics (daily PnL + win rate trend) is not yet available for this tenant — the equity curve above remains real-time."
+        "analytics_pending_backend": "Aggregate analytics (daily PnL + win rate trend) is not yet available for this tenant — the equity curve above remains real-time.",
+        "data_preview_badge": "data preview",
+        "data_preview_note": "Your crypto bot isn't connected yet — the figures below are sample (preview) data, not your real Binance equity or performance. Connect your API key to see live data."
       },
       "dashboard": {
         "heading": "Crypto Bot",

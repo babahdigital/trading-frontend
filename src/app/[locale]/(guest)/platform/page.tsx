@@ -8,6 +8,7 @@ import { ArrowRight, Brain, Cpu, ShieldCheck } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { TrustStrip } from '@/components/shared/trust-strip';
 import { StickyCtaBar } from '@/components/shared/sticky-cta-bar';
+import { FOREX_PAIRS_LIVE, FOREX_PAIRS_SHADOW } from '@/lib/trading/product-info';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -56,22 +57,18 @@ const PILLARS: Pillar[] = [
   },
 ];
 
-const INSTRUMENTS = [
-  { ticker: 'EURUSD', assetClassKey: 'asset_class_forex' },
-  { ticker: 'GBPUSD', assetClassKey: 'asset_class_forex' },
-  { ticker: 'USDJPY', assetClassKey: 'asset_class_forex' },
-  { ticker: 'AUDUSD', assetClassKey: 'asset_class_forex' },
-  { ticker: 'USDCHF', assetClassKey: 'asset_class_forex' },
-  { ticker: 'NZDUSD', assetClassKey: 'asset_class_forex' },
-  { ticker: 'USDCAD', assetClassKey: 'asset_class_forex' },
-  { ticker: 'XAUUSD', assetClassKey: 'asset_class_metals' },
-  { ticker: 'XAGUSD', assetClassKey: 'asset_class_metals' },
-  { ticker: 'USOIL', assetClassKey: 'asset_class_energy' },
-  { ticker: 'UKOIL', assetClassKey: 'asset_class_energy' },
-  { ticker: 'XNGUSD', assetClassKey: 'asset_class_energy' },
-  { ticker: 'BTCUSD', assetClassKey: 'asset_class_crypto' },
-  { ticker: 'ETHUSD', assetClassKey: 'asset_class_crypto' },
-] as const;
+// Single source of truth: derive from product-info LIVE/SHADOW lists so this
+// table can't drift (shadow pairs shown "Active", live pairs missing). LIVE pairs
+// are executed (Active); SHADOW pairs are monitored only (Monitoring). (P1-DI-6)
+const ASSET_CLASS_OF: Record<string, string> = {
+  XAUUSD: 'asset_class_metals', XAGUSD: 'asset_class_metals',
+  USOIL: 'asset_class_energy', UKOIL: 'asset_class_energy', XNGUSD: 'asset_class_energy',
+  BTCUSD: 'asset_class_crypto', ETHUSD: 'asset_class_crypto',
+};
+const INSTRUMENTS: { ticker: string; assetClassKey: string; status: 'active' | 'monitoring' }[] = [
+  ...FOREX_PAIRS_LIVE.map((ticker) => ({ ticker, assetClassKey: ASSET_CLASS_OF[ticker] ?? 'asset_class_forex', status: 'active' as const })),
+  ...FOREX_PAIRS_SHADOW.map((ticker) => ({ ticker, assetClassKey: ASSET_CLASS_OF[ticker] ?? 'asset_class_forex', status: 'monitoring' as const })),
+];
 
 const PIPELINE_STEPS = [
   { step: 1, nameKey: 'pipeline_step_1_name', descKey: 'pipeline_step_1_desc' },
@@ -193,7 +190,9 @@ export default async function PlatformPage() {
                     <tr key={inst.ticker}>
                       <td className="font-semibold">{inst.ticker}</td>
                       <td className="!text-foreground/50">{t(inst.assetClassKey)}</td>
-                      <td className="text-right text-emerald-400">{t('instruments_status_active')}</td>
+                      <td className={inst.status === 'active' ? 'text-right text-emerald-400' : 'text-right text-foreground/45'}>
+                        {inst.status === 'active' ? t('instruments_status_active') : t('instruments_status_monitoring')}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

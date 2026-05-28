@@ -8,40 +8,51 @@ import { StickyCtaBar } from '@/components/shared/sticky-cta-bar';
 import { Link } from '@/i18n/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { FOREX_PAIRS_LIVE, FOREX_PAIRS_SHADOW } from '@/lib/trading/product-info';
 
 type AssetClassKey = 'forex' | 'metals' | 'energy' | 'crypto';
 
 interface Instrument {
   ticker: string;
   nameKey: string;
-  avgSpread: string;
   hoursKey: string;
+  /** 'active' = LIVE traded pair; 'monitoring' = SHADOW (observed, not executed). */
+  status: 'active' | 'monitoring';
 }
 
-const INSTRUMENTS: Record<AssetClassKey, Instrument[]> = {
-  forex: [
-    { ticker: 'EURUSD', nameKey: 'instrument_EURUSD_name', avgSpread: '0.8 pip', hoursKey: 'hours_forex' },
-    { ticker: 'GBPUSD', nameKey: 'instrument_GBPUSD_name', avgSpread: '1.0 pip', hoursKey: 'hours_forex' },
-    { ticker: 'USDJPY', nameKey: 'instrument_USDJPY_name', avgSpread: '0.9 pip', hoursKey: 'hours_forex' },
-    { ticker: 'AUDUSD', nameKey: 'instrument_AUDUSD_name', avgSpread: '1.1 pip', hoursKey: 'hours_forex' },
-    { ticker: 'USDCHF', nameKey: 'instrument_USDCHF_name', avgSpread: '1.2 pip', hoursKey: 'hours_forex' },
-    { ticker: 'NZDUSD', nameKey: 'instrument_NZDUSD_name', avgSpread: '1.3 pip', hoursKey: 'hours_forex' },
-    { ticker: 'USDCAD', nameKey: 'instrument_USDCAD_name', avgSpread: '1.4 pip', hoursKey: 'hours_forex' },
-  ],
-  metals: [
-    { ticker: 'XAUUSD', nameKey: 'instrument_XAUUSD_name', avgSpread: '2.5 pip', hoursKey: 'hours_metals' },
-    { ticker: 'XAGUSD', nameKey: 'instrument_XAGUSD_name', avgSpread: '3.0 pip', hoursKey: 'hours_metals' },
-  ],
-  energy: [
-    { ticker: 'USOIL', nameKey: 'instrument_USOIL_name', avgSpread: '3.5 pip', hoursKey: 'hours_usoil' },
-    { ticker: 'UKOIL', nameKey: 'instrument_UKOIL_name', avgSpread: '4.0 pip', hoursKey: 'hours_ukoil' },
-    { ticker: 'XNGUSD', nameKey: 'instrument_XNGUSD_name', avgSpread: '5.0 pip', hoursKey: 'hours_xngusd' },
-  ],
-  crypto: [
-    { ticker: 'BTCUSD', nameKey: 'instrument_BTCUSD_name', avgSpread: '15.0 pip', hoursKey: 'hours_crypto' },
-    { ticker: 'ETHUSD', nameKey: 'instrument_ETHUSD_name', avgSpread: '8.0 pip', hoursKey: 'hours_crypto' },
-  ],
+// Asset-class + trading-hours derived per ticker. Everything else is Forex.
+const ASSET_CLASS_OF: Record<string, AssetClassKey> = {
+  XAUUSD: 'metals', XAGUSD: 'metals',
+  USOIL: 'energy', UKOIL: 'energy', XNGUSD: 'energy',
+  BTCUSD: 'crypto', ETHUSD: 'crypto',
 };
+const HOURS_KEY_OF: Record<string, string> = {
+  USOIL: 'hours_usoil', UKOIL: 'hours_ukoil', XNGUSD: 'hours_xngusd',
+};
+
+function assetClassOf(ticker: string): AssetClassKey {
+  return ASSET_CLASS_OF[ticker] ?? 'forex';
+}
+function hoursKeyOf(ticker: string, cls: AssetClassKey): string {
+  return HOURS_KEY_OF[ticker]
+    ?? (cls === 'metals' ? 'hours_metals' : cls === 'crypto' ? 'hours_crypto' : 'hours_forex');
+}
+
+// Single source of truth: derive the universe from product-info LIVE/SHADOW lists
+// instead of a hand-maintained table that drifted (shadow pairs shown "Active",
+// live pairs missing, fabricated spreads). (P1-DI-6, P2-DI-3, P2-DI-4)
+function buildInstruments(): Record<AssetClassKey, Instrument[]> {
+  const out: Record<AssetClassKey, Instrument[]> = { forex: [], metals: [], energy: [], crypto: [] };
+  const add = (ticker: string, status: Instrument['status']) => {
+    const cls = assetClassOf(ticker);
+    out[cls].push({ ticker, nameKey: `instrument_${ticker}_name`, hoursKey: hoursKeyOf(ticker, cls), status });
+  };
+  FOREX_PAIRS_LIVE.forEach((t) => add(t, 'active'));
+  FOREX_PAIRS_SHADOW.forEach((t) => add(t, 'monitoring'));
+  return out;
+}
+const INSTRUMENTS = buildInstruments();
+const TOTAL_INSTRUMENTS = Object.values(INSTRUMENTS).reduce((n, list) => n + list.length, 0);
 
 const ASSET_CLASS_KEYS: AssetClassKey[] = ['forex', 'metals', 'energy', 'crypto'];
 
@@ -81,7 +92,7 @@ export default function InstrumentsPage() {
             <div className="hero-section-header">
               <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
               <h1 className="t-display-page mb-6">
-                {t('hero_title')}
+                {t('hero_title', { count: TOTAL_INSTRUMENTS })}
               </h1>
               <p className="text-foreground/60 leading-relaxed mb-8">
                 {t('hero_lead')}
@@ -134,13 +145,12 @@ export default function InstrumentsPage() {
               </p>
 
               <div className="overflow-x-auto">
-                <div className="table-enterprise-wrapper min-w-[600px]">
+                <div className="table-enterprise-wrapper min-w-[560px]">
                 <table className="table-enterprise">
                   <thead>
                     <tr className="border-b border-white/8">
                       <th className="text-left px-6 py-3">{t('table_ticker')}</th>
                       <th className="text-left px-6 py-3">{t('table_instrument')}</th>
-                      <th className="text-right px-6 py-3">{t('table_avg_spread')}</th>
                       <th className="text-left px-6 py-3 hidden md:table-cell">{t('table_trading_hours')}</th>
                       <th className="text-right px-6 py-3">{t('table_status')}</th>
                     </tr>
@@ -150,15 +160,22 @@ export default function InstrumentsPage() {
                       <tr key={inst.ticker} className="border-b border-white/8 last:border-0">
                         <td className="font-mono px-6 py-3">{inst.ticker}</td>
                         <td className="px-6 py-3 text-foreground/60">{t(inst.nameKey)}</td>
-                        <td className="font-mono text-right px-6 py-3">{inst.avgSpread}</td>
                         <td className="px-6 py-3 text-foreground/60 hidden md:table-cell">{t(inst.hoursKey)}</td>
-                        <td className="font-mono text-right px-6 py-3 text-amber-400">{t('status_active')}</td>
+                        <td className="font-mono text-right px-6 py-3">
+                          {inst.status === 'active' ? (
+                            <span className="text-amber-400">{t('status_active')}</span>
+                          ) : (
+                            <span className="text-foreground/45">{t('status_monitoring')}</span>
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
                 </div>
               </div>
+
+              <p className="mt-4 text-xs text-foreground/45">{t('status_legend')}</p>
             </div>
           </div>
         </section>

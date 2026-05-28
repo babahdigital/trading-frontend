@@ -8,8 +8,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     {
       title: isEn ? 'Instruments — BabahAlgo' : 'Instrumen — BabahAlgo',
       description: isEn
-        ? 'Forex pairs and crypto assets supported by BabahAlgo: MT5 major pairs and top Binance Spot + Futures crypto.'
-        : 'Pair forex dan aset crypto yang didukung BabahAlgo: major pairs MT5 dan top crypto Binance Spot + Futures.',
+        ? 'Forex pairs and crypto assets supported by BabahAlgo: MT5 major pairs and top Binance USDT-M Futures crypto.'
+        : 'Pair forex dan aset crypto yang didukung BabahAlgo: major pairs MT5 dan top crypto Binance USDT-M Futures.',
     },
     locale === 'en' ? 'en' : 'id',
   );

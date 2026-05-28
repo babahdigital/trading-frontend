@@ -85,11 +85,12 @@ export function EquityCurve({
       lineWidth: 2,
       priceFormat: {
         type: 'custom',
-        // Locale-aware: ID locale tampilkan "Rp X" (thousands separator id-ID),
-        // EN locale tampilkan "$X" (en-US format). Backend storage tetap USD.
-        formatter: (p: number) => locale === 'id'
-          ? 'Rp ' + p.toLocaleString('id-ID')
-          : '$' + p.toLocaleString('en-US'),
+        // The underlying equity value is ALWAYS USD/USDT — broker and Binance
+        // accounts are USD-denominated. Format as "$" regardless of UI locale.
+        // Previously the 'id' locale prefixed "Rp" onto the raw USD number with
+        // NO FX conversion, mislabeling the currency and understating the figure
+        // ~16,500x on customer-facing track-record charts. (P1-DI-1)
+        formatter: (p: number) => '$' + p.toLocaleString('en-US'),
       },
     });
 

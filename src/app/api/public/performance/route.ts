@@ -286,6 +286,7 @@ async function buildFromLocal(): Promise<{ equity: EquityPoint[]; kpi: KPI; curr
 
 interface PortfolioCache {
   ts: number;
+  source: string; // preserve the REAL underlying source ('backend' | 'local')
   equity: EquityPoint[];
   kpi: KPI;
   currentEquity: number;
@@ -294,8 +295,12 @@ let portfolioCache: PortfolioCache | null = null;
 
 export async function GET() {
   if (portfolioCache && Date.now() - portfolioCache.ts < CACHE_TTL_MS) {
+    // Return the ORIGINAL source ('backend' | 'local'), not a generic 'cache'.
+    // Consumers gate "audited-live" framing on source==='backend' and must not
+    // be tricked into showing synthetic local data as live just because it was
+    // cached. (P0-DI-2)
     return NextResponse.json({
-      source: 'cache',
+      source: portfolioCache.source,
       equity: portfolioCache.equity,
       kpi: portfolioCache.kpi,
       currentEquity: portfolioCache.currentEquity,
@@ -305,14 +310,14 @@ export async function GET() {
   // Try backend first
   const fromBackend = await buildFromBackend();
   if (fromBackend) {
-    portfolioCache = { ts: Date.now(), ...fromBackend };
+    portfolioCache = { ts: Date.now(), source: 'backend', ...fromBackend };
     return NextResponse.json({ source: 'backend', ...fromBackend });
   }
 
   // Fall back to local SignalAuditLog
   try {
     const fromLocal = await buildFromLocal();
-    portfolioCache = { ts: Date.now(), ...fromLocal };
+    portfolioCache = { ts: Date.now(), source: 'local', ...fromLocal };
     return NextResponse.json({ source: 'local', ...fromLocal });
   } catch (err) {
     log.error(`Local performance build failed: ${err instanceof Error ? err.message : 'unknown'}`);

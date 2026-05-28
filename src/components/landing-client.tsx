@@ -174,6 +174,14 @@ export function LandingClient({ sections, testimonials, faqs, pricingOverrides, 
     return equityData.slice(-days);
   })();
 
+  // Only badge data as "Live · Verified · Real money" when it is anchored to
+  // real broker equity (source 'backend'). Synthetic local data (SignalAuditLog
+  // PnL on a fabricated $10k anchor), empty, and error states must NOT claim an
+  // audited-live track record — they fall back to the honest beta/founding
+  // state instead. (P0-DI-2)
+  const isAuditedLive = perfSource === 'backend';
+  const showLiveTrack = isAuditedLive && filteredEquity.length > 0;
+
   const hero = sections['hero'];
   const perf = sections['performance'];
   const betaSection = sections['beta-program'];
@@ -310,7 +318,7 @@ export function LandingClient({ sections, testimonials, faqs, pricingOverrides, 
                 — more institutional + inviting, less visually noisy) */}
             <div className="lg:col-span-5">
               <AnimatedSection delay={0.35}>
-                {filteredEquity.length > 0 ? (
+                {showLiveTrack ? (
                   <div className="rounded-xl border border-border/40 bg-card/40 p-6">
                     <div className="flex items-center justify-between mb-4">
                       <div className="text-[10px] uppercase tracking-[0.18em] text-foreground/45 font-mono">{t('hero_equity_eyebrow')}</div>
@@ -551,17 +559,17 @@ export function LandingClient({ sections, testimonials, faqs, pricingOverrides, 
             <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-10">
               <div>
                 <h2 className="t-display-section text-foreground mb-2">
-                  {perfSource === 'empty' || filteredEquity.length === 0
+                  {!showLiveTrack
                     ? t('track_record_beta_title')
                     : (perf?.title || t('track_record_live_title'))}
                 </h2>
                 <p className="t-body-sm text-muted-foreground">
-                  {perfSource === 'empty' || filteredEquity.length === 0
+                  {!showLiveTrack
                     ? t('track_record_beta_subtitle')
                     : t('track_record_live_subtitle')}
                 </p>
               </div>
-              {filteredEquity.length > 0 && (
+              {showLiveTrack && (
                 <Link
                   href="/performance"
                   className="btn-tertiary mt-4 md:mt-0"
@@ -573,7 +581,7 @@ export function LandingClient({ sections, testimonials, faqs, pricingOverrides, 
             </div>
           </AnimatedSection>
 
-          {filteredEquity.length > 0 ? (
+          {showLiveTrack ? (
             <>
               <AnimatedSection delay={0.1}>
                 <div className="rounded-xl border border-border/40 bg-card/40 p-6 md:p-8">

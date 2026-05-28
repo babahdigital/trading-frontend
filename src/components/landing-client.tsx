@@ -336,55 +336,44 @@ export function LandingClient({ sections, testimonials, faqs, pricingOverrides, 
                     </div>
                   </div>
                 ) : (
-                  <div className="rounded-2xl border border-border bg-card p-7 sm:p-8 relative overflow-hidden">
-                    {/* Subtle amber radial accent */}
-                    <div className="absolute -top-1/3 -right-1/4 w-[300px] h-[300px] rounded-full bg-amber-500/[0.06] blur-3xl pointer-events-none" />
+                  <div className="rounded-xl border border-border/40 bg-card/40 p-6 sm:p-7">
+                    <div className="flex items-center justify-between mb-5">
+                      <span className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md text-[10px] font-mono uppercase tracking-[0.16em] text-amber-600/90 dark:text-amber-400/85 bg-amber-500/[0.06] border border-amber-500/20">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500/70" />
+                        {t('founding_pill')}
+                      </span>
+                    </div>
 
-                    <div className="relative">
-                      <div className="flex items-center justify-between mb-5">
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono uppercase tracking-wider text-amber-300 bg-amber-500/10 ring-1 ring-amber-500/30">
-                          <span className="relative flex h-1.5 w-1.5">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-60" />
-                            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-400" />
-                          </span>
-                          {t('founding_pill')}
-                        </span>
-                      </div>
+                    <h2 className="font-display text-2xl md:text-3xl leading-tight text-foreground/95 mb-3">
+                      {t('founding_card_title_l1')}<br /> {t('founding_card_title_l2')}
+                    </h2>
+                    <p className="text-sm text-foreground/60 leading-relaxed mb-6">
+                      {t('founding_card_body')}
+                    </p>
 
-                      <h2 className="font-display text-2xl md:text-3xl leading-tight text-foreground mb-2">
-                        {t('founding_card_title_l1')}<br /> {t('founding_card_title_l2')}
-                      </h2>
-                      <p className="text-sm text-muted-foreground leading-relaxed mb-6">
-                        {t('founding_card_body')}
-                      </p>
+                    {/* Inline mini stats — softened typography */}
+                    <div className="grid grid-cols-2 gap-x-6 gap-y-3 mb-6 pb-6 border-b border-border/30">
+                      <CapabilityInline value={tradingInfo?.strategyCount ?? '4'} label={t('capability_strategy')} />
+                      <CapabilityInline value="12" label={t('capability_risk')} />
+                      <CapabilityInline value={tradingInfo?.assetCount ?? '19+'} label={t('capability_assets')} />
+                      <CapabilityInline value="0" label={t('capability_custody')} valueClass="text-emerald-500/85" />
+                    </div>
 
-                      {/* Inline mini stats — tight, institutional. Angka match
-                          dengan reality backend: 4 strategi umbrella (SMC Scalper,
-                          SMC Swing, Pivot Mean Reversion, Quad Confluence), 12
-                          layer risiko, 14+ instrumen, 0 custody dana. */}
-                      <div className="grid grid-cols-2 gap-x-6 gap-y-3 mb-6 pb-6 border-b border-border/50">
-                        <CapabilityInline value={tradingInfo?.strategyCount ?? '4'} label={t('capability_strategy')} />
-                        <CapabilityInline value="12" label={t('capability_risk')} />
-                        <CapabilityInline value={tradingInfo?.assetCount ?? '19+'} label={t('capability_assets')} />
-                        <CapabilityInline value="0" label={t('capability_custody')} valueClass="text-emerald-400" />
-                      </div>
-
-                      <div className="flex flex-wrap gap-2">
-                        <Link
-                          href="/contact?subject=beta-founding-member"
-                          className="btn-primary text-sm flex-1 justify-center"
-                        >
-                          {t('founding_apply')}
-                          <ArrowRight className="w-4 h-4" />
-                        </Link>
-                        <Link
-                          href="/demo"
-                          className="btn-tertiary text-sm justify-center px-4"
-                        >
-                          {t('founding_demo')}
-                          <ArrowRight className="w-3 h-3" />
-                        </Link>
-                      </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Link
+                        href="/contact?subject=beta-founding-member"
+                        className="btn-primary text-sm flex-1 justify-center"
+                      >
+                        {t('founding_apply')}
+                        <ArrowRight className="w-4 h-4" />
+                      </Link>
+                      <Link
+                        href="/demo"
+                        className="btn-tertiary text-sm justify-center px-4"
+                      >
+                        {t('founding_demo')}
+                        <ArrowRight className="w-3 h-3" />
+                      </Link>
                     </div>
                   </div>
                 )}
@@ -587,7 +576,7 @@ export function LandingClient({ sections, testimonials, faqs, pricingOverrides, 
           {filteredEquity.length > 0 ? (
             <>
               <AnimatedSection delay={0.1}>
-                <div className="card-enterprise p-6 md:p-8">
+                <div className="rounded-xl border border-border/40 bg-card/40 p-6 md:p-8">
                   <Suspense><EquityCurve
                     data={filteredEquity}
                     height={420}
@@ -598,67 +587,65 @@ export function LandingClient({ sections, testimonials, faqs, pricingOverrides, 
                 </div>
               </AnimatedSection>
 
-              {/* KPI Grid — 4 metrics presisi (Sharpe Ratio dihapus 2026-05-20
-                  per Pak Abdullah: "5 ganjil di mobile, 4 lebih symmetric"
-                  — sekarang 2x2 di mobile, 4x1 di desktop). */}
+              {/* KPI Grid — softened typography, single divided panel */}
               <AnimatedSection delay={0.2}>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
-                  <div className="kpi-card">
-                    <div className="t-eyebrow mb-3">{t('kpi_total_return')}</div>
-                    <div className="t-data-kpi text-amber-400">{kpi.totalReturn}</div>
-                    <div className="t-body-sm text-muted-foreground mt-2">{t('kpi_total_return_sub')}</div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-border/40 rounded-xl overflow-hidden border border-border/40 mt-8">
+                  <div className="bg-card/40 p-5 sm:p-6">
+                    <p className="text-[10px] uppercase tracking-[0.18em] text-foreground/45 font-mono mb-3">{t('kpi_total_return')}</p>
+                    <p className="font-mono text-2xl sm:text-3xl text-foreground/90 tabular-nums">{kpi.totalReturn}</p>
+                    <p className="text-[11px] text-foreground/45 mt-2">{t('kpi_total_return_sub')}</p>
                   </div>
-                  <div className="kpi-card">
-                    <div className="t-eyebrow mb-3">{t('kpi_max_dd')}</div>
-                    <div className="t-data-kpi text-data-negative">{kpi.maxDrawdown}</div>
-                    <div className="t-body-sm text-muted-foreground mt-2">{t('kpi_max_dd_sub')}</div>
+                  <div className="bg-card/40 p-5 sm:p-6">
+                    <p className="text-[10px] uppercase tracking-[0.18em] text-foreground/45 font-mono mb-3">{t('kpi_max_dd')}</p>
+                    <p className="font-mono text-2xl sm:text-3xl text-foreground/90 tabular-nums">{kpi.maxDrawdown}</p>
+                    <p className="text-[11px] text-foreground/45 mt-2">{t('kpi_max_dd_sub')}</p>
                   </div>
-                  <div className="kpi-card">
-                    <div className="t-eyebrow mb-3">{t('kpi_pf')}</div>
-                    <div className="t-data-kpi text-amber-400">{kpi.profitFactor}</div>
-                    <div className="t-body-sm text-muted-foreground mt-2">{t('kpi_pf_sub')}</div>
+                  <div className="bg-card/40 p-5 sm:p-6">
+                    <p className="text-[10px] uppercase tracking-[0.18em] text-foreground/45 font-mono mb-3">{t('kpi_pf')}</p>
+                    <p className="font-mono text-2xl sm:text-3xl text-foreground/90 tabular-nums">{kpi.profitFactor}</p>
+                    <p className="text-[11px] text-foreground/45 mt-2">{t('kpi_pf_sub')}</p>
                   </div>
-                  <div className="kpi-card">
-                    <div className="t-eyebrow mb-3">{t('kpi_win')}</div>
-                    <div className="t-data-kpi text-foreground">{kpi.winRate}</div>
-                    <div className="t-body-sm text-muted-foreground mt-2">{t('kpi_win_sub')}</div>
+                  <div className="bg-card/40 p-5 sm:p-6">
+                    <p className="text-[10px] uppercase tracking-[0.18em] text-foreground/45 font-mono mb-3">{t('kpi_win')}</p>
+                    <p className="font-mono text-2xl sm:text-3xl text-foreground/90 tabular-nums">{kpi.winRate}</p>
+                    <p className="text-[11px] text-foreground/45 mt-2">{t('kpi_win_sub')}</p>
                   </div>
                 </div>
               </AnimatedSection>
 
-              <div className="mt-6 text-xs text-muted-foreground italic">
+              <div className="mt-6 text-xs text-foreground/45">
                 {t('track_record_disclaimer')}
               </div>
             </>
           ) : (
-            // Honest empty state — no fake numbers, no fake chart, just transparent timeline
+            // Honest empty state — softened transparent timeline
             <AnimatedSection delay={0.1}>
-              <div className="rounded-xl border border-border/80 bg-card p-8 md:p-12">
+              <div className="rounded-xl border border-border/40 bg-card/40 p-8 md:p-12">
                 <div className="grid md:grid-cols-3 gap-8">
                   <div>
-                    <div className="t-eyebrow text-amber-400 mb-3">{t('tr_phase_now_label')}</div>
-                    <div className="font-display text-2xl text-foreground mb-2">{t('tr_phase_now_title')}</div>
-                    <p className="t-body-sm text-muted-foreground">
+                    <div className="text-[10px] uppercase tracking-[0.18em] font-mono text-amber-500/75 mb-3">{t('tr_phase_now_label')}</div>
+                    <div className="font-display text-xl text-foreground/90 mb-2">{t('tr_phase_now_title')}</div>
+                    <p className="t-body-sm text-foreground/60">
                       {t('tr_phase_now_body')}
                     </p>
                   </div>
-                  <div className="md:border-l md:border-border/60 md:pl-8">
-                    <div className="t-eyebrow text-amber-400 mb-3">{t('tr_phase_next_label')}</div>
-                    <div className="font-display text-2xl text-foreground mb-2">{t('tr_phase_next_title')}</div>
-                    <p className="t-body-sm text-muted-foreground">
+                  <div className="md:border-l md:border-border/30 md:pl-8">
+                    <div className="text-[10px] uppercase tracking-[0.18em] font-mono text-amber-500/75 mb-3">{t('tr_phase_next_label')}</div>
+                    <div className="font-display text-xl text-foreground/90 mb-2">{t('tr_phase_next_title')}</div>
+                    <p className="t-body-sm text-foreground/60">
                       {t('tr_phase_next_body')}
                     </p>
                   </div>
-                  <div className="md:border-l md:border-border/60 md:pl-8">
-                    <div className="t-eyebrow text-amber-400 mb-3">{t('tr_audit_label')}</div>
-                    <div className="font-display text-2xl text-foreground mb-2">{t('tr_audit_title')}</div>
-                    <p className="t-body-sm text-muted-foreground">
+                  <div className="md:border-l md:border-border/30 md:pl-8">
+                    <div className="text-[10px] uppercase tracking-[0.18em] font-mono text-amber-500/75 mb-3">{t('tr_audit_label')}</div>
+                    <div className="font-display text-xl text-foreground/90 mb-2">{t('tr_audit_title')}</div>
+                    <p className="t-body-sm text-foreground/60">
                       {t('tr_audit_body')}
                     </p>
                   </div>
                 </div>
-                <div className="border-t border-border/60 mt-8 pt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <p className="t-body-sm text-muted-foreground">
+                <div className="border-t border-border/30 mt-8 pt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <p className="t-body-sm text-foreground/55">
                     {t('tr_demo_invite')}
                   </p>
                   <Link href="/demo" className="btn-tertiary shrink-0">
@@ -667,7 +654,7 @@ export function LandingClient({ sections, testimonials, faqs, pricingOverrides, 
                   </Link>
                 </div>
               </div>
-              <p className="mt-4 text-xs text-muted-foreground italic">
+              <p className="mt-4 text-xs text-foreground/45">
                 {t('tr_empty_disclaimer')}
               </p>
             </AnimatedSection>
@@ -1073,10 +1060,10 @@ function CapabilityInline({ value, label, valueClass }: {
 }) {
   return (
     <div className="flex items-baseline gap-2">
-      <span className={`font-mono text-xl font-medium tabular-nums ${valueClass ?? 'text-foreground'}`}>
+      <span className={`font-mono text-xl font-medium tabular-nums ${valueClass ?? 'text-foreground/90'}`}>
         {value}
       </span>
-      <span className="text-xs text-muted-foreground">{label}</span>
+      <span className="text-[11px] text-foreground/55 uppercase tracking-[0.14em] font-mono">{label}</span>
     </div>
   );
 }

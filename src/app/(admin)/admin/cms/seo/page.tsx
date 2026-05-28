@@ -48,7 +48,15 @@ export default function CmsSeoPage() {
   async function handleSave() {
     if (!editing) return;
     const method = editing.id ? 'PUT' : 'POST';
-    await fetch('/api/admin/cms/seo', { method, headers: getAuthHeaders(), body: JSON.stringify(editing) });
+    // Check res.ok and keep the editor open on failure — silently swallowing the
+    // error lost the admin's edits and made saves look successful. (P1-BUG-6)
+    const res = await fetch('/api/admin/cms/seo', { method, headers: getAuthHeaders(), body: JSON.stringify(editing) });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      toast.push({ tone: 'error', title: 'Gagal menyimpan SEO meta', description: data.error ?? `HTTP ${res.status}` });
+      return;
+    }
+    toast.push({ tone: 'success', title: 'SEO meta tersimpan' });
     setEditing(null);
     fetchPages();
   }
@@ -61,7 +69,12 @@ export default function CmsSeoPage() {
       tone: 'destructive',
     });
     if (!ok) return;
-    await fetch(`/api/admin/cms/seo?id=${id}`, { method: 'DELETE', headers: getAuthHeaders() });
+    const res = await fetch(`/api/admin/cms/seo?id=${id}`, { method: 'DELETE', headers: getAuthHeaders() });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      toast.push({ tone: 'error', title: 'Gagal menghapus', description: data.error ?? `HTTP ${res.status}` });
+      return;
+    }
     fetchPages();
   }
 

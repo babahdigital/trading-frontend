@@ -11,6 +11,7 @@ import { PageHeader } from '@/components/admin/page-header';
 import { EmptyState } from '@/components/admin/empty-state';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useConfirm } from '@/components/ui/confirm-dialog';
+import { useToast } from '@/components/ui/toast';
 
 interface Article {
   id: string;
@@ -40,6 +41,7 @@ const CATEGORIES = ['RESEARCH', 'STRATEGY', 'EXECUTION', 'RISK', 'OPERATIONS', '
 export default function CmsArticlesPage() {
   const { getAuthHeaders } = useAuth();
   const confirm = useConfirm();
+  const toast = useToast();
   const [articles, setArticles] = useState<Article[]>([]);
   const [editing, setEditing] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
@@ -57,11 +59,19 @@ export default function CmsArticlesPage() {
   async function handleSave() {
     if (!editing) return;
     const method = editing.id ? 'PUT' : 'POST';
-    await fetch('/api/admin/cms/articles', {
+    // Check res.ok and keep the editor open on failure so edits aren't lost and
+    // a failed save never looks successful. (P1-BUG-6)
+    const res = await fetch('/api/admin/cms/articles', {
       method,
       headers: getAuthHeaders(),
       body: JSON.stringify(editing),
     });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      toast.push({ tone: 'error', title: 'Gagal menyimpan article', description: data.error ?? `HTTP ${res.status}` });
+      return;
+    }
+    toast.push({ tone: 'success', title: 'Article tersimpan' });
     setEditing(null);
     fetchArticles();
   }
@@ -74,7 +84,12 @@ export default function CmsArticlesPage() {
       tone: 'destructive',
     });
     if (!ok) return;
-    await fetch(`/api/admin/cms/articles?id=${id}`, { method: 'DELETE', headers: getAuthHeaders() });
+    const res = await fetch(`/api/admin/cms/articles?id=${id}`, { method: 'DELETE', headers: getAuthHeaders() });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      toast.push({ tone: 'error', title: 'Gagal menghapus article', description: data.error ?? `HTTP ${res.status}` });
+      return;
+    }
     fetchArticles();
   }
 

@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageHeader } from '@/components/admin/page-header';
 import { formatDateTime } from '@/lib/format-locale';
 import { useAuth } from '@/lib/auth/auth-context';
+import { useToast } from '@/components/ui/toast';
 import { Save, Plus } from 'lucide-react';
 
 interface SiteSetting {
@@ -27,6 +28,7 @@ const KNOWN_SETTINGS: Record<string, { label: string; description: string; place
 
 export default function SiteSettingsPage() {
   const { getAuthHeaders } = useAuth();
+  const toast = useToast();
   const [settings, setSettings] = useState<SiteSetting[]>([]);
   const [edits, setEdits] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
@@ -55,22 +57,35 @@ export default function SiteSettingsPage() {
     const value = edits[key];
     if (value === undefined) return;
     setSaving(key);
-    await fetch('/api/admin/cms/site-settings', {
+    // Check res.ok + toast on failure; these values include compliance config
+    // (e.g. brevo_unsubscribe_url) so a silent failed save is dangerous. (P1-BUG-6)
+    const res = await fetch('/api/admin/cms/site-settings', {
       method: 'PUT',
       headers: getAuthHeaders(),
       body: JSON.stringify({ key, value, type: 'string' }),
     });
     setSaving(null);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      toast.push({ tone: 'error', title: 'Gagal menyimpan setting', description: data.error ?? `HTTP ${res.status}` });
+      return;
+    }
+    toast.push({ tone: 'success', title: 'Setting tersimpan' });
     fetchSettings();
   }
 
   async function handleAddNew() {
     if (!newKey.trim() || !newValue.trim()) return;
-    await fetch('/api/admin/cms/site-settings', {
+    const res = await fetch('/api/admin/cms/site-settings', {
       method: 'PUT',
       headers: getAuthHeaders(),
       body: JSON.stringify({ key: newKey.trim(), value: newValue.trim(), type: 'string' }),
     });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      toast.push({ tone: 'error', title: 'Gagal menambah setting', description: data.error ?? `HTTP ${res.status}` });
+      return;
+    }
     setNewKey('');
     setNewValue('');
     fetchSettings();

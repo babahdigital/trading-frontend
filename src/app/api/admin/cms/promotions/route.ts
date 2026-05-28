@@ -92,6 +92,10 @@ export async function POST(request: NextRequest) {
   if (endsAt.getTime() <= startsAt.getTime()) {
     return NextResponse.json({ code: 'invalid_schedule', error: 'endsAt must be after startsAt' }, { status: 400 });
   }
+  // A PERCENT discount cannot exceed 100%. (P2-DI-21)
+  if (body.discountType === 'PERCENT' && body.discountValue > 100) {
+    return NextResponse.json({ code: 'percent_over_100', error: 'PERCENT discount cannot exceed 100' }, { status: 400 });
+  }
 
   const { aiContext, ...rest } = body;
   try {
@@ -139,6 +143,11 @@ export async function PATCH(request: NextRequest) {
   }
 
   const { id, aiContext, startsAt, endsAt, applicableTiers, discountValue, ...rest } = body;
+
+  // A PERCENT discount cannot exceed 100%. (P2-DI-21)
+  if ((rest as { discountType?: string }).discountType === 'PERCENT' && typeof discountValue === 'number' && discountValue > 100) {
+    return NextResponse.json({ code: 'percent_over_100', error: 'PERCENT discount cannot exceed 100' }, { status: 400 });
+  }
 
   try {
     const data: Record<string, unknown> = { ...rest };

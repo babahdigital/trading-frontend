@@ -6,7 +6,6 @@ import { tryNormalizePhone } from '@/lib/phone';
 
 const TOPIC_TO_PACKAGE: Record<string, InquiryPackage> = {
   signal: 'SIGNAL',
-  pamm: 'PAMM',
   license: 'VPS_LICENSE',
   institutional: 'VPS_LICENSE',
   partnership: 'OTHER',

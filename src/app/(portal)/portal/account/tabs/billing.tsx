@@ -110,11 +110,9 @@ export function BillingTab() {
               <div>
                 <p className="font-medium text-sm">{s.tier}</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {s.monthlyFeeUsd
-                    ? t('flat_per_month', { fee: s.monthlyFeeUsd })
-                    : s.profitSharePct
-                      ? t('legacy_pct', { pct: s.profitSharePct })
-                      : '—'}
+                  {/* Zero-custody: flat monthly only — never surface any
+                      profit-share / performance-fee figure (legal directive). */}
+                  {s.monthlyFeeUsd ? t('flat_per_month', { fee: s.monthlyFeeUsd }) : '—'}
                 </p>
               </div>
               <div className="text-right">

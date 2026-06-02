@@ -277,10 +277,8 @@ export default function CryptoOverviewPage() {
                     <div className="text-xs uppercase tracking-wider text-muted-foreground">{t('tier_label')}</div>
                     <div className="text-2xl font-bold mt-1">{TIER_LABEL[sub.tier] ?? sub.tier}</div>
                     <div className="text-sm text-muted-foreground mt-1">
-                      {t('tier_pricing', {
-                        fee: sub.monthlyFeeUsd.toFixed(0),
-                        share: Number(sub.profitSharePct).toFixed(0),
-                      })}
+                      {/* Flat monthly only — no profit-share surfaced (zero-custody). */}
+                      {t('tier_pricing', { fee: sub.monthlyFeeUsd.toFixed(0) })}
                     </div>
                   </div>
                   <span className={cn('text-xs font-mono uppercase px-2 py-1 rounded border', STATUS_TONE[sub.status] ?? STATUS_TONE.PENDING)}>

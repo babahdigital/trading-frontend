@@ -11,7 +11,7 @@ const inquirySchema = z.object({
   email: z.string().email('Email tidak valid'),
   phone: z.string().trim().min(0).max(32).optional().or(z.literal('')),
   company: z.string().optional(),
-  package: z.enum(['VPS_LICENSE', 'PAMM', 'SIGNAL', 'OTHER']).optional(),
+  package: z.enum(['VPS_LICENSE', 'SIGNAL', 'OTHER']).optional(),
   message: z.string().min(10, 'Pesan minimal 10 karakter'),
 });
 

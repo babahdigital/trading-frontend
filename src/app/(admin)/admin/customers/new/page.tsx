@@ -319,7 +319,6 @@ export default function NewCustomerPage() {
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     <option value="VPS_INSTALLATION">VPS Installation</option>
-                    <option value="PAMM_SUBSCRIBER">PAMM Subscriber</option>
                     <option value="SIGNAL_SUBSCRIBER">Signal Subscriber</option>
                   </select>
                 </div>

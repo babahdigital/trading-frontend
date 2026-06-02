@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createChart, type IChartApi, type ISeriesApi, type Time } from 'lightweight-charts';
 import { AlertTriangle, BarChart3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { getChartTheme } from '@/lib/charts/chart-theme';
 
 export interface OHLCBar {
   time: number; // Unix seconds
@@ -61,36 +62,24 @@ export function PriceChart({
   useEffect(() => {
     if (!containerRef.current) return;
 
+    const theme = getChartTheme(darkMode);
     const chart = createChart(containerRef.current, {
       height,
-      layout: {
-        background: { color: darkMode ? '#0B1220' : '#FAFAF7' },
-        textColor: darkMode ? '#E2E8F0' : '#1e293b',
-      },
-      grid: {
-        vertLines: { color: darkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.06)' },
-        horzLines: { color: darkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.06)' },
-      },
+      layout: theme.layout,
+      grid: theme.grid,
       timeScale: {
         timeVisible: true,
         secondsVisible: false,
-        borderColor: darkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+        borderColor: theme.borderColor,
       },
       rightPriceScale: {
-        borderColor: darkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+        borderColor: theme.borderColor,
       },
       crosshair: { mode: 1 },
       autoSize: true,
     });
 
-    const series = chart.addCandlestickSeries({
-      upColor: '#22c55e',
-      downColor: '#ef4444',
-      borderUpColor: '#22c55e',
-      borderDownColor: '#ef4444',
-      wickUpColor: '#16a34a',
-      wickDownColor: '#dc2626',
-    });
+    const series = chart.addCandlestickSeries(theme.candles);
 
     chartRef.current = chart;
     seriesRef.current = series;

@@ -268,7 +268,7 @@ export function LandingClient({ sections, testimonials, faqs, pricingOverrides, 
             {/* Left column — Copy (7/12) */}
             <div className="lg:col-span-7">
               <AnimatedSection>
-                <div className="t-eyebrow mb-5">
+                <div className="t-eyebrow eyebrow-rule mb-5">
                   {t('hero_eyebrow')}
                 </div>
               </AnimatedSection>
@@ -506,7 +506,7 @@ export function LandingClient({ sections, testimonials, faqs, pricingOverrides, 
       <section className="section-padding border-t border-border/60">
         <div className="layout-container">
           <AnimatedSection>
-            <div className="t-eyebrow mb-4">{t('products_eyebrow')}</div>
+            <div className="t-eyebrow eyebrow-rule mb-4">{t('products_eyebrow')}</div>
             <h2 className="t-display-section text-foreground mb-4">
               {productsSection.title}
             </h2>
@@ -555,7 +555,7 @@ export function LandingClient({ sections, testimonials, faqs, pricingOverrides, 
       <section className="section-padding border-t border-border/60">
         <div className="layout-container">
           <AnimatedSection>
-            <div className="t-eyebrow mb-4">{t('track_record_eyebrow')}</div>
+            <div className="t-eyebrow eyebrow-rule mb-4">{t('track_record_eyebrow')}</div>
             <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-10">
               <div>
                 <h2 className="t-display-section text-foreground mb-2">
@@ -676,7 +676,7 @@ export function LandingClient({ sections, testimonials, faqs, pricingOverrides, 
       <section className="section-padding border-t border-border/60">
         <div className="layout-container">
           <AnimatedSection>
-            <div className="t-eyebrow mb-4">{t('pillars_eyebrow')}</div>
+            <div className="t-eyebrow eyebrow-rule mb-4">{t('pillars_eyebrow')}</div>
             <h2 className="t-display-section text-foreground mb-4">{t('pillars_title')}</h2>
             <p className="t-lead text-muted-foreground max-w-2xl mb-16">
               {t('pillars_subtitle')}
@@ -718,7 +718,7 @@ export function LandingClient({ sections, testimonials, faqs, pricingOverrides, 
       <section className="section-padding border-t border-border/60">
         <div className="layout-container">
           <AnimatedSection>
-            <div className="t-eyebrow mb-4">{t('risk_eyebrow')}</div>
+            <div className="t-eyebrow eyebrow-rule mb-4">{t('risk_eyebrow')}</div>
             <h2 className="t-display-section text-foreground mb-2">{t('risk_title')}</h2>
             <p className="t-lead text-muted-foreground max-w-2xl mb-16">
               {t('risk_subtitle')}
@@ -753,7 +753,7 @@ export function LandingClient({ sections, testimonials, faqs, pricingOverrides, 
                 scroll tab di dalamnya. */}
             <div className="lg:col-span-4 lg:sticky lg:top-28 lg:self-start min-w-0">
               <AnimatedSection>
-                <div className="t-eyebrow mb-4">{t('pricing_eyebrow')}</div>
+                <div className="t-eyebrow eyebrow-rule mb-4">{t('pricing_eyebrow')}</div>
                 <h2 className="t-display-section text-foreground mb-4">{t('pricing_title')}</h2>
                 <p className="t-body text-muted-foreground mb-8">
                   {t('pricing_subtitle')}
@@ -893,7 +893,7 @@ export function LandingClient({ sections, testimonials, faqs, pricingOverrides, 
         <section className="section-padding border-t border-border/60">
           <div className="layout-container">
             <AnimatedSection>
-              <div className="t-eyebrow mb-4">{t('testimonials_eyebrow')}</div>
+              <div className="t-eyebrow eyebrow-rule mb-4">{t('testimonials_eyebrow')}</div>
               <h2 className="t-display-section text-foreground mb-16">{t('testimonials_title')}</h2>
             </AnimatedSection>
 
@@ -918,7 +918,7 @@ export function LandingClient({ sections, testimonials, faqs, pricingOverrides, 
         <section className="section-padding border-t border-border/60">
           <div className="layout-container">
             <AnimatedSection>
-              <div className="t-eyebrow mb-4">{t('trust_eyebrow')}</div>
+              <div className="t-eyebrow eyebrow-rule mb-4">{t('trust_eyebrow')}</div>
               <h2 className="t-display-section text-foreground mb-4">
                 {t('trust_title')}
               </h2>
@@ -969,7 +969,7 @@ export function LandingClient({ sections, testimonials, faqs, pricingOverrides, 
           {/* Header row — heading left, CTA right */}
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-12">
             <AnimatedSection>
-              <div className="t-eyebrow mb-4">{t('faq_eyebrow')}</div>
+              <div className="t-eyebrow eyebrow-rule mb-4">{t('faq_eyebrow')}</div>
               <h2 className="t-display-section text-foreground mb-2">{t('faq_title')}</h2>
               <p className="t-body text-muted-foreground">
                 {t('faq_subtitle')}

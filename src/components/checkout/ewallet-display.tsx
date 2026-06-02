@@ -22,6 +22,7 @@ import { CheckCircle2, Loader2, AlertOctagon, ExternalLink, Smartphone, RefreshC
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Link } from '@/i18n/navigation';
+import { WALLET_INFO, WALLET_FALLBACK } from '@/lib/design/payment-brand-colors';
 
 interface EwalletDisplayProps {
   orderId: string;
@@ -38,21 +39,6 @@ interface EwalletDisplayProps {
 
 type PollStatus = 'PENDING' | 'SUCCEEDED' | 'FAILED' | 'EXPIRED';
 
-const WALLET_INFO: Record<string, { name: string; color: string; logo: string; country: string }> = {
-  GOPAY:      { name: 'GoPay',      color: '#00AED6', logo: 'G',  country: 'ID' },
-  OVO:        { name: 'OVO',        color: '#4C2A86', logo: 'O',  country: 'ID' },
-  DANA:       { name: 'DANA',       color: '#118EEA', logo: 'D',  country: 'ID' },
-  SHOPEEPAY:  { name: 'ShopeePay',  color: '#EE4D2D', logo: 'S',  country: 'ID' },
-  LINKAJA:    { name: 'LinkAja',    color: '#E32024', logo: 'L',  country: 'ID' },
-  ASTRAPAY:   { name: 'AstraPay',   color: '#00529C', logo: 'A',  country: 'ID' },
-  GRABPAY_PH: { name: 'GrabPay',    color: '#00B14F', logo: 'G',  country: 'PH' },
-  GRABPAY_MY: { name: 'GrabPay',    color: '#00B14F', logo: 'G',  country: 'MY' },
-  GRABPAY_SG: { name: 'GrabPay',    color: '#00B14F', logo: 'G',  country: 'SG' },
-  GCASH_PH:   { name: 'GCash',      color: '#007DFF', logo: 'G',  country: 'PH' },
-  PAYMAYA_PH: { name: 'Maya',       color: '#7BD234', logo: 'M',  country: 'PH' },
-  TOUCHNGO_MY:{ name: "Touch 'n Go",color: '#E32024', logo: 'T',  country: 'MY' },
-};
-
 function fmtCurrency(amount: number, currency: string): string {
   if (currency === 'IDR') return 'Rp ' + amount.toLocaleString('id-ID', { maximumFractionDigits: 0 });
   if (currency === 'USD') return '$' + amount.toFixed(2);
@@ -67,7 +53,7 @@ export function EwalletDisplay({
   locale, onSucceeded, onFailed,
 }: EwalletDisplayProps) {
   const isEn = locale === 'en';
-  const wallet = WALLET_INFO[method] ?? { name: method, color: '#475569', logo: 'E', country: 'ID' };
+  const wallet = WALLET_INFO[method] ?? { ...WALLET_FALLBACK, name: method };
   const displayCurrency = currency ?? 'IDR';
   const displayAmount = chargeAmount ?? amountIdr;
   const [status, setStatus] = useState<PollStatus>('PENDING');

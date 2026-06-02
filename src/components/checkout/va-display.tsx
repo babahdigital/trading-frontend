@@ -13,6 +13,7 @@ import { CheckCircle2, Loader2, AlertOctagon, Copy, Check, Clock, Building2, Ref
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Link } from '@/i18n/navigation';
+import { BANK_INFO } from '@/lib/design/payment-brand-colors';
 
 interface VaDisplayProps {
   orderId: string;
@@ -26,15 +27,6 @@ interface VaDisplayProps {
 }
 
 type PollStatus = 'PENDING' | 'SUCCEEDED' | 'FAILED' | 'EXPIRED';
-
-const BANK_INFO: Record<string, { name: string; color: string; logoLetter: string }> = {
-  BCA:     { name: 'Bank Central Asia (BCA)',  color: '#0060AF', logoLetter: 'B' },
-  BNI:     { name: 'Bank Negara Indonesia',    color: '#F36F21', logoLetter: 'N' },
-  BRI:     { name: 'Bank Rakyat Indonesia',    color: '#003D7E', logoLetter: 'R' },
-  MANDIRI: { name: 'Bank Mandiri',             color: '#003366', logoLetter: 'M' },
-  BSI:     { name: 'Bank Syariah Indonesia',   color: '#00529C', logoLetter: 'S' },
-  PERMATA: { name: 'Bank Permata',             color: '#005FAA', logoLetter: 'P' },
-};
 
 const BANK_INSTRUCTIONS: Record<string, { id: string[]; en: string[] }> = {
   BCA: {

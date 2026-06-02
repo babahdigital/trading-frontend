@@ -128,7 +128,7 @@ export default async function RiskFrameworkPage() {
               <ArrowLeft className="w-3.5 h-3.5" strokeWidth={2.25} /> {t('back_link')}
             </Link>
             <div className="hero-section-header">
-              <p className="t-eyebrow mb-4 text-[hsl(var(--primary))]">{t('hero_eyebrow')}</p>
+              <p className="t-eyebrow eyebrow-rule mb-4 text-[hsl(var(--primary))]">{t('hero_eyebrow')}</p>
               <h1 className="t-display-page mb-6">{t('hero_title')}</h1>
               <p className="t-lead text-muted-foreground">{t('hero_lead')}</p>
 
@@ -208,7 +208,7 @@ export default async function RiskFrameworkPage() {
         {/* CTA */}
         <section className="section-padding border-t border-border">
           <div className="layout-container text-center max-w-2xl mx-auto">
-            <p className="t-eyebrow mb-3">{t('cta_eyebrow')}</p>
+            <p className="t-eyebrow eyebrow-rule mb-3">{t('cta_eyebrow')}</p>
             <h2 className="t-display-sub mb-6">{t('cta_title')}</h2>
             <p className="t-body text-muted-foreground mb-8">{t('cta_body')}</p>
             <div className="flex flex-wrap justify-center gap-3">

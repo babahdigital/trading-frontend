@@ -105,7 +105,7 @@ export default function PerformancePage() {
         <section className="section-padding border-b border-border/60 page-stamp-rule">
           <div className="layout-container">
             <div className="hero-section-header">
-              <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
+              <p className="t-eyebrow eyebrow-rule mb-4">{t('hero_eyebrow')}</p>
               <h1 className="t-display-page mb-6">
                 {hasLiveData
                   ? `${t('hero_title_live_l1')} ${t('hero_title_live_l2')}`
@@ -150,7 +150,7 @@ export default function PerformancePage() {
             <div className="layout-container">
               <div className="flex items-center justify-between mb-8">
                 <div>
-                  <p className="t-eyebrow mb-2">{t('equity_live_label')}</p>
+                  <p className="t-eyebrow eyebrow-rule mb-2">{t('equity_live_label')}</p>
                   <h2 className="t-display-sub">{t('equity_curve_title')}</h2>
                 </div>
               </div>
@@ -173,7 +173,7 @@ export default function PerformancePage() {
         ) : (
           <section className="section-padding border-b border-border/60">
             <div className="layout-container">
-              <p className="t-eyebrow mb-3">{t('method_eyebrow')}</p>
+              <p className="t-eyebrow eyebrow-rule mb-3">{t('method_eyebrow')}</p>
               <h2 className="t-display-sub mb-4">{t('method_title')}</h2>
               <p className="t-body text-foreground/60 max-w-2xl mb-12">
                 {t('method_body')}
@@ -197,7 +197,7 @@ export default function PerformancePage() {
         {hasKpi && (
           <section className="section-padding border-b border-border/60">
             <div className="layout-container">
-              <p className="t-eyebrow mb-3">{t('kpi_eyebrow')}</p>
+              <p className="t-eyebrow eyebrow-rule mb-3">{t('kpi_eyebrow')}</p>
               <h2 className="t-display-sub mb-12">{t('kpi_title')}</h2>
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-border/40 rounded-xl overflow-hidden border border-border/40">
                 {KPI_METRICS.map((metric) => (
@@ -216,7 +216,7 @@ export default function PerformancePage() {
         {(sessionData.length > 0 || dowData.length > 0) && (
           <section className="section-padding border-b border-border/60">
             <div className="layout-container">
-              <p className="t-eyebrow mb-3">{t('analytics_eyebrow')}</p>
+              <p className="t-eyebrow eyebrow-rule mb-3">{t('analytics_eyebrow')}</p>
               <h2 className="t-display-sub mb-12">{t('analytics_title')}</h2>
 
               {sessionData.length > 0 && (
@@ -283,7 +283,7 @@ export default function PerformancePage() {
         {/* Independent Verification — institutional trust */}
         <section className="section-padding border-b border-border/60">
           <div className="layout-container">
-            <p className="t-eyebrow mb-3">{t('verify_eyebrow')}</p>
+            <p className="t-eyebrow eyebrow-rule mb-3">{t('verify_eyebrow')}</p>
             <h2 className="t-display-sub mb-4">{t('verify_title')}</h2>
             <p className="t-body text-foreground/60 max-w-2xl mb-12">
               {t('verify_body')}
@@ -309,7 +309,7 @@ export default function PerformancePage() {
         <section className="section-padding border-b border-border/60">
           <div className="layout-container">
             <div className="rounded-xl border border-border/60 bg-card p-6 sm:p-7 max-w-3xl">
-              <p className="t-eyebrow mb-3">{t('risk_eyebrow')}</p>
+              <p className="t-eyebrow eyebrow-rule mb-3">{t('risk_eyebrow')}</p>
               <p className="text-xs text-foreground/55 leading-relaxed italic">
                 {t('risk_body')}
               </p>

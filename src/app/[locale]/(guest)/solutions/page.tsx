@@ -114,7 +114,7 @@ export default async function SolutionsPage({ params }: { params: Promise<{ loca
         <section className="section-padding border-b border-white/8">
           <div className="layout-container">
             <div className="hero-section-header hero-section-header--center">
-              <p className="t-eyebrow mb-4">{t('eyebrow')}</p>
+              <p className="t-eyebrow eyebrow-rule mb-4">{t('eyebrow')}</p>
               <h1 className="t-display-page mb-6">{t('hero_title')}</h1>
               <p className="t-lead text-foreground/60">
                 {t('hero_subtitle')}
@@ -139,7 +139,7 @@ export default async function SolutionsPage({ params }: { params: Promise<{ loca
         <section className="section-padding border-b border-white/8 bg-muted/[0.02]">
           <div className="layout-container">
             <div className="text-center mb-10 sm:mb-12 max-w-2xl mx-auto">
-              <p className="t-eyebrow mb-4">{t('ladder_eyebrow')}</p>
+              <p className="t-eyebrow eyebrow-rule mb-4">{t('ladder_eyebrow')}</p>
               <h2 className="t-display-sub mb-3">{t('ladder_title')}</h2>
               <p className="text-foreground/60 leading-relaxed">{t('ladder_subtitle')}</p>
             </div>

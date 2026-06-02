@@ -19,7 +19,7 @@ export function FaqSection({ t }: FaqSectionProps) {
   return (
     <section className="section-padding border-b border-border/60">
       <div className="layout-container">
-        <p className="t-eyebrow mb-3">{t('faq_eyebrow')}</p>
+        <p className="t-eyebrow eyebrow-rule mb-3">{t('faq_eyebrow')}</p>
         <h2 className="t-display-section mb-8 sm:mb-12 max-w-xl sm:max-w-2xl">{t('faq_title')}</h2>
         <div className="grid md:grid-cols-2 gap-x-8 lg:gap-x-10 gap-y-6 sm:gap-y-8 max-w-5xl">
           {items.map((item) => (

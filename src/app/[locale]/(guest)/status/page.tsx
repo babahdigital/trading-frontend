@@ -327,7 +327,7 @@ export default function StatusPage() {
           <div className="layout-container">
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
               <div className="max-w-2xl">
-                <p className="t-eyebrow mb-2 inline-flex items-center gap-2">
+                <p className="t-eyebrow eyebrow-rule mb-2 inline-flex items-center gap-2">
                   <Activity className="h-3.5 w-3.5" strokeWidth={2.25} /> {t.eyebrow}
                 </p>
                 <h1 className="text-2xl sm:text-3xl lg:text-4xl font-display font-semibold tracking-tight mb-3">

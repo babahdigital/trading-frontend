@@ -91,7 +91,7 @@ export function CapabilityLadder() {
   return (
     <section className="section-padding border-b border-border/60">
       <div className="layout-container">
-        <p className="t-eyebrow mb-3">{t.eyebrow}</p>
+        <p className="t-eyebrow eyebrow-rule mb-3">{t.eyebrow}</p>
         <h2 className="t-display-section mb-3 max-w-2xl">{t.heading}</h2>
         <p className="t-body text-foreground/60 max-w-2xl mb-8">{t.description}</p>
 

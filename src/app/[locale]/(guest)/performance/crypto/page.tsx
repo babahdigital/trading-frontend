@@ -103,7 +103,7 @@ export default function CryptoPerformancePage() {
             <div className="layout-container">
               <div className="flex items-center justify-between mb-8">
                 <div>
-                  <p className="t-eyebrow mb-2">{t('equity_live')}</p>
+                  <p className="t-eyebrow eyebrow-rule mb-2">{t('equity_live')}</p>
                   <h2 className="t-display-sub">{t('equity_title')}</h2>
                 </div>
               </div>
@@ -138,7 +138,7 @@ export default function CryptoPerformancePage() {
         {hasKpi && (
           <section className="section-padding border-b border-border/60">
             <div className="layout-container">
-              <p className="t-eyebrow mb-3">{t('kpi_eyebrow')}</p>
+              <p className="t-eyebrow eyebrow-rule mb-3">{t('kpi_eyebrow')}</p>
               <h2 className="t-display-sub mb-12">{t('kpi_title')}</h2>
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-px bg-border/40 rounded-xl overflow-hidden border border-border/40">
                 {KPI_METRICS.map((metric) => (
@@ -155,7 +155,7 @@ export default function CryptoPerformancePage() {
         <section className="section-padding border-b border-border/60">
           <div className="layout-container">
             <div className="rounded-xl border border-border/60 bg-card p-6 sm:p-7 max-w-3xl">
-              <p className="t-eyebrow mb-3">{t('risk_eyebrow')}</p>
+              <p className="t-eyebrow eyebrow-rule mb-3">{t('risk_eyebrow')}</p>
               <p className="text-xs text-foreground/55 leading-relaxed italic">
                 {t('risk_body')}
               </p>

@@ -90,7 +90,7 @@ export default function InstrumentsPage() {
               <ArrowLeft className="w-3.5 h-3.5" /> {t('back_link')}
             </Link>
             <div className="hero-section-header">
-              <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
+              <p className="t-eyebrow eyebrow-rule mb-4">{t('hero_eyebrow')}</p>
               <h1 className="t-display-page mb-6">
                 {t('hero_title', { count: TOTAL_INSTRUMENTS })}
               </h1>
@@ -117,7 +117,7 @@ export default function InstrumentsPage() {
         {/* Tab-based instrument browser */}
         <section className="section-padding border-b border-white/8">
           <div className="layout-container">
-            <p className="t-eyebrow mb-4">{t('browse_eyebrow')}</p>
+            <p className="t-eyebrow eyebrow-rule mb-4">{t('browse_eyebrow')}</p>
             <h2 className="t-display-sub mb-8">{t('browse_title')}</h2>
 
             {/* Tab bar */}
@@ -183,7 +183,7 @@ export default function InstrumentsPage() {
         {/* Selection criteria */}
         <section className="section-padding">
           <div className="layout-container">
-            <p className="t-eyebrow mb-4">{t('criteria_eyebrow')}</p>
+            <p className="t-eyebrow eyebrow-rule mb-4">{t('criteria_eyebrow')}</p>
             <h2 className="t-display-sub mb-4">{t('criteria_title')}</h2>
             <div className="card-enterprise">
               <p className="text-foreground/60 leading-relaxed mb-4">

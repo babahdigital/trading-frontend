@@ -43,7 +43,7 @@ export default async function GovernancePage() {
               {t('back_link')}
             </Link>
             <div className="hero-section-header">
-              <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
+              <p className="t-eyebrow eyebrow-rule mb-4">{t('hero_eyebrow')}</p>
               <h1 className="t-display-page mb-6">
                 {t('hero_title')}
               </h1>
@@ -60,7 +60,7 @@ export default async function GovernancePage() {
         {/* Legal Entity */}
         <section className="section-padding border-b border-border/60">
           <div className="layout-container">
-            <p className="t-eyebrow mb-4">{t('legal_eyebrow')}</p>
+            <p className="t-eyebrow eyebrow-rule mb-4">{t('legal_eyebrow')}</p>
             <h2 className="t-display-sub mb-8">{t('legal_title')}</h2>
             <div className="max-w-3xl space-y-4 text-foreground/60 leading-relaxed">
               <p>
@@ -74,7 +74,7 @@ export default async function GovernancePage() {
         {/* Regulatory Status */}
         <section className="section-padding border-b border-border/60">
           <div className="layout-container">
-            <p className="t-eyebrow mb-4">{t('reg_eyebrow')}</p>
+            <p className="t-eyebrow eyebrow-rule mb-4">{t('reg_eyebrow')}</p>
             <h2 className="t-display-sub mb-8">{t('reg_title')}</h2>
             <div className="max-w-3xl space-y-4 text-foreground/60 leading-relaxed">
               <p>
@@ -89,7 +89,7 @@ export default async function GovernancePage() {
         {/* Partner Brokers */}
         <section className="section-padding border-b border-border/60">
           <div className="layout-container">
-            <p className="t-eyebrow mb-4">{t('broker_eyebrow')}</p>
+            <p className="t-eyebrow eyebrow-rule mb-4">{t('broker_eyebrow')}</p>
             <h2 className="t-display-sub mb-8">{t('broker_title')}</h2>
             <div className="max-w-3xl space-y-4 text-foreground/60 leading-relaxed">
               <p>
@@ -115,7 +115,7 @@ export default async function GovernancePage() {
         {/* Audit */}
         <section className="section-padding border-b border-border/60">
           <div className="layout-container">
-            <p className="t-eyebrow mb-4">{t('audit_eyebrow')}</p>
+            <p className="t-eyebrow eyebrow-rule mb-4">{t('audit_eyebrow')}</p>
             <h2 className="t-display-sub mb-8">{t('audit_title')}</h2>
             <div className="max-w-3xl space-y-4 text-foreground/60 leading-relaxed">
               <p>
@@ -137,7 +137,7 @@ export default async function GovernancePage() {
         {/* Conflict of Interest */}
         <section className="section-padding border-b border-border/60">
           <div className="layout-container">
-            <p className="t-eyebrow mb-4">{t('coi_eyebrow')}</p>
+            <p className="t-eyebrow eyebrow-rule mb-4">{t('coi_eyebrow')}</p>
             <h2 className="t-display-sub mb-8">{t('coi_title')}</h2>
             <div className="max-w-3xl space-y-4 text-foreground/60 leading-relaxed">
               <p>{t('coi_intro')}</p>
@@ -168,7 +168,7 @@ export default async function GovernancePage() {
         {/* Data Privacy */}
         <section className="section-padding border-b border-border/60">
           <div className="layout-container">
-            <p className="t-eyebrow mb-4">{t('data_eyebrow')}</p>
+            <p className="t-eyebrow eyebrow-rule mb-4">{t('data_eyebrow')}</p>
             <h2 className="t-display-sub mb-8">{t('data_title')}</h2>
             <div className="max-w-3xl space-y-4 text-foreground/60 leading-relaxed">
               <p>{t('data_intro')}</p>
@@ -193,7 +193,7 @@ export default async function GovernancePage() {
         {/* Compliance Contact */}
         <section className="section-padding">
           <div className="layout-container">
-            <p className="t-eyebrow mb-4">{t('contact_eyebrow')}</p>
+            <p className="t-eyebrow eyebrow-rule mb-4">{t('contact_eyebrow')}</p>
             <h2 className="t-display-sub mb-8">{t('contact_title')}</h2>
             <div className="card-enterprise max-w-md">
               <p className="t-body-sm text-foreground/60 mb-4">

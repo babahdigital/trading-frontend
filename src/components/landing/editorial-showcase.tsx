@@ -91,7 +91,7 @@ export function EditorialShowcase({
     >
       <div className="layout-container">
         <div className="mb-10 sm:mb-14">
-          <div className="t-eyebrow mb-3">{eyebrow}</div>
+          <div className="t-eyebrow eyebrow-rule mb-3">{eyebrow}</div>
           <h2 className="t-display-section text-foreground mb-3">{title}</h2>
           {subtitle && (
             <p className="t-lead text-muted-foreground max-w-2xl">{subtitle}</p>

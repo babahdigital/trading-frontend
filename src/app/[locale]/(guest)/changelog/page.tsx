@@ -68,7 +68,7 @@ export default function ChangelogPage() {
         <section className="section-padding border-b border-border/60">
           <div className="layout-container">
             <div className="hero-section-header">
-              <p className="t-eyebrow mb-4">{t.eyebrow}</p>
+              <p className="t-eyebrow eyebrow-rule mb-4">{t.eyebrow}</p>
               <h1 className="t-display-page mb-6">{t.page_title}</h1>
               <p className="t-lead text-foreground/60">{t.intro}</p>
             </div>

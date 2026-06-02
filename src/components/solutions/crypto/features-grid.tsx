@@ -17,7 +17,7 @@ export function FeaturesGrid({ t }: FeaturesGridProps) {
   return (
     <section className="section-padding border-b border-border/60">
       <div className="layout-container">
-        <p className="t-eyebrow mb-3">{t('feat_eyebrow')}</p>
+        <p className="t-eyebrow eyebrow-rule mb-3">{t('feat_eyebrow')}</p>
         <h2 className="t-display-section mb-8 sm:mb-12 max-w-xl sm:max-w-2xl">
           {t('feat_title')}
         </h2>

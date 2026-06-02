@@ -165,7 +165,7 @@ export default function BriefDetailPage() {
                   {isEn ? 'Back to Briefs' : 'Kembali ke Laporan'}
                 </Link>
 
-                <p className="t-eyebrow mb-4">Pair Intelligence Brief</p>
+                <p className="t-eyebrow eyebrow-rule mb-4">Pair Intelligence Brief</p>
                 <h1 className="text-3xl md:text-4xl font-bold leading-tight mb-4">
                   {brief.pair} — {sessionLabel(brief.session)}
                 </h1>

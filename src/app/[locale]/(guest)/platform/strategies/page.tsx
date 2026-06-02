@@ -45,7 +45,7 @@ export default async function StrategiesPage() {
         <section className="section-padding border-b border-white/8">
           <div className="layout-container">
             <div className="hero-section-header">
-              <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
+              <p className="t-eyebrow eyebrow-rule mb-4">{t('hero_eyebrow')}</p>
               <h1 className="t-display-page mb-6">
                 {t('hero_title')}
               </h1>

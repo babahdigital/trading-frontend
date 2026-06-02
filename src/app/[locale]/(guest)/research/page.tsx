@@ -101,7 +101,7 @@ export default function ResearchPage() {
         <section className="section-padding border-b border-white/8">
           <div className="layout-container">
             <div className="hero-section-header">
-              <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
+              <p className="t-eyebrow eyebrow-rule mb-4">{t('hero_eyebrow')}</p>
               <h1 className="t-display-page mb-6">
                 {t('hero_title')}
               </h1>
@@ -124,7 +124,7 @@ export default function ResearchPage() {
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="t-eyebrow mb-2">{t('briefs_eyebrow')}</p>
+                  <p className="t-eyebrow eyebrow-rule mb-2">{t('briefs_eyebrow')}</p>
                   <h2 className="text-xl font-semibold mb-2 group-hover:text-amber-400 transition-colors">
                     {t('briefs_title')}
                   </h2>
@@ -182,7 +182,7 @@ export default function ResearchPage() {
                         />
                         <div className="p-5 sm:p-6 flex flex-col flex-1">
                           {!article.thumbnailUrl && (
-                            <p className="t-eyebrow mb-3">{humanizeCategory(article.category)}</p>
+                            <p className="t-eyebrow eyebrow-rule mb-3">{humanizeCategory(article.category)}</p>
                           )}
                           <h2 className="text-lg font-semibold mb-3 line-clamp-2 group-hover:text-amber-500 dark:group-hover:text-amber-400 transition-colors leading-snug">
                             {title}

@@ -165,7 +165,7 @@ export default async function DemoPage() {
         {/* 3-track demo cards */}
         <section className="section-padding border-b border-border/60">
           <div className="layout-container">
-            <p className="t-eyebrow mb-3">{t('tracks_eyebrow')}</p>
+            <p className="t-eyebrow eyebrow-rule mb-3">{t('tracks_eyebrow')}</p>
             <h2 className="t-display-sub mb-4">{t('tracks_title')}</h2>
             <p className="t-body text-foreground/60 max-w-xl sm:max-w-2xl mb-8 sm:mb-12">
               {t('tracks_subtitle')}
@@ -219,7 +219,7 @@ export default async function DemoPage() {
         {/* Steps */}
         <section className="section-padding border-b border-border/60">
           <div className="layout-container">
-            <p className="t-eyebrow mb-3">{t('steps_eyebrow')}</p>
+            <p className="t-eyebrow eyebrow-rule mb-3">{t('steps_eyebrow')}</p>
             <h2 className="t-display-sub mb-4">{t('steps_title')}</h2>
             <p className="t-body text-foreground/60 max-w-xl sm:max-w-2xl mb-8 sm:mb-12">
               {t('steps_subtitle')}
@@ -227,7 +227,7 @@ export default async function DemoPage() {
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
               {STEP_META.map((s) => (
                 <div key={s.step} className="rounded-xl border border-border/80 bg-card p-5 sm:p-6">
-                  <div className="t-eyebrow mb-3 text-amber-400">{s.step}</div>
+                  <div className="t-eyebrow eyebrow-rule mb-3 text-amber-400">{s.step}</div>
                   <h3 className="text-base font-semibold mb-2">{t(s.titleKey)}</h3>
                   <p className="t-body-sm text-foreground/65 leading-relaxed">{t(s.descKey)}</p>
                 </div>
@@ -241,7 +241,7 @@ export default async function DemoPage() {
           <div className="layout-container">
             <div className="grid lg:grid-cols-5 gap-y-8 lg:gap-y-12 lg:gap-x-12">
               <div className="lg:col-span-2">
-                <p className="t-eyebrow mb-3">{t('after_eyebrow')}</p>
+                <p className="t-eyebrow eyebrow-rule mb-3">{t('after_eyebrow')}</p>
                 <h2 className="t-display-sub">{t('after_title')}</h2>
               </div>
               <div className="lg:col-span-3 space-y-5 t-body text-foreground/70">

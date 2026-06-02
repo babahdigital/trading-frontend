@@ -19,7 +19,7 @@ export default function PerformanceHubPage() {
         <section className="section-padding border-b border-border/60 page-stamp-rule">
           <div className="layout-container">
             <div className="hero-section-header">
-              <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
+              <p className="t-eyebrow eyebrow-rule mb-4">{t('hero_eyebrow')}</p>
               <h1 className="t-display-page mb-6">
                 {t('hub_title_l1')} {t('hub_title_l2')}
               </h1>
@@ -35,7 +35,7 @@ export default function PerformanceHubPage() {
 
         <section className="section-padding border-b border-border/60">
           <div className="layout-container">
-            <p className="t-eyebrow mb-3">{t('hub_products_eyebrow')}</p>
+            <p className="t-eyebrow eyebrow-rule mb-3">{t('hub_products_eyebrow')}</p>
             <h2 className="t-display-sub mb-12">{t('hub_products_title')}</h2>
             <div className="grid md:grid-cols-2 gap-5">
               <Link href="/performance/forex" className="group block rounded-xl border border-border/40 bg-card/40 hover:border-amber-500/30 hover:bg-card/60 transition-all p-6 sm:p-7">
@@ -80,7 +80,7 @@ export default function PerformanceHubPage() {
         <section className="section-padding border-b border-border/60">
           <div className="layout-container">
             <div className="rounded-xl border border-border/40 bg-card/40 p-6 sm:p-7 max-w-3xl">
-              <p className="t-eyebrow mb-3">{t('risk_eyebrow')}</p>
+              <p className="t-eyebrow eyebrow-rule mb-3">{t('risk_eyebrow')}</p>
               <p className="text-xs text-foreground/55 leading-relaxed">
                 {t('risk_body')}
               </p>

@@ -76,7 +76,7 @@ export function StatsBar({ namespace = 'register' }: { namespace?: string }) {
 
   return (
     <section aria-label={t('stats_eyebrow')} className="my-10">
-      <p className="t-eyebrow mb-4 text-center">{t('stats_eyebrow')}</p>
+      <p className="t-eyebrow eyebrow-rule mb-4 text-center">{t('stats_eyebrow')}</p>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {items.map(({ icon: Icon, value, labelKey, positive, negative }) => (
           <div

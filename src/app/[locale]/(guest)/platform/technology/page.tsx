@@ -42,7 +42,7 @@ export default async function TechnologyPage() {
               <ArrowLeft className="w-3.5 h-3.5" /> {t('back_link')}
             </Link>
             <div className="hero-section-header">
-              <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
+              <p className="t-eyebrow eyebrow-rule mb-4">{t('hero_eyebrow')}</p>
               <h1 className="t-display-page mb-6">
                 {t('hero_title')}
               </h1>
@@ -87,7 +87,7 @@ export default async function TechnologyPage() {
         {/* AI Advisor */}
         <section className="section-padding border-b border-white/8">
           <div className="layout-container">
-            <p className="t-eyebrow mb-4">{t('ai_eyebrow')}</p>
+            <p className="t-eyebrow eyebrow-rule mb-4">{t('ai_eyebrow')}</p>
             <h2 className="t-display-sub mb-4">{t('ai_title')}</h2>
             <div className="card-enterprise">
               <h3 className="font-display text-lg text-foreground mb-3">
@@ -120,7 +120,7 @@ export default async function TechnologyPage() {
         {/* Execution */}
         <section className="section-padding border-b border-white/8">
           <div className="layout-container">
-            <p className="t-eyebrow mb-4">{t('exec_eyebrow')}</p>
+            <p className="t-eyebrow eyebrow-rule mb-4">{t('exec_eyebrow')}</p>
             <h2 className="t-display-sub mb-4">{t('exec_title')}</h2>
             <div className="card-enterprise mb-6">
               <h3 className="font-display text-lg text-foreground mb-3">
@@ -158,7 +158,7 @@ export default async function TechnologyPage() {
         {/* Infrastructure */}
         <section className="section-padding border-b border-white/8">
           <div className="layout-container">
-            <p className="t-eyebrow mb-4">{t('infra_eyebrow')}</p>
+            <p className="t-eyebrow eyebrow-rule mb-4">{t('infra_eyebrow')}</p>
             <h2 className="t-display-sub mb-4">{t('infra_title')}</h2>
             <div className="space-y-6">
               <div className="card-enterprise">
@@ -194,7 +194,7 @@ export default async function TechnologyPage() {
         {/* Monitoring */}
         <section className="section-padding">
           <div className="layout-container">
-            <p className="t-eyebrow mb-4">{t('ops_eyebrow')}</p>
+            <p className="t-eyebrow eyebrow-rule mb-4">{t('ops_eyebrow')}</p>
             <h2 className="t-display-sub mb-4">{t('ops_title')}</h2>
             <div className="space-y-6">
               <div className="card-enterprise">

@@ -70,7 +70,7 @@ export default function TeamPage() {
               {t('back_link')}
             </Link>
             <div className="hero-section-header">
-              <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
+              <p className="t-eyebrow eyebrow-rule mb-4">{t('hero_eyebrow')}</p>
               <h1 className="t-display-page mb-6">
                 {t('hero_title')}
               </h1>
@@ -87,7 +87,7 @@ export default function TeamPage() {
         {/* Team Grid */}
         <section className="section-padding border-b border-border/60">
           <div className="layout-container">
-            <p className="t-eyebrow mb-4">{t('members_eyebrow')}</p>
+            <p className="t-eyebrow eyebrow-rule mb-4">{t('members_eyebrow')}</p>
             <div className="grid md:grid-cols-2 gap-8">
               {team.map((member) => (
                 <div key={member.name} className="card-enterprise">

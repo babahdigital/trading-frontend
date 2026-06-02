@@ -114,7 +114,7 @@ export function CryptoTierGate({
   return (
     <div className="card-enterprise max-w-3xl mx-auto">
       <header className="mb-6">
-        <p className="t-eyebrow mb-2">{copy.eyebrow}</p>
+        <p className="t-eyebrow eyebrow-rule mb-2">{copy.eyebrow}</p>
         <h2 className="text-2xl sm:text-3xl font-semibold mb-2">{copy.title}</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">{copy.subtitle}</p>
       </header>

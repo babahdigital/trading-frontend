@@ -108,7 +108,7 @@ export default function PairBriefsPage() {
         <section className="section-padding border-b border-white/8">
           <div className="layout-container">
             <div className="hero-section-header">
-              <p className="t-eyebrow mb-4">Pair Intelligence</p>
+              <p className="t-eyebrow eyebrow-rule mb-4">Pair Intelligence</p>
               <h1 className="t-display-page mb-6">
                 {isEn ? 'Pair Intelligence Briefs' : 'Laporan Intelijen Per Pair'}
               </h1>

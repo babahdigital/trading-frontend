@@ -101,7 +101,7 @@ export function DecisionQuiz() {
   return (
     <div className="rounded-2xl border border-border/60 bg-card/50 p-6 sm:p-8 lg:p-10">
       <div className="text-center mb-8 sm:mb-10 max-w-2xl mx-auto">
-        <p className="t-eyebrow mb-3">{t('eyebrow')}</p>
+        <p className="t-eyebrow eyebrow-rule mb-3">{t('eyebrow')}</p>
         <h2 className="t-display-sub mb-3">{t('title')}</h2>
         <p className="t-body-sm text-foreground/60 leading-relaxed">{t('subtitle')}</p>
       </div>

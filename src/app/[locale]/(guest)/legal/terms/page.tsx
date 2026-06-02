@@ -43,7 +43,7 @@ export default function TermsPage() {
         {/* Hero */}
         <section className="section-padding border-b border-border/60">
           <div className="layout-container">
-            <p className="t-eyebrow mb-4">{t('eyebrow')}</p>
+            <p className="t-eyebrow eyebrow-rule mb-4">{t('eyebrow')}</p>
             <h1 className="t-display-page mb-2">{t('page_terms')}</h1>
             <LegalLastUpdated slug="legal-terms" />
           </div>
@@ -170,7 +170,7 @@ export default function TermsPage() {
         {/* Related Documents */}
         <section className="section-padding border-t border-border/60">
           <div className="layout-container">
-            <p className="t-eyebrow mb-4">{t('related_eyebrow')}</p>
+            <p className="t-eyebrow eyebrow-rule mb-4">{t('related_eyebrow')}</p>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {LEGAL_LINKS.map((doc) => (
                 <Link

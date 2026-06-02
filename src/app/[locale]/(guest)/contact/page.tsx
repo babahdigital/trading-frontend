@@ -53,7 +53,7 @@ export default async function ContactPage() {
         <section className="section-padding border-b border-border/60 page-stamp-editorial">
           <div className="layout-container">
             <div className="hero-section-header">
-              <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
+              <p className="t-eyebrow eyebrow-rule mb-4">{t('hero_eyebrow')}</p>
               <h1 className="t-display-page mb-6">
                 {t('hero_title_l1')} {t('hero_title_l2')}
               </h1>
@@ -77,7 +77,7 @@ export default async function ContactPage() {
         {/* What to expect — agenda 4 quadrant */}
         <section className="section-padding border-b border-border/60">
           <div className="layout-container">
-            <p className="t-eyebrow mb-3">{t('agenda_eyebrow')}</p>
+            <p className="t-eyebrow eyebrow-rule mb-3">{t('agenda_eyebrow')}</p>
             <h2 className="t-display-sub mb-4">{t('agenda_title')}</h2>
             <p className="t-body text-foreground/60 max-w-2xl mb-12">
               {t('agenda_subtitle')}
@@ -99,7 +99,7 @@ export default async function ContactPage() {
         {/* Schedule a Call */}
         <section className="section-padding border-b border-border/60">
           <div className="layout-container">
-            <p className="t-eyebrow mb-3">{t('schedule_eyebrow')}</p>
+            <p className="t-eyebrow eyebrow-rule mb-3">{t('schedule_eyebrow')}</p>
             <h2 className="t-display-sub mb-3">{t('schedule_title')}</h2>
             <p className="t-body-sm text-foreground/60 mb-8 max-w-xl">
               {t('schedule_subtitle')}
@@ -116,7 +116,7 @@ export default async function ContactPage() {
             <div className="grid lg:grid-cols-5 gap-16 lg:gap-20">
               {/* Left: Contact Form (60%) */}
               <div className="lg:col-span-3">
-                <p className="t-eyebrow mb-3">{t('form_eyebrow')}</p>
+                <p className="t-eyebrow eyebrow-rule mb-3">{t('form_eyebrow')}</p>
                 <h2 className="t-display-sub mb-3">{t('form_title')}</h2>
                 <p className="t-body-sm text-foreground/60 mb-8 max-w-lg">
                   {t('form_subtitle')}
@@ -126,7 +126,7 @@ export default async function ContactPage() {
 
               {/* Right: Direct Channels (40%) */}
               <div className="lg:col-span-2">
-                <p className="t-eyebrow mb-3">{t('channels_eyebrow')}</p>
+                <p className="t-eyebrow eyebrow-rule mb-3">{t('channels_eyebrow')}</p>
                 <h2 className="t-display-sub mb-3">{t('channels_title')}</h2>
                 <p className="t-body-sm text-foreground/60 mb-8">
                   {t('channels_subtitle')}

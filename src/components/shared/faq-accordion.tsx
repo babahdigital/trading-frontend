@@ -43,7 +43,7 @@ export function FaqAccordion({
   return (
     <section className="my-12">
       <div className="text-center mb-8">
-        {eyebrow && <p className="t-eyebrow mb-2">{eyebrow}</p>}
+        {eyebrow && <p className="t-eyebrow eyebrow-rule mb-2">{eyebrow}</p>}
         <h2 className="t-display-section mb-2">{heading}</h2>
         {subtitle && <p className="text-sm text-foreground/60">{subtitle}</p>}
       </div>

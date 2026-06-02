@@ -221,7 +221,7 @@ export default async function StrategyDetailPage({
         {/* Abstract */}
         <section className="section-padding border-b border-border/60">
           <div className="layout-container">
-            <p className="t-eyebrow mb-3">{t('section_abstract')}</p>
+            <p className="t-eyebrow eyebrow-rule mb-3">{t('section_abstract')}</p>
             <div className="max-w-3xl">
               {proseData ? (
                 proseData.abstractKeys.map((key, i) => (
@@ -242,7 +242,7 @@ export default async function StrategyDetailPage({
         {proseData && (
         <section className="section-padding border-b border-border/60">
           <div className="layout-container">
-            <p className="t-eyebrow mb-3">{t('section_mechanism')}</p>
+            <p className="t-eyebrow eyebrow-rule mb-3">{t('section_mechanism')}</p>
             <h2 className="t-display-sub mb-8">{dbStrategy.name}</h2>
             <div className="grid gap-4 md:grid-cols-2">
               {proseData.mechanismKeys.map((key, i) => (
@@ -266,7 +266,7 @@ export default async function StrategyDetailPage({
         {proseData && (
         <section className="section-padding border-b border-border/60">
           <div className="layout-container">
-            <p className="t-eyebrow mb-3">{t('section_confluence')}</p>
+            <p className="t-eyebrow eyebrow-rule mb-3">{t('section_confluence')}</p>
             <h2 className="t-display-sub mb-4">{t('section_confluence')}</h2>
             <p className="t-body text-muted-foreground max-w-2xl mb-8">
               {t('section_confluence_lead')}
@@ -306,7 +306,7 @@ export default async function StrategyDetailPage({
           <div className="layout-container">
             <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
               <div>
-                <p className="t-eyebrow mb-3">{t('section_risk_profile')}</p>
+                <p className="t-eyebrow eyebrow-rule mb-3">{t('section_risk_profile')}</p>
                 <h2 className="t-display-sub">{t('section_risk_profile')}</h2>
               </div>
               {isPending ? (
@@ -328,7 +328,7 @@ export default async function StrategyDetailPage({
                 { label: t('metric_max_consec_loss'), value: formatCount(stat?.maxConsecutiveLoss ?? null) },
               ].map((metric) => (
                 <div key={metric.label} className="kpi-card">
-                  <p className="t-eyebrow mb-3">{metric.label}</p>
+                  <p className="t-eyebrow eyebrow-rule mb-3">{metric.label}</p>
                   <p className={`font-mono text-2xl ${metric.value === '—' ? 'text-foreground/40' : 'text-accent'}`}>
                     {metric.value}
                   </p>

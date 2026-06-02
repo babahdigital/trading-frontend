@@ -41,7 +41,7 @@ export default async function ExecutionPage() {
               <ArrowLeft className="w-3.5 h-3.5" /> {t('back_link')}
             </Link>
             <div className="hero-section-header">
-              <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
+              <p className="t-eyebrow eyebrow-rule mb-4">{t('hero_eyebrow')}</p>
               <h1 className="t-display-page mb-6">
                 {t('hero_title')}
               </h1>
@@ -58,7 +58,7 @@ export default async function ExecutionPage() {
         {/* Latency */}
         <section className="section-padding border-b border-white/8">
           <div className="layout-container">
-            <p className="t-eyebrow mb-4">{t('latency_eyebrow')}</p>
+            <p className="t-eyebrow eyebrow-rule mb-4">{t('latency_eyebrow')}</p>
             <h2 className="t-display-sub mb-4">{t('latency_title')}</h2>
             <div className="card-enterprise">
               <h3 className="font-display text-lg text-foreground mb-3">
@@ -95,7 +95,7 @@ export default async function ExecutionPage() {
         {/* Broker Integration */}
         <section className="section-padding border-b border-white/8">
           <div className="layout-container">
-            <p className="t-eyebrow mb-4">{t('broker_eyebrow')}</p>
+            <p className="t-eyebrow eyebrow-rule mb-4">{t('broker_eyebrow')}</p>
             <h2 className="t-display-sub mb-4">{t('broker_title')}</h2>
             <div className="card-enterprise">
               <p className="text-foreground/60 leading-relaxed mb-4">
@@ -114,7 +114,7 @@ export default async function ExecutionPage() {
         {/* VPS Infrastructure */}
         <section className="section-padding border-b border-white/8">
           <div className="layout-container">
-            <p className="t-eyebrow mb-4">{t('vps_eyebrow')}</p>
+            <p className="t-eyebrow eyebrow-rule mb-4">{t('vps_eyebrow')}</p>
             <h2 className="t-display-sub mb-4">{t('vps_title')}</h2>
             <div className="space-y-6">
               <div className="card-enterprise">
@@ -140,7 +140,7 @@ export default async function ExecutionPage() {
         {/* Monitoring and Failover */}
         <section className="section-padding">
           <div className="layout-container">
-            <p className="t-eyebrow mb-4">{t('ops_eyebrow')}</p>
+            <p className="t-eyebrow eyebrow-rule mb-4">{t('ops_eyebrow')}</p>
             <h2 className="t-display-sub mb-4">{t('ops_title')}</h2>
             <div className="space-y-6">
               <div className="card-enterprise">

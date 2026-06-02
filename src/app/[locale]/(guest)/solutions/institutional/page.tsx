@@ -92,7 +92,7 @@ export default async function InstitutionalPage({ params }: { params: Promise<{ 
         <section className="section-padding border-b border-border/60">
           <div className="layout-container">
             <div className="hero-section-header">
-              <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
+              <p className="t-eyebrow eyebrow-rule mb-4">{t('hero_eyebrow')}</p>
 
               {/* Tier identifier — B2B managed engagement (vs VPS License self-host) */}
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sky-500/10 border border-sky-500/30 mb-5">
@@ -120,7 +120,7 @@ export default async function InstitutionalPage({ params }: { params: Promise<{ 
           <div className="layout-container">
             <div className="grid lg:grid-cols-5 gap-y-8 lg:gap-x-12">
               <div className="lg:col-span-2">
-                <p className="t-eyebrow mb-4">{t('elig_eyebrow')}</p>
+                <p className="t-eyebrow eyebrow-rule mb-4">{t('elig_eyebrow')}</p>
                 <h2 className="t-display-sub">{t('elig_title')}</h2>
               </div>
               <ul className="lg:col-span-3 space-y-4 text-foreground/70">
@@ -138,7 +138,7 @@ export default async function InstitutionalPage({ params }: { params: Promise<{ 
         {/* What you get */}
         <section className="section-padding border-b border-border/60">
           <div className="layout-container">
-            <p className="t-eyebrow mb-4">{t('cap_eyebrow')}</p>
+            <p className="t-eyebrow eyebrow-rule mb-4">{t('cap_eyebrow')}</p>
             <h2 className="t-display-sub mb-8 sm:mb-12 max-w-3xl">{t('cap_title')}</h2>
             <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6">
               {FEATURE_META.map((feature) => (
@@ -165,7 +165,7 @@ export default async function InstitutionalPage({ params }: { params: Promise<{ 
           <div className="layout-container">
             {/* Header section — context untuk seluruh pricing zone */}
             <div className="mb-10 sm:mb-12 max-w-3xl">
-              <p className="t-eyebrow mb-4">{t('pricing_eyebrow')}</p>
+              <p className="t-eyebrow eyebrow-rule mb-4">{t('pricing_eyebrow')}</p>
               <h2 className="t-display-sub mb-4">{t('pricing_title')}</h2>
               <p className="text-foreground/60 leading-relaxed">{t('pricing_subtitle')}</p>
             </div>
@@ -252,7 +252,7 @@ export default async function InstitutionalPage({ params }: { params: Promise<{ 
         {/* Onboarding */}
         <section className="section-padding border-b border-border/60">
           <div className="layout-container">
-            <p className="t-eyebrow mb-4">{t('process_eyebrow')}</p>
+            <p className="t-eyebrow eyebrow-rule mb-4">{t('process_eyebrow')}</p>
             <h2 className="t-display-sub mb-8 sm:mb-12">{t('process_title')}</h2>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-x-4 sm:gap-x-6 gap-y-6 sm:gap-y-8">
               {STEP_META.map((step, i) => (
@@ -274,7 +274,7 @@ export default async function InstitutionalPage({ params }: { params: Promise<{ 
           <div className="layout-container">
             <div className="grid lg:grid-cols-5 gap-y-8 lg:gap-y-12 lg:gap-x-12">
               <div className="lg:col-span-2">
-                <p className="t-eyebrow mb-4">{t('faq_eyebrow')}</p>
+                <p className="t-eyebrow eyebrow-rule mb-4">{t('faq_eyebrow')}</p>
                 <h2 className="t-display-sub">{t('faq_title')}</h2>
               </div>
               <div className="lg:col-span-3 space-y-6 sm:space-y-8">
@@ -295,7 +295,7 @@ export default async function InstitutionalPage({ params }: { params: Promise<{ 
         <section className="section-padding border-b border-border/60">
           <div className="layout-container">
             <div className="mb-8 sm:mb-10 max-w-3xl">
-              <p className="t-eyebrow mb-4">{t('compare_eyebrow')}</p>
+              <p className="t-eyebrow eyebrow-rule mb-4">{t('compare_eyebrow')}</p>
               <h2 className="t-display-sub">{t('compare_title')}</h2>
             </div>
 
@@ -367,7 +367,7 @@ export default async function InstitutionalPage({ params }: { params: Promise<{ 
         {/* CTA */}
         <section className="section-padding">
           <div className="layout-container text-center">
-            <p className="t-eyebrow mb-4">{t('cta_eyebrow')}</p>
+            <p className="t-eyebrow eyebrow-rule mb-4">{t('cta_eyebrow')}</p>
             <h2 className="t-display-sub mb-4">{t('cta_title')}</h2>
             <p className="text-foreground/60 mb-8 max-w-lg mx-auto">
               {t('cta_body')}

@@ -11,7 +11,7 @@ export function StrategiesSection({ t, ts, strategies }: StrategiesSectionProps)
   return (
     <section className="section-padding border-b border-border/60">
       <div className="layout-container">
-        <p className="t-eyebrow mb-3">{t('strat_eyebrow')}</p>
+        <p className="t-eyebrow eyebrow-rule mb-3">{t('strat_eyebrow')}</p>
         <h2 className="t-display-section mb-3 max-w-xl sm:max-w-2xl">{t('strat_title')}</h2>
         <p className="t-body text-foreground/60 max-w-xl sm:max-w-2xl mb-8 sm:mb-12">
           {t('strat_subtitle')}

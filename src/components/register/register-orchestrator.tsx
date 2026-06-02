@@ -115,7 +115,7 @@ export function RegisterOrchestrator({ faqs }: OrchestratorProps) {
           <section className="section-padding border-b border-border/60">
             <div className="layout-container">
               <div className="max-w-3xl mb-10">
-                <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
+                <p className="t-eyebrow eyebrow-rule mb-4">{t('hero_eyebrow')}</p>
                 <h1 className="t-display-page mb-3">{t('title')}</h1>
                 <p className="t-lead text-foreground/60">{t('subtitle')}</p>
               </div>

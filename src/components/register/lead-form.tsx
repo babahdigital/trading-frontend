@@ -82,7 +82,7 @@ export function LeadForm({ service, locale }: LeadFormProps) {
 
   return (
     <>
-      <p className="t-eyebrow mb-4">{t(service.wizard.eyebrowKey)}</p>
+      <p className="t-eyebrow eyebrow-rule mb-4">{t(service.wizard.eyebrowKey)}</p>
       <h1 className="t-display-sub mb-2">{t(service.wizard.titleKey)}</h1>
       <p className="t-lead text-foreground/60 mb-10">{t(service.wizard.subtitleKey)}</p>
 

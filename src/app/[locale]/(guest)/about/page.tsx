@@ -58,7 +58,7 @@ export default async function AboutPage() {
         <section className="section-padding border-b border-border/60 page-stamp-rule">
           <div className="layout-container">
             <div className="hero-section-header">
-              <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
+              <p className="t-eyebrow eyebrow-rule mb-4">{t('hero_eyebrow')}</p>
               <h1 className="t-display-page mb-6">{t('hero_title')}</h1>
               <p className="t-lead text-muted-foreground">
                 {t('hero_subtitle')}
@@ -75,7 +75,7 @@ export default async function AboutPage() {
           <div className="layout-container">
             <div className="grid lg:grid-cols-5 gap-16">
               <div className="lg:col-span-2">
-                <p className="t-eyebrow mb-3">{t('philosophy_eyebrow')}</p>
+                <p className="t-eyebrow eyebrow-rule mb-3">{t('philosophy_eyebrow')}</p>
                 <h2 className="t-display-sub">{t('philosophy_title')}</h2>
               </div>
               <div className="lg:col-span-3 space-y-6 t-body text-foreground/70 leading-relaxed">
@@ -90,7 +90,7 @@ export default async function AboutPage() {
         {/* Principles */}
         <section className="section-padding border-b border-border/60">
           <div className="layout-container">
-            <p className="t-eyebrow mb-3">{t('principles_eyebrow')}</p>
+            <p className="t-eyebrow eyebrow-rule mb-3">{t('principles_eyebrow')}</p>
             <h2 className="t-display-sub mb-12">{t('principles_title')}</h2>
             <div className="grid md:grid-cols-3 gap-8">
               {PRINCIPLE_META.map((p) => (
@@ -106,7 +106,7 @@ export default async function AboutPage() {
         {/* Timeline */}
         <section className="section-padding border-b border-border/60">
           <div className="layout-container">
-            <p className="t-eyebrow mb-3">{t('journey_eyebrow')}</p>
+            <p className="t-eyebrow eyebrow-rule mb-3">{t('journey_eyebrow')}</p>
             <h2 className="t-display-sub mb-12">{t('journey_title')}</h2>
             <div className="hidden md:flex items-start justify-between gap-4">
               {MILESTONE_META.map((milestone, i) => (

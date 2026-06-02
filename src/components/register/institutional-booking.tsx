@@ -26,7 +26,7 @@ export function InstitutionalBooking({ service }: InstitutionalBookingProps) {
 
   return (
     <div className="w-full" style={{ maxWidth: 'min(720px, 100%)' }}>
-      <p className="t-eyebrow mb-4">{t(service.wizard.eyebrowKey)}</p>
+      <p className="t-eyebrow eyebrow-rule mb-4">{t(service.wizard.eyebrowKey)}</p>
       <h1 className="t-display-sub mb-4">{t(service.wizard.titleKey)}</h1>
       <p className="t-lead text-foreground/60 mb-10 max-w-2xl">
         {t(service.wizard.subtitleKey)}{' '}

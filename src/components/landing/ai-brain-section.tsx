@@ -48,7 +48,7 @@ export function AiBrainSection() {
 
       <div className="layout-container relative">
         <div className="max-w-3xl mb-10 sm:mb-12">
-          <p className="t-eyebrow mb-3 inline-flex items-center gap-2 text-amber-600 dark:text-amber-400">
+          <p className="t-eyebrow eyebrow-rule mb-3 inline-flex items-center gap-2 text-amber-600 dark:text-amber-400">
             <Sigma className="h-3.5 w-3.5" strokeWidth={2.25} aria-hidden />
             {t('eyebrow')}
           </p>

@@ -153,7 +153,7 @@ export default function SignalPage() {
         <section className="section-padding border-b border-border/60">
           <div className="layout-container">
             <div className="hero-section-header">
-              <p className="t-eyebrow mb-4">{t('hero_eyebrow')}</p>
+              <p className="t-eyebrow eyebrow-rule mb-4">{t('hero_eyebrow')}</p>
               <h1 className="t-display-page mb-6">
                 {t('hero_title_l1')} {t('hero_title_l2')}
               </h1>
@@ -184,7 +184,7 @@ export default function SignalPage() {
         {/* Pricing — 3-tier card layout */}
         <section className="section-padding border-b border-border/60">
           <div className="layout-container">
-            <p className="t-eyebrow mb-3">{t('pricing_eyebrow')}</p>
+            <p className="t-eyebrow eyebrow-rule mb-3">{t('pricing_eyebrow')}</p>
             <h2 className="t-display-sub mb-4">{t('pricing_title')}</h2>
             <p className="t-body text-foreground/60 mb-10 max-w-2xl">
               {t('pricing_body')}
@@ -239,7 +239,7 @@ export default function SignalPage() {
           <div className="layout-container">
             <div className="grid lg:grid-cols-5 gap-y-8 lg:gap-y-12 lg:gap-x-16">
               <div className="lg:col-span-2">
-                <p className="t-eyebrow mb-3">{t('audience_eyebrow')}</p>
+                <p className="t-eyebrow eyebrow-rule mb-3">{t('audience_eyebrow')}</p>
                 <h2 className="t-display-sub">{t('audience_title')}</h2>
               </div>
               <ul className="lg:col-span-3 space-y-5 t-body text-foreground/70">
@@ -257,7 +257,7 @@ export default function SignalPage() {
         {/* Features grid */}
         <section className="section-padding border-b border-border/60">
           <div className="layout-container">
-            <p className="t-eyebrow mb-3">{t('features_eyebrow')}</p>
+            <p className="t-eyebrow eyebrow-rule mb-3">{t('features_eyebrow')}</p>
             <h2 className="t-display-sub mb-8 sm:mb-12">{t('features_title')}</h2>
             <div className="grid md:grid-cols-2 gap-x-8 lg:gap-x-12 gap-y-8 sm:gap-y-10">
               {FEATURE_META.map((f) => (
@@ -278,7 +278,7 @@ export default function SignalPage() {
         {/* Onboarding */}
         <section className="section-padding border-b border-border/60">
           <div className="layout-container">
-            <p className="t-eyebrow mb-3">{t('onboard_eyebrow')}</p>
+            <p className="t-eyebrow eyebrow-rule mb-3">{t('onboard_eyebrow')}</p>
             <h2 className="t-display-sub mb-8 sm:mb-12">{t('onboard_title')}</h2>
             <div className="grid md:grid-cols-3 gap-6 sm:gap-8">
               {STEP_META.map((step, i) => (
@@ -300,7 +300,7 @@ export default function SignalPage() {
           <div className="layout-container">
             <div className="grid lg:grid-cols-5 gap-y-8 lg:gap-y-12 lg:gap-x-16">
               <div className="lg:col-span-2">
-                <p className="t-eyebrow mb-3">{t('faq_eyebrow')}</p>
+                <p className="t-eyebrow eyebrow-rule mb-3">{t('faq_eyebrow')}</p>
                 <h2 className="t-display-sub">{t('faq_title')}</h2>
               </div>
               <div className="lg:col-span-3 space-y-6 sm:space-y-8">

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ExternalLink, MessageSquareQuote, Plus } from 'lucide-react';
+import { ExternalLink, MessageSquareQuote, Plus, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -108,7 +108,9 @@ export default function CmsTestimonialsPage() {
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-semibold">{item.name}</span>
                   {item.role && <span className="text-sm text-muted-foreground">{item.role}</span>}
-                  <span className="text-amber-500 dark:text-amber-400" aria-label={`Rating ${item.rating} / 5`}>{'★'.repeat(item.rating)}</span>
+                  <span className="inline-flex items-center gap-0.5 text-amber-500 dark:text-amber-400" aria-label={`Rating ${item.rating} / 5`}>
+                    {Array.from({ length: item.rating }).map((_, i) => <Star key={i} className="h-3.5 w-3.5 fill-current" />)}
+                  </span>
                 </div>
                 <div className="flex gap-2">
                   <Button size="sm" variant="outline" onClick={() => crud.startEdit(item)}>{tc('edit')}</Button>

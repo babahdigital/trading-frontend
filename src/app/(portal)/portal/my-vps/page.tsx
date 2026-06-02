@@ -9,7 +9,7 @@ import { EquityCurve } from '@/components/charts/equity-curve';
 import { PnlBarChart } from '@/components/charts/pnl-bar-chart';
 import { SkeletonCard, SkeletonChart, SkeletonTable } from '@/components/ui/skeleton';
 import { useAuth } from '@/lib/auth/auth-context';
-import { Activity, ArrowRight, Clock, Shield, Wifi } from 'lucide-react';
+import { Activity, ArrowRight, ArrowUp, ArrowDown, Clock, Shield, Wifi } from 'lucide-react';
 import { PageHeader } from '@/components/admin/page-header';
 import { EmptyState } from '@/components/admin/empty-state';
 import { StatCard, StatCardGrid } from '@/components/admin/stat-card';
@@ -210,7 +210,7 @@ export default function MyVpsPage() {
           value={status?.equity !== undefined ? formatCurrency(status.equity, 'USD', locale) : '-'}
           sub={status?.equity_change_pct !== undefined ? (
             <span className={cn(status.equity_change_pct >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400')}>
-              {status.equity_change_pct >= 0 ? '▲ ' : '▼ '}{formatPercent(Math.abs(status.equity_change_pct), locale, { decimals: 1 })}
+              {status.equity_change_pct >= 0 ? <ArrowUp className="inline h-3 w-3 mr-0.5" strokeWidth={2.5} /> : <ArrowDown className="inline h-3 w-3 mr-0.5" strokeWidth={2.5} />}{formatPercent(Math.abs(status.equity_change_pct), locale, { decimals: 1 })}
             </span>
           ) : undefined}
         />

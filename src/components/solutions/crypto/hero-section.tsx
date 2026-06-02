@@ -9,7 +9,7 @@ interface HeroSectionProps {
 function Stat({ label, value, sub }: { label: string; value: string; sub: string }) {
   return (
     <div>
-      <div className="t-eyebrow eyebrow-rule mb-1">{label}</div>
+      <div className="t-eyebrow mb-1">{label}</div>
       <div className="text-2xl font-bold text-foreground">{value}</div>
       <div className="text-[11px] text-foreground/50 font-mono mt-0.5">{sub}</div>
     </div>

@@ -174,6 +174,7 @@ export function SymbolSelector({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={t.search}
+              aria-label={t.search}
               className="flex-1 bg-transparent text-sm outline-none"
             />
             {query && (

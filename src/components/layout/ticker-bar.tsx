@@ -23,6 +23,7 @@
  *   - Always reserve 80px right untuk floating menu (chat icon/banner)
  */
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { ArrowUp, ArrowDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface Ticker {
@@ -152,7 +153,7 @@ const TickerItem = memo(function TickerItem({ t }: { t: Ticker }) {
             : 'bg-rose-500/15 text-rose-400',
         )}
       >
-        {isUp ? '▲' : '▼'} {formatPct(t.change24hPct)}
+        {isUp ? <ArrowUp className="inline h-2.5 w-2.5" strokeWidth={3} /> : <ArrowDown className="inline h-2.5 w-2.5" strokeWidth={3} />} {formatPct(t.change24hPct)}
       </span>
       {/* Separator with own padding — tight inter-item rhythm. */}
       <span className="text-foreground/15 ml-0.5" aria-hidden>│</span>

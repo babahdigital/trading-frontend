@@ -51,9 +51,7 @@ Order (each unit: patch → tsc+lint+build → verify): **landing → pricing �
 
 Replace drifted/generic copy with backend-true facts (numbers from live API, never hardcoded). Key corrections:
 
-- **Crypto is spot + futures**, not "futures-only" (free_demo/micro spot; starter+ both). Fix copy + CLAUDE.md note.
-- **Crypto pricing = 6 tiers** (free_demo $0 / micro $4.99 / starter $9 / active $19 / pro $49 / hnwi $199) with real leverage (2/2/3/7/12/20x), slots (1/1/2/3/5/7), risk % (0.5–2.0), notional cap (30–75%). Source = `profiles_tier.py` TIER_CATALOG (no public endpoint — mirror server-side).
-- **Crypto strategies (6):** microstructure_momentum, vwap_oi_reversion, mean_reversion_bb, smart_money_confluence, scalping_momentum_v2, funding_rate_arb. `qm_perfect` removed.
+- **Crypto positioning = KEEP CURATED** (owner decision 2026-06-03): FE intentionally advertises **4 strategies · futures-only · 5 tiers** (canonical: `lib/trading/product-info.ts` + `pricing-format.ts`). Backend has 6 strategies / spot+futures / 6 tiers (+micro $4.99) but that is internal capability — do NOT auto-correct FE copy to it. Crypto enrichment = add honest DETAIL (strategy mechanics, 13-guard, Kelly, kill-switch, Vault) without changing headline counts/prices. (DONE: fixed mega-menu HNWI $99→$199 internal inconsistency.)
 - **Forex AI purge:** `ai_advisor=false` — remove any "AI advisor" trading panel; reframe AI as advisory/content-only (chat, research) everywhere.
 - **Honesty framing:** forex master-tenant = REAL broker equity (live); crypto = PAPER/shadow, go-live gated → label crypto track-record as paper.
 - **Forex `net_pnl_quote` is GROSS of commission/swap** — never label "net of fees."

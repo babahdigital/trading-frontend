@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Languages } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth/auth-context';
 
@@ -46,7 +47,8 @@ export function GenerateEnglishButton({ type, id, onSuccess }: GenerateEnglishBu
         onClick={handleGenerate}
         disabled={loading}
       >
-        {loading ? 'Generating...' : '🌐 Generate English'}
+        <Languages className="h-4 w-4" />
+        {loading ? 'Generating…' : 'Generate English'}
       </Button>
       {result && (
         <span className={`text-xs ${result.startsWith('Error') ? 'text-red-400' : 'text-green-400'}`}>

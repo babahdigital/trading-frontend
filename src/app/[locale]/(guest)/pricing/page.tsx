@@ -248,7 +248,7 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
         <section className="section-padding border-b border-border/60 page-stamp-grid">
           <div className="layout-container relative">
             <div className="hero-section-header hero-section-header--center">
-              <p className="t-eyebrow mb-4">{tp('hero_eyebrow')}</p>
+              <p className="t-eyebrow eyebrow-rule mb-4">{tp('hero_eyebrow')}</p>
               <h1 className="t-display-page mb-4">{t('title')}</h1>
               <p className="t-lead text-muted-foreground">{t('subtitle')}</p>
               <p className="text-xs text-[hsl(var(--primary))] font-mono uppercase tracking-wider mt-6">
@@ -387,7 +387,7 @@ export default async function PricingPage({ params }: { params: Promise<{ locale
         {/* Institutional / B2B */}
         <section className="section-padding border-b border-border/60">
           <div className="layout-container">
-            <p className="t-eyebrow mb-3">{tp('inst_eyebrow')}</p>
+            <p className="t-eyebrow eyebrow-rule mb-3">{tp('inst_eyebrow')}</p>
             <h2 className="t-display-section mb-3 max-w-xl sm:max-w-2xl">{tp('inst_title')}</h2>
             <p className="t-body text-foreground/60 max-w-xl sm:max-w-2xl mb-8 sm:mb-12">
               {tp('inst_subtitle_part1')} <strong>{tp('inst_subtitle_strong')}</strong> {tp('inst_subtitle_part2')}

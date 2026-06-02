@@ -16,6 +16,7 @@ import { mkdir, writeFile } from 'fs/promises';
 import { randomBytes } from 'crypto';
 import path from 'path';
 import { createLogger } from '@/lib/logger';
+import { extractGeminiImageUrl } from '@/lib/ai/gemini-image-parse';
 
 const log = createLogger('ai/promo-image');
 
@@ -174,8 +175,18 @@ async function generateViaOpenRouter(prompt: string, signal?: AbortSignal): Prom
     }
 
     const body = await res.json();
-    const imageUrl = body.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-    if (!imageUrl) return null;
+    // Robust multi-shape extraction (shared with the article generator) —
+    // Gemini frequently returns the image inside content[] rather than the
+    // top-level images[]. Reading only images[] here was the exact cause of
+    // the silent Pollinations fallback on promo images (e.g. Hari Pancasila).
+    const imageUrl = extractGeminiImageUrl(body);
+    if (!imageUrl) {
+      // 2xx but no parseable image part (text-only / refusal / unexpected
+      // shape). Log it so this case is observable instead of vanishing
+      // silently into the free Pollinations fallback.
+      log.warn('OpenRouter 2xx but no parseable image — falling back to Pollinations');
+      return null;
+    }
 
     if (imageUrl.startsWith('data:image/')) {
       const base64 = imageUrl.split(',')[1];

@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { Menu, X, ChevronDown, ArrowRight, BookOpen, Users, FileCheck, ShieldCheck, Scale, Library, FileText, Bitcoin, TrendingUp, Sparkles, LayoutDashboard, LogOut } from 'lucide-react';
+import { Menu, X, ChevronDown, ArrowRight, BookOpen, Users, FileCheck, ShieldCheck, Scale, Library, FileText, Bitcoin, TrendingUp, Sparkles, LayoutDashboard, LogOut, Coins, Gauge, Crown } from 'lucide-react';
 import Image from 'next/image';
 import { STRATEGY_ICONS } from '@/components/icons/strategy-icons';
 import { isAdminRole } from '@/lib/auth/jwt';
@@ -48,11 +48,15 @@ const SOLUTIONS_MENU = {
     { href: '/solutions/license', labelKey: 'forex_license_label', descKey: 'forex_license_desc', icon: BookOpen },
     { href: '/solutions/institutional', labelKey: 'forex_inst_label', descKey: 'forex_inst_desc', icon: Sparkles },
   ],
+  // Icons diversified per item (was 4× Bitcoin — hard to scan). Stale tier
+  // anchors (#basic/#pro/#hnwi did not exist on /solutions/crypto = dead
+  // scroll) repointed to real destinations: tier teasers → /pricing matrix,
+  // HNWI → high-touch contact.
   crypto: [
     { href: '/solutions/crypto', labelKey: 'crypto_overview_label', descKey: 'crypto_overview_desc', icon: Bitcoin },
-    { href: '/solutions/crypto#basic', labelKey: 'crypto_basic_label', descKey: 'crypto_basic_desc', icon: Bitcoin },
-    { href: '/solutions/crypto#pro', labelKey: 'crypto_pro_label', descKey: 'crypto_pro_desc', icon: Bitcoin },
-    { href: '/solutions/crypto#hnwi', labelKey: 'crypto_hnwi_label', descKey: 'crypto_hnwi_desc', icon: Bitcoin },
+    { href: '/pricing', labelKey: 'crypto_basic_label', descKey: 'crypto_basic_desc', icon: Coins },
+    { href: '/pricing', labelKey: 'crypto_pro_label', descKey: 'crypto_pro_desc', icon: Gauge },
+    { href: '/contact?subject=crypto-hnwi', labelKey: 'crypto_hnwi_label', descKey: 'crypto_hnwi_desc', icon: Crown },
   ],
   register: [
     { href: '/demo', labelKey: 'register_demo_label', descKey: 'register_demo_desc' },

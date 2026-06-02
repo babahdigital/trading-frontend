@@ -689,7 +689,7 @@
     "ladder_inst_cta": "Lihat Institutional",
     "ladder_crypto_name": "Robot Crypto",
     "ladder_crypto_modal": "Binance API",
-    "ladder_crypto_desc": "5 tier $9-$99/bulan. Bot auto-trading Binance USDT-M Futures. Anda pegang API key (Read+Trade only, Withdraw disabled). Modal tetap di Binance Anda.",
+    "ladder_crypto_desc": "5 tier $9-$199/bulan. Bot auto-trading Binance USDT-M Futures. Anda pegang API key (Read+Trade only, Withdraw disabled). Modal tetap di Binance Anda.",
     "ladder_crypto_cta": "Lihat Robot Crypto",
     "demo_name": "Demo Gratis (3 jalur)",
     "demo_price": "Gratis selama beta",
@@ -701,7 +701,7 @@
     "meta_cta": "Lihat Robot Meta",
     "crypto_name": "Robot Crypto · Binance",
     "crypto_price": "Mulai $9/bulan flat",
-    "crypto_audience": "Bot auto-trading Binance USDT-M Futures dengan 4 strategi institusional. 5 tier ($9–$99/bulan) — flat monthly tanpa profit share. Customer pegang API key (Read + Trade only, Withdraw disabled).",
+    "crypto_audience": "Bot auto-trading Binance USDT-M Futures dengan 4 strategi institusional. 5 tier ($9–$199/bulan) — flat monthly tanpa profit share. Customer pegang API key (Read + Trade only, Withdraw disabled).",
     "crypto_cta": "Lihat Robot Crypto",
     "license_name": "Software License + Setup Service",
     "license_price": "Software License mulai Rp 5 juta (license + setup) — VPS terpisah",
@@ -756,8 +756,8 @@
     "rec_retail_product": "Robot Meta Retail (SaaS)",
     "rec_inst_product": "Institutional Engagement",
     "rec_vps_product": "VPS License",
-    "rec_crypto_reason": "Anda fokus di crypto Binance. Robot Crypto punya 5 tier USDT-M Futures ($9–$99/bulan) — pilih sesuai jumlah slot posisi dan leverage yang dibutuhkan. Anda pegang API key (Withdraw disabled), modal tetap di Binance Anda.",
-    "rec_crypto_setup": "Setup: Rp 0 · Bulanan: $9 – $99 · API key dengan Withdraw disabled"
+    "rec_crypto_reason": "Anda fokus di crypto Binance. Robot Crypto punya 5 tier USDT-M Futures ($9–$199/bulan) — pilih sesuai jumlah slot posisi dan leverage yang dibutuhkan. Anda pegang API key (Withdraw disabled), modal tetap di Binance Anda.",
+    "rec_crypto_setup": "Setup: Rp 0 · Bulanan: $9 – $199 · API key dengan Withdraw disabled"
   },
   "features": {
     "title": "Fitur Unggulan",
@@ -2057,7 +2057,7 @@
     "fallback_packages": {
       "signal_price": "Rp 600rb — Rp 4,9 juta / bulan",
       "vps_price": "Rp 5 juta — Rp 25 juta setup",
-      "crypto_price": "$9 — $99 / bulan",
+      "crypto_price": "$9 — $199 / bulan",
       "institutional_price": "Custom — usage-based",
       "institutional_feature_1": "API access kustom (Forex + Crypto + Riset)",
       "institutional_feature_2": "Service Agreement B2B + NDA",
@@ -3333,7 +3333,7 @@
         "tier_pro_price": "$49 / bln",
         "tier_pro_features": "5 slot · 12x leverage · semua strategi",
         "tier_hnwi_label": "Crypto HNWI",
-        "tier_hnwi_price": "$99 / bln",
+        "tier_hnwi_price": "$199 / bln",
         "tier_hnwi_features": "7 slot · 20x leverage · semua strategi + SLA",
         "cta_pricing": "Lihat Paket Lengkap",
         "cta_consult": "Konsultasi Gratis",

@@ -689,7 +689,7 @@
     "ladder_inst_cta": "See Institutional",
     "ladder_crypto_name": "Robot Crypto",
     "ladder_crypto_modal": "Binance API",
-    "ladder_crypto_desc": "5 tiers $9-$99/month. Bot auto-trading on Binance USDT-M Futures. You hold the API key (Read+Trade only, Withdraw disabled). Capital stays on Binance.",
+    "ladder_crypto_desc": "5 tiers $9-$199/month. Bot auto-trading on Binance USDT-M Futures. You hold the API key (Read+Trade only, Withdraw disabled). Capital stays on Binance.",
     "ladder_crypto_cta": "See Robot Crypto",
     "demo_name": "Free Demo (3 paths)",
     "demo_price": "Free during beta",
@@ -701,7 +701,7 @@
     "meta_cta": "See Robot Meta",
     "crypto_name": "Robot Crypto · Binance",
     "crypto_price": "From $9/month flat",
-    "crypto_audience": "Auto-trading bot on Binance USDT-M Futures with 4 institutional strategies. 5 tiers ($9-$99/mo) — flat monthly, no profit share. Customer holds the API key (Read + Trade only, Withdraw disabled).",
+    "crypto_audience": "Auto-trading bot on Binance USDT-M Futures with 4 institutional strategies. 5 tiers ($9-$199/mo) — flat monthly, no profit share. Customer holds the API key (Read + Trade only, Withdraw disabled).",
     "crypto_cta": "See Robot Crypto",
     "license_name": "Software License + Setup Service",
     "license_price": "Software License from $320 (license + setup) — VPS sold separately",
@@ -756,8 +756,8 @@
     "rec_retail_product": "Meta Retail Robot (SaaS)",
     "rec_inst_product": "Institutional Engagement",
     "rec_vps_product": "VPS License",
-    "rec_crypto_reason": "You focus on Binance crypto. Robot Crypto has 5 USDT-M Futures tiers ($9-99/month) — pick based on position slots and leverage needed. You hold the API key (Withdraw disabled), capital stays on Binance.",
-    "rec_crypto_setup": "Setup: $0 · Monthly: $9 – $99 · API key with Withdraw disabled"
+    "rec_crypto_reason": "You focus on Binance crypto. Robot Crypto has 5 USDT-M Futures tiers ($9-199/month) — pick based on position slots and leverage needed. You hold the API key (Withdraw disabled), capital stays on Binance.",
+    "rec_crypto_setup": "Setup: $0 · Monthly: $9 – $199 · API key with Withdraw disabled"
   },
   "features": {
     "title": "Key Features",
@@ -1736,7 +1736,7 @@
     "fallback_packages": {
       "signal_price": "$39 — $299 / mo",
       "vps_price": "$320 — $1,600 setup",
-      "crypto_price": "$9 — $99 / mo",
+      "crypto_price": "$9 — $199 / mo",
       "institutional_price": "Custom — usage-based",
       "institutional_feature_1": "Custom API access (Forex + Crypto + Research)",
       "institutional_feature_2": "B2B Service Agreement + NDA",
@@ -3313,7 +3313,7 @@
         "tier_pro_price": "$49 / mo",
         "tier_pro_features": "5 slots · 12x leverage · all strategies",
         "tier_hnwi_label": "Crypto HNWI",
-        "tier_hnwi_price": "$99 / mo",
+        "tier_hnwi_price": "$199 / mo",
         "tier_hnwi_features": "7 slots · 20x leverage · all strategies + SLA",
         "cta_pricing": "View Full Plans",
         "cta_consult": "Free Consultation",
